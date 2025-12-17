@@ -20,6 +20,8 @@ export default function LeadUploadForm() {
   const [pincode, setPincode] = useState('');
   const [state, setState] = useState('');
   const [district, setDistrict] = useState('');
+  const [headcount, setHeadcount] = useState('');
+  const [selectedModule, setSelectedModule] = useState('');
 
   const handlePincodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newPincode = e.target.value;
@@ -32,6 +34,20 @@ export default function LeadUploadForm() {
     } else {
       setState('');
       setDistrict('');
+    }
+  };
+
+  const handleHeadcountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newHeadcount = e.target.value;
+    setHeadcount(newHeadcount);
+
+    const count = parseInt(newHeadcount, 10);
+    if (count === 100) {
+      setSelectedModule('ar');
+    } else if (count >= 200) {
+      setSelectedModule('all-hrms');
+    } else {
+      setSelectedModule('');
     }
   };
 
@@ -83,15 +99,17 @@ export default function LeadUploadForm() {
         </div>
         <div className="space-y-2">
           <Label htmlFor="company-headcount">Company headcount</Label>
-          <Input id="company-headcount" />
+          <Input id="company-headcount" value={headcount} onChange={handleHeadcountChange} />
         </div>
         <div className="space-y-2">
           <Label htmlFor="modules">Modules</Label>
-          <Select>
+          <Select value={selectedModule} onValueChange={setSelectedModule}>
             <SelectTrigger id="modules">
               <SelectValue placeholder="Select Modules..." />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="ar">AR</SelectItem>
+              <SelectItem value="all-hrms">All HRMS</SelectItem>
               <SelectItem value="module1">Module 1</SelectItem>
               <SelectItem value="module2">Module 2</SelectItem>
               <SelectItem value="module3">Module 3</SelectItem>
