@@ -1,3 +1,40 @@
-export default function Home() {
-  return <></>;
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import LeadVolumeChart from '@/components/dashboard/lead-volume-chart';
+import AiAnalysis from '@/components/dashboard/ai-analysis';
+import { getLeadsForToday } from '@/lib/data';
+
+export default function DashboardPage() {
+  const totalLeadsToday = getLeadsForToday();
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col">
+        <h1 className="text-2xl font-bold tracking-tight font-headline">
+          WELCOME ATHMIYA!
+        </h1>
+        <p className="text-muted-foreground">
+          Here is your lead generation overview for today.
+        </p>
+      </div>
+      <div className="grid grid-cols-1 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Total number of leads generated today!!</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-4xl font-bold text-primary">{totalLeadsToday}</p>
+            <CardDescription>Total number of Leads: {totalLeadsToday}</CardDescription>
+          </CardContent>
+        </Card>
+      </div>
+      <LeadVolumeChart />
+      <AiAnalysis />
+    </div>
+  );
 }
