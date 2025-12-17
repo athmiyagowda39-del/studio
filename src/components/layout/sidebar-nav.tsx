@@ -25,8 +25,7 @@ const links = [
 export default function SidebarNav() {
   const pathname = usePathname();
 
-  // For this demo, only dashboard is active.
-  const isActive = (href: string) => href === '/dashboard';
+  const isActive = (href: string) => pathname === href || (href === "/dashboard" && pathname === "/");
 
   return (
     <SidebarMenu>
@@ -36,8 +35,8 @@ export default function SidebarNav() {
             asChild
             isActive={isActive(link.href)}
             // For this demo, other links are disabled
-            disabled={link.href !== '/dashboard'}
-            aria-disabled={link.href !== '/dashboard'}
+            disabled={link.href !== '/dashboard' && link.href !== '/leads-upload'}
+            aria-disabled={link.href !== '/dashboard' && link.href !== '/leads-upload'}
             tooltip={link.label}
           >
             <a href={link.href}>
