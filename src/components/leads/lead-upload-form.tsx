@@ -42,10 +42,14 @@ export default function LeadUploadForm() {
     setHeadcount(newHeadcount);
 
     const count = parseInt(newHeadcount, 10);
-    if (count === 100) {
-      setSelectedModule('ar');
-    } else if (count >= 200) {
-      setSelectedModule('all-hrms');
+    if (!isNaN(count)) {
+      if (count >= 100 && count < 200) {
+        setSelectedModule('ar');
+      } else if (count >= 200) {
+        setSelectedModule('all-hrms');
+      } else {
+        setSelectedModule('');
+      }
     } else {
       setSelectedModule('');
     }
