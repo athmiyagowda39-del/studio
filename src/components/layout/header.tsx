@@ -1,17 +1,18 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Bell, Search } from 'lucide-react';
 import Image from 'next/image';
 
 export default function Header() {
   const userAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
+  const pathname = usePathname();
+  const showLoginDetails = pathname !== '/leads-upload';
 
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
@@ -43,12 +44,14 @@ export default function Header() {
             )}
             <AvatarFallback>A</AvatarFallback>
           </Avatar>
-          <div className="hidden flex-col text-sm md:flex">
-            <span className="font-medium">Logged in as: ATHMIYA</span>
-            <span className="text-xs text-muted-foreground">
-              Type: SUB ADMIN | Last Login: 15-11-2025
-            </span>
-          </div>
+          {showLoginDetails && (
+            <div className="hidden flex-col text-sm md:flex">
+              <span className="font-medium">Logged in as: ATHMIYA</span>
+              <span className="text-xs text-muted-foreground">
+                Type: SUB ADMIN | Last Login: 15-11-2025
+              </span>
+            </div>
+          )}
         </div>
       </div>
     </header>
