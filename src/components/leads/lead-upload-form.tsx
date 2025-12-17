@@ -13,7 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { UploadCloud } from 'lucide-react';
 import { Card, CardContent } from '../ui/card';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { pincodeData } from '@/lib/pincodes';
 
 export default function LeadUploadForm() {
@@ -22,6 +22,7 @@ export default function LeadUploadForm() {
   const [district, setDistrict] = useState('');
   const [headcount, setHeadcount] = useState('');
   const [selectedModule, setSelectedModule] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handlePincodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newPincode = e.target.value;
@@ -53,6 +54,10 @@ export default function LeadUploadForm() {
     } else {
       setSelectedModule('');
     }
+  };
+
+  const handleBrowseFileClick = () => {
+    fileInputRef.current?.click();
   };
 
   return (
@@ -140,7 +145,8 @@ export default function LeadUploadForm() {
                     <UploadCloud className="h-12 w-12 text-muted-foreground" />
                     <p className="font-semibold">Drag & Drop Excel/CSV file</p>
                     <p className="text-sm text-muted-foreground">or</p>
-                    <Button variant="outline" size="sm">Browse File</Button>
+                    <Button variant="outline" size="sm" onClick={handleBrowseFileClick}>Browse File</Button>
+                    <Input ref={fileInputRef} type="file" className="hidden" />
                 </div>
             </CardContent>
         </Card>
