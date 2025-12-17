@@ -51,12 +51,9 @@ export default function LeadVolumeChart() {
   );
 
   const cities = useMemo(() => {
-    if (selectedState === 'All') {
-      const allCities = Object.values(indianStatesAndDistricts).flat();
-      return ['All', ...Array.from(new Set(allCities))];
-    }
-    return ['All', ...(indianStatesAndDistricts[selectedState] || [])];
-  }, [selectedState]);
+    const allCities = Object.values(indianStatesAndDistricts).flat();
+    return ['All', ...Array.from(new Set(allCities))];
+  }, []);
 
   const filteredData = useMemo(() => {
     let data = allLeads;
@@ -125,9 +122,11 @@ export default function LeadVolumeChart() {
                           key={state}
                           value={state}
                           onSelect={(currentValue) => {
-                            const newValue = currentValue === selectedState ? 'All' : currentValue;
+                            const newValue = currentValue.toLowerCase() === selectedState.toLowerCase() ? 'All' : currentValue;
                             setSelectedState(newValue === 'all' ? 'All' : newValue.charAt(0).toUpperCase() + newValue.slice(1));
-                            setSelectedCity('All');
+                            if (newValue === 'All') {
+                              setSelectedCity('All');
+                            }
                             setStateOpen(false);
                           }}
                         >
@@ -155,7 +154,6 @@ export default function LeadVolumeChart() {
                   role="combobox"
                   aria-expanded={cityOpen}
                   className="w-[200px] justify-between"
-                  disabled={selectedState === 'All'}
                 >
                   {selectedCity}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -172,7 +170,7 @@ export default function LeadVolumeChart() {
                         key={city}
                         value={city}
                         onSelect={(currentValue) => {
-                          const newValue = currentValue === selectedCity ? 'All' : currentValue;
+                          const newValue = currentValue.toLowerCase() === selectedCity.toLowerCase() ? 'All' : currentValue;
                           setSelectedCity(newValue === 'all' ? 'All' : newValue.charAt(0).toUpperCase() + newValue.slice(1));
                           setCityOpen(false);
                         }}
