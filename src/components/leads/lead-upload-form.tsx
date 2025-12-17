@@ -119,9 +119,6 @@ export default function LeadUploadForm() {
               <SelectItem value="module3">Module 3</SelectItem>
             </SelectContent>
           </Select>
-          <p className="text-xs text-muted-foreground">
-            [ Auto selected modules based on the company size selection ]
-          </p>
         </div>
         <div className="col-span-2 flex items-center justify-between">
            <div className="flex items-center space-x-2">
