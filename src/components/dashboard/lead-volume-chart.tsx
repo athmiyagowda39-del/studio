@@ -3,7 +3,6 @@
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -19,7 +18,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis, Legend } from 'recharts';
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 import { useMemo, useState } from 'react';
 import { getLeadData, indianStatesAndDistricts } from '@/lib/data';
 import { Label } from '../ui/label';
@@ -51,9 +50,12 @@ export default function LeadVolumeChart() {
   );
 
   const cities = useMemo(() => {
+    if (selectedState !== 'All' && indianStatesAndDistricts[selectedState]) {
+      return ['All', ...indianStatesAndDistricts[selectedState]];
+    }
     const allCities = Object.values(indianStatesAndDistricts).flat();
     return ['All', ...Array.from(new Set(allCities))];
-  }, []);
+  }, [selectedState]);
 
   const filteredData = useMemo(() => {
     let data = allLeads;
@@ -124,9 +126,7 @@ export default function LeadVolumeChart() {
                           onSelect={(currentValue) => {
                             const newValue = currentValue.toLowerCase() === selectedState.toLowerCase() ? 'All' : currentValue;
                             setSelectedState(newValue === 'all' ? 'All' : newValue.charAt(0).toUpperCase() + newValue.slice(1));
-                            if (newValue === 'All') {
-                              setSelectedCity('All');
-                            }
+                            setSelectedCity('All');
                             setStateOpen(false);
                           }}
                         >
@@ -154,6 +154,7 @@ export default function LeadVolumeChart() {
                   role="combobox"
                   aria-expanded={cityOpen}
                   className="w-[200px] justify-between"
+                  disabled={selectedState === 'All'}
                 >
                   {selectedCity}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
