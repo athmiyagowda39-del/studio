@@ -21,8 +21,13 @@ import {
 } from '@/components/ui/chart';
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis, Legend } from 'recharts';
 import { useMemo, useState } from 'react';
-import { getLeadData } from '@/lib/data';
+import { getLeadData, indianStatesAndDistricts } from '@/lib/data';
 import { Label } from '../ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
+import { Check, ChevronsUpDown } from 'lucide-react';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { cn } from '@/lib/utils';
 
 const chartConfig = {
   leads: {
@@ -37,26 +42,21 @@ export default function LeadVolumeChart() {
   const [selectedState, setSelectedState] = useState('All');
   const [selectedCity, setSelectedCity] = useState('All');
 
+  const [stateOpen, setStateOpen] = useState(false);
+  const [cityOpen, setCityOpen] = useState(false);
+
   const states = useMemo(
-    () => ['All', ...Array.from(new Set(allLeads.map((lead) => lead.state)))],
-    [allLeads]
+    () => ['All', ...Object.keys(indianStatesAndDistricts)],
+    []
   );
-  const cities = useMemo(
-    () => [
-      'All',
-      ...Array.from(
-        new Set(
-          allLeads
-            .filter(
-              (lead) =>
-                selectedState === 'All' || lead.state === selectedState
-            )
-            .map((lead) => lead.city)
-        )
-      ),
-    ],
-    [allLeads, selectedState]
-  );
+
+  const cities = useMemo(() => {
+    if (selectedState === 'All') {
+      const allCities = Object.values(indianStatesAndDistricts).flat();
+      return ['All', ...Array.from(new Set(allCities))];
+    }
+    return ['All', ...(indianStatesAndDistricts[selectedState] || [])];
+  }, [selectedState]);
 
   const filteredData = useMemo(() => {
     let data = allLeads;
@@ -102,36 +102,95 @@ export default function LeadVolumeChart() {
           </div>
           <div className="flex items-center gap-2">
             <Label htmlFor="state">State:</Label>
-            <Select value={selectedState} onValueChange={(value) => {
-              setSelectedState(value)
-              setSelectedCity('All')
-            }}>
-              <SelectTrigger id="state" className="w-[180px]">
-                <SelectValue placeholder="State" />
-              </SelectTrigger>
-              <SelectContent>
-                {states.map((state) => (
-                  <SelectItem key={state} value={state}>
-                    {state}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Popover open={stateOpen} onOpenChange={setStateOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={stateOpen}
+                  className="w-[200px] justify-between"
+                >
+                  {selectedState}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[200px] p-0">
+                <Command>
+                  <CommandInput placeholder="Search state..." />
+                  <CommandEmpty>No state found.</CommandEmpty>
+                  <CommandList>
+                    <CommandGroup>
+                      {states.map((state) => (
+                        <CommandItem
+                          key={state}
+                          value={state}
+                          onSelect={(currentValue) => {
+                            const newValue = currentValue === selectedState ? 'All' : currentValue;
+                            setSelectedState(newValue === 'all' ? 'All' : newValue.charAt(0).toUpperCase() + newValue.slice(1));
+                            setSelectedCity('All');
+                            setStateOpen(false);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              selectedState.toLowerCase() === state.toLowerCase() ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          {state}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
           <div className="flex items-center gap-2">
             <Label htmlFor="city">City:</Label>
-            <Select value={selectedCity} onValueChange={setSelectedCity} disabled={selectedState === 'All'}>
-              <SelectTrigger id="city" className="w-[180px]">
-                <SelectValue placeholder="City" />
-              </SelectTrigger>
-              <SelectContent>
-                {cities.map((city) => (
-                  <SelectItem key={city} value={city}>
-                    {city}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+             <Popover open={cityOpen} onOpenChange={setCityOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={cityOpen}
+                  className="w-[200px] justify-between"
+                  disabled={selectedState === 'All'}
+                >
+                  {selectedCity}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[200px] p-0">
+                <Command>
+                  <CommandInput placeholder="Search city..." />
+                  <CommandEmpty>No city found.</CommandEmpty>
+                  <CommandList>
+                  <CommandGroup>
+                    {cities.map((city) => (
+                      <CommandItem
+                        key={city}
+                        value={city}
+                        onSelect={(currentValue) => {
+                          const newValue = currentValue === selectedCity ? 'All' : currentValue;
+                          setSelectedCity(newValue === 'all' ? 'All' : newValue.charAt(0).toUpperCase() + newValue.slice(1));
+                          setCityOpen(false);
+                        }}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            selectedCity.toLowerCase() === city.toLowerCase() ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        {city}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
       </CardHeader>
