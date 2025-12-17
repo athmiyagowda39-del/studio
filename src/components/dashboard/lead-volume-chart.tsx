@@ -50,12 +50,9 @@ export default function LeadVolumeChart() {
   );
 
   const cities = useMemo(() => {
-    if (selectedState !== 'All' && indianStatesAndDistricts[selectedState]) {
-      return ['All', ...indianStatesAndDistricts[selectedState]];
-    }
     const allCities = Object.values(indianStatesAndDistricts).flat();
     return ['All', ...Array.from(new Set(allCities))];
-  }, [selectedState]);
+  }, []);
 
   const filteredData = useMemo(() => {
     let data = allLeads;
@@ -154,7 +151,6 @@ export default function LeadVolumeChart() {
                   role="combobox"
                   aria-expanded={cityOpen}
                   className="w-[200px] justify-between"
-                  disabled={selectedState === 'All'}
                 >
                   {selectedCity}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
