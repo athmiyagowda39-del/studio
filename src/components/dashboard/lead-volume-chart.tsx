@@ -68,7 +68,7 @@ export default function LeadVolumeChart() {
 
     // Aggregate data by day
     const aggregated = data.reduce((acc, lead) => {
-      const day = new Date(lead.date).getDate().toString().padStart(2, '0');
+      const day = new Date(lead.date).getDate().toString();
       if (!acc[day]) {
         acc[day] = { day, leads: 0 };
       }
@@ -115,7 +115,7 @@ export default function LeadVolumeChart() {
                 ))}
               </SelectContent>
             </Select>
-            <Select value={selectedCity} onValueChange={setSelectedCity}>
+            <Select value={selectedCity} onValueChange={setSelectedCity} disabled={selectedState === 'All'}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="City" />
               </SelectTrigger>
@@ -139,7 +139,8 @@ export default function LeadVolumeChart() {
               tickLine={false}
               tickMargin={10}
               axisLine={false}
-              tickFormatter={(value) => value}
+              tickFormatter={(value) => value.padStart(2, '0')}
+              interval={0}
             />
              <YAxis
               tickLine={false}

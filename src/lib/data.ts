@@ -10,6 +10,7 @@ const states = [
   { name: 'Texas', cities: ['Houston', 'Austin', 'Dallas'] },
   { name: 'Florida', cities: ['Miami', 'Orlando', 'Tampa'] },
   { name: 'New York', cities: ['New York City', 'Buffalo'] },
+  { name: 'Karnataka', cities: ['Bengaluru', 'Mysuru', 'Mangaluru', 'Hubballi'] },
 ];
 
 let cachedLeadData: Lead[] | null = null;
