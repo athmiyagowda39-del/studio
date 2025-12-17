@@ -19,9 +19,10 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis, Legend } from 'recharts';
 import { useMemo, useState } from 'react';
 import { getLeadData } from '@/lib/data';
+import { Label } from '../ui/label';
 
 const chartConfig = {
   leads: {
@@ -82,16 +83,14 @@ export default function LeadVolumeChart() {
   return (
     <Card>
       <CardHeader>
-        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-          <div className="flex flex-col gap-1">
-            <CardTitle>Lead Volume Analysis</CardTitle>
-            <CardDescription>
-              A visual representation of lead volume over time.
-            </CardDescription>
-          </div>
+        <div className="text-center mb-4">
+          <CardTitle>Lead volume Analysis</CardTitle>
+        </div>
+        <div className="flex justify-center items-center gap-4">
           <div className="flex items-center gap-2">
+            <Label htmlFor="period">Period:</Label>
             <Select value={period} onValueChange={setPeriod}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger id="period" className="w-[180px]">
                 <SelectValue placeholder="Period" />
               </SelectTrigger>
               <SelectContent>
@@ -100,11 +99,14 @@ export default function LeadVolumeChart() {
                 <SelectItem value="This year" disabled>This year</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+          <div className="flex items-center gap-2">
+            <Label htmlFor="state">State:</Label>
             <Select value={selectedState} onValueChange={(value) => {
               setSelectedState(value)
               setSelectedCity('All')
             }}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger id="state" className="w-[180px]">
                 <SelectValue placeholder="State" />
               </SelectTrigger>
               <SelectContent>
@@ -115,8 +117,11 @@ export default function LeadVolumeChart() {
                 ))}
               </SelectContent>
             </Select>
+          </div>
+          <div className="flex items-center gap-2">
+            <Label htmlFor="city">City:</Label>
             <Select value={selectedCity} onValueChange={setSelectedCity} disabled={selectedState === 'All'}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger id="city" className="w-[180px]">
                 <SelectValue placeholder="City" />
               </SelectTrigger>
               <SelectContent>
@@ -132,7 +137,7 @@ export default function LeadVolumeChart() {
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="h-[300px] w-full">
-          <BarChart data={filteredData} accessibilityLayer>
+          <AreaChart data={filteredData} accessibilityLayer margin={{ left: 10, right: 10 }}>
             <CartesianGrid vertical={false} />
             <XAxis
               dataKey="day"
@@ -142,15 +147,37 @@ export default function LeadVolumeChart() {
               tickFormatter={(value) => value.padStart(2, '0')}
               interval={0}
             />
-             <YAxis
+            <YAxis
               tickLine={false}
               axisLine={false}
               tickMargin={10}
-              domain={[0, 'dataMax + 20']}
+              domain={[0, 150]}
+              ticks={[0, 50, 100, 150]}
+              label={{ value: 'Total number leads', angle: -90, position: 'insideLeft', offset: 0, style: { textAnchor: 'middle' } }}
             />
             <ChartTooltip content={<ChartTooltipContent />} />
-            <Bar dataKey="leads" fill="var(--color-leads)" radius={4} />
-          </BarChart>
+            <defs>
+                <linearGradient id="fillLeads" x1="0" y1="0" x2="0" y2="1">
+                <stop
+                    offset="5%"
+                    stopColor="hsl(var(--primary))"
+                    stopOpacity={0.8}
+                />
+                <stop
+                    offset="95%"
+                    stopColor="hsl(var(--primary))"
+                    stopOpacity={0.1}
+                />
+                </linearGradient>
+            </defs>
+            <Area
+              dataKey="leads"
+              type="natural"
+              fill="url(#fillLeads)"
+              stroke="hsl(var(--primary))"
+              stackId="a"
+            />
+          </AreaChart>
         </ChartContainer>
       </CardContent>
     </Card>
