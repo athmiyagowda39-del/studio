@@ -6,7 +6,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import LeadVolumeChart from '@/components/dashboard/lead-volume-chart';
-import AiAnalysis from '@/components/dashboard/ai-analysis';
 import { getLeadsForToday } from '@/lib/data';
 
 export default function DashboardPage() {
@@ -34,7 +33,6 @@ export default function DashboardPage() {
         </Card>
       </div>
       <LeadVolumeChart />
-      <AiAnalysis />
     </div>
   );
 }
