@@ -13,24 +13,44 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { UploadCloud } from 'lucide-react';
 import { Card, CardContent } from '../ui/card';
+import { useState } from 'react';
+import { pincodeData } from '@/lib/pincodes';
 
 export default function LeadUploadForm() {
+  const [pincode, setPincode] = useState('');
+  const [state, setState] = useState('');
+  const [district, setDistrict] = useState('');
+
+  const handlePincodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newPincode = e.target.value;
+    setPincode(newPincode);
+
+    const location = pincodeData[newPincode];
+    if (location) {
+      setState(location.state);
+      setDistrict(location.district);
+    } else {
+      setState('');
+      setDistrict('');
+    }
+  };
+
   return (
     <div className="space-y-6">
       <p className="font-semibold">Provide the new Lead detail</p>
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="pincode">Pin code</Label>
-          <Input id="pincode" />
+          <Input id="pincode" value={pincode} onChange={handlePincodeChange} />
         </div>
         <div></div>
         <div className="space-y-2">
           <Label htmlFor="state">State</Label>
-          <Input id="state" placeholder="Auto fill based on pin code" />
+          <Input id="state" placeholder="Auto fill based on pin code" value={state} readOnly />
         </div>
         <div className="space-y-2">
           <Label htmlFor="district">District</Label>
-          <Input id="district" placeholder="Auto fill based on pin code" />
+          <Input id="district" placeholder="Auto fill based on pin code" value={district} readOnly />
         </div>
         <div className="col-span-2 space-y-2">
           <Label htmlFor="address">Address</Label>
