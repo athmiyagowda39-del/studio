@@ -35,9 +35,14 @@ const chartConfig = {
   },
 };
 
+const months = [
+  'January', 'February', 'March', 'April', 'May', 'June', 
+  'July', 'August', 'September', 'October', 'November', 'December'
+];
+
 export default function LeadVolumeChart() {
   const allLeads = useMemo(() => getLeadData(), []);
-  const [period, setPeriod] = useState('This month');
+  const [period, setPeriod] = useState('November'); // Default to November as per data
   const [selectedState, setSelectedState] = useState('All');
   const [selectedCity, setSelectedCity] = useState('All');
 
@@ -55,7 +60,13 @@ export default function LeadVolumeChart() {
   }, []);
 
   const filteredData = useMemo(() => {
-    let data = allLeads;
+    const selectedMonthIndex = months.indexOf(period);
+    
+    let data = allLeads.filter(lead => {
+      const leadMonth = new Date(lead.date).getMonth();
+      return leadMonth === selectedMonthIndex;
+    });
+
     if (selectedState !== 'All') {
       data = data.filter((lead) => lead.state === selectedState);
     }
@@ -74,7 +85,7 @@ export default function LeadVolumeChart() {
     }, {} as { [key: string]: { day: string; leads: number } });
     
     return Object.values(aggregated).sort((a,b) => parseInt(a.day) - parseInt(b.day));
-  }, [allLeads, selectedState, selectedCity]);
+  }, [allLeads, period, selectedState, selectedCity]);
 
   return (
     <Card>
@@ -90,9 +101,9 @@ export default function LeadVolumeChart() {
                 <SelectValue placeholder="Period" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="This month">This month</SelectItem>
-                <SelectItem value="Last 3 months" disabled>Last 3 months</SelectItem>
-                <SelectItem value="This year" disabled>This year</SelectItem>
+                {months.map(month => (
+                  <SelectItem key={month} value={month}>{month}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
