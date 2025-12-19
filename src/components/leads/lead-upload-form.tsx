@@ -28,7 +28,7 @@ import { useToast } from '@/hooks/use-toast';
 
 type ParsedData = (string | number)[][];
 
-type LeadFormData = {
+export type LeadFormData = {
   pincode: string;
   state: string;
   district: string;
@@ -44,14 +44,13 @@ type LeadFormData = {
   toDealer: boolean;
 };
 
-const initialFormState: LeadFormData = {
+const initialFormState: Omit<LeadFormData, 'leadId'> = {
     pincode: '',
     state: '',
     district: '',
     address: '',
     contactPerson: '',
     contactNumber: '',
-    leadId: '',
     reference: '',
     email: '',
     company: '',
@@ -62,7 +61,7 @@ const initialFormState: LeadFormData = {
 
 
 export default function LeadUploadForm() {
-  const [formData, setFormData] = useState<LeadFormData>(initialFormState);
+  const [formData, setFormData] = useState<Omit<LeadFormData, 'leadId'>>(initialFormState);
   const [addedLeads, setAddedLeads] = useState<LeadFormData[]>([]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -115,7 +114,7 @@ export default function LeadUploadForm() {
   }
 
   const handleCheckboxChange = (checked: boolean) => {
-    setFormData(prev => ({...prev, toDealer: checked}));
+    setFormData(prev => ({...prev, toDealer: checked as boolean}));
   }
 
   const resetForm = () => {
@@ -131,7 +130,7 @@ export default function LeadUploadForm() {
     });
   };
 
-  const validateLead = (lead: LeadFormData) => {
+  const validateLead = (lead: Omit<LeadFormData, 'leadId'>) => {
     if (!lead.pincode || !lead.contactPerson || !lead.contactNumber || !lead.address) {
       toast({
         variant: 'destructive',
@@ -163,6 +162,22 @@ export default function LeadUploadForm() {
     });
   };
 
+  const saveLeadsToLocalStorage = (leads: LeadFormData[]) => {
+    try {
+      const existingLeadsJson = localStorage.getItem('uploadedLeads');
+      const existingLeads: LeadFormData[] = existingLeadsJson ? JSON.parse(existingLeadsJson) : [];
+      const updatedLeads = [...existingLeads, ...leads];
+      localStorage.setItem('uploadedLeads', JSON.stringify(updatedLeads));
+    } catch (error) {
+      console.error("Could not save leads to localStorage", error);
+      toast({
+        variant: "destructive",
+        title: "Storage Error",
+        description: "Could not save leads. Your browser might be in private mode or has storage disabled.",
+      });
+    }
+  }
+
   const handleSaveLeads = () => {
     let leadsToSave = [...addedLeads];
     
@@ -183,9 +198,8 @@ export default function LeadUploadForm() {
         return;
     }
 
-    // Here you would typically send the data to your backend
-    console.log("Saving leads:", leadsToSave);
-
+    saveLeadsToLocalStorage(leadsToSave);
+    
     toast({
         title: "Leads added successfully",
         description: `${leadsToSave.length} lead(s) have been successfully saved.`,
@@ -240,7 +254,7 @@ export default function LeadUploadForm() {
       setShowPreview(true);
     });
   };
-
+  
   const handleConfirmUpload = () => {
     if (!selectedFile) {
         toast({
@@ -252,15 +266,42 @@ export default function LeadUploadForm() {
     }
 
     processFile(selectedFile, (json) => {
-        // Here you would typically process and send the parsedData to your backend
-        console.log('Uploading parsed data:', json.slice(1));
+        const headers = (json[0] as string[]).map(h => h.trim());
+        const leads: LeadFormData[] = json.slice(1).map((row: any[]) => {
+            const lead: any = {};
+            headers.forEach((header, index) => {
+                lead[header] = row[index];
+            });
+
+            const location = pincodeData[lead.pincode];
+
+            return {
+                leadId: `LEAD-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+                pincode: lead.pincode || '',
+                state: location?.state || '',
+                district: location?.district || '',
+                address: lead.address || '',
+                contactPerson: lead.contactPerson || '',
+                contactNumber: lead.contactNumber || '',
+                reference: lead.reference || '',
+                email: lead.email || '',
+                company: lead.company || '',
+                headcount: lead.headcount?.toString() || '',
+                selectedModule: '',
+                toDealer: false,
+            };
+        });
+
+        saveLeadsToLocalStorage(leads);
+        
         toast({
             title: "Upload Confirmed",
-            description: "Your lead data has been successfully queued for import.",
+            description: `${leads.length} lead(s) have been successfully queued for import.`,
         });
         handleCancel();
     });
   };
+
 
   const handleCancel = () => {
     setSelectedFile(null);
