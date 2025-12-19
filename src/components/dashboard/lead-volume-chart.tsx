@@ -56,7 +56,7 @@ export default function LeadVolumeChart() {
   );
 
   const cities = useMemo(() => {
-    if (selectedState === 'All') {
+    if (selectedState === 'All' || !indianStatesAndDistricts[selectedState]) {
         const allCities = Object.values(indianStatesAndDistricts).flat();
         return ['All', ...Array.from(new Set(allCities))];
     }
@@ -141,7 +141,8 @@ export default function LeadVolumeChart() {
                           key={state}
                           value={state}
                           onSelect={(currentValue) => {
-                            setSelectedState(currentValue === selectedState ? "" : currentValue)
+                            const stateValue = states.find(s => s.toLowerCase() === currentValue.toLowerCase()) || '';
+                            setSelectedState(stateValue === selectedState ? 'All' : stateValue);
                             setStateOpen(false)
                           }}
                         >
@@ -169,6 +170,7 @@ export default function LeadVolumeChart() {
                   role="combobox"
                   aria-expanded={cityOpen}
                   className="w-[200px] justify-between"
+                  disabled={selectedState === 'All'}
                 >
                   {selectedCity}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -185,8 +187,9 @@ export default function LeadVolumeChart() {
                         key={city}
                         value={city}
                         onSelect={(currentValue) => {
-                          setSelectedCity(currentValue === selectedCity ? "" : currentValue)
-                          setCityOpen(false)
+                            const cityValue = cities.find(c => c.toLowerCase() === currentValue.toLowerCase()) || '';
+                            setSelectedCity(cityValue === selectedCity ? 'All' : cityValue);
+                            setCityOpen(false)
                         }}
                       >
                         <Check
