@@ -68,9 +68,9 @@ const initialFilterState = {
 };
 
 export default function LeadUpdateForm() {
-  const [pincode, setPincode] = useState('');
-  const [state, setState] = useState('');
-  const [district, setDistrict] = useState('');
+  const [searchLeadId, setSearchLeadId] = useState('');
+  const [leadDetails, setLeadDetails] = useState<Partial<LeadFormData>>({});
+  
   const [remarks, setRemarks] = useState('');
   const [nextFollowUpDate, setNextFollowUpDate] = useState<Date>();
   const [followUps, setFollowUps] = useState<FollowUp[]>([]);
@@ -98,20 +98,36 @@ export default function LeadUpdateForm() {
       console.error('Failed to parse leads from localStorage', error);
     }
   }, []);
-
-  const handlePincodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newPincode = e.target.value;
-    setPincode(newPincode);
-
-    const location = pincodeData[newPincode];
-    if (location) {
-      setState(location.state);
-      setDistrict(location.district);
+  
+  const handleSearchLead = () => {
+    if (!searchLeadId) {
+        toast({
+            variant: 'destructive',
+            title: 'Lead ID required',
+            description: 'Please enter a Lead ID to search.',
+        });
+        return;
+    }
+    const foundLead = allLeads.find(lead => lead.leadId === searchLeadId);
+    if (foundLead) {
+        setLeadDetails(foundLead);
+        toast({
+            title: 'Lead Found',
+            description: `Details for ${searchLeadId} have been loaded.`,
+        });
     } else {
-      setState('');
-      setDistrict('');
+        setLeadDetails({});
+        toast({
+            variant: 'destructive',
+            title: 'Lead Not Found',
+            description: `No lead found with ID: ${searchLeadId}`,
+        });
     }
   };
+
+  const handleLeadDetailChange = (field: keyof LeadFormData, value: string | boolean) => {
+    setLeadDetails(prev => ({...prev, [field]: value}));
+  }
 
   const handleAddFollowUp = () => {
     if (!remarks || !nextFollowUpDate) {
@@ -165,10 +181,10 @@ export default function LeadUpdateForm() {
     }
 
     if (filters.fromDate) {
-        leads = leads.filter(lead => new Date(lead.leadId.split('-')[1]) >= new Date(filters.fromDate));
+        leads = leads.filter(lead => new Date(parseInt(lead.leadId.split('-')[2])) >= new Date(filters.fromDate));
     }
     if (filters.toDate) {
-        leads = leads.filter(lead => new Date(lead.leadId.split('-')[1]) <= new Date(filters.toDate));
+        leads = leads.filter(lead => new Date(parseInt(lead.leadId.split('-')[2])) <= new Date(filters.toDate));
     }
 
     if (filters.productName !== 'all') {
@@ -189,13 +205,14 @@ export default function LeadUpdateForm() {
   };
 
   const handleQuickFilter = (filterType: string) => {
+    setActiveQuickFilter(filterType);
     let leads: LeadFormData[] = [];
     const today = new Date();
 
     switch(filterType) {
         case 'Recent Leads':
             const twoDaysAgo = subDays(today, 2);
-            leads = allLeads.filter(lead => new Date(parseInt(lead.leadId.split('-')[1])) >= twoDaysAgo);
+            leads = allLeads.filter(lead => new Date(parseInt(lead.leadId.split('-')[2])) >= twoDaysAgo);
             break;
         // Mock data for other filters as we don't have this data yet
         case 'Leads not Viewed':
@@ -207,11 +224,15 @@ export default function LeadUpdateForm() {
         case 'Zero Follow Ups!':
             leads = allLeads.slice(10, 15); // Mock
             break;
+        case 'Search Result':
+            handleShowClick();
+            return;
+        default:
+            leads = [];
     }
     
     setFilteredLeads(leads);
     setShowResults(true);
-    setActiveQuickFilter(filterType);
   }
 
   const handleToExcel = () => {
@@ -242,7 +263,34 @@ export default function LeadUpdateForm() {
       orderClosed: 10,
     };
   }, [allLeads]);
+  
+  const handleResetLeadDetails = () => {
+    setSearchLeadId('');
+    setLeadDetails({});
+  };
 
+  const handleSaveLeadDetails = () => {
+    if (!leadDetails.leadId) {
+      toast({
+        variant: 'destructive',
+        title: 'No Lead Loaded',
+        description: 'Please search and load a lead before saving.',
+      });
+      return;
+    }
+
+    const updatedLeads = allLeads.map(lead =>
+      lead.leadId === leadDetails.leadId ? { ...lead, ...leadDetails } : lead
+    );
+
+    setAllLeads(updatedLeads);
+    localStorage.setItem('uploadedLeads', JSON.stringify(updatedLeads));
+
+    toast({
+      title: 'Lead Updated',
+      description: `Lead ${leadDetails.leadId} has been successfully updated.`,
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -323,41 +371,44 @@ export default function LeadUpdateForm() {
             </CardHeader>
             <CardContent className="space-y-4">
                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="leadId">Lead(id)</Label>
-                  <Input id="leadId" />
+                <div className="space-y-2 col-span-2">
+                  <Label htmlFor="searchLeadId">Lead(id)</Label>
+                  <div className="flex gap-2">
+                    <Input id="searchLeadId" value={searchLeadId} onChange={(e) => setSearchLeadId(e.target.value)} />
+                    <Button onClick={handleSearchLead}>Search</Button>
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="contactPerson">Contact person</Label>
-                  <Input id="contactPerson" />
+                  <Input id="contactPerson" value={leadDetails.contactPerson || ''} onChange={(e) => handleLeadDetailChange('contactPerson', e.target.value)} />
+                </div>
+                 <div className="space-y-2">
+                  <Label htmlFor="contactNumber">Contact Number</Label>
+                  <Input id="contactNumber" value={leadDetails.contactNumber || ''} onChange={(e) => handleLeadDetailChange('contactNumber', e.target.value)} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="address">Address</Label>
-                  <Input id="address" />
+                  <Input id="address" value={leadDetails.address || ''} onChange={(e) => handleLeadDetailChange('address', e.target.value)} />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="contactNumber">Contact Number</Label>
-                  <Input id="contactNumber" />
+                 <div className="space-y-2">
+                  <Label htmlFor="email">Email ID</Label>
+                  <Input id="email" type="email" value={leadDetails.email || ''} onChange={(e) => handleLeadDetailChange('email', e.target.value)} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="district">District</Label>
-                  <Input id="district" value={district} readOnly />
+                  <Input id="district" value={leadDetails.district || ''} readOnly />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="state">State</Label>
-                  <Input id="state" value={state} readOnly />
+                  <Input id="state" value={leadDetails.state || ''} readOnly />
                 </div>
                 <div className="space-y-2">
+                    <Label htmlFor="dateOfLead">Date of lead</Label>
+                    <Input id="dateOfLead" type="text" value={leadDetails.leadId ? format(new Date(parseInt(leadDetails.leadId.split('-')[2])), 'dd-MM-yyyy') : ''} readOnly />
+                </div>
+                 <div className="space-y-2">
                   <Label htmlFor="reference">Reference</Label>
-                  <Input id="reference" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email ID</Label>
-                  <Input id="email" type="email" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="dateOfLead">Date of lead</Label>
-                  <Input id="dateOfLead" type="date" />
+                  <Input id="reference" value={leadDetails.reference || ''} onChange={(e) => handleLeadDetailChange('reference', e.target.value)} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="givenBy">Given By</Label>
@@ -369,7 +420,7 @@ export default function LeadUpdateForm() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="module">Module</Label>
-                  <Input id="module" />
+                  <Input id="module" value={leadDetails.selectedModule || ''} onChange={(e) => handleLeadDetailChange('selectedModule', e.target.value)} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="manager">Manager</Label>
@@ -390,8 +441,8 @@ export default function LeadUpdateForm() {
                 </div>
               </div>
               <div className="flex justify-end gap-2">
-                <Button variant="outline">Reset</Button>
-                <Button>Save</Button>
+                <Button variant="outline" onClick={handleResetLeadDetails}>Reset</Button>
+                <Button onClick={handleSaveLeadDetails}>Save</Button>
               </div>
             </CardContent>
           </Card>
@@ -736,7 +787,7 @@ export default function LeadUpdateForm() {
                   <Button 
                     key={filterName} 
                     variant={activeQuickFilter === filterName ? 'secondary' : 'outline'}
-                    onClick={() => handleQuickFilter(filterType => filterType === filterName ? '' : filterName)}
+                    onClick={() => handleQuickFilter(filterName)}
                     disabled={filterName === 'Search Result' && activeQuickFilter !== 'Search Result'}
                   >
                       {filterName}
@@ -766,7 +817,7 @@ export default function LeadUpdateForm() {
                         <TableRow key={lead.leadId}>
                             <TableCell>{index + 1}</TableCell>
                             <TableCell>{lead.leadId}</TableCell>
-                            <TableCell>{format(new Date(parseInt(lead.leadId.split('-')[1])), 'dd-MM-yyyy')}</TableCell>
+                            <TableCell>{format(new Date(parseInt(lead.leadId.split('-')[2])), 'dd-MM-yyyy')}</TableCell>
                             <TableCell>{lead.selectedModule}</TableCell>
                             <TableCell>{lead.company}</TableCell>
                             <TableCell>{lead.contactPerson}</TableCell>
@@ -795,3 +846,5 @@ export default function LeadUpdateForm() {
     </div>
   );
 }
+
+    
