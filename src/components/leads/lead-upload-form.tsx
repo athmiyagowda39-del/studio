@@ -239,7 +239,7 @@ export default function LeadUploadForm() {
 
     processFile(selectedFile, (json) => {
         const headers = (json[0] as string[]).map(h => h.trim());
-        const leads: LeadFormData[] = json.slice(1).map((row: any[]) => {
+        const leads: LeadFormData[] = json.slice(1).map((row: any[], rowIndex) => {
             const lead: any = {};
             headers.forEach((header, index) => {
                 lead[header] = row[index];
@@ -260,7 +260,7 @@ export default function LeadUploadForm() {
 
 
             return {
-                leadId: `LEAD-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+                leadId: `LEAD-${Date.now()}-${rowIndex}-${Math.floor(Math.random() * 1000)}`,
                 pincode: lead.pincode || '',
                 state: location?.state || '',
                 district: location?.district || '',
@@ -320,11 +320,11 @@ export default function LeadUploadForm() {
           <div></div>
           <div className="space-y-2">
             <Label htmlFor="state">State</Label>
-            <Input id="state" value={formData.state} readOnly placeholder="" />
+            <Input id="state" value={formData.state} readOnly />
           </div>
           <div className="space-y-2">
             <Label htmlFor="district">District</Label>
-            <Input id="district" value={formData.district} readOnly placeholder="" />
+            <Input id="district" value={formData.district} readOnly />
           </div>
           <div className="col-span-2 space-y-2">
             <Label htmlFor="address">Address <span className="text-destructive">*</span></Label>
@@ -445,3 +445,5 @@ export default function LeadUploadForm() {
     </div>
   );
 }
+
+    
