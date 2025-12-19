@@ -96,14 +96,6 @@ export default function LeadVolumeChart() {
     return Object.values(aggregated).sort((a,b) => parseInt(a.day) - parseInt(b.day));
   }, [allLeads, period, selectedState, selectedCity]);
 
-  const findStateByValue = (value: string) => {
-      return states.find(s => s.toLowerCase() === value.toLowerCase()) || '';
-  }
-
-  const findCityByValue = (value: string) => {
-      return cities.find(c => c.toLowerCase() === value.toLowerCase()) || '';
-  }
-
   return (
     <Card>
       <CardHeader>
@@ -149,8 +141,8 @@ export default function LeadVolumeChart() {
                           key={state}
                           value={state}
                           onSelect={(currentValue) => {
-                            const matchedState = findStateByValue(currentValue);
-                            setSelectedState(selectedState === matchedState ? 'All' : matchedState);
+                            const nextState = states.find(s => s.toLowerCase() === currentValue.toLowerCase());
+                            setSelectedState(nextState && selectedState !== nextState ? nextState : 'All');
                             setStateOpen(false)
                           }}
                         >
@@ -194,8 +186,8 @@ export default function LeadVolumeChart() {
                         key={city}
                         value={city}
                         onSelect={(currentValue) => {
-                            const matchedCity = findCityByValue(currentValue);
-                            setSelectedCity(selectedCity === matchedCity ? 'All' : matchedCity);
+                            const nextCity = cities.find(c => c.toLowerCase() === currentValue.toLowerCase());
+                            setSelectedCity(nextCity && selectedCity !== nextCity ? nextCity : 'All');
                             setCityOpen(false)
                         }}
                       >
