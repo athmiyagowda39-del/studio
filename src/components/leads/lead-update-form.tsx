@@ -322,59 +322,50 @@ export default function LeadUpdateForm() {
               <CardTitle className="text-base">LEAD CONTACT CARD</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="companyId">Company(id)</Label>
-                  <Input id="companyId" />
+                  <Label htmlFor="leadId">Lead(id)</Label>
+                  <Input id="leadId" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="contactPerson">Contact person</Label>
                   <Input id="contactPerson" />
                 </div>
-                <div className="space-y-2 col-span-1 sm:col-span-2">
+                <div className="space-y-2">
                   <Label htmlFor="address">Address</Label>
                   <Input id="address" />
                 </div>
-                 <div className="space-y-2">
-                  <Label htmlFor="pincode">Pin code</Label>
-                  <Input id="pincode" value={pincode} onChange={handlePincodeChange} />
-                </div>
-                <div></div>
                 <div className="space-y-2">
-                  <Label htmlFor="state">State</Label>
-                  <Input id="state" value={state} readOnly />
+                  <Label htmlFor="contactNumber">Contact Number</Label>
+                  <Input id="contactNumber" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="district">District</Label>
                   <Input id="district" value={district} readOnly />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email ID</Label>
-                  <Input id="email" type="email" />
-                </div>
-                 <div className="space-y-2">
-                  <Label htmlFor="contactNumber">Contact Number</Label>
-                  <Input id="contactNumber" />
+                  <Label htmlFor="state">State</Label>
+                  <Input id="state" value={state} readOnly />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="reference">Reference</Label>
                   <Input id="reference" />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="givenBy">Given By</Label>
-                  <Input id="givenBy" />
+                  <Label htmlFor="email">Email ID</Label>
+                  <Input id="email" type="email" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="dateOfLead">Date of lead</Label>
                   <Input id="dateOfLead" type="date" />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="executive">Executive</Label>
-                  <Input id="executive" />
+                  <Label htmlFor="givenBy">Given By</Label>
+                  <Input id="givenBy" />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="executiveViewDate">Executive view Date</Label>
-                  <Input id="executiveViewDate" type="date" />
+                  <Label htmlFor="executive">Executive</Label>
+                  <Input id="executive" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="module">Module</Label>
@@ -383,6 +374,10 @@ export default function LeadUpdateForm() {
                 <div className="space-y-2">
                   <Label htmlFor="manager">Manager</Label>
                   <Input id="manager" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="executiveViewDate">Executive view Date</Label>
+                  <Input id="executiveViewDate" type="date" />
                 </div>
                 <div className="col-span-2 space-y-2">
                   <Label>Executive Member: Manager:</Label>
