@@ -96,6 +96,14 @@ export default function LeadVolumeChart() {
     return Object.values(aggregated).sort((a,b) => parseInt(a.day) - parseInt(b.day));
   }, [allLeads, period, selectedState, selectedCity]);
 
+  const findStateByValue = (value: string) => {
+      return states.find(s => s.toLowerCase() === value.toLowerCase()) || '';
+  }
+
+  const findCityByValue = (value: string) => {
+      return cities.find(c => c.toLowerCase() === value.toLowerCase()) || '';
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -141,7 +149,8 @@ export default function LeadVolumeChart() {
                           key={state}
                           value={state}
                           onSelect={(currentValue) => {
-                            setSelectedState(currentValue === selectedState ? 'All' : currentValue);
+                            const matchedState = findStateByValue(currentValue);
+                            setSelectedState(selectedState === matchedState ? 'All' : matchedState);
                             setStateOpen(false)
                           }}
                         >
@@ -169,7 +178,6 @@ export default function LeadVolumeChart() {
                   role="combobox"
                   aria-expanded={cityOpen}
                   className="w-[200px] justify-between"
-                  disabled={selectedState === 'All'}
                 >
                   {selectedCity}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -186,7 +194,8 @@ export default function LeadVolumeChart() {
                         key={city}
                         value={city}
                         onSelect={(currentValue) => {
-                            setSelectedCity(currentValue === selectedCity ? 'All' : currentValue);
+                            const matchedCity = findCityByValue(currentValue);
+                            setSelectedCity(selectedCity === matchedCity ? 'All' : matchedCity);
                             setCityOpen(false)
                         }}
                       >
