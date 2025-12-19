@@ -39,7 +39,7 @@ export default function LeadDetails() {
       <Card>
         <CardHeader className="bg-primary/10">
           <CardTitle className="text-center text-primary">
-            SAVED LEAD DETAILS
+            Lead Details
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">

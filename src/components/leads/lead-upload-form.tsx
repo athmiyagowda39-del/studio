@@ -122,14 +122,6 @@ export default function LeadUploadForm() {
     setAddedLeads([]);
   };
 
-  const handleNewClick = () => {
-    resetForm();
-    toast({
-        title: "New Lead",
-        description: "Form cleared. You can now enter a new lead.",
-    });
-  };
-
   const validateLead = (lead: Omit<LeadFormData, 'leadId'>) => {
     if (!lead.pincode || !lead.contactPerson || !lead.contactNumber || !lead.address) {
       toast({
@@ -141,26 +133,6 @@ export default function LeadUploadForm() {
     }
     return true;
   }
-
-  const handleAddLead = () => {
-    if (!validateLead(formData)) return;
-    
-    const newLeadId = `LEAD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-    const leadToAdd = { ...formData, leadId: newLeadId };
-
-    setAddedLeads(prev => [...prev, leadToAdd]);
-    toast({
-        title: "Lead Added",
-        description: `${leadToAdd.contactPerson} from ${leadToAdd.company} has been added to the queue.`,
-    });
-    // Clear form for next entry, but keep some fields if needed
-    setFormData({
-        ...initialFormState,
-        pincode: formData.pincode,
-        state: formData.state,
-        district: formData.district,
-    });
-  };
 
   const saveLeadsToLocalStorage = (leads: LeadFormData[]) => {
     try {
@@ -274,6 +246,18 @@ export default function LeadUploadForm() {
             });
 
             const location = pincodeData[lead.pincode];
+            
+            const headcount = lead.headcount?.toString() || '';
+            let selectedModule = '';
+            const count = parseInt(headcount, 10);
+            if (!isNaN(count)) {
+              if (count >= 100 && count < 200) {
+                selectedModule = 'ar';
+              } else if (count >= 200) {
+                selectedModule = 'all-hrms';
+              }
+            }
+
 
             return {
                 leadId: `LEAD-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
@@ -286,8 +270,8 @@ export default function LeadUploadForm() {
                 reference: lead.reference || '',
                 email: lead.email || '',
                 company: lead.company || '',
-                headcount: lead.headcount?.toString() || '',
-                selectedModule: '',
+                headcount: headcount,
+                selectedModule: selectedModule,
                 toDealer: false,
             };
         });
@@ -390,10 +374,6 @@ export default function LeadUploadForm() {
               <Checkbox id="toDealer" checked={formData.toDealer} onCheckedChange={handleCheckboxChange} />
               <Label htmlFor="toDealer">To Dealer</Label>
               <span className="text-xs text-muted-foreground">As per Mapping</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={handleNewClick}>New</Button>
-              <Button onClick={handleAddLead}>Add Lead &gt;&gt;</Button>
             </div>
           </div>
         </div>
