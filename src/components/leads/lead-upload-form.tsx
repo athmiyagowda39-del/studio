@@ -152,7 +152,7 @@ export default function LeadUploadForm() {
   }
 
   const handleSaveLeads = () => {
-    let leadsToSave = [...addedLeads];
+    let leadsToSave: LeadFormData[] = [...addedLeads];
     
     const formHasData = formData.pincode || formData.contactPerson || formData.company || formData.address || formData.contactNumber;
 
@@ -302,8 +302,8 @@ export default function LeadUploadForm() {
    const handleDownloadSample = () => {
     const sampleData = [
       ['pincode', 'address', 'contactPerson', 'contactNumber', 'reference', 'email', 'company', 'headcount'],
-      ['560001', '123 MG Road, Bengaluru', 'John Doe', '9876543210', 'Friend', 'john.doe@example.com', 'Tech Solutions', '150'],
-      ['560002', '456 Brigade Road, Bengaluru', 'Jane Smith', '8765432109', 'Website', 'jane.smith@example.com', 'Innovate Corp', '250'],
+      ['587101', '123 MG Road, Bagalkote', 'John Doe', '9876543210', 'Friend', 'john.doe@example.com', 'Tech Solutions', '150'],
+      ['560001', '456 Brigade Road, Bengaluru', 'Jane Smith', '8765432109', 'Website', 'jane.smith@example.com', 'Innovate Corp', '250'],
     ];
     const ws = XLSX.utils.aoa_to_sheet(sampleData);
     const wb = XLSX.utils.book_new();
