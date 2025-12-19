@@ -229,6 +229,27 @@ export default function LeadUploadForm() {
     }
   };
 
+  const processFile = (file: File, callback: (data: ParsedData) => void) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = e.target?.result;
+        const workbook = XLSX.read(data, { type: 'binary' });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const json: ParsedData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+        callback(json);
+      } catch (error) {
+        toast({
+            variant: "destructive",
+            title: "Error parsing file",
+            description: "Could not read the file. Please ensure it's a valid Excel/CSV file.",
+        });
+      }
+    };
+    reader.readAsBinaryString(file);
+  }
+
   const handlePreviewData = () => {
     if (!selectedFile) {
         toast({
@@ -238,44 +259,31 @@ export default function LeadUploadForm() {
         });
       return;
     }
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const data = e.target?.result;
-        const workbook = XLSX.read(data, { type: 'binary' });
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        const json: ParsedData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-        setParsedData(json);
-        setShowPreview(true);
-      } catch (error) {
-        toast({
-            variant: "destructive",
-            title: "Error parsing file",
-            description: "Could not read the file. Please ensure it's a valid Excel/CSV file.",
-        });
-      }
-    };
-    reader.readAsBinaryString(selectedFile);
+    processFile(selectedFile, (json) => {
+      setParsedData(json);
+      setShowPreview(true);
+    });
   };
 
   const handleConfirmUpload = () => {
-    if (!parsedData) {
+    if (!selectedFile) {
         toast({
             variant: "destructive",
-            title: "No data to upload",
-            description: "Please preview data before confirming.",
+            title: "No file selected",
+            description: "Please select a file to upload.",
         });
       return;
     }
-    // Here you would typically process and send the parsedData to your backend
-    console.log('Uploading parsed data:', parsedData.slice(1));
-    toast({
-        title: "Upload Confirmed",
-        description: "Your lead data has been successfully queued for import.",
+
+    processFile(selectedFile, (json) => {
+        // Here you would typically process and send the parsedData to your backend
+        console.log('Uploading parsed data:', json.slice(1));
+        toast({
+            title: "Upload Confirmed",
+            description: "Your lead data has been successfully queued for import.",
+        });
+        handleCancel();
     });
-    handleCancel();
   };
 
   const handleCancel = () => {
@@ -301,78 +309,87 @@ export default function LeadUploadForm() {
 
   return (
     <div className="space-y-6">
-      <p className="font-semibold">Provide the new Lead detail</p>
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="pincode">Pin code <span className="text-destructive">*</span></Label>
-          <Input id="pincode" value={formData.pincode} onChange={handlePincodeChange} required/>
-        </div>
-        <div></div>
-        <div className="space-y-2">
-          <Label htmlFor="state">State</Label>
-          <Input id="state" value={formData.state} readOnly />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="district">District</Label>
-          <Input id="district" value={formData.district} readOnly />
-        </div>
-        <div className="col-span-2 space-y-2">
-          <Label htmlFor="address">Address <span className="text-destructive">*</span></Label>
-          <Input id="address" value={formData.address} onChange={handleInputChange} required />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="contactPerson">Contact person <span className="text-destructive">*</span></Label>
-          <Input id="contactPerson" value={formData.contactPerson} onChange={handleInputChange} required />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="contactNumber">Contact Number <span className="text-destructive">*</span></Label>
-          <Input id="contactNumber" value={formData.contactNumber} onChange={handleInputChange} required />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="reference">Reference</Label>
-          <Input id="reference" value={formData.reference} onChange={handleInputChange} />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input id="email" type="email" value={formData.email} onChange={handleInputChange} />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="company">Company</Label>
-          <Input id="company" value={formData.company} onChange={handleInputChange} />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="headcount">Company headcount</Label>
-          <Input id="headcount" value={formData.headcount} onChange={handleHeadcountChange} />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="modules">Modules</Label>
-          <Select value={formData.selectedModule} onValueChange={handleSelectChange}>
-            <SelectTrigger id="modules">
-              <SelectValue placeholder="Select Modules..." />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ar">AR</SelectItem>
-              <SelectItem value="all-hrms">All HRMS</SelectItem>
-              <SelectItem value="module1">Module 1</SelectItem>
-              <SelectItem value="module2">Module 2</SelectItem>
-              <SelectItem value="module3">Module 3</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="col-span-2 flex items-center justify-between">
-           <div className="flex items-center space-x-2">
-            <Checkbox id="toDealer" checked={formData.toDealer} onCheckedChange={handleCheckboxChange} />
-            <Label htmlFor="toDealer">To Dealer</Label>
-            <span className="text-xs text-muted-foreground">As per Mapping</span>
+      <div>
+        <p className="font-semibold">Provide the new Lead detail</p>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 mt-4">
+          <div className="space-y-2">
+            <Label htmlFor="pincode">Pin code <span className="text-destructive">*</span></Label>
+            <Input id="pincode" value={formData.pincode} onChange={handlePincodeChange} required/>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={handleNewClick}>New</Button>
-            <Button onClick={handleAddLead}>Add Lead &gt;&gt;</Button>
+          <div></div>
+          <div className="space-y-2">
+            <Label htmlFor="state">State</Label>
+            <Input id="state" value={formData.state} readOnly placeholder="" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="district">District</Label>
+            <Input id="district" value={formData.district} readOnly placeholder="" />
+          </div>
+          <div className="col-span-2 space-y-2">
+            <Label htmlFor="address">Address <span className="text-destructive">*</span></Label>
+            <Input id="address" value={formData.address} onChange={handleInputChange} required />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="contactPerson">Contact person <span className="text-destructive">*</span></Label>
+            <Input id="contactPerson" value={formData.contactPerson} onChange={handleInputChange} required />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="contactNumber">Contact Number <span className="text-destructive">*</span></Label>
+            <Input id="contactNumber" value={formData.contactNumber} onChange={handleInputChange} required />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="reference">Reference</Label>
+            <Input id="reference" value={formData.reference} onChange={handleInputChange} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input id="email" type="email" value={formData.email} onChange={handleInputChange} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="company">Company</Label>
+            <Input id="company" value={formData.company} onChange={handleInputChange} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="headcount">Company headcount</Label>
+            <Input id="headcount" value={formData.headcount} onChange={handleHeadcountChange} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="modules">Modules</Label>
+            <Select value={formData.selectedModule} onValueChange={handleSelectChange}>
+              <SelectTrigger id="modules">
+                <SelectValue placeholder="Select Modules..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ar">AR</SelectItem>
+                <SelectItem value="all-hrms">All HRMS</SelectItem>
+                <SelectItem value="module1">Module 1</SelectItem>
+                <SelectItem value="module2">Module 2</SelectItem>
+                <SelectItem value="module3">Module 3</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="col-span-2 flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Checkbox id="toDealer" checked={formData.toDealer} onCheckedChange={handleCheckboxChange} />
+              <Label htmlFor="toDealer">To Dealer</Label>
+              <span className="text-xs text-muted-foreground">As per Mapping</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={handleNewClick}>New</Button>
+              <Button onClick={handleAddLead}>Add Lead &gt;&gt;</Button>
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center justify-between pt-4 mt-4 border-t">
+          <div className="flex gap-2">
+              <Button variant="outline" onClick={resetForm}>Reset</Button>
+              <Button onClick={handleSaveLeads}>Save Lead</Button>
           </div>
         </div>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4 pt-6 border-t">
+        <p className="font-semibold">Or upload leads from a file</p>
         <Card className="border-dashed">
             <CardContent className="p-6">
                 <div className="flex flex-col items-center justify-center space-y-2 text-center">
@@ -391,9 +408,9 @@ export default function LeadUploadForm() {
             </CardContent>
         </Card>
         <div className="flex justify-start gap-2">
-          <Button variant="secondary" onClick={handlePreviewData}>Preview data</Button>
-          <Button onClick={handleConfirmUpload}>Confirm Upload</Button>
-          <Button variant="destructive" onClick={handleCancel}>Cancel</Button>
+          <Button variant="secondary" onClick={handlePreviewData} disabled={!selectedFile}>Preview data</Button>
+          <Button onClick={handleConfirmUpload} disabled={!selectedFile}>Confirm Upload</Button>
+          <Button variant="destructive" onClick={handleCancel} disabled={!selectedFile}>Cancel</Button>
         </div>
       </div>
 
@@ -428,14 +445,6 @@ export default function LeadUploadForm() {
             </Card>
         </div>
       )}
-
-
-      <div className="flex items-center justify-between pt-4 border-t">
-        <div className="flex gap-2">
-            <Button variant="outline" onClick={resetForm}>Reset</Button>
-            <Button onClick={handleSaveLeads}>Save Lead</Button>
-        </div>
-      </div>
     </div>
   );
 }
