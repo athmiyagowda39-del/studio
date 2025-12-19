@@ -12,6 +12,7 @@ import {
   User,
   FileText,
   List,
+  Filter,
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 
@@ -20,6 +21,7 @@ const links = [
   { href: '/leads-upload', label: 'LEADS UPLOAD', icon: Upload },
   { href: '/lead-details', label: 'LEAD DETAILS', icon: List },
   { href: '/leads-update', label: 'LEADS UPDATE', icon: FilePenLine },
+  { href: '/lead-filter', label: 'LEAD FILTER', icon: Filter },
   { href: '/profile', label: 'PROFILE', icon: User },
   { href: '/reports', label: 'REPORTS', icon: FileText },
 ];
@@ -37,8 +39,8 @@ export default function SidebarNav() {
             asChild
             isActive={isActive(link.href)}
             // For this demo, other links are disabled
-            disabled={link.href !== '/dashboard' && link.href !== '/leads-upload' && link.href !== '/lead-details' && link.href !== '/leads-update'}
-            aria-disabled={link.href !== '/dashboard' && link.href !== '/leads-upload' && link.href !== '/lead-details' && link.href !== '/leads-update'}
+            disabled={link.href !== '/dashboard' && link.href !== '/leads-upload' && link.href !== '/lead-details' && link.href !== '/leads-update' && link.href !== '/lead-filter'}
+            aria-disabled={link.href !== '/dashboard' && link.href !== '/leads-upload' && link.href !== '/lead-details' && link.href !== '/leads-update' && link.href !== '/lead-filter'}
             tooltip={link.label}
           >
             <a href={link.href}>
