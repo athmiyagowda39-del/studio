@@ -37,8 +37,8 @@ export default function SidebarNav() {
             asChild
             isActive={isActive(link.href)}
             // For this demo, other links are disabled
-            disabled={link.href !== '/dashboard' && link.href !== '/leads-upload' && link.href !== '/lead-details'}
-            aria-disabled={link.href !== '/dashboard' && link.href !== '/leads-upload' && link.href !== '/lead-details'}
+            disabled={link.href !== '/dashboard' && link.href !== '/leads-upload' && link.href !== '/lead-details' && link.href !== '/leads-update'}
+            aria-disabled={link.href !== '/dashboard' && link.href !== '/leads-upload' && link.href !== '/lead-details' && link.href !== '/leads-update'}
             tooltip={link.label}
           >
             <a href={link.href}>
