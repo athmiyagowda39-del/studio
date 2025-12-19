@@ -141,8 +141,7 @@ export default function LeadVolumeChart() {
                           key={state}
                           value={state}
                           onSelect={(currentValue) => {
-                            const stateValue = states.find(s => s.toLowerCase() === currentValue.toLowerCase()) || '';
-                            setSelectedState(stateValue === selectedState ? 'All' : stateValue);
+                            setSelectedState(currentValue === selectedState ? 'All' : currentValue);
                             setStateOpen(false)
                           }}
                         >
@@ -187,8 +186,7 @@ export default function LeadVolumeChart() {
                         key={city}
                         value={city}
                         onSelect={(currentValue) => {
-                            const cityValue = cities.find(c => c.toLowerCase() === currentValue.toLowerCase()) || '';
-                            setSelectedCity(cityValue === selectedCity ? 'All' : cityValue);
+                            setSelectedCity(currentValue === selectedCity ? 'All' : currentValue);
                             setCityOpen(false)
                         }}
                       >
