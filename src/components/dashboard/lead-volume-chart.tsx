@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -140,8 +141,8 @@ export default function LeadVolumeChart() {
                           key={state}
                           value={state}
                           onSelect={(currentValue) => {
-                            const newValue = currentValue === selectedState ? 'All' : currentValue;
-                            setSelectedState(newValue === 'all' ? 'All' : newValue.charAt(0).toUpperCase() + newValue.slice(1));
+                            const valueToSet = states.find(s => s.toLowerCase() === currentValue) || 'All';
+                            setSelectedState(valueToSet === selectedState ? 'All' : valueToSet);
                             setStateOpen(false);
                           }}
                         >
@@ -185,8 +186,8 @@ export default function LeadVolumeChart() {
                         key={city}
                         value={city}
                         onSelect={(currentValue) => {
-                          const newValue = currentValue === selectedCity ? 'All' : currentValue;
-                          setSelectedCity(newValue === 'all' ? 'All' : newValue.charAt(0).toUpperCase() + newValue.slice(1));
+                          const valueToSet = cities.find(c => c.toLowerCase() === currentValue) || 'All';
+                          setSelectedCity(valueToSet === selectedCity ? 'All' : valueToSet);
                           setCityOpen(false);
                         }}
                       >
