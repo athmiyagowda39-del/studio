@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { pincodeData } from '@/lib/pincodes';
 import {
   Table,
@@ -26,7 +26,7 @@ import { Textarea } from '../ui/textarea';
 import { Calendar } from '../ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { CalendarIcon, ChevronDown, ChevronUp } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, subDays } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import {
@@ -35,6 +35,8 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import type { LeadFormData } from './lead-upload-form';
+import * as XLSX from 'xlsx';
 
 type FollowUp = {
   id: number;
@@ -42,6 +44,27 @@ type FollowUp = {
   remarks: string;
   nextFollowUp: string;
   enteredBy: string;
+};
+
+const initialFilterState = {
+  search: '',
+  fromSource: 'both',
+  searchFor: 'company',
+  fromDate: '',
+  toDate: '',
+  productName: 'all',
+  executiveName: 'all',
+  givenBy: 'all',
+  statusOfLead: 'all',
+  subStatusOfLead: 'all',
+  leadSource: 'all',
+  doNotConsider: true,
+  considerFollowUps: false,
+  followUpStatus: 'pending',
+  followUpFromDate: '',
+  followUpToDate: '',
+  enterBy: 'all',
+  remarksFilter: '',
 };
 
 export default function LeadUpdateForm() {
@@ -53,11 +76,28 @@ export default function LeadUpdateForm() {
   const [followUps, setFollowUps] = useState<FollowUp[]>([]);
   const [currentStatus, setCurrentStatus] = useState('Initial');
   const [selectedStatus, setSelectedStatus] = useState('');
-  const [showResults, setShowResults] = useState(false);
-
+  
   const [isFilterOpen, setIsFilterOpen] = useState(true);
+  
+  const [allLeads, setAllLeads] = useState<LeadFormData[]>([]);
+  const [filteredLeads, setFilteredLeads] = useState<LeadFormData[]>([]);
+  const [showResults, setShowResults] = useState(false);
+  const [activeQuickFilter, setActiveQuickFilter] = useState('');
+  
+  const [filters, setFilters] = useState(initialFilterState);
 
   const { toast } = useToast();
+  
+  useEffect(() => {
+    try {
+      const storedLeads = localStorage.getItem('uploadedLeads');
+      if (storedLeads) {
+        setAllLeads(JSON.parse(storedLeads));
+      }
+    } catch (error) {
+      console.error('Failed to parse leads from localStorage', error);
+    }
+  }, []);
 
   const handlePincodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newPincode = e.target.value;
@@ -109,15 +149,100 @@ export default function LeadUpdateForm() {
       description: `Lead status updated to ${selectedStatus}.`,
     });
   };
-  
+
+  const handleFilterChange = (field: keyof typeof filters, value: any) => {
+    setFilters(prev => ({...prev, [field]: value}));
+  }
+
   const handleShowClick = () => {
+    let leads = [...allLeads];
+
+    if (filters.search && filters.searchFor) {
+        leads = leads.filter(lead => {
+            const leadValue = (lead as any)[filters.searchFor];
+            return leadValue?.toString().toLowerCase().includes(filters.search.toLowerCase());
+        });
+    }
+
+    if (filters.fromDate) {
+        leads = leads.filter(lead => new Date(lead.leadId.split('-')[1]) >= new Date(filters.fromDate));
+    }
+    if (filters.toDate) {
+        leads = leads.filter(lead => new Date(lead.leadId.split('-')[1]) <= new Date(filters.toDate));
+    }
+
+    if (filters.productName !== 'all') {
+        leads = leads.filter(lead => lead.selectedModule === filters.productName);
+    }
+    // TODO: Add filtering for executive, given by, status, sub-status, source etc.
+    
+    setFilteredLeads(leads);
     setShowResults(true);
+    setActiveQuickFilter('Search Result');
   };
 
   const handleResetClick = () => {
+    setFilters(initialFilterState);
+    setFilteredLeads([]);
     setShowResults(false);
-    // Here you would also reset all filter form fields
+    setActiveQuickFilter('');
   };
+
+  const handleQuickFilter = (filterType: string) => {
+    let leads: LeadFormData[] = [];
+    const today = new Date();
+
+    switch(filterType) {
+        case 'Recent Leads':
+            const twoDaysAgo = subDays(today, 2);
+            leads = allLeads.filter(lead => new Date(parseInt(lead.leadId.split('-')[1])) >= twoDaysAgo);
+            break;
+        // Mock data for other filters as we don't have this data yet
+        case 'Leads not Viewed':
+            leads = allLeads.slice(0, 5); // Mock
+            break;
+        case 'Follow Ups Due':
+            leads = allLeads.slice(5, 10); // Mock
+            break;
+        case 'Zero Follow Ups!':
+            leads = allLeads.slice(10, 15); // Mock
+            break;
+    }
+    
+    setFilteredLeads(leads);
+    setShowResults(true);
+    setActiveQuickFilter(filterType);
+  }
+
+  const handleToExcel = () => {
+    if (filteredLeads.length === 0) {
+        toast({
+            variant: 'destructive',
+            title: 'No data to export',
+            description: 'Please filter for some leads first.'
+        });
+        return;
+    }
+    const ws = XLSX.utils.json_to_sheet(filteredLeads);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Filtered Leads");
+    XLSX.writeFile(wb, "filtered_leads.xlsx");
+  }
+
+  const summaryCards = useMemo(() => {
+    // This is mock data. In a real app, you would compute this from `allLeads` and their statuses.
+    return {
+      total: allLeads.length,
+      attended: 500,
+      notViewed: 32,
+      demoGiven: 301,
+      unattended: 2,
+      pursuing: 5,
+      notInterested: 201,
+      orderClosed: 10,
+    };
+  }, [allLeads]);
+
 
   return (
     <div className="space-y-6">
@@ -127,7 +252,7 @@ export default function LeadUpdateForm() {
             <CardTitle className="text-sm font-medium">Total Leads</CardTitle>
           </CardHeader>
           <CardContent className="p-2">
-            <p className="text-2xl font-bold">1050</p>
+            <p className="text-2xl font-bold">{summaryCards.total}</p>
           </CardContent>
         </Card>
         <Card>
@@ -135,7 +260,7 @@ export default function LeadUpdateForm() {
             <CardTitle className="text-sm font-medium">Attended</CardTitle>
           </CardHeader>
           <CardContent className="p-2">
-            <p className="text-2xl font-bold">500</p>
+            <p className="text-2xl font-bold">{summaryCards.attended}</p>
           </CardContent>
         </Card>
         <Card>
@@ -143,7 +268,7 @@ export default function LeadUpdateForm() {
             <CardTitle className="text-sm font-medium">Not viewed</CardTitle>
           </CardHeader>
           <CardContent className="p-2">
-            <p className="text-2xl font-bold">32</p>
+            <p className="text-2xl font-bold">{summaryCards.notViewed}</p>
           </CardContent>
         </Card>
         <Card>
@@ -151,7 +276,7 @@ export default function LeadUpdateForm() {
             <CardTitle className="text-sm font-medium">Demo Given</CardTitle>
           </CardHeader>
           <CardContent className="p-2">
-            <p className="text-2xl font-bold">301</p>
+            <p className="text-2xl font-bold">{summaryCards.demoGiven}</p>
           </CardContent>
         </Card>
         <Card>
@@ -159,7 +284,7 @@ export default function LeadUpdateForm() {
             <CardTitle className="text-sm font-medium">Unattended</CardTitle>
           </CardHeader>
           <CardContent className="p-2">
-            <p className="text-2xl font-bold">2</p>
+            <p className="text-2xl font-bold">{summaryCards.unattended}</p>
           </CardContent>
         </Card>
         <Card>
@@ -169,7 +294,7 @@ export default function LeadUpdateForm() {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-2">
-            <p className="text-2xl font-bold">5</p>
+            <p className="text-2xl font-bold">{summaryCards.pursuing}</p>
           </CardContent>
         </Card>
         <Card>
@@ -177,7 +302,7 @@ export default function LeadUpdateForm() {
             <CardTitle className="text-sm font-medium">Not interested</CardTitle>
           </CardHeader>
           <CardContent className="p-2">
-            <p className="text-2xl font-bold">201</p>
+            <p className="text-2xl font-bold">{summaryCards.notInterested}</p>
           </CardContent>
         </Card>
         <Card>
@@ -185,7 +310,7 @@ export default function LeadUpdateForm() {
             <CardTitle className="text-sm font-medium">Order closed</CardTitle>
           </CardHeader>
           <CardContent className="p-2">
-            <p className="text-2xl font-bold">10</p>
+            <p className="text-2xl font-bold">{summaryCards.orderClosed}</p>
           </CardContent>
         </Card>
       </div>
@@ -409,11 +534,11 @@ export default function LeadUpdateForm() {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-center">
                     <div className="flex items-center gap-2">
                       <Label htmlFor="search">Search</Label>
-                      <Input id="search" placeholder="Leave empty for all" />
+                      <Input id="search" placeholder="Leave empty for all" value={filters.search} onChange={e => handleFilterChange('search', e.target.value)} />
                     </div>
                     <div className="flex items-center gap-4">
                       <Label>From:</Label>
-                      <RadioGroup defaultValue="both" className="flex gap-4">
+                      <RadioGroup value={filters.fromSource} onValueChange={v => handleFilterChange('fromSource', v)} className="flex gap-4">
                         <div className="flex items-center space-x-2">
                           <RadioGroupItem value="web" id="web-update" />
                           <Label htmlFor="web-update">Web Downloads</Label>
@@ -430,26 +555,23 @@ export default function LeadUpdateForm() {
                     </div>
                   </div>
                   <div>
-                    <RadioGroup className="flex flex-wrap gap-4">
+                    <RadioGroup onValueChange={v => handleFilterChange('searchFor', v)} value={filters.searchFor} className="flex flex-wrap gap-4">
                       <Label>Search for:</Label>
                       {[
-                        'Lead ID',
-                        'Company',
-                        'Contact Person',
-                        'Phone',
-                        'Cell',
-                        'Email',
-                        'District',
-                        'State',
-                        'Manager Name',
+                        {value: 'leadId', label: 'Lead ID'},
+                        {value: 'company', label: 'Company'},
+                        {value: 'contactPerson', label: 'Contact Person'},
+                        {value: 'contactNumber', label: 'Phone'},
+                        {value: 'district', label: 'District'},
+                        {value: 'state', label: 'State'},
                       ].map((item) => (
-                        <div className="flex items-center space-x-2" key={item}>
+                        <div className="flex items-center space-x-2" key={item.value}>
                           <RadioGroupItem
-                            value={item.toLowerCase().replace(' ', '')}
-                            id={`search-for-update-${item.toLowerCase().replace(' ', '')}`}
+                            value={item.value}
+                            id={`search-for-update-${item.value}`}
                           />
-                          <Label htmlFor={`search-for-update-${item.toLowerCase().replace(' ', '')}`}>
-                            {item}
+                          <Label htmlFor={`search-for-update-${item.value}`}>
+                            {item.label}
                           </Label>
                         </div>
                       ))}
@@ -459,31 +581,36 @@ export default function LeadUpdateForm() {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div className="space-y-1">
                       <Label htmlFor="from-date-update">From Date</Label>
-                      <Input id="from-date-update" type="date" />
+                      <Input id="from-date-update" type="date" value={filters.fromDate} onChange={e => handleFilterChange('fromDate', e.target.value)} />
                     </div>
                     <div className="space-y-1">
                       <Label htmlFor="to-date-update">To Date</Label>
-                      <Input id="to-date-update" type="date" />
+                      <Input id="to-date-update" type="date" value={filters.toDate} onChange={e => handleFilterChange('toDate', e.target.value)} />
                     </div>
                     <div className="space-y-1">
                       <Label htmlFor="product-name-update">Product Name</Label>
-                      <Select>
+                      <Select value={filters.productName} onValueChange={v => handleFilterChange('productName', v)}>
                         <SelectTrigger>
                           <SelectValue placeholder="--All--" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="product1">Product 1</SelectItem>
-                          <SelectItem value="product2">Product 2</SelectItem>
+                          <SelectItem value="all">--All--</SelectItem>
+                          <SelectItem value="ar">AR</SelectItem>
+                          <SelectItem value="all-hrms">All HRMS</SelectItem>
+                          <SelectItem value="module1">Module 1</SelectItem>
+                          <SelectItem value="module2">Module 2</SelectItem>
+                          <SelectItem value="module3">Module 3</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-1">
                       <Label htmlFor="executive-name-update">Executive Name</Label>
-                      <Select>
+                      <Select value={filters.executiveName} onValueChange={v => handleFilterChange('executiveName', v)}>
                         <SelectTrigger>
                           <SelectValue placeholder="--All--" />
                         </SelectTrigger>
                         <SelectContent>
+                          <SelectItem value="all">--All--</SelectItem>
                           <SelectItem value="exec1">Executive 1</SelectItem>
                           <SelectItem value="exec2">Executive 2</SelectItem>
                         </SelectContent>
@@ -491,63 +618,67 @@ export default function LeadUpdateForm() {
                     </div>
                     <div className="space-y-1">
                       <Label htmlFor="given-by-update">Given by</Label>
-                      <Select>
+                      <Select value={filters.givenBy} onValueChange={v => handleFilterChange('givenBy', v)}>
                         <SelectTrigger>
                           <SelectValue placeholder="--All--" />
                         </SelectTrigger>
                         <SelectContent>
+                          <SelectItem value="all">--All--</SelectItem>
                           <SelectItem value="given1">Given by 1</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-1">
                       <Label htmlFor="status-of-lead-update">Status of Lead</Label>
-                       <Select>
+                       <Select value={filters.statusOfLead} onValueChange={v => handleFilterChange('statusOfLead', v)}>
                         <SelectTrigger>
                           <SelectValue placeholder="--All--" />
                         </SelectTrigger>
                         <SelectContent>
+                          <SelectItem value="all">--All--</SelectItem>
                           <SelectItem value="status1">Status 1</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-1">
                       <Label htmlFor="sub-status-of-lead-update">Sub Status of Lead</Label>
-                       <Select>
+                       <Select value={filters.subStatusOfLead} onValueChange={v => handleFilterChange('subStatusOfLead', v)}>
                         <SelectTrigger>
                           <SelectValue placeholder="--All--" />
                         </SelectTrigger>
                         <SelectContent>
+                          <SelectItem value="all">--All--</SelectItem>
                           <SelectItem value="substatus1">Sub-Status 1</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-1">
                       <Label htmlFor="lead-source-update">Lead Source</Label>
-                       <Select>
+                       <Select value={filters.leadSource} onValueChange={v => handleFilterChange('leadSource', v)}>
                         <SelectTrigger>
                           <SelectValue placeholder="--All--" />
                         </SelectTrigger>
                         <SelectContent>
+                          <SelectItem value="all">--All--</SelectItem>
                           <SelectItem value="source1">Source 1</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                   </div>
                    <div className="flex items-center space-x-2">
-                    <Checkbox id="do-not-consider-update" />
+                    <Checkbox id="do-not-consider-update" checked={filters.doNotConsider} onCheckedChange={c => handleFilterChange('doNotConsider', c)} />
                     <Label htmlFor="do-not-consider-update">
                       Do not consider Order Closed/Fake/Existing Users/Not Interested
                     </Label>
                   </div>
                   <div className="border-t pt-4 mt-4">
                     <div className="flex items-center space-x-2 mb-4">
-                        <Checkbox id="consider-follow-ups-update" />
+                        <Checkbox id="consider-follow-ups-update" checked={filters.considerFollowUps} onCheckedChange={c => handleFilterChange('considerFollowUps', c)} />
                         <Label htmlFor="consider-follow-ups-update">consider Follow Ups</Label>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         <div className="flex items-center gap-4">
-                            <RadioGroup defaultValue="pending" className="flex gap-4">
+                            <RadioGroup value={filters.followUpStatus} onValueChange={v => handleFilterChange('followUpStatus', v)} className="flex gap-4">
                                 <div className="flex items-center space-x-2">
                                 <RadioGroupItem value="pending" id="pending-update" />
                                 <Label htmlFor="pending-update">Follow Up Pending</Label>
@@ -564,33 +695,34 @@ export default function LeadUpdateForm() {
 
                         <div className="space-y-1">
                             <Label htmlFor="follow-up-from-date-update">From Date</Label>
-                            <Input id="follow-up-from-date-update" type="date" />
+                            <Input id="follow-up-from-date-update" type="date" value={filters.followUpFromDate} onChange={e => handleFilterChange('followUpFromDate', e.target.value)} />
                         </div>
                         <div className="space-y-1">
                             <Label htmlFor="follow-up-to-date-update">To Date</Label>
-                            <Input id="follow-up-to-date-update" type="date" />
+                            <Input id="follow-up-to-date-update" type="date" value={filters.followUpToDate} onChange={e => handleFilterChange('followUpToDate', e.target.value)} />
                         </div>
                         <div className="space-y-1">
                             <Label htmlFor="enter-by-update">Enter by</Label>
-                            <Select>
+                            <Select value={filters.enterBy} onValueChange={v => handleFilterChange('enterBy', v)}>
                                 <SelectTrigger>
                                 <SelectValue placeholder="--All--" />
                                 </SelectTrigger>
                                 <SelectContent>
+                                    <SelectItem value="all">--All--</SelectItem>
                                     <SelectItem value="user1">User 1</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
                         <div className="space-y-1">
                             <Label htmlFor="remarks-update">Remarks</Label>
-                            <Input id="remarks-update" />
+                            <Input id="remarks-update" value={filters.remarksFilter} onChange={e => handleFilterChange('remarksFilter', e.target.value)} />
                         </div>
                     </div>
                   </div>
 
                   <div className="flex justify-end gap-2 pt-4">
                     <Button onClick={handleShowClick}>SHOW</Button>
-                    <Button variant="outline">TO EXCEL</Button>
+                    <Button variant="outline" onClick={handleToExcel}>TO EXCEL</Button>
                     <Button variant="destructive" onClick={handleResetClick}>
                       RESET
                     </Button>
@@ -605,14 +737,19 @@ export default function LeadUpdateForm() {
         <Card>
           <CardContent className="p-4">
             <div className="flex flex-wrap gap-2 mb-4">
-              <Button variant="secondary">Recent Leads</Button>
-              <Button variant="secondary">Leads not Viewed</Button>
-              <Button variant="secondary">Follow Ups Due</Button>
-              <Button variant="secondary">Zero Follow Ups!</Button>
-              <Button variant="secondary">Search Result</Button>
+              {['Recent Leads', 'Leads not Viewed', 'Follow Ups Due', 'Zero Follow Ups!', 'Search Result'].map(filterName => (
+                  <Button 
+                    key={filterName} 
+                    variant={activeQuickFilter === filterName ? 'secondary' : 'outline'}
+                    onClick={() => handleQuickFilter(filterType => filterType === filterName ? '' : filterName)}
+                    disabled={filterName === 'Search Result' && activeQuickFilter !== 'Search Result'}
+                  >
+                      {filterName}
+                  </Button>
+              ))}
             </div>
             <p className="text-sm text-muted-foreground mb-2">
-              List of Leads &gt;&gt; [ Leads of Last 2 Days (165 Records) ]
+              List of Leads &gt;&gt; [ {activeQuickFilter} ({filteredLeads.length} Records) ]
             </p>
             <div className="overflow-x-auto">
               <Table>
@@ -629,12 +766,26 @@ export default function LeadUpdateForm() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {/* Add table rows here */}
-                  <TableRow>
-                    <TableCell colSpan={8} className="text-center">
-                      No results
-                    </TableCell>
-                  </TableRow>
+                  {filteredLeads.length > 0 ? (
+                    filteredLeads.map((lead, index) => (
+                        <TableRow key={lead.leadId}>
+                            <TableCell>{index + 1}</TableCell>
+                            <TableCell>{lead.leadId}</TableCell>
+                            <TableCell>{format(new Date(parseInt(lead.leadId.split('-')[1])), 'dd-MM-yyyy')}</TableCell>
+                            <TableCell>{lead.selectedModule}</TableCell>
+                            <TableCell>{lead.company}</TableCell>
+                            <TableCell>{lead.contactPerson}</TableCell>
+                            <TableCell>{lead.contactNumber}</TableCell>
+                            <TableCell>{lead.email}</TableCell>
+                        </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                        <TableCell colSpan={8} className="text-center">
+                        No results
+                        </TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </div>
@@ -649,5 +800,3 @@ export default function LeadUpdateForm() {
     </div>
   );
 }
-
-    
