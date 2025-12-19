@@ -19,7 +19,7 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart';
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { getLeadData, indianStatesAndDistricts } from '@/lib/data';
 import { Label } from '../ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -55,9 +55,17 @@ export default function LeadVolumeChart() {
   );
 
   const cities = useMemo(() => {
-    const allCities = Object.values(indianStatesAndDistricts).flat();
-    return ['All', ...Array.from(new Set(allCities))];
-  }, []);
+    if (selectedState === 'All') {
+        const allCities = Object.values(indianStatesAndDistricts).flat();
+        return ['All', ...Array.from(new Set(allCities))];
+    }
+    return ['All', ...(indianStatesAndDistricts[selectedState] || [])];
+  }, [selectedState]);
+
+  useEffect(() => {
+    setSelectedCity('All');
+  }, [selectedState]);
+
 
   const filteredData = useMemo(() => {
     const selectedMonthIndex = months.indexOf(period);
@@ -132,16 +140,15 @@ export default function LeadVolumeChart() {
                           key={state}
                           value={state}
                           onSelect={(currentValue) => {
-                            const newValue = currentValue.toLowerCase() === selectedState.toLowerCase() ? 'All' : currentValue;
+                            const newValue = currentValue === selectedState ? 'All' : currentValue;
                             setSelectedState(newValue === 'all' ? 'All' : newValue.charAt(0).toUpperCase() + newValue.slice(1));
-                            setSelectedCity('All');
                             setStateOpen(false);
                           }}
                         >
                           <Check
                             className={cn(
                               "mr-2 h-4 w-4",
-                              selectedState.toLowerCase() === state.toLowerCase() ? "opacity-100" : "opacity-0"
+                              selectedState === state ? "opacity-100" : "opacity-0"
                             )}
                           />
                           {state}
@@ -178,7 +185,7 @@ export default function LeadVolumeChart() {
                         key={city}
                         value={city}
                         onSelect={(currentValue) => {
-                          const newValue = currentValue.toLowerCase() === selectedCity.toLowerCase() ? 'All' : currentValue;
+                          const newValue = currentValue === selectedCity ? 'All' : currentValue;
                           setSelectedCity(newValue === 'all' ? 'All' : newValue.charAt(0).toUpperCase() + newValue.slice(1));
                           setCityOpen(false);
                         }}
@@ -186,7 +193,7 @@ export default function LeadVolumeChart() {
                         <Check
                           className={cn(
                             "mr-2 h-4 w-4",
-                            selectedCity.toLowerCase() === city.toLowerCase() ? "opacity-100" : "opacity-0"
+                            selectedCity === city ? "opacity-100" : "opacity-0"
                           )}
                         />
                         {city}

@@ -375,12 +375,10 @@ export default function LeadUploadForm() {
               <Label htmlFor="toDealer">To Dealer</Label>
               <span className="text-xs text-muted-foreground">As per Mapping</span>
             </div>
-          </div>
-        </div>
-        <div className="flex items-center justify-between pt-4 mt-4 border-t">
-          <div className="flex gap-2">
-              <Button variant="outline" onClick={resetForm}>Reset</Button>
-              <Button onClick={handleSaveLeads}>Save Lead</Button>
+            <div className="flex gap-2">
+                <Button variant="outline" onClick={resetForm}>Reset</Button>
+                <Button onClick={handleSaveLeads}>Save Lead</Button>
+            </div>
           </div>
         </div>
       </div>
