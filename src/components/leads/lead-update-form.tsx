@@ -53,6 +53,7 @@ export default function LeadUpdateForm() {
   const [followUps, setFollowUps] = useState<FollowUp[]>([]);
   const [currentStatus, setCurrentStatus] = useState('Initial');
   const [selectedStatus, setSelectedStatus] = useState('');
+  const [showResults, setShowResults] = useState(false);
 
   const [isFilterOpen, setIsFilterOpen] = useState(true);
 
@@ -107,6 +108,15 @@ export default function LeadUpdateForm() {
       title: 'Status Updated',
       description: `Lead status updated to ${selectedStatus}.`,
     });
+  };
+  
+  const handleShowClick = () => {
+    setShowResults(true);
+  };
+
+  const handleResetClick = () => {
+    setShowResults(false);
+    // Here you would also reset all filter form fields
   };
 
   return (
@@ -394,35 +404,35 @@ export default function LeadUpdateForm() {
             </Button>
             </CollapsibleTrigger>
             <CollapsibleContent>
-            <Card className="mt-2">
+              <Card className="mt-2">
                 <CardContent className="p-4 space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-center">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-center">
                     <div className="flex items-center gap-2">
-                    <Label htmlFor="search">Search</Label>
-                    <Input id="search" placeholder="Leave empty for all" />
+                      <Label htmlFor="search">Search</Label>
+                      <Input id="search" placeholder="Leave empty for all" />
                     </div>
                     <div className="flex items-center gap-4">
-                    <Label>From:</Label>
-                    <RadioGroup defaultValue="both" className="flex gap-4">
+                      <Label>From:</Label>
+                      <RadioGroup defaultValue="both" className="flex gap-4">
                         <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="web" id="web" />
-                        <Label htmlFor="web">Web Downloads</Label>
+                          <RadioGroupItem value="web" id="web-update" />
+                          <Label htmlFor="web-update">Web Downloads</Label>
                         </div>
                         <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="manual" id="manual" />
-                        <Label htmlFor="manual">Manual Uploads</Label>
+                          <RadioGroupItem value="manual" id="manual-update" />
+                          <Label htmlFor="manual-update">Manual Uploads</Label>
                         </div>
                         <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="both" id="both" />
-                        <Label htmlFor="both">Both</Label>
+                          <RadioGroupItem value="both" id="both-update" />
+                          <Label htmlFor="both-update">Both</Label>
                         </div>
-                    </RadioGroup>
+                      </RadioGroup>
                     </div>
-                </div>
-                <div>
+                  </div>
+                  <div>
                     <RadioGroup className="flex flex-wrap gap-4">
-                    <Label>Search for:</Label>
-                    {[
+                      <Label>Search for:</Label>
+                      {[
                         'Lead ID',
                         'Company',
                         'Contact Person',
@@ -432,82 +442,212 @@ export default function LeadUpdateForm() {
                         'District',
                         'State',
                         'Manager Name',
-                    ].map((item) => (
+                      ].map((item) => (
                         <div className="flex items-center space-x-2" key={item}>
-                        <RadioGroupItem
+                          <RadioGroupItem
                             value={item.toLowerCase().replace(' ', '')}
-                            id={`search-for-${item.toLowerCase().replace(' ', '')}`}
-                        />
-                        <Label htmlFor={`search-for-${item.toLowerCase().replace(' ', '')}`}>
+                            id={`search-for-update-${item.toLowerCase().replace(' ', '')}`}
+                          />
+                          <Label htmlFor={`search-for-update-${item.toLowerCase().replace(' ', '')}`}>
                             {item}
-                        </Label>
+                          </Label>
                         </div>
-                    ))}
+                      ))}
                     </RadioGroup>
-                </div>
+                  </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div className="space-y-1">
-                    <Label htmlFor="from-date">From Date</Label>
-                    <Input id="from-date" type="date" />
+                      <Label htmlFor="from-date-update">From Date</Label>
+                      <Input id="from-date-update" type="date" />
                     </div>
                     <div className="space-y-1">
-                    <Label htmlFor="to-date">To Date</Label>
-                    <Input id="to-date" type="date" />
+                      <Label htmlFor="to-date-update">To Date</Label>
+                      <Input id="to-date-update" type="date" />
                     </div>
                     <div className="space-y-1">
-                    <Label htmlFor="product-name">Product Name</Label>
-                    <Select>
+                      <Label htmlFor="product-name-update">Product Name</Label>
+                      <Select>
                         <SelectTrigger>
-                        <SelectValue placeholder="--All--" />
+                          <SelectValue placeholder="--All--" />
                         </SelectTrigger>
                         <SelectContent>
-                        <SelectItem value="product1">Product 1</SelectItem>
-                        <SelectItem value="product2">Product 2</SelectItem>
+                          <SelectItem value="product1">Product 1</SelectItem>
+                          <SelectItem value="product2">Product 2</SelectItem>
                         </SelectContent>
-                    </Select>
+                      </Select>
                     </div>
                     <div className="space-y-1">
-                    <Label htmlFor="executive-name">Executive Name</Label>
-                    <Select>
+                      <Label htmlFor="executive-name-update">Executive Name</Label>
+                      <Select>
                         <SelectTrigger>
-                        <SelectValue placeholder="--All--" />
+                          <SelectValue placeholder="--All--" />
                         </SelectTrigger>
                         <SelectContent>
-                        <SelectItem value="exec1">Executive 1</SelectItem>
-                        <SelectItem value="exec2">Executive 2</SelectItem>
+                          <SelectItem value="exec1">Executive 1</SelectItem>
+                          <SelectItem value="exec2">Executive 2</SelectItem>
                         </SelectContent>
-                    </Select>
+                      </Select>
                     </div>
                     <div className="space-y-1">
-                    <Label htmlFor="given-by">Given by</Label>
-                    <Select>
+                      <Label htmlFor="given-by-update">Given by</Label>
+                      <Select>
                         <SelectTrigger>
-                        <SelectValue placeholder="--All--" />
+                          <SelectValue placeholder="--All--" />
                         </SelectTrigger>
                         <SelectContent>
-                        <SelectItem value="given1">Given by 1</SelectItem>
+                          <SelectItem value="given1">Given by 1</SelectItem>
                         </SelectContent>
-                    </Select>
+                      </Select>
                     </div>
                     <div className="space-y-1">
-                    <Label htmlFor="status-of-lead">Status of Lead</Label>
-                    <Select>
+                      <Label htmlFor="status-of-lead-update">Status of Lead</Label>
+                       <Select>
                         <SelectTrigger>
-                        <SelectValue placeholder="--All--" />
+                          <SelectValue placeholder="--All--" />
                         </SelectTrigger>
                         <SelectContent>
-                        <SelectItem value="status1">Status 1</SelectItem>
+                          <SelectItem value="status1">Status 1</SelectItem>
                         </SelectContent>
-                    </Select>
+                      </Select>
                     </div>
-                </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="sub-status-of-lead-update">Sub Status of Lead</Label>
+                       <Select>
+                        <SelectTrigger>
+                          <SelectValue placeholder="--All--" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="substatus1">Sub-Status 1</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="lead-source-update">Lead Source</Label>
+                       <Select>
+                        <SelectTrigger>
+                          <SelectValue placeholder="--All--" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="source1">Source 1</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                   <div className="flex items-center space-x-2">
+                    <Checkbox id="do-not-consider-update" />
+                    <Label htmlFor="do-not-consider-update">
+                      Do not consider Order Closed/Fake/Existing Users/Not Interested
+                    </Label>
+                  </div>
+                  <div className="border-t pt-4 mt-4">
+                    <div className="flex items-center space-x-2 mb-4">
+                        <Checkbox id="consider-follow-ups-update" />
+                        <Label htmlFor="consider-follow-ups-update">consider Follow Ups</Label>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div className="flex items-center gap-4">
+                            <RadioGroup defaultValue="pending" className="flex gap-4">
+                                <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="pending" id="pending-update" />
+                                <Label htmlFor="pending-update">Follow Up Pending</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="made" id="made-update" />
+                                <Label htmlFor="made-update">Follow Up Made</Label>
+                                </div>
+                            </RadioGroup>
+                        </div>
+                        <div></div>
+                        <div></div>
+                        <div></div>
+
+                        <div className="space-y-1">
+                            <Label htmlFor="follow-up-from-date-update">From Date</Label>
+                            <Input id="follow-up-from-date-update" type="date" />
+                        </div>
+                        <div className="space-y-1">
+                            <Label htmlFor="follow-up-to-date-update">To Date</Label>
+                            <Input id="follow-up-to-date-update" type="date" />
+                        </div>
+                        <div className="space-y-1">
+                            <Label htmlFor="enter-by-update">Enter by</Label>
+                            <Select>
+                                <SelectTrigger>
+                                <SelectValue placeholder="--All--" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="user1">User 1</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-1">
+                            <Label htmlFor="remarks-update">Remarks</Label>
+                            <Input id="remarks-update" />
+                        </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-2 pt-4">
+                    <Button onClick={handleShowClick}>SHOW</Button>
+                    <Button variant="outline">TO EXCEL</Button>
+                    <Button variant="destructive" onClick={handleResetClick}>
+                      RESET
+                    </Button>
+                  </div>
                 </CardContent>
-            </Card>
+              </Card>
             </CollapsibleContent>
         </Collapsible>
-      </div>
+       </div>
 
+      {showResults && (
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex flex-wrap gap-2 mb-4">
+              <Button variant="secondary">Recent Leads</Button>
+              <Button variant="secondary">Leads not Viewed</Button>
+              <Button variant="secondary">Follow Ups Due</Button>
+              <Button variant="secondary">Zero Follow Ups!</Button>
+              <Button variant="secondary">Search Result</Button>
+            </div>
+            <p className="text-sm text-muted-foreground mb-2">
+              List of Leads &gt;&gt; [ Leads of Last 2 Days (165 Records) ]
+            </p>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Sl No</TableHead>
+                    <TableHead>Lead Id</TableHead>
+                    <TableHead>Lead Date</TableHead>
+                    <TableHead>Module</TableHead>
+                    <TableHead>Company</TableHead>
+                    <TableHead>Contact</TableHead>
+                    <TableHead>Cell</TableHead>
+                    <TableHead>Email ID</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {/* Add table rows here */}
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center">
+                      No results
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
+            <div className="text-center mt-4">
+              <Button variant="link">
+                Show more Records &gt;&gt; (Show All Record)
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
+
+    
