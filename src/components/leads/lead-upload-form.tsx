@@ -42,9 +42,10 @@ export type LeadFormData = {
   headcount: string;
   selectedModule: string;
   toDealer: boolean;
+  creationDate: number;
 };
 
-const initialFormState: Omit<LeadFormData, 'leadId'> = {
+const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate'> = {
     pincode: '',
     state: '',
     district: '',
@@ -61,7 +62,7 @@ const initialFormState: Omit<LeadFormData, 'leadId'> = {
 
 
 export default function LeadUploadForm() {
-  const [formData, setFormData] = useState<Omit<LeadFormData, 'leadId'>>(initialFormState);
+  const [formData, setFormData] = useState<Omit<LeadFormData, 'leadId' | 'creationDate'>>(initialFormState);
   const [addedLeads, setAddedLeads] = useState<LeadFormData[]>([]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -122,7 +123,7 @@ export default function LeadUploadForm() {
     setAddedLeads([]);
   };
 
-  const validateLead = (lead: Omit<LeadFormData, 'leadId'>) => {
+  const validateLead = (lead: Omit<LeadFormData, 'leadId' | 'creationDate'>) => {
     if (!lead.pincode || !lead.contactPerson || !lead.contactNumber || !lead.address) {
       toast({
         variant: 'destructive',
@@ -157,8 +158,9 @@ export default function LeadUploadForm() {
 
     if (formHasData) {
        if (!validateLead(formData)) return;
-        const newLeadId = `LEAD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-        leadsToSave.push({ ...formData, leadId: newLeadId });
+        const now = Date.now();
+        const newLeadId = `LEAD-${now}-${Math.floor(Math.random() * 1000)}`;
+        leadsToSave.push({ ...formData, leadId: newLeadId, creationDate: now });
     }
 
     if (leadsToSave.length === 0) {
@@ -258,9 +260,10 @@ export default function LeadUploadForm() {
               }
             }
 
-
+            const now = Date.now();
             return {
-                leadId: `LEAD-${Date.now()}-${rowIndex}-${Math.floor(Math.random() * 1000)}`,
+                leadId: `LEAD-${now}-${rowIndex}-${Math.floor(Math.random() * 1000)}`,
+                creationDate: now,
                 pincode: lead.pincode || '',
                 state: location?.state || '',
                 district: location?.district || '',
@@ -443,5 +446,3 @@ export default function LeadUploadForm() {
     </div>
   );
 }
-
-    

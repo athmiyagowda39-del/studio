@@ -12,7 +12,6 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect, useMemo } from 'react';
-import { pincodeData } from '@/lib/pincodes';
 import {
   Table,
   TableBody,
@@ -26,7 +25,7 @@ import { Textarea } from '../ui/textarea';
 import { Calendar } from '../ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { CalendarIcon, ChevronDown, ChevronUp } from 'lucide-react';
-import { format, subDays } from 'date-fns';
+import { format, subDays, startOfDay } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import {
@@ -181,10 +180,12 @@ export default function LeadUpdateForm() {
     }
 
     if (filters.fromDate) {
-        leads = leads.filter(lead => new Date(parseInt(lead.leadId.split('-')[2])) >= new Date(filters.fromDate));
+        const from = startOfDay(new Date(filters.fromDate)).getTime();
+        leads = leads.filter(lead => lead.creationDate >= from);
     }
     if (filters.toDate) {
-        leads = leads.filter(lead => new Date(parseInt(lead.leadId.split('-')[2])) <= new Date(filters.toDate));
+        const to = startOfDay(new Date(filters.toDate)).getTime() + (24*60*60*1000 - 1); // end of day
+        leads = leads.filter(lead => lead.creationDate <= to);
     }
 
     if (filters.productName !== 'all') {
@@ -211,8 +212,8 @@ export default function LeadUpdateForm() {
 
     switch(filterType) {
         case 'Recent Leads':
-            const twoDaysAgo = subDays(today, 2);
-            leads = allLeads.filter(lead => new Date(parseInt(lead.leadId.split('-')[2])) >= twoDaysAgo);
+            const twoDaysAgo = subDays(today, 2).getTime();
+            leads = allLeads.filter(lead => lead.creationDate >= twoDaysAgo);
             break;
         // Mock data for other filters as we don't have this data yet
         case 'Leads not Viewed':
@@ -404,7 +405,7 @@ export default function LeadUpdateForm() {
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="dateOfLead">Date of lead</Label>
-                    <Input id="dateOfLead" type="text" value={leadDetails.leadId ? format(new Date(parseInt(leadDetails.leadId.split('-')[2])), 'dd-MM-yyyy') : ''} readOnly />
+                    <Input id="dateOfLead" type="text" value={leadDetails.creationDate ? format(new Date(leadDetails.creationDate), 'dd-MM-yyyy') : ''} readOnly />
                 </div>
                  <div className="space-y-2">
                   <Label htmlFor="reference">Reference</Label>
@@ -817,7 +818,7 @@ export default function LeadUpdateForm() {
                         <TableRow key={lead.leadId}>
                             <TableCell>{index + 1}</TableCell>
                             <TableCell>{lead.leadId}</TableCell>
-                            <TableCell>{format(new Date(parseInt(lead.leadId.split('-')[2])), 'dd-MM-yyyy')}</TableCell>
+                            <TableCell>{format(new Date(lead.creationDate), 'dd-MM-yyyy')}</TableCell>
                             <TableCell>{lead.selectedModule}</TableCell>
                             <TableCell>{lead.company}</TableCell>
                             <TableCell>{lead.contactPerson}</TableCell>
@@ -846,5 +847,3 @@ export default function LeadUpdateForm() {
     </div>
   );
 }
-
-    

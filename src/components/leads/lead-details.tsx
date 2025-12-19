@@ -63,8 +63,8 @@ export default function LeadDetails() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {leads.map((lead) => (
-                    <TableRow key={lead.leadId}>
+                  {leads.map((lead, index) => (
+                    <TableRow key={`${lead.leadId}-${index}`}>
                       <TableCell>{lead.leadId}</TableCell>
                       <TableCell>{lead.company}</TableCell>
                       <TableCell>{lead.contactPerson}</TableCell>
