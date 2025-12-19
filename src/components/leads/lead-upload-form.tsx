@@ -310,11 +310,11 @@ export default function LeadUploadForm() {
         <div></div>
         <div className="space-y-2">
           <Label htmlFor="state">State</Label>
-          <Input id="state" placeholder="Auto fill based on pin code" value={formData.state} readOnly />
+          <Input id="state" value={formData.state} readOnly />
         </div>
         <div className="space-y-2">
           <Label htmlFor="district">District</Label>
-          <Input id="district" placeholder="Auto fill based on pin code" value={formData.district} readOnly />
+          <Input id="district" value={formData.district} readOnly />
         </div>
         <div className="col-span-2 space-y-2">
           <Label htmlFor="address">Address <span className="text-destructive">*</span></Label>
@@ -435,7 +435,6 @@ export default function LeadUploadForm() {
             <Button variant="outline" onClick={resetForm}>Reset</Button>
             <Button onClick={handleSaveLeads}>Save Lead</Button>
         </div>
-        <p className="text-sm text-muted-foreground">Note: ALL MODULES IN HRMS</p>
       </div>
     </div>
   );
