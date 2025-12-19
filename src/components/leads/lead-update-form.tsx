@@ -25,10 +25,16 @@ import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '../ui/textarea';
 import { Calendar } from '../ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, ChevronDown, ChevronUp } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 type FollowUp = {
   id: number;
@@ -47,6 +53,8 @@ export default function LeadUpdateForm() {
   const [followUps, setFollowUps] = useState<FollowUp[]>([]);
   const [currentStatus, setCurrentStatus] = useState('Initial');
   const [selectedStatus, setSelectedStatus] = useState('');
+
+  const [isFilterOpen, setIsFilterOpen] = useState(true);
 
   const { toast } = useToast();
 
@@ -337,6 +345,11 @@ export default function LeadUpdateForm() {
                 <TableCell>{followUp.enteredBy}</TableCell>
               </TableRow>
             ))}
+            {followUps.length === 0 && (
+                <TableRow>
+                    <TableCell colSpan={5} className="text-center text-muted-foreground">No follow-ups added yet.</TableCell>
+                </TableRow>
+            )}
           </TableBody>
         </Table>
       </div>
@@ -367,6 +380,134 @@ export default function LeadUpdateForm() {
         </Select>
         <Button onClick={handleUpdateStatus}>Update</Button>
       </div>
+
+       <div className="space-y-4 pt-6 border-t">
+        <Collapsible open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+            <CollapsibleTrigger asChild>
+            <Button variant="outline" className="w-full justify-between">
+                <span>Filter [{isFilterOpen ? 'hide' : 'show'}]</span>
+                {isFilterOpen ? (
+                <ChevronUp className="h-4 w-4" />
+                ) : (
+                <ChevronDown className="h-4 w-4" />
+                )}
+            </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+            <Card className="mt-2">
+                <CardContent className="p-4 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-center">
+                    <div className="flex items-center gap-2">
+                    <Label htmlFor="search">Search</Label>
+                    <Input id="search" placeholder="Leave empty for all" />
+                    </div>
+                    <div className="flex items-center gap-4">
+                    <Label>From:</Label>
+                    <RadioGroup defaultValue="both" className="flex gap-4">
+                        <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="web" id="web" />
+                        <Label htmlFor="web">Web Downloads</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="manual" id="manual" />
+                        <Label htmlFor="manual">Manual Uploads</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="both" id="both" />
+                        <Label htmlFor="both">Both</Label>
+                        </div>
+                    </RadioGroup>
+                    </div>
+                </div>
+                <div>
+                    <RadioGroup className="flex flex-wrap gap-4">
+                    <Label>Search for:</Label>
+                    {[
+                        'Lead ID',
+                        'Company',
+                        'Contact Person',
+                        'Phone',
+                        'Cell',
+                        'Email',
+                        'District',
+                        'State',
+                        'Manager Name',
+                    ].map((item) => (
+                        <div className="flex items-center space-x-2" key={item}>
+                        <RadioGroupItem
+                            value={item.toLowerCase().replace(' ', '')}
+                            id={`search-for-${item.toLowerCase().replace(' ', '')}`}
+                        />
+                        <Label htmlFor={`search-for-${item.toLowerCase().replace(' ', '')}`}>
+                            {item}
+                        </Label>
+                        </div>
+                    ))}
+                    </RadioGroup>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="space-y-1">
+                    <Label htmlFor="from-date">From Date</Label>
+                    <Input id="from-date" type="date" />
+                    </div>
+                    <div className="space-y-1">
+                    <Label htmlFor="to-date">To Date</Label>
+                    <Input id="to-date" type="date" />
+                    </div>
+                    <div className="space-y-1">
+                    <Label htmlFor="product-name">Product Name</Label>
+                    <Select>
+                        <SelectTrigger>
+                        <SelectValue placeholder="--All--" />
+                        </SelectTrigger>
+                        <SelectContent>
+                        <SelectItem value="product1">Product 1</SelectItem>
+                        <SelectItem value="product2">Product 2</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    </div>
+                    <div className="space-y-1">
+                    <Label htmlFor="executive-name">Executive Name</Label>
+                    <Select>
+                        <SelectTrigger>
+                        <SelectValue placeholder="--All--" />
+                        </SelectTrigger>
+                        <SelectContent>
+                        <SelectItem value="exec1">Executive 1</SelectItem>
+                        <SelectItem value="exec2">Executive 2</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    </div>
+                    <div className="space-y-1">
+                    <Label htmlFor="given-by">Given by</Label>
+                    <Select>
+                        <SelectTrigger>
+                        <SelectValue placeholder="--All--" />
+                        </SelectTrigger>
+                        <SelectContent>
+                        <SelectItem value="given1">Given by 1</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    </div>
+                    <div className="space-y-1">
+                    <Label htmlFor="status-of-lead">Status of Lead</Label>
+                    <Select>
+                        <SelectTrigger>
+                        <SelectValue placeholder="--All--" />
+                        </SelectTrigger>
+                        <SelectContent>
+                        <SelectItem value="status1">Status 1</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    </div>
+                </div>
+                </CardContent>
+            </Card>
+            </CollapsibleContent>
+        </Collapsible>
+      </div>
+
     </div>
   );
 }
