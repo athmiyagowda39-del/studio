@@ -131,23 +131,44 @@ export default function LeadUploadForm() {
     });
   };
 
-  const handleAddLead = () => {
-    if (!formData.pincode) {
+  const validateLead = (lead: LeadFormData) => {
+    if (!lead.pincode) {
       toast({
         variant: 'destructive',
         title: 'Missing Pincode',
         description: 'Pincode is a required field.',
       });
-      return;
+      return false;
     }
-    if (!formData.contactPerson || !formData.company) {
+    if (!lead.contactPerson) {
         toast({
             variant: "destructive",
             title: "Missing Information",
-            description: "Please fill in at least Contact Person and Company.",
+            description: "Contact Person is a required field.",
         });
-        return;
+        return false;
     }
+     if (!lead.contactNumber) {
+        toast({
+            variant: "destructive",
+            title: "Missing Information",
+            description: "Contact Number is a required field.",
+        });
+        return false;
+    }
+     if (!lead.address) {
+        toast({
+            variant: "destructive",
+            title: "Missing Information",
+            description: "Address is a required field.",
+        });
+        return false;
+    }
+    return true;
+  }
+
+  const handleAddLead = () => {
+    if (!validateLead(formData)) return;
     
     const newLeadId = `LEAD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     const leadToAdd = { ...formData, leadId: newLeadId };
@@ -168,7 +189,11 @@ export default function LeadUploadForm() {
 
   const handleSaveLeads = () => {
     let leadsToSave = [...addedLeads];
-    if (formData.contactPerson && formData.pincode) {
+    
+    const formHasData = formData.pincode && (formData.contactPerson || formData.company);
+
+    if (formHasData) {
+       if (!validateLead(formData)) return;
         const newLeadId = `LEAD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
         leadsToSave.push({ ...formData, leadId: newLeadId });
     }
@@ -177,7 +202,7 @@ export default function LeadUploadForm() {
          toast({
             variant: "destructive",
             title: "No leads to save",
-            description: "Please add or enter at least one lead before saving.",
+            description: "Please add or enter at least one valid lead before saving.",
         });
         return;
     }
@@ -186,7 +211,7 @@ export default function LeadUploadForm() {
     console.log("Saving leads:", leadsToSave);
 
     toast({
-        title: "Leads Saved!",
+        title: "Leads added successfully",
         description: `${leadsToSave.length} lead(s) have been successfully saved.`,
     });
     resetForm();
@@ -265,8 +290,8 @@ export default function LeadUploadForm() {
    const handleDownloadSample = () => {
     const sampleData = [
       ['pincode', 'address', 'contactPerson', 'contactNumber', 'reference', 'email', 'company', 'headcount'],
-      ['560001', '123 MG Road', 'John Doe', '9876543210', 'Friend', 'john.doe@example.com', 'Tech Solutions', '150'],
-      ['560002', '456 Brigade Road', 'Jane Smith', '8765432109', 'Website', 'jane.smith@example.com', 'Innovate Corp', '250'],
+      ['560001', '123 MG Road, Bengaluru', 'John Doe', '9876543210', 'Friend', 'john.doe@example.com', 'Tech Solutions', '150'],
+      ['560002', '456 Brigade Road, Bengaluru', 'Jane Smith', '8765432109', 'Website', 'jane.smith@example.com', 'Innovate Corp', '250'],
     ];
     const ws = XLSX.utils.aoa_to_sheet(sampleData);
     const wb = XLSX.utils.book_new();
@@ -292,16 +317,16 @@ export default function LeadUploadForm() {
           <Input id="district" placeholder="Auto fill based on pin code" value={formData.district} readOnly />
         </div>
         <div className="col-span-2 space-y-2">
-          <Label htmlFor="address">Address</Label>
-          <Input id="address" value={formData.address} onChange={handleInputChange} />
+          <Label htmlFor="address">Address <span className="text-destructive">*</span></Label>
+          <Input id="address" value={formData.address} onChange={handleInputChange} required />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="contactPerson">Contact person</Label>
-          <Input id="contactPerson" value={formData.contactPerson} onChange={handleInputChange} />
+          <Label htmlFor="contactPerson">Contact person <span className="text-destructive">*</span></Label>
+          <Input id="contactPerson" value={formData.contactPerson} onChange={handleInputChange} required />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="contactNumber">Contact Number</Label>
-          <Input id="contactNumber" value={formData.contactNumber} onChange={handleInputChange} />
+          <Label htmlFor="contactNumber">Contact Number <span className="text-destructive">*</span></Label>
+          <Input id="contactNumber" value={formData.contactNumber} onChange={handleInputChange} required />
         </div>
         <div className="space-y-2">
           <Label htmlFor="reference">Reference</Label>
