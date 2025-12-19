@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
-import { UploadCloud } from 'lucide-react';
+import { Download, UploadCloud } from 'lucide-react';
 import { Card, CardContent } from '../ui/card';
 import { useState, useRef } from 'react';
 import { pincodeData } from '@/lib/pincodes';
@@ -132,7 +132,14 @@ export default function LeadUploadForm() {
   };
 
   const handleAddLead = () => {
-    // Basic validation
+    if (!formData.pincode) {
+      toast({
+        variant: 'destructive',
+        title: 'Missing Pincode',
+        description: 'Pincode is a required field.',
+      });
+      return;
+    }
     if (!formData.contactPerson || !formData.company) {
         toast({
             variant: "destructive",
@@ -141,10 +148,14 @@ export default function LeadUploadForm() {
         });
         return;
     }
-    setAddedLeads(prev => [...prev, formData]);
+    
+    const newLeadId = `LEAD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    const leadToAdd = { ...formData, leadId: newLeadId };
+
+    setAddedLeads(prev => [...prev, leadToAdd]);
     toast({
         title: "Lead Added",
-        description: `${formData.contactPerson} from ${formData.company} has been added to the queue.`,
+        description: `${leadToAdd.contactPerson} from ${leadToAdd.company} has been added to the queue.`,
     });
     // Clear form for next entry, but keep some fields if needed
     setFormData({
@@ -152,17 +163,21 @@ export default function LeadUploadForm() {
         pincode: formData.pincode,
         state: formData.state,
         district: formData.district,
-        company: formData.company,
     });
   };
 
   const handleSaveLeads = () => {
-    const leadsToSave = addedLeads.length > 0 ? addedLeads : (formData.contactPerson ? [formData] : []);
+    let leadsToSave = [...addedLeads];
+    if (formData.contactPerson && formData.pincode) {
+        const newLeadId = `LEAD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+        leadsToSave.push({ ...formData, leadId: newLeadId });
+    }
+
     if (leadsToSave.length === 0) {
          toast({
             variant: "destructive",
             title: "No leads to save",
-            description: "Please add at least one lead before saving.",
+            description: "Please add or enter at least one lead before saving.",
         });
         return;
     }
@@ -229,7 +244,8 @@ export default function LeadUploadForm() {
         });
       return;
     }
-    // Here you would typically send the data to your backend
+    // Here you would typically process and send the parsedData to your backend
+    console.log('Uploading parsed data:', parsedData.slice(1));
     toast({
         title: "Upload Confirmed",
         description: "Your lead data has been successfully queued for import.",
@@ -246,13 +262,25 @@ export default function LeadUploadForm() {
     }
   };
 
+   const handleDownloadSample = () => {
+    const sampleData = [
+      ['pincode', 'address', 'contactPerson', 'contactNumber', 'reference', 'email', 'company', 'headcount'],
+      ['560001', '123 MG Road', 'John Doe', '9876543210', 'Friend', 'john.doe@example.com', 'Tech Solutions', '150'],
+      ['560002', '456 Brigade Road', 'Jane Smith', '8765432109', 'Website', 'jane.smith@example.com', 'Innovate Corp', '250'],
+    ];
+    const ws = XLSX.utils.aoa_to_sheet(sampleData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Leads');
+    XLSX.writeFile(wb, 'sample_leads.xlsx');
+  };
+
   return (
     <div className="space-y-6">
       <p className="font-semibold">Provide the new Lead detail</p>
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="pincode">Pin code</Label>
-          <Input id="pincode" value={formData.pincode} onChange={handlePincodeChange} />
+          <Label htmlFor="pincode">Pin code <span className="text-destructive">*</span></Label>
+          <Input id="pincode" value={formData.pincode} onChange={handlePincodeChange} required/>
         </div>
         <div></div>
         <div className="space-y-2">
@@ -276,10 +304,6 @@ export default function LeadUploadForm() {
           <Input id="contactNumber" value={formData.contactNumber} onChange={handleInputChange} />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="leadId">Lead ID</Label>
-          <Input id="leadId" value={formData.leadId} onChange={handleInputChange} />
-        </div>
-        <div className="space-y-2">
           <Label htmlFor="reference">Reference</Label>
           <Input id="reference" value={formData.reference} onChange={handleInputChange} />
         </div>
@@ -287,7 +311,6 @@ export default function LeadUploadForm() {
           <Label htmlFor="email">Email</Label>
           <Input id="email" type="email" value={formData.email} onChange={handleInputChange} />
         </div>
-        <div></div>
         <div className="space-y-2">
           <Label htmlFor="company">Company</Label>
           <Input id="company" value={formData.company} onChange={handleInputChange} />
@@ -331,7 +354,13 @@ export default function LeadUploadForm() {
                     <UploadCloud className="h-12 w-12 text-muted-foreground" />
                     <p className="font-semibold">{selectedFile ? selectedFile.name : "Drag & Drop Excel/CSV file"}</p>
                     <p className="text-sm text-muted-foreground">or</p>
-                    <Button variant="outline" size="sm" onClick={handleBrowseFileClick}>Browse File</Button>
+                    <div className='flex gap-2'>
+                        <Button variant="outline" size="sm" onClick={handleBrowseFileClick}>Browse File</Button>
+                         <Button variant="outline" size="sm" onClick={handleDownloadSample}>
+                            <Download className="mr-2 h-4 w-4" />
+                            Download Sample
+                        </Button>
+                    </div>
                     <Input ref={fileInputRef} type="file" className="hidden" onChange={handleFileChange} accept=".xlsx, .xls, .csv" />
                 </div>
             </CardContent>
@@ -386,5 +415,3 @@ export default function LeadUploadForm() {
     </div>
   );
 }
-
-    
