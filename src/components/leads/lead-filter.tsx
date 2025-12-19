@@ -31,13 +31,23 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 
 export default function LeadFilter() {
   const [isFilterOpen, setIsFilterOpen] = useState(true);
+  const [showResults, setShowResults] = useState(false);
+
+  const handleShowClick = () => {
+    setShowResults(true);
+  };
+
+  const handleResetClick = () => {
+    setShowResults(false);
+    // Here you would also reset all filter form fields
+  };
 
   return (
     <div className="space-y-4">
       <Collapsible open={isFilterOpen} onOpenChange={setIsFilterOpen}>
         <CollapsibleTrigger asChild>
           <Button variant="outline" className="w-full justify-between">
-            <span>Filter</span>
+            <span>Filter [{isFilterOpen ? 'hide' : 'show'}]</span>
             {isFilterOpen ? (
               <ChevronUp className="h-4 w-4" />
             ) : (
@@ -231,52 +241,62 @@ export default function LeadFilter() {
               </div>
 
               <div className="flex justify-end gap-2 pt-4">
-                <Button>SHOW</Button>
+                <Button onClick={handleShowClick}>SHOW</Button>
                 <Button variant="outline">TO EXCEL</Button>
-                <Button variant="destructive">RESET</Button>
+                <Button variant="destructive" onClick={handleResetClick}>
+                  RESET
+                </Button>
               </div>
             </CardContent>
           </Card>
         </CollapsibleContent>
       </Collapsible>
-      
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-wrap gap-2 mb-4">
-            <Button variant="secondary">Recent Leads</Button>
-            <Button variant="secondary">Leads not Viewed</Button>
-            <Button variant="secondary">Follow Ups Due</Button>
-            <Button variant="secondary">Zero Follow Ups!</Button>
-            <Button variant="secondary">Search Result</Button>
-          </div>
-          <p className="text-sm text-muted-foreground mb-2">List of Leads &gt;&gt; [ Leads of Last 2 Days (165 Records) ]</p>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Sl No</TableHead>
-                  <TableHead>Lead Id</TableHead>
-                  <TableHead>Lead Date</TableHead>
-                  <TableHead>Module</TableHead>
-                  <TableHead>Company</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Cell</TableHead>
-                  <TableHead>Email ID</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {/* Add table rows here */}
-                <TableRow>
-                    <TableCell colSpan={8} className="text-center">No results</TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </div>
-          <div className="text-center mt-4">
-              <Button variant="link">Show more Records &gt;&gt; (Show All Record)</Button>
-          </div>
-        </CardContent>
-      </Card>
+
+      {showResults && (
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex flex-wrap gap-2 mb-4">
+              <Button variant="secondary">Recent Leads</Button>
+              <Button variant="secondary">Leads not Viewed</Button>
+              <Button variant="secondary">Follow Ups Due</Button>
+              <Button variant="secondary">Zero Follow Ups!</Button>
+              <Button variant="secondary">Search Result</Button>
+            </div>
+            <p className="text-sm text-muted-foreground mb-2">
+              List of Leads &gt;&gt; [ Leads of Last 2 Days (165 Records) ]
+            </p>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Sl No</TableHead>
+                    <TableHead>Lead Id</TableHead>
+                    <TableHead>Lead Date</TableHead>
+                    <TableHead>Module</TableHead>
+                    <TableHead>Company</TableHead>
+                    <TableHead>Contact</TableHead>
+                    <TableHead>Cell</TableHead>
+                    <TableHead>Email ID</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {/* Add table rows here */}
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center">
+                      No results
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
+            <div className="text-center mt-4">
+              <Button variant="link">
+                Show more Records &gt;&gt; (Show All Record)
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
