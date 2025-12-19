@@ -132,37 +132,13 @@ export default function LeadUploadForm() {
   };
 
   const validateLead = (lead: LeadFormData) => {
-    if (!lead.pincode) {
+    if (!lead.pincode || !lead.contactPerson || !lead.contactNumber || !lead.address) {
       toast({
         variant: 'destructive',
-        title: 'Missing Pincode',
-        description: 'Pincode is a required field.',
+        title: 'Missing Information',
+        description: 'Please fill all mandatory fields.',
       });
       return false;
-    }
-    if (!lead.contactPerson) {
-        toast({
-            variant: "destructive",
-            title: "Missing Information",
-            description: "Contact Person is a required field.",
-        });
-        return false;
-    }
-     if (!lead.contactNumber) {
-        toast({
-            variant: "destructive",
-            title: "Missing Information",
-            description: "Contact Number is a required field.",
-        });
-        return false;
-    }
-     if (!lead.address) {
-        toast({
-            variant: "destructive",
-            title: "Missing Information",
-            description: "Address is a required field.",
-        });
-        return false;
     }
     return true;
   }
@@ -190,7 +166,7 @@ export default function LeadUploadForm() {
   const handleSaveLeads = () => {
     let leadsToSave = [...addedLeads];
     
-    const formHasData = formData.pincode && (formData.contactPerson || formData.company);
+    const formHasData = formData.pincode || formData.contactPerson || formData.company || formData.address || formData.contactNumber;
 
     if (formHasData) {
        if (!validateLead(formData)) return;
