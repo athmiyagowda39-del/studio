@@ -59,6 +59,7 @@ export default function LeadDetails() {
                     <TableHead>District</TableHead>
                     <TableHead>Address</TableHead>
                     <TableHead>Email</TableHead>
+                    <TableHead>Selected Module</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -73,6 +74,7 @@ export default function LeadDetails() {
                       <TableCell>{lead.district}</TableCell>
                       <TableCell>{lead.address}</TableCell>
                       <TableCell>{lead.email}</TableCell>
+                      <TableCell>{lead.selectedModule}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
