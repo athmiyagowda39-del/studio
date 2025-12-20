@@ -547,8 +547,20 @@ export default function LeadUpdateForm() {
         </CardHeader>
         <CardContent className='p-4'>
            <div className="flex items-center gap-4">
-            <div>
-              <span className="font-semibold">Initial Remarks:</span> <span className='text-primary'>{leadDetails.leadId ? 'Loaded' : '-Select a lead-'}</span>
+            <div className="flex items-center gap-2">
+              <span className="font-semibold">Initial Remarks:</span>
+              <Select onValueChange={handleSearchLead} value={searchLeadId}>
+                <SelectTrigger className="w-[250px]">
+                  <SelectValue placeholder="Select a lead to load" />
+                </SelectTrigger>
+                <SelectContent>
+                  {allLeads.map((lead) => (
+                    <SelectItem key={lead.leadId} value={lead.leadId}>
+                      {lead.leadId} ({lead.company || lead.contactPerson})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <span className="font-semibold">Current Status:</span>
@@ -859,5 +871,3 @@ export default function LeadUpdateForm() {
     </div>
   );
 }
-
-    
