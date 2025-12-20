@@ -490,19 +490,22 @@ export default function LeadUpdateForm() {
                   <Label htmlFor="executiveViewDate">Executive view Date</Label>
                   <Input id="executiveViewDate" type="date" />
                 </div>
-                <div className="col-span-2 space-y-2">
-                  <Label>Executive Member: Manager:</Label>
-                  <div className="flex items-center space-x-2 pt-2">
-                    <Checkbox id="readyToUpdate" />
-                    <Label htmlFor="readyToUpdate">
-                      Yes I&apos;m ready to update
-                    </Label>
-                  </div>
-                </div>
               </div>
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={handleResetLeadDetails}>Reset</Button>
-                <Button onClick={handleSaveLeadDetails}>Save</Button>
+              <div className="border-t pt-4 mt-4">
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <p>Dealer Member:</p>
+                        <p>Manager:</p>
+                        <div className="flex items-center space-x-2 mt-2">
+                            <Checkbox id="readyToUpdate" />
+                            <Label htmlFor="readyToUpdate">Yes, I am Ready to Update.</Label>
+                        </div>
+                    </div>
+                    <div className="flex items-center justify-end gap-2">
+                        <Button onClick={handleSaveLeadDetails}>Save</Button>
+                        <Button variant="outline" onClick={handleResetLeadDetails}>Reset</Button>
+                    </div>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -786,14 +789,14 @@ export default function LeadUpdateForm() {
                     </div>
                   </div>
                    <div className="flex items-center space-x-2">
-                    <Checkbox id="do-not-consider-update" checked={filters.doNotConsider} onCheckedChange={c => handleFilterChange('doNotConsider', c)} />
+                    <Checkbox id="do-not-consider-update" checked={filters.doNotConsider} onCheckedChange={c => handleFilterChange('doNotConsider', c as boolean)} />
                     <Label htmlFor="do-not-consider-update">
                       Do not consider Order Closed/Fake/Existing Users/Not Interested
                     </Label>
                   </div>
                   <div className="border-t pt-4 mt-4">
                     <div className="flex items-center space-x-2 mb-4">
-                        <Checkbox id="consider-follow-ups-update" checked={filters.considerFollowUps} onCheckedChange={c => handleFilterChange('considerFollowUps', c)} />
+                        <Checkbox id="consider-follow-ups-update" checked={filters.considerFollowUps} onCheckedChange={c => handleFilterChange('considerFollowUps', c as boolean)} />
                         <Label htmlFor="consider-follow-ups-update">consider Follow Ups</Label>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
