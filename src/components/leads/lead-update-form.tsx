@@ -364,8 +364,8 @@ export default function LeadUpdateForm() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-2 space-y-4">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        <div className="lg:col-span-3 space-y-4">
           <Card>
             <CardHeader>
               <CardTitle className="text-base">LEAD CONTACT CARD</CardTitle>
@@ -449,7 +449,7 @@ export default function LeadUpdateForm() {
           </Card>
         </div>
 
-        <div className="space-y-4">
+        <div className="lg:col-span-2 space-y-4">
           <Card>
             <CardHeader>
               <CardTitle className="text-base">LEAD TRACKER</CardTitle>
@@ -501,39 +501,38 @@ export default function LeadUpdateForm() {
                 <Button variant="outline">New</Button>
                 <Button onClick={handleAddFollowUp}>Add&gt;&gt;</Button>
               </div>
+              <div className="space-y-4 pt-4">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Sl No</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Remarks</TableHead>
+                      <TableHead>Next Follow-up</TableHead>
+                      <TableHead>Entered by</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {followUps.map((followUp) => (
+                      <TableRow key={followUp.id}>
+                        <TableCell>{followUp.id}</TableCell>
+                        <TableCell>{followUp.date}</TableCell>
+                        <TableCell>{followUp.remarks}</TableCell>
+                        <TableCell>{followUp.nextFollowUp}</TableCell>
+                        <TableCell>{followUp.enteredBy}</TableCell>
+                      </TableRow>
+                    ))}
+                    {followUps.length === 0 && (
+                        <TableRow>
+                            <TableCell colSpan={5} className="text-center text-muted-foreground">No follow-ups added yet.</TableCell>
+                        </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
         </div>
-      </div>
-
-      <div className="space-y-4">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Sl No</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Remarks</TableHead>
-              <TableHead>Next Follow-up</TableHead>
-              <TableHead>Entered by</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {followUps.map((followUp) => (
-              <TableRow key={followUp.id}>
-                <TableCell>{followUp.id}</TableCell>
-                <TableCell>{followUp.date}</TableCell>
-                <TableCell>{followUp.remarks}</TableCell>
-                <TableCell>{followUp.nextFollowUp}</TableCell>
-                <TableCell>{followUp.enteredBy}</TableCell>
-              </TableRow>
-            ))}
-            {followUps.length === 0 && (
-                <TableRow>
-                    <TableCell colSpan={5} className="text-center text-muted-foreground">No follow-ups added yet.</TableCell>
-                </TableRow>
-            )}
-          </TableBody>
-        </Table>
       </div>
 
       <div className="flex items-center gap-4">
@@ -833,7 +832,7 @@ export default function LeadUpdateForm() {
                         </TableCell>
                     </TableRow>
                   )}
-                </TableBody>
+                </Body>
               </Table>
             </div>
             <div className="text-center mt-4">
