@@ -832,7 +832,7 @@ export default function LeadUpdateForm() {
                         </TableCell>
                     </TableRow>
                   )}
-                </Body>
+                </TableBody>
               </Table>
             </div>
             <div className="text-center mt-4">
