@@ -293,7 +293,7 @@ export default function LeadUpdateForm() {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 text-center">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 text-center">
         <Card>
           <CardHeader className="p-2">
             <CardTitle className="text-sm font-medium">Total Leads</CardTitle>
@@ -377,7 +377,6 @@ export default function LeadUpdateForm() {
                       <SelectValue placeholder="Select a lead" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">-- Select a lead --</SelectItem>
                       {allLeads.map((lead) => (
                         <SelectItem key={lead.leadId} value={lead.leadId}>
                           {lead.leadId} ({lead.company || lead.contactPerson})
@@ -860,3 +859,5 @@ export default function LeadUpdateForm() {
     </div>
   );
 }
+
+    
