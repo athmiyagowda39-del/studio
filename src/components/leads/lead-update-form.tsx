@@ -85,6 +85,7 @@ export default function LeadUpdateForm() {
   const [showResults, setShowResults] = useState(false);
   const [activeQuickFilter, setActiveQuickFilter] = useState('');
   const [leadSelectOpen, setLeadSelectOpen] = useState(false);
+  const [leadStatusSelectOpen, setLeadStatusSelectOpen] = useState(false);
   
   const [filters, setFilters] = useState(initialFilterState);
 
@@ -303,7 +304,7 @@ export default function LeadUpdateForm() {
   const LeadSelector = ({ onValueChange, value, open, onOpenChange }: { onValueChange: (value: string) => void, value: string, open: boolean, onOpenChange: (open: boolean) => void }) => {
     const selectedLeadDisplay = allLeads.find(lead => lead.leadId === value);
     return (
-        <Popover open={open} onOpenChange={onOpenChange}>
+      <Popover open={open} onOpenChange={onOpenChange}>
         <PopoverTrigger asChild>
           <Button
             variant="outline"
@@ -320,12 +321,12 @@ export default function LeadUpdateForm() {
         <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
           <Command>
             <CommandInput placeholder="Search lead..." />
-            <CommandEmpty>No lead found.</CommandEmpty>
             <CommandList>
+              <CommandEmpty>No lead found.</CommandEmpty>
               <CommandGroup>
-                {allLeads.map((lead) => (
+                {allLeads.map((lead, index) => (
                   <CommandItem
-                    key={lead.leadId}
+                    key={`${lead.leadId}-${index}`}
                     value={`${lead.leadId} ${lead.company} ${lead.contactPerson}`}
                     onSelect={() => {
                       onValueChange(lead.leadId);
@@ -605,8 +606,8 @@ export default function LeadUpdateForm() {
                 <LeadSelector 
                     value={searchLeadId}
                     onValueChange={handleSearchLead}
-                    open={leadSelectOpen}
-                    onOpenChange={setLeadSelectOpen}
+                    open={leadStatusSelectOpen}
+                    onOpenChange={setLeadStatusSelectOpen}
                 />
               </div>
             </div>
