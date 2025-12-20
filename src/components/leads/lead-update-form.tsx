@@ -24,7 +24,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '../ui/textarea';
 import { Calendar } from '../ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
-import { CalendarIcon, ChevronDown, ChevronUp } from 'lucide-react';
+import { CalendarIcon, ChevronDown, ChevronUp, ChevronsUpDown, Check as CheckIcon } from 'lucide-react';
 import { format, subDays, startOfDay } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
@@ -36,6 +36,8 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import type { LeadFormData } from './lead-upload-form';
 import * as XLSX from 'xlsx';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '../ui/command';
+
 
 type FollowUp = {
   id: number;
@@ -82,6 +84,7 @@ export default function LeadUpdateForm() {
   const [filteredLeads, setFilteredLeads] = useState<LeadFormData[]>([]);
   const [showResults, setShowResults] = useState(false);
   const [activeQuickFilter, setActiveQuickFilter] = useState('');
+  const [leadSelectOpen, setLeadSelectOpen] = useState(false);
   
   const [filters, setFilters] = useState(initialFilterState);
 
@@ -91,7 +94,13 @@ export default function LeadUpdateForm() {
     try {
       const storedLeads = localStorage.getItem('uploadedLeads');
       if (storedLeads) {
-        setAllLeads(JSON.parse(storedLeads));
+        const parsedLeads: LeadFormData[] = JSON.parse(storedLeads);
+        // Ensure creationDate is a number
+        const correctedLeads = parsedLeads.map(lead => ({
+          ...lead,
+          creationDate: typeof lead.creationDate === 'string' ? new Date(lead.creationDate).getTime() : lead.creationDate
+        }));
+        setAllLeads(correctedLeads);
       }
     } catch (error) {
       console.error('Failed to parse leads from localStorage', error);
@@ -291,9 +300,58 @@ export default function LeadUpdateForm() {
     });
   };
 
+  const LeadSelector = ({ onValueChange, value, open, onOpenChange }: { onValueChange: (value: string) => void, value: string, open: boolean, onOpenChange: (open: boolean) => void }) => {
+    const selectedLeadDisplay = allLeads.find(lead => lead.leadId === value);
+    return (
+        <Popover open={open} onOpenChange={onOpenChange}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            className="w-full justify-between"
+          >
+            {value && selectedLeadDisplay
+              ? `${selectedLeadDisplay.leadId} (${selectedLeadDisplay.company || selectedLeadDisplay.contactPerson})`
+              : "Select a lead..."}
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+          <Command>
+            <CommandInput placeholder="Search lead..." />
+            <CommandEmpty>No lead found.</CommandEmpty>
+            <CommandList>
+              <CommandGroup>
+                {allLeads.map((lead) => (
+                  <CommandItem
+                    key={lead.leadId}
+                    value={`${lead.leadId} ${lead.company} ${lead.contactPerson}`}
+                    onSelect={() => {
+                      onValueChange(lead.leadId);
+                      onOpenChange(false);
+                    }}
+                  >
+                    <CheckIcon
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        value === lead.leadId ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                    {lead.leadId} ({lead.company || lead.contactPerson})
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
+    )
+  };
+
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 text-center">
+       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 text-center">
         <Card>
           <CardHeader className="p-2">
             <CardTitle className="text-sm font-medium">Total Leads</CardTitle>
@@ -372,18 +430,12 @@ export default function LeadUpdateForm() {
                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
                 <div className="space-y-2 col-span-2">
                   <Label htmlFor="searchLeadId">Lead(id)</Label>
-                  <Select onValueChange={handleSearchLead} value={searchLeadId}>
-                    <SelectTrigger id="searchLeadId">
-                      <SelectValue placeholder="Select a lead" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {allLeads.map((lead) => (
-                        <SelectItem key={lead.leadId} value={lead.leadId}>
-                          {lead.leadId} ({lead.company || lead.contactPerson})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <LeadSelector 
+                    value={searchLeadId}
+                    onValueChange={handleSearchLead}
+                    open={leadSelectOpen}
+                    onOpenChange={setLeadSelectOpen}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="contactPerson">Contact person</Label>
@@ -549,18 +601,14 @@ export default function LeadUpdateForm() {
            <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <span className="font-semibold">Initial Remarks:</span>
-              <Select onValueChange={handleSearchLead} value={searchLeadId}>
-                <SelectTrigger className="w-[250px]">
-                  <SelectValue placeholder="Select a lead to load" />
-                </SelectTrigger>
-                <SelectContent>
-                  {allLeads.map((lead) => (
-                    <SelectItem key={lead.leadId} value={lead.leadId}>
-                      {lead.leadId} ({lead.company || lead.contactPerson})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className='w-[250px]'>
+                <LeadSelector 
+                    value={searchLeadId}
+                    onValueChange={handleSearchLead}
+                    open={leadSelectOpen}
+                    onOpenChange={setLeadSelectOpen}
+                />
+              </div>
             </div>
             <div>
               <span className="font-semibold">Current Status:</span>
