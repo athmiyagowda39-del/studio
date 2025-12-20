@@ -98,28 +98,26 @@ export default function LeadUpdateForm() {
     }
   }, []);
   
-  const handleSearchLead = () => {
-    if (!searchLeadId) {
-        toast({
-            variant: 'destructive',
-            title: 'Lead ID required',
-            description: 'Please enter a Lead ID to search.',
-        });
+  const handleSearchLead = (leadId: string) => {
+    if (!leadId) {
+        setLeadDetails({});
+        setSearchLeadId('');
         return;
     }
-    const foundLead = allLeads.find(lead => lead.leadId === searchLeadId);
+    setSearchLeadId(leadId);
+    const foundLead = allLeads.find(lead => lead.leadId === leadId);
     if (foundLead) {
         setLeadDetails(foundLead);
         toast({
             title: 'Lead Found',
-            description: `Details for ${searchLeadId} have been loaded.`,
+            description: `Details for ${leadId} have been loaded.`,
         });
     } else {
         setLeadDetails({});
         toast({
             variant: 'destructive',
             title: 'Lead Not Found',
-            description: `No lead found with ID: ${searchLeadId}`,
+            description: `No lead found with ID: ${leadId}`,
         });
     }
   };
@@ -374,10 +372,19 @@ export default function LeadUpdateForm() {
                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
                 <div className="space-y-2 col-span-2">
                   <Label htmlFor="searchLeadId">Lead(id)</Label>
-                  <div className="flex gap-2">
-                    <Input id="searchLeadId" value={searchLeadId} onChange={(e) => setSearchLeadId(e.target.value)} />
-                    <Button onClick={handleSearchLead}>Search</Button>
-                  </div>
+                  <Select onValueChange={handleSearchLead} value={searchLeadId}>
+                    <SelectTrigger id="searchLeadId">
+                      <SelectValue placeholder="Select a lead" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">-- Select a lead --</SelectItem>
+                      {allLeads.map((lead) => (
+                        <SelectItem key={lead.leadId} value={lead.leadId}>
+                          {lead.leadId} ({lead.company || lead.contactPerson})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="contactPerson">Contact person</Label>
@@ -821,7 +828,7 @@ export default function LeadUpdateForm() {
                 <TableBody>
                   {filteredLeads.length > 0 ? (
                     filteredLeads.map((lead, index) => (
-                        <TableRow key={lead.leadId}>
+                        <TableRow key={`${lead.leadId}-${index}`}>
                             <TableCell>{index + 1}</TableCell>
                             <TableCell>{lead.leadId}</TableCell>
                             <TableCell>{format(new Date(lead.creationDate), 'dd-MM-yyyy')}</TableCell>
