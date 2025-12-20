@@ -43,6 +43,7 @@ export type LeadFormData = {
   selectedModule: string;
   toDealer: boolean;
   creationDate: number;
+  executiveViewDate?: number;
 };
 
 const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate'> = {

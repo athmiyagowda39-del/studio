@@ -117,7 +117,11 @@ export default function LeadUpdateForm() {
     setSearchLeadId(leadId);
     const foundLead = allLeads.find(lead => lead.leadId === leadId);
     if (foundLead) {
-        setLeadDetails(foundLead);
+        const leadWithViewDate = {
+          ...foundLead,
+          executiveViewDate: foundLead.executiveViewDate || new Date().getTime() // If not present, set to now
+        };
+        setLeadDetails(leadWithViewDate);
         toast({
             title: 'Lead Found',
             description: `Details for ${leadId} have been loaded.`,
@@ -132,7 +136,7 @@ export default function LeadUpdateForm() {
     }
   };
 
-  const handleLeadDetailChange = (field: keyof LeadFormData, value: string | boolean | number | undefined) => {
+  const handleLeadDetailChange = (field: keyof LeadFormData, value: string | boolean | number | Date | undefined) => {
     setLeadDetails(prev => ({...prev, [field]: value}));
   }
 
@@ -485,7 +489,7 @@ export default function LeadUpdateForm() {
                         <Calendar
                             mode="single"
                             selected={leadDetails.creationDate ? new Date(leadDetails.creationDate) : undefined}
-                            onSelect={(date) => handleLeadDetailChange('creationDate', date?.getTime())}
+                            onSelect={(date) => handleLeadDetailChange('creationDate', date)}
                             initialFocus
                         />
                         </PopoverContent>
@@ -512,8 +516,14 @@ export default function LeadUpdateForm() {
                   <Input id="manager" />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="executiveViewDate">Executive view Date</Label>
-                  <Input id="executiveViewDate" type="date" />
+                  <Label htmlFor="dealerViewDate">Dealer viewed date</Label>
+                  <div className="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm">
+                    {leadDetails.executiveViewDate ? (
+                        format(new Date(leadDetails.executiveViewDate), 'PPP')
+                    ) : (
+                        <span className="text-muted-foreground">Not yet seen</span>
+                    )}
+                  </div>
                 </div>
               </div>
               <div className="border-t pt-4 mt-4">
