@@ -534,35 +534,42 @@ export default function LeadUpdateForm() {
           </Card>
         </div>
       </div>
+      
+      <Card>
+        <CardHeader className='bg-primary/10'>
+          <CardTitle className='text-primary text-base font-bold'>Lead Status</CardTitle>
+        </CardHeader>
+        <CardContent className='p-4'>
+           <div className="flex items-center gap-4">
+            <div>
+              <span className="font-semibold">Initial Remarks:</span> <span className='text-primary'>{leadDetails.leadId ? 'Loaded' : '-Select a lead-'}</span>
+            </div>
+            <div>
+              <span className="font-semibold">Current Status:</span>
+            </div>
+            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="-- Select --" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Attended">Attended</SelectItem>
+                <SelectItem value="Not viewed">Not viewed</SelectItem>
+                <SelectItem value="Demo Given">Demo Given</SelectItem>
+                <SelectItem value="Unattended">Unattended</SelectItem>
+                <SelectItem value="Pursuing to Purchase">
+                  Pursuing to Purchase
+                </SelectItem>
+                <SelectItem value="Not interested">Not interested</SelectItem>
+                <SelectItem value="Order closed">Order closed</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button onClick={handleUpdateStatus}>Update</Button>
+          </div>
+        </CardContent>
+      </Card>
 
-      <div className="flex items-center gap-4">
-        <Label>Lead status</Label>
-        <div>
-          <span className="font-semibold">Initial:</span> {currentStatus}
-        </div>
-        <div>
-          <span className="font-semibold">Current:</span> {currentStatus}
-        </div>
-        <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Select a status..." />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Attended">Attended</SelectItem>
-            <SelectItem value="Not viewed">Not viewed</SelectItem>
-            <SelectItem value="Demo Given">Demo Given</SelectItem>
-            <SelectItem value="Unattended">Unattended</SelectItem>
-            <SelectItem value="Pursuing to Purchase">
-              Pursuing to Purchase
-            </SelectItem>
-            <SelectItem value="Not interested">Not interested</SelectItem>
-            <SelectItem value="Order closed">Order closed</SelectItem>
-          </SelectContent>
-        </Select>
-        <Button onClick={handleUpdateStatus}>Update</Button>
-      </div>
 
-       <div className="space-y-4 pt-6 border-t">
+       <div className="space-y-4 pt-6">
         <Collapsible open={isFilterOpen} onOpenChange={setIsFilterOpen}>
             <CollapsibleTrigger asChild>
             <Button variant="outline" className="w-full justify-between">
