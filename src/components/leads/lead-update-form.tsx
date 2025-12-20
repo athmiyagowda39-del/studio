@@ -132,7 +132,7 @@ export default function LeadUpdateForm() {
     }
   };
 
-  const handleLeadDetailChange = (field: keyof LeadFormData, value: string | boolean) => {
+  const handleLeadDetailChange = (field: keyof LeadFormData, value: string | boolean | number | undefined) => {
     setLeadDetails(prev => ({...prev, [field]: value}));
   }
 
@@ -463,8 +463,33 @@ export default function LeadUpdateForm() {
                   <Input id="state" value={leadDetails.state || ''} readOnly />
                 </div>
                 <div className="space-y-2">
-                    <Label htmlFor="dateOfLead">Date of lead</Label>
-                    <Input id="dateOfLead" type="text" value={leadDetails.creationDate ? format(new Date(leadDetails.creationDate), 'dd-MM-yyyy') : ''} readOnly />
+                  <Label htmlFor="dateOfLead">Date of lead</Label>
+                    <Popover>
+                        <PopoverTrigger asChild>
+                        <Button
+                            variant={'outline'}
+                            className={cn(
+                            'w-full justify-start text-left font-normal',
+                            !leadDetails.creationDate && 'text-muted-foreground'
+                            )}
+                        >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {leadDetails.creationDate ? (
+                            format(new Date(leadDetails.creationDate), 'PPP')
+                            ) : (
+                            <span>Pick a date</span>
+                            )}
+                        </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                        <Calendar
+                            mode="single"
+                            selected={leadDetails.creationDate ? new Date(leadDetails.creationDate) : undefined}
+                            onSelect={(date) => handleLeadDetailChange('creationDate', date?.getTime())}
+                            initialFocus
+                        />
+                        </PopoverContent>
+                    </Popover>
                 </div>
                  <div className="space-y-2">
                   <Label htmlFor="reference">Reference</Label>
