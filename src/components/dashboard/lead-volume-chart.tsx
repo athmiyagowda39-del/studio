@@ -144,7 +144,10 @@ export default function LeadVolumeChart() {
                           value={state}
                           onSelect={(currentValue) => {
                             const nextState = states.find(s => s.toLowerCase() === currentValue.toLowerCase());
-                            setSelectedState(nextState && selectedState !== nextState ? nextState : 'All');
+                            setSelectedState(nextState || 'All');
+                            if (nextState !== 'Karnataka') {
+                                setSelectedCity('All');
+                            }
                             setStateOpen(false)
                           }}
                         >
@@ -190,8 +193,8 @@ export default function LeadVolumeChart() {
                         value={city}
                         onSelect={(currentValue) => {
                             const nextCity = cities.find(c => c.toLowerCase() === currentValue.toLowerCase());
-                            setSelectedCity(nextCity && selectedCity !== nextCity ? nextCity : 'All');
-                            setCityOpen(false)
+                            setSelectedCity(nextCity || 'All');
+                            setCityOpen(false);
                         }}
                       >
                         <Check
