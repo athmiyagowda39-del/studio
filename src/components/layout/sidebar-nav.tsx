@@ -14,6 +14,7 @@ import {
   List,
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 const links = [
   { href: '/dashboard', label: 'DASHBOARD', icon: LayoutDashboard },
@@ -26,12 +27,17 @@ const links = [
 
 export default function SidebarNav() {
   const pathname = usePathname();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const isActive = (href: string) => pathname === href || (href === "/dashboard" && pathname === "/");
 
   return (
     <SidebarMenu>
-      {links.map((link) => (
+      {isClient && links.map((link) => (
         <SidebarMenuItem key={link.href}>
           <SidebarMenuButton
             asChild
