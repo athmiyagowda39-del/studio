@@ -45,7 +45,7 @@ export default function DashboardPage() {
     if (!isClient) return [];
 
     const monthIndex = months.indexOf(period);
-    const year = new Date('2025-11-15T12:00:00Z').getFullYear(); // Assuming data is for 2025
+    const year = 2025; // Fixed year from data generation
 
     const filteredLeads = allLeads.filter((lead) => {
       const leadDate = new Date(lead.date);
@@ -62,9 +62,13 @@ export default function DashboardPage() {
     }));
 
     filteredLeads.forEach((lead) => {
-      const dayOfMonth = new Date(lead.date).getDate();
-      if (dayOfMonth > 0 && dayOfMonth <= daysInMonth) {
-        dailyLeads[dayOfMonth - 1].leads += lead.leads;
+      const leadDate = new Date(lead.date);
+      // Ensure we only add leads for the correct month.
+      if (leadDate.getMonth() === monthIndex) {
+        const dayOfMonth = leadDate.getDate();
+        if (dayOfMonth > 0 && dayOfMonth <= daysInMonth) {
+          dailyLeads[dayOfMonth - 1].leads += lead.leads;
+        }
       }
     });
 

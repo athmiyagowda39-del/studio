@@ -53,33 +53,51 @@ function generateLeadData(): Lead[] {
   }
   
   const data: Lead[] = [];
-  const today = new Date('2025-11-15T12:00:00Z'); // Fixed date for consistency
-  const daysInMonth = 30;
-  
-  const states = Object.keys(indianStatesAndDistricts);
+  const year = 2025; // Fixed year for consistency
 
-  for (let i = 1; i <= daysInMonth; i++) {
-    const date = new Date(today.getFullYear(), today.getMonth(), i);
-    const dateString = date.toISOString().split('T')[0];
+  for (let month = 0; month < 12; month++) {
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    for (let day = 1; day <= daysInMonth; day++) {
+        const date = new Date(year, month, day);
+        const dateString = date.toISOString().split('T')[0];
 
-    // Pick a few random states and cities to generate data for, to keep it manageable
-    for (let j = 0; j < 5; j++) {
-        const randomStateName = states[Math.floor(Math.random() * states.length)];
-        const cities = indianStatesAndDistricts[randomStateName];
-        const randomCityName = cities[Math.floor(Math.random() * cities.length)];
-        
-        const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-        const baseLeads = isWeekend ? 20 : 10;
-        const leads = Math.floor(baseLeads + Math.random() * 30 + (i/2));
-        
-        data.push({
-          date: dateString,
-          state: randomStateName,
-          city: randomCityName,
-          leads: leads,
+        // Generate data for all districts in Karnataka
+        const karnatakaDistricts = indianStatesAndDistricts['Karnataka'];
+        karnatakaDistricts.forEach(district => {
+            const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+            const baseLeads = isWeekend ? 25 : 15;
+            const leads = Math.floor(baseLeads + Math.random() * 40 + (day/2));
+            
+            data.push({
+              date: dateString,
+              state: 'Karnataka',
+              city: district,
+              leads: leads,
+            });
         });
+
+        // Add some random data for other states too
+        for (let j = 0; j < 2; j++) {
+            const randomStateName = Object.keys(indianStatesAndDistricts)[Math.floor(Math.random() * Object.keys(indianStatesAndDistricts).length)];
+            if(randomStateName !== 'Karnataka') {
+                const cities = indianStatesAndDistricts[randomStateName];
+                const randomCityName = cities[Math.floor(Math.random() * cities.length)];
+                
+                const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+                const baseLeads = isWeekend ? 20 : 10;
+                const leads = Math.floor(baseLeads + Math.random() * 30 + (day/2));
+                
+                data.push({
+                  date: dateString,
+                  state: randomStateName,
+                  city: randomCityName,
+                  leads: leads,
+                });
+            }
+        }
     }
   }
+
   cachedLeadData = data;
   return data;
 }
