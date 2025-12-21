@@ -64,7 +64,9 @@ export default function LeadVolumeChart() {
   }, [selectedState]);
 
   useEffect(() => {
-    setSelectedCity('All');
+    if (selectedState !== 'Karnataka') {
+      setSelectedCity('All');
+    }
   }, [selectedState]);
 
 
