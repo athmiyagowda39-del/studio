@@ -100,42 +100,35 @@ export default function ProfileCard() {
               </AvatarFallback>
             )}
           </Avatar>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="text-xl">
-                {userName}
-                <ChevronDown className="ml-2 h-5 w-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DialogTrigger asChild>
-                <DropdownMenuItem>
-                  <UserCog className="mr-2 h-4 w-4" />
-                  <span>Edit Profile</span>
-                </DropdownMenuItem>
-              </DialogTrigger>
-              <DialogTrigger asChild>
-                <DropdownMenuItem>
-                  <Lock className="mr-2 h-4 w-4" />
-                  <span>Change Password</span>
-                </DropdownMenuItem>
-              </DialogTrigger>
-              <DropdownMenuItem onClick={handleLogout}>
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Logout</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <div className="w-full space-y-2">
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="outline" className="w-full justify-start">
-                  <UserCog className="mr-4 h-5 w-5" />
-                  <span>EDIT PROFILE</span>
+          <Dialog>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="text-xl">
+                  {userName}
+                  <ChevronDown className="ml-2 h-5 w-5" />
                 </Button>
-              </DialogTrigger>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DialogTrigger asChild>
+                  <DropdownMenuItem>
+                    <UserCog className="mr-2 h-4 w-4" />
+                    <span>Edit Profile</span>
+                  </DropdownMenuItem>
+                </DialogTrigger>
+                <DialogTrigger asChild>
+                  <DropdownMenuItem>
+                    <Lock className="mr-2 h-4 w-4" />
+                    <span>Change Password</span>
+                  </DropdownMenuItem>
+                </DialogTrigger>
+                <DropdownMenuItem onClick={handleLogout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Logout</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <div className="w-full space-y-2">
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Edit Profile</DialogTitle>
@@ -161,76 +154,104 @@ export default function ProfileCard() {
                   </DialogFooter>
                 </form>
               </DialogContent>
-            </Dialog>
+            </div>
+          </Dialog>
 
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="outline" className="w-full justify-start">
-                  <Lock className="mr-4 h-5 w-5" />
-                  <span>CHANGE PASSWORD</span>
-                </Button>
+          <Dialog>
+            <Button variant="outline" className="w-full justify-start" asChild>
+              <DialogTrigger>
+                <UserCog className="mr-4 h-5 w-5" />
+                <span>EDIT PROFILE</span>
               </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Change Password</DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleChangePassword}>
-                  <div className="grid gap-4 py-4">
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label
-                        htmlFor="current-password"
-                        className="text-right"
-                      >
-                        Current
-                      </Label>
-                      <Input
-                        id="current-password"
-                        type="password"
-                        className="col-span-3"
-                      />
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="new-password" className="text-right">
-                        New
-                      </Label>
-                      <Input
-                        id="new-password"
-                        type="password"
-                        className="col-span-3"
-                      />
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label
-                        htmlFor="confirm-password"
-                        className="text-right"
-                      >
-                        Confirm
-                      </Label>
-                      <Input
-                        id="confirm-password"
-                        type="password"
-                        className="col-span-3"
-                      />
-                    </div>
-                  </div>
-                  <DialogFooter>
-                    <DialogClose asChild>
-                      <Button type="submit">Update Password</Button>
-                    </DialogClose>
-                  </DialogFooter>
-                </form>
-              </DialogContent>
-            </Dialog>
-
-            <Button
-              variant="outline"
-              className="w-full justify-start"
-              onClick={handleLogout}
-            >
-              <LogOut className="mr-4 h-5 w-5" />
-              <span>LOGOUT</span>
             </Button>
-          </div>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Edit Profile</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleUpdateName}>
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="name" className="text-right">
+                      Name
+                    </Label>
+                    <Input
+                      id="name"
+                      value={nameInput}
+                      onChange={(e) => setNameInput(e.target.value)}
+                      className="col-span-3"
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <DialogClose asChild>
+                    <Button type="submit">Save changes</Button>
+                  </DialogClose>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="w-full justify-start">
+                <Lock className="mr-4 h-5 w-5" />
+                <span>CHANGE PASSWORD</span>
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Change Password</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleChangePassword}>
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="current-password" className="text-right">
+                      Current
+                    </Label>
+                    <Input
+                      id="current-password"
+                      type="password"
+                      className="col-span-3"
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="new-password" className="text-right">
+                      New
+                    </Label>
+                    <Input
+                      id="new-password"
+                      type="password"
+                      className="col-span-3"
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="confirm-password" className="text-right">
+                      Confirm
+                    </Label>
+                    <Input
+                      id="confirm-password"
+                      type="password"
+                      className="col-span-3"
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <DialogClose asChild>
+                    <Button type="submit">Update Password</Button>
+                  </DialogClose>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+
+          <Button
+            variant="outline"
+            className="w-full justify-start"
+            onClick={handleLogout}
+          >
+            <LogOut className="mr-4 h-5 w-5" />
+            <span>LOGOUT</span>
+          </Button>
 
           <div className="w-full space-y-4 border-t pt-6 text-sm text-muted-foreground">
             <ul className="list-disc space-y-2 pl-5">
