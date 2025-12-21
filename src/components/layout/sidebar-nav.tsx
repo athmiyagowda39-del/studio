@@ -12,7 +12,6 @@ import {
   User,
   FileText,
   List,
-  Filter,
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 
@@ -32,14 +31,14 @@ export default function SidebarNav() {
 
   return (
     <SidebarMenu>
-      {links.map((link) => (
-        <SidebarMenuItem key={link.href}>
+      {links.map((link, index) => (
+        <SidebarMenuItem key={`${link.href}-${index}`}>
           <SidebarMenuButton
             asChild
             isActive={isActive(link.href)}
             // For this demo, other links are disabled
-            disabled={link.href !== '/dashboard' && link.href !== '/leads-upload' && link.href !== '/lead-details' && link.href !== '/leads-update' && link.href !== '/lead-filter'}
-            aria-disabled={link.href !== '/dashboard' && link.href !== '/leads-upload' && link.href !== '/lead-details' && link.href !== '/leads-update' && link.href !== '/lead-filter'}
+            disabled={link.href !== '/dashboard' && link.href !== '/leads-upload' && link.href !== '/lead-details' && link.href !== '/leads-update' && link.href !== '/reports' && link.href !== '/profile'}
+            aria-disabled={link.href !== '/dashboard' && link.href !== '/leads-upload' && link.href !== '/lead-details' && link.href !== '/leads-update' && link.href !== '/reports' && link.href !== '/profile'}
             tooltip={link.label}
           >
             <a href={link.href}>
