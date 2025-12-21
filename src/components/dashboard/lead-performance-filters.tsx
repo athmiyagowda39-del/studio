@@ -47,10 +47,19 @@ const months = [
   'December',
 ];
 
-export default function LeadPerformanceFilters() {
-  const [period, setPeriod] = useState('November');
-  const [state] = useState('Karnataka');
-  const [city, setCity] = useState('All');
+type LeadPerformanceFiltersProps = {
+  period: string;
+  setPeriod: (period: string) => void;
+  city: string;
+  setCity: (city: string) => void;
+};
+
+export default function LeadPerformanceFilters({
+  period,
+  setPeriod,
+  city,
+  setCity,
+}: LeadPerformanceFiltersProps) {
   const [open, setOpen] = useState(false);
 
   const handleCitySelect = (currentValue: string) => {
@@ -85,7 +94,7 @@ export default function LeadPerformanceFilters() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="w-[150px] justify-between">
-              {state} <ChevronDown className="h-4 w-4" />
+              Karnataka <ChevronDown className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
@@ -108,7 +117,13 @@ export default function LeadPerformanceFilters() {
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-[200px] p-0">
-            <Command>
+            <Command
+              filter={(value, search) => {
+                const district = karnatakaDistricts.find((d) => d.value === value);
+                if (district?.label.toLowerCase().includes(search.toLowerCase())) return 1;
+                return 0;
+              }}
+            >
               <CommandInput placeholder="Search district..." />
               <CommandList>
                 <CommandEmpty>No district found.</CommandEmpty>
