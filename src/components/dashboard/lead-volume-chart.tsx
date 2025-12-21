@@ -56,15 +56,14 @@ export default function LeadVolumeChart() {
   );
 
   const cities = useMemo(() => {
-    if (selectedState === 'All' || selectedState !== 'Karnataka') {
-        const allKarnatakaCities = indianStatesAndDistricts['Karnataka'] || [];
-        return ['All', ...Array.from(new Set(allKarnatakaCities))];
+    if (selectedState === 'All') {
+        return ['All'];
     }
     return ['All', ...(indianStatesAndDistricts['Karnataka'] || [])];
   }, [selectedState]);
 
   useEffect(() => {
-    if (selectedState !== 'Karnataka') {
+    if (selectedState === 'All') {
       setSelectedCity('All');
     }
   }, [selectedState]);
@@ -145,9 +144,6 @@ export default function LeadVolumeChart() {
                           onSelect={(currentValue) => {
                             const nextState = states.find(s => s.toLowerCase() === currentValue.toLowerCase());
                             setSelectedState(nextState || 'All');
-                            if (nextState !== 'Karnataka') {
-                                setSelectedCity('All');
-                            }
                             setStateOpen(false)
                           }}
                         >
@@ -175,7 +171,7 @@ export default function LeadVolumeChart() {
                   role="combobox"
                   aria-expanded={cityOpen}
                   className="w-[200px] justify-between"
-                  disabled={selectedState !== 'Karnataka'}
+                  disabled={selectedState === 'All'}
                 >
                   {selectedCity}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -262,3 +258,5 @@ export default function LeadVolumeChart() {
     </Card>
   );
 }
+
+    
