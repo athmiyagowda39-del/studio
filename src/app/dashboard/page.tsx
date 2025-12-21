@@ -7,6 +7,7 @@ import {
 } from '@/components/ui/card';
 import LeadVolumeChart from '@/components/dashboard/lead-volume-chart';
 import { getLeadsForToday } from '@/lib/data';
+import LeadPerformanceChart from '@/components/dashboard/lead-performance-chart';
 
 export default function DashboardPage() {
   const totalLeadsToday = getLeadsForToday();
@@ -33,6 +34,7 @@ export default function DashboardPage() {
         </Card>
       </div>
       <LeadVolumeChart />
+      <LeadPerformanceChart />
     </div>
   );
 }
