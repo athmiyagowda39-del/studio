@@ -36,8 +36,6 @@ export default function SidebarNav() {
           <SidebarMenuButton
             asChild
             isActive={isActive(link.href)}
-            disabled={false}
-            aria-disabled={false}
             tooltip={link.label}
           >
             <a href={link.href}>
