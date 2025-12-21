@@ -1,3 +1,4 @@
+
 export type Lead = {
   date: string;
   state: string;
@@ -65,8 +66,15 @@ function generateLeadData(): Lead[] {
         const karnatakaDistricts = indianStatesAndDistricts['Karnataka'];
         karnatakaDistricts.forEach(district => {
             const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-            const baseLeads = isWeekend ? 25 : 15;
-            const leads = Math.floor(baseLeads + Math.random() * 40 + (day/2));
+            // Introduce more variability
+            let leads = 0;
+            if (Math.random() > 0.3) { // 70% chance of having leads
+              const baseLeads = isWeekend ? 15 : 5;
+              // Wider random range and factor in the day to create more ups and downs
+              const randomFactor = Math.random() * (50 + Math.sin(day * Math.PI / 15) * 45);
+              leads = Math.floor(baseLeads + randomFactor);
+            }
+            // On some days (approx 30%), leads will be 0 or very low, pulling the graph down.
             
             data.push({
               date: dateString,
@@ -84,7 +92,7 @@ function generateLeadData(): Lead[] {
                 const randomCityName = cities[Math.floor(Math.random() * cities.length)];
                 
                 const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-                const baseLeads = isWeekend ? 20 : 10;
+                const baseLeads = isWeekend ? 10 : 2;
                 const leads = Math.floor(baseLeads + Math.random() * 30 + (day/2));
                 
                 data.push({
