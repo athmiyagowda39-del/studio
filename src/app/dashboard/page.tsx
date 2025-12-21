@@ -39,9 +39,9 @@ export default function DashboardPage() {
         </CardHeader>
         <CardContent>
           <LeadPerformanceFilters />
+          <LeadPerformanceChart />
         </CardContent>
       </Card>
-      <LeadPerformanceChart />
     </div>
   );
 }
