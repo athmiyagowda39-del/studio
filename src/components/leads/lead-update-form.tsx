@@ -229,7 +229,7 @@ export default function LeadUpdateForm() {
             break;
         // Mock data for other filters as we don't have this data yet
         case 'Leads not Viewed':
-            leads = allLeads.slice(0, 5); // Mock
+            leads = allLeads.filter(lead => !lead.executiveViewDate);
             break;
         case 'Follow Ups Due':
             leads = allLeads.slice(5, 10); // Mock
@@ -332,8 +332,11 @@ export default function LeadUpdateForm() {
                   <CommandItem
                     key={`${lead.leadId}-${index}`}
                     value={`${lead.leadId} ${lead.company} ${lead.contactPerson}`}
-                    onSelect={() => {
-                      onValueChange(lead.leadId);
+                    onSelect={(currentValue) => {
+                      const leadIdToSelect = allLeads.find(l => `${l.leadId} ${l.company} ${l.contactPerson}`.toLowerCase() === currentValue.toLowerCase())?.leadId;
+                      if (leadIdToSelect) {
+                        onValueChange(leadIdToSelect);
+                      }
                       onOpenChange(false);
                     }}
                   >
@@ -958,3 +961,5 @@ export default function LeadUpdateForm() {
     </div>
   );
 }
+
+    
