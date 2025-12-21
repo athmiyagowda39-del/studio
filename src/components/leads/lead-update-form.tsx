@@ -24,7 +24,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '../ui/textarea';
 import { Calendar } from '../ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
-import { CalendarIcon, ChevronDown, ChevronUp, ChevronsUpDown, Check as CheckIcon } from 'lucide-react';
+import { CalendarIcon, ChevronDown, ChevronUp, ChevronsUpDown, Check as CheckIcon, Search } from 'lucide-react';
 import { format, subDays, startOfDay } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
@@ -70,6 +70,7 @@ const initialFilterState = {
 
 export default function LeadUpdateForm() {
   const [searchLeadId, setSearchLeadId] = useState('');
+  const [searchInput, setSearchInput] = useState('');
   const [leadDetails, setLeadDetails] = useState<Partial<LeadFormData>>({});
   
   const [remarks, setRemarks] = useState('');
@@ -84,8 +85,6 @@ export default function LeadUpdateForm() {
   const [filteredLeads, setFilteredLeads] = useState<LeadFormData[]>([]);
   const [showResults, setShowResults] = useState(false);
   const [activeQuickFilter, setActiveQuickFilter] = useState('');
-  const [leadSelectOpen, setLeadSelectOpen] = useState(false);
-  const [leadStatusSelectOpen, setLeadStatusSelectOpen] = useState(false);
   
   const [filters, setFilters] = useState(initialFilterState);
 
@@ -108,7 +107,8 @@ export default function LeadUpdateForm() {
     }
   }, []);
   
-  const handleSearchLead = (leadId: string) => {
+  const handleSearchLead = () => {
+    const leadId = searchInput;
     if (!leadId) {
         setLeadDetails({});
         setSearchLeadId('');
@@ -279,6 +279,7 @@ export default function LeadUpdateForm() {
   
   const handleResetLeadDetails = () => {
     setSearchLeadId('');
+    setSearchInput('');
     setLeadDetails({});
   };
 
@@ -303,55 +304,6 @@ export default function LeadUpdateForm() {
       title: 'Lead Updated',
       description: `Lead ${leadDetails.leadId} has been successfully updated.`,
     });
-  };
-
-  const LeadSelector = ({ onValueChange, value, open, onOpenChange }: { onValueChange: (value: string) => void, value: string, open: boolean, onOpenChange: (open: boolean) => void }) => {
-    const selectedLeadDisplay = allLeads.find(lead => lead.leadId === value);
-    return (
-      <Popover open={open} onOpenChange={onOpenChange}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            role="combobox"
-            aria-expanded={open}
-            className="w-full justify-between"
-          >
-            {value && selectedLeadDisplay
-              ? `${selectedLeadDisplay.leadId} (${selectedLeadDisplay.company || selectedLeadDisplay.contactPerson})`
-              : "Select a lead..."}
-            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-          <Command>
-            <CommandInput placeholder="Search lead..." />
-            <CommandList>
-              <CommandEmpty>No lead found.</CommandEmpty>
-              <CommandGroup>
-                {allLeads.map((lead, index) => (
-                  <CommandItem
-                    key={`${lead.leadId}-${index}`}
-                    value={lead.leadId}
-                    onSelect={(currentValue) => {
-                      onValueChange(currentValue === value ? '' : currentValue);
-                      onOpenChange(false);
-                    }}
-                  >
-                    <CheckIcon
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        value === lead.leadId ? "opacity-100" : "opacity-0"
-                      )}
-                    />
-                    {lead.leadId} ({lead.company || lead.contactPerson})
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
-    )
   };
 
   return (
@@ -435,12 +387,15 @@ export default function LeadUpdateForm() {
                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
                 <div className="space-y-2 col-span-2">
                   <Label htmlFor="searchLeadId">Lead(id)</Label>
-                  <LeadSelector 
-                    value={searchLeadId}
-                    onValueChange={handleSearchLead}
-                    open={leadSelectOpen}
-                    onOpenChange={setLeadSelectOpen}
-                  />
+                    <div className="flex gap-2">
+                      <Input 
+                        id="searchLeadId" 
+                        placeholder="Enter Lead ID to search..."
+                        value={searchInput}
+                        onChange={(e) => setSearchInput(e.target.value)}
+                      />
+                      <Button onClick={handleSearchLead}><Search className="mr-2 h-4 w-4" /> Search</Button>
+                    </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="contactPerson">Contact person</Label>
@@ -640,13 +595,14 @@ export default function LeadUpdateForm() {
            <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <span className="font-semibold">Initial Remarks:</span>
-              <div className='w-[250px]'>
-                <LeadSelector 
-                    value={searchLeadId}
-                    onValueChange={handleSearchLead}
-                    open={leadStatusSelectOpen}
-                    onOpenChange={setLeadStatusSelectOpen}
+               <div className="w-[250px] flex gap-2">
+                <Input 
+                  placeholder="Enter Lead ID"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearchLead()}
                 />
+                <Button onClick={handleSearchLead} size="icon"><Search className="h-4 w-4" /></Button>
               </div>
             </div>
             <div>
