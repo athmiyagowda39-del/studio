@@ -77,7 +77,7 @@ export default function LeadUpdateForm() {
   const [currentStatus, setCurrentStatus] = useState('Initial');
   const [selectedStatus, setSelectedStatus] = useState('');
   
-  const [isFilterOpen, setIsFilterOpen] = useState(true);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   
   const [allLeads, setAllLeads] = useState<LeadFormData[]>([]);
   const [filteredLeads, setFilteredLeads] = useState<LeadFormData[]>([]);
@@ -240,7 +240,8 @@ export default function LeadUpdateForm() {
          leads = leads.filter(lead => {
           const leadWithFollowup = lead as any;
           const hasPendingFollowup = leadWithFollowup.nextFollowUpDate && new Date(leadWithFollowup.nextFollowUpDate) > new Date();
-          return hasPendingFollowup;
+          const hasNoFollowups = !leadWithFollowup.followUps || leadWithFollowup.followUps.length === 0;
+          return hasPendingFollowup && hasNoFollowups;
         });
       } else if (filters.followUpStatus === 'made') {
         leads = leads.filter(lead => (lead as any).followUps && (lead as any).followUps.length > 0);
@@ -512,6 +513,16 @@ export default function LeadUpdateForm() {
                         </PopoverContent>
                     </Popover>
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="dealerViewDate">Dealer viewed date</Label>
+                  <div className="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm">
+                    {leadDetails.executiveViewDate ? (
+                        format(new Date(leadDetails.executiveViewDate), 'PPP')
+                    ) : (
+                        <span className="text-muted-foreground">Not yet seen</span>
+                    )}
+                  </div>
+                </div>
                  <div className="space-y-2">
                   <Label htmlFor="reference">Reference</Label>
                   <Input id="reference" value={leadDetails.reference || ''} onChange={(e) => handleLeadDetailChange('reference', e.target.value)} />
@@ -531,16 +542,6 @@ export default function LeadUpdateForm() {
                 <div className="space-y-2">
                   <Label htmlFor="manager">Manager</Label>
                   <Input id="manager" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="dealerViewDate">Dealer viewed date</Label>
-                  <div className="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm">
-                    {leadDetails.executiveViewDate ? (
-                        format(new Date(leadDetails.executiveViewDate), 'PPP')
-                    ) : (
-                        <span className="text-muted-foreground">Not yet seen</span>
-                    )}
-                  </div>
                 </div>
               </div>
               <div className="border-t pt-4 mt-4">
