@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/sidebar';
 import Header from '@/components/layout/header';
 import SidebarNav from '@/components/layout/sidebar-nav';
-import { Goal } from 'lucide-react';
+import { Filter } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Sales Lead Tracking Dashboard',
@@ -42,7 +42,7 @@ export default function RootLayout({
             <SidebarHeader>
               <div className="flex items-center gap-2">
                 <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                  <Goal className="size-5" />
+                  <Filter className="size-5" />
                 </div>
                 <span className="text-lg font-semibold">Sales Lead Tracking</span>
               </div>
