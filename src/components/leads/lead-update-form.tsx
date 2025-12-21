@@ -24,7 +24,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '../ui/textarea';
 import { Calendar } from '../ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
-import { CalendarIcon, ChevronDown, ChevronUp, ChevronsUpDown, Check as CheckIcon, Search } from 'lucide-react';
+import { CalendarIcon, ChevronDown, ChevronUp, Search } from 'lucide-react';
 import { format, subDays, startOfDay } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
@@ -36,8 +36,6 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import type { LeadFormData } from './lead-upload-form';
 import * as XLSX from 'xlsx';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '../ui/command';
-
 
 type FollowUp = {
   id: number;
@@ -95,12 +93,29 @@ export default function LeadUpdateForm() {
       const storedLeads = localStorage.getItem('uploadedLeads');
       if (storedLeads) {
         const parsedLeads: LeadFormData[] = JSON.parse(storedLeads);
-        // Ensure creationDate is a number
-        const correctedLeads = parsedLeads.map(lead => ({
-          ...lead,
-          creationDate: typeof lead.creationDate === 'string' ? new Date(lead.creationDate).getTime() : lead.creationDate
-        }));
-        setAllLeads(correctedLeads);
+        // Ensure creationDate is a number and add mock follow-up data
+        const correctedLeads = parsedLeads.map((lead, index) => {
+          
+          let leadFollowUps: FollowUp[] = [];
+          // Add some mock follow ups for some leads
+          if (index % 5 === 0) {
+            leadFollowUps.push({
+              id: 1,
+              date: new Date().toLocaleDateString(),
+              remarks: 'First follow up',
+              nextFollowUp: format(new Date(), 'PPP'),
+              enteredBy: 'Athmiya AG',
+            })
+          }
+
+          return {
+            ...lead,
+            creationDate: typeof lead.creationDate === 'string' ? new Date(lead.creationDate).getTime() : lead.creationDate,
+            followUps: leadFollowUps,
+            nextFollowUpDate: index % 3 === 0 ? new Date(new Date().getTime() + 5 * 24 * 60 * 60 * 1000).toISOString() : undefined, // 5 days from now
+          };
+        });
+        setAllLeads(correctedLeads as any);
       }
     } catch (error) {
       console.error('Failed to parse leads from localStorage', error);
@@ -117,17 +132,19 @@ export default function LeadUpdateForm() {
     setSearchLeadId(leadId);
     const foundLead = allLeads.find(lead => lead.leadId === leadId);
     if (foundLead) {
-        const leadWithViewDate = {
+        const leadWithViewDate: Partial<LeadFormData> = {
           ...foundLead,
           executiveViewDate: foundLead.executiveViewDate || new Date().getTime() // If not present, set to now
         };
         setLeadDetails(leadWithViewDate);
+        setFollowUps((foundLead as any).followUps || []);
         toast({
             title: 'Lead Found',
             description: `Details for ${leadId} have been loaded.`,
         });
     } else {
         setLeadDetails({});
+        setFollowUps([]);
         toast({
             variant: 'destructive',
             title: 'Lead Not Found',
@@ -156,7 +173,21 @@ export default function LeadUpdateForm() {
       nextFollowUp: format(nextFollowUpDate, 'PPP'),
       enteredBy: 'Athmiya AG', // Assuming a logged-in user
     };
-    setFollowUps([...followUps, newFollowUp]);
+    
+    const updatedFollowups = [...followUps, newFollowUp];
+    setFollowUps(updatedFollowups);
+
+    // Also update the lead in allLeads
+    const updatedLeads = allLeads.map(l => {
+      if (l.leadId === leadDetails.leadId) {
+        return { ...l, followUps: updatedFollowups, nextFollowUpDate: nextFollowUpDate.toISOString() };
+      }
+      return l;
+    });
+    setAllLeads(updatedLeads as any);
+    localStorage.setItem('uploadedLeads', JSON.stringify(updatedLeads));
+
+
     setRemarks('');
     setNextFollowUpDate(undefined);
   };
@@ -203,7 +234,34 @@ export default function LeadUpdateForm() {
     if (filters.productName !== 'all') {
         leads = leads.filter(lead => lead.selectedModule === filters.productName);
     }
-    // TODO: Add filtering for executive, given by, status, sub-status, source etc.
+    
+    if(filters.considerFollowUps) {
+      if(filters.followUpStatus === 'pending') {
+         leads = leads.filter(lead => {
+          const leadWithFollowup = lead as any;
+          const hasPendingFollowup = leadWithFollowup.nextFollowUpDate && new Date(leadWithFollowup.nextFollowUpDate) > new Date();
+          return hasPendingFollowup;
+        });
+      } else if (filters.followUpStatus === 'made') {
+        leads = leads.filter(lead => (lead as any).followUps && (lead as any).followUps.length > 0);
+      }
+      
+      if (filters.followUpFromDate) {
+        const from = startOfDay(new Date(filters.followUpFromDate)).getTime();
+        leads = leads.filter(lead => {
+            const nextFollowUp = (lead as any).nextFollowUpDate;
+            return nextFollowUp && new Date(nextFollowUp).getTime() >= from;
+        });
+      }
+
+      if (filters.followUpToDate) {
+        const to = startOfDay(new Date(filters.followUpToDate)).getTime() + (24*60*60*1000-1);
+        leads = leads.filter(lead => {
+            const nextFollowUp = (lead as any).nextFollowUpDate;
+            return nextFollowUp && new Date(nextFollowUp).getTime() <= to;
+        });
+      }
+    }
     
     setFilteredLeads(leads);
     setShowResults(true);
@@ -227,15 +285,18 @@ export default function LeadUpdateForm() {
             const twoDaysAgo = subDays(today, 2).getTime();
             leads = allLeads.filter(lead => (lead.creationDate || 0) >= twoDaysAgo);
             break;
-        // Mock data for other filters as we don't have this data yet
         case 'Leads not Viewed':
             leads = allLeads.filter(lead => !lead.executiveViewDate);
             break;
         case 'Follow Ups Due':
-            leads = allLeads.slice(5, 10); // Mock
+            const todayTimestamp = new Date().getTime();
+            leads = allLeads.filter(lead => {
+              const nextFollowUp = (lead as any).nextFollowUpDate;
+              return nextFollowUp && new Date(nextFollowUp).getTime() <= todayTimestamp;
+            });
             break;
         case 'Zero Follow Ups!':
-            leads = allLeads.slice(10, 15); // Mock
+            leads = allLeads.filter(lead => !(lead as any).followUps || (lead as any).followUps.length === 0);
             break;
         case 'Search Result':
             handleShowClick();
@@ -393,6 +454,7 @@ export default function LeadUpdateForm() {
                         placeholder="Enter Lead ID to search..."
                         value={searchInput}
                         onChange={(e) => setSearchInput(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSearchLead()}
                       />
                       <Button onClick={handleSearchLead}><Search className="mr-2 h-4 w-4" /> Search</Button>
                     </div>
