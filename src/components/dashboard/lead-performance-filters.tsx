@@ -133,7 +133,7 @@ export default function LeadPerformanceFilters() {
                     <CommandItem
                       key={district.value}
                       value={district.value}
-                      onSelect={() => handleCitySelect(district.value)}
+                      onSelect={handleCitySelect}
                     >
                       <Check
                         className={cn(
