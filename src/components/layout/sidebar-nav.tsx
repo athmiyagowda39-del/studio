@@ -31,14 +31,13 @@ export default function SidebarNav() {
 
   return (
     <SidebarMenu>
-      {links.map((link, index) => (
-        <SidebarMenuItem key={`${link.href}-${index}`}>
+      {links.map((link) => (
+        <SidebarMenuItem key={link.href}>
           <SidebarMenuButton
             asChild
             isActive={isActive(link.href)}
-            // For this demo, other links are disabled
-            disabled={link.href !== '/dashboard' && link.href !== '/leads-upload' && link.href !== '/lead-details' && link.href !== '/leads-update' && link.href !== '/reports' && link.href !== '/profile'}
-            aria-disabled={link.href !== '/dashboard' && link.href !== '/leads-upload' && link.href !== '/lead-details' && link.href !== '/leads-update' && link.href !== '/reports' && link.href !== '/profile'}
+            disabled={false}
+            aria-disabled={false}
             tooltip={link.label}
           >
             <a href={link.href}>
