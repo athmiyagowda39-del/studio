@@ -33,7 +33,14 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
-      <LeadPerformanceFilters />
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-center">Lead volume Analysis</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <LeadPerformanceFilters />
+        </CardContent>
+      </Card>
       <LeadPerformanceChart />
     </div>
   );

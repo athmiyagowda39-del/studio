@@ -16,7 +16,7 @@ export default function LeadPerformanceFilters() {
     const [city] = useState('All');
 
   return (
-    <div className="flex items-center gap-4 mb-4">
+    <div className="flex items-center justify-center gap-4">
       <div className="flex items-center gap-2">
         <span className="text-sm font-medium">Period:</span>
         <DropdownMenu>
