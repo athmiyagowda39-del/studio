@@ -48,6 +48,11 @@ export const indianStatesAndDistricts: { [key: string]: string[] } = {
 let cachedLeadData: Lead[] | null = null;
 let todayLeads: number | null = null;
 
+const imageBasedPattern = [
+  25, 10, 20, 35, 58, 40, 80, 35, 10, 20, 38, 45, 42, 50, 20, 5, 110, 5, 2, 2, 3, 1, 2, 5, 4, 3, 2, 1, 2, 3, 4
+];
+
+
 function generateLeadData(): Lead[] {
   if (cachedLeadData) {
     return cachedLeadData;
@@ -65,16 +70,19 @@ function generateLeadData(): Lead[] {
         // Generate data for all districts in Karnataka
         const karnatakaDistricts = indianStatesAndDistricts['Karnataka'];
         karnatakaDistricts.forEach(district => {
-            const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-            // Introduce more variability
+            // Use the pattern for November, otherwise use random data
             let leads = 0;
-            if (Math.random() > 0.3) { // 70% chance of having leads
-              const baseLeads = isWeekend ? 15 : 5;
-              // Wider random range and factor in the day to create more ups and downs
-              const randomFactor = Math.random() * (50 + Math.sin(day * Math.PI / 15) * 45);
-              leads = Math.floor(baseLeads + randomFactor);
+            if (month === 10) { // November
+              leads = imageBasedPattern[day - 1] !== undefined ? imageBasedPattern[day - 1] + Math.floor(Math.random() * 10 - 5) : 2;
+              leads = Math.max(0, leads); // ensure leads are not negative
+            } else {
+              const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+              if (Math.random() > 0.3) { 
+                const baseLeads = isWeekend ? 15 : 5;
+                const randomFactor = Math.random() * (50 + Math.sin(day * Math.PI / 15) * 45);
+                leads = Math.floor(baseLeads + randomFactor);
+              }
             }
-            // On some days (approx 30%), leads will be 0 or very low, pulling the graph down.
             
             data.push({
               date: dateString,
