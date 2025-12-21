@@ -692,20 +692,20 @@ export default function LeadUpdateForm() {
         </CardContent>
       </Card>
 
-
-       <div className="space-y-4 pt-6">
+      <div className="space-y-4 pt-6">
         <Collapsible open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-            <CollapsibleTrigger asChild>
+          <CollapsibleTrigger asChild>
             <Button variant="outline" className="w-full justify-between">
-                <span>Filter [{isFilterOpen ? 'hide' : 'show'}]</span>
-                {isFilterOpen ? (
+              <span>Filter [{isFilterOpen ? 'hide' : 'show'}]</span>
+              {isFilterOpen ? (
                 <ChevronUp className="h-4 w-4" />
-                ) : (
+              ) : (
                 <ChevronDown className="h-4 w-4" />
-                )}
+              )}
             </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="space-y-4">
               <Card className="mt-2">
                 <CardContent className="p-4 space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-center">
@@ -906,74 +906,94 @@ export default function LeadUpdateForm() {
                   </div>
                 </CardContent>
               </Card>
-            </CollapsibleContent>
-        </Collapsible>
-       </div>
 
-      {showResults && (
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex flex-wrap gap-2 mb-4">
-              {['Recent Leads', 'Leads not Viewed', 'Follow Ups Due', 'Zero Follow Ups!', 'Search Result'].map(filterName => (
-                  <Button 
-                    key={filterName} 
-                    variant={activeQuickFilter === filterName ? 'secondary' : 'outline'}
-                    onClick={() => handleQuickFilter(filterName)}
-                    disabled={filterName === 'Search Result' && activeQuickFilter !== 'Search Result'}
-                  >
-                      {filterName}
-                  </Button>
-              ))}
+              {showResults && (
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {[
+                        'Recent Leads',
+                        'Leads not Viewed',
+                        'Follow Ups Due',
+                        'Zero Follow Ups!',
+                        'Search Result',
+                      ].map(filterName => (
+                        <Button
+                          key={filterName}
+                          variant={
+                            activeQuickFilter === filterName
+                              ? 'secondary'
+                              : 'outline'
+                          }
+                          onClick={() => handleQuickFilter(filterName)}
+                          disabled={
+                            filterName === 'Search Result' &&
+                            activeQuickFilter !== 'Search Result'
+                          }
+                        >
+                          {filterName}
+                        </Button>
+                      ))}
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      List of Leads &gt;&gt; [ {activeQuickFilter} ({filteredLeads.length}{' '}
+                      Records) ]
+                    </p>
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Sl No</TableHead>
+                            <TableHead>Lead Id</TableHead>
+                            <TableHead>Lead Date</TableHead>
+                            <TableHead>Module</TableHead>
+                            <TableHead>Company</TableHead>
+                            <TableHead>Contact</TableHead>
+                            <TableHead>Cell</TableHead>
+                            <TableHead>Email ID</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {filteredLeads.length > 0 ? (
+                            filteredLeads.map((lead, index) => (
+                              <TableRow key={`${lead.leadId}-${index}`}>
+                                <TableCell>{index + 1}</TableCell>
+                                <TableCell>{lead.leadId}</TableCell>
+                                <TableCell>
+                                  {format(
+                                    new Date(lead.creationDate || 0),
+                                    'dd-MM-yyyy'
+                                  )}
+                                </TableCell>
+                                <TableCell>{lead.selectedModule}</TableCell>
+                                <TableCell>{lead.company}</TableCell>
+                                <TableCell>{lead.contactPerson}</TableCell>
+                                <TableCell>{lead.contactNumber}</TableCell>
+                                <TableCell>{lead.email}</TableCell>
+                              </TableRow>
+                            ))
+                          ) : (
+                            <TableRow>
+                              <TableCell colSpan={8} className="text-center">
+                                No results
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </TableBody>
+                      </Table>
+                    </div>
+                    <div className="text-center mt-4">
+                      <Button variant="link">
+                        Show more Records &gt;&gt; (Show All Record)
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
-            <p className="text-sm text-muted-foreground mb-2">
-              List of Leads &gt;&gt; [ {activeQuickFilter} ({filteredLeads.length} Records) ]
-            </p>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Sl No</TableHead>
-                    <TableHead>Lead Id</TableHead>
-                    <TableHead>Lead Date</TableHead>
-                    <TableHead>Module</TableHead>
-                    <TableHead>Company</TableHead>
-                    <TableHead>Contact</TableHead>
-                    <TableHead>Cell</TableHead>
-                    <TableHead>Email ID</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredLeads.length > 0 ? (
-                    filteredLeads.map((lead, index) => (
-                        <TableRow key={`${lead.leadId}-${index}`}>
-                            <TableCell>{index + 1}</TableCell>
-                            <TableCell>{lead.leadId}</TableCell>
-                            <TableCell>{format(new Date(lead.creationDate || 0), 'dd-MM-yyyy')}</TableCell>
-                            <TableCell>{lead.selectedModule}</TableCell>
-                            <TableCell>{lead.company}</TableCell>
-                            <TableCell>{lead.contactPerson}</TableCell>
-                            <TableCell>{lead.contactNumber}</TableCell>
-                            <TableCell>{lead.email}</TableCell>
-                        </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                        <TableCell colSpan={8} className="text-center">
-                        No results
-                        </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-            <div className="text-center mt-4">
-              <Button variant="link">
-                Show more Records &gt;&gt; (Show All Record)
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+          </CollapsibleContent>
+        </Collapsible>
+      </div>
     </div>
   );
 }
