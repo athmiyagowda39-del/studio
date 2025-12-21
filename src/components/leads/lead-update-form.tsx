@@ -333,9 +333,7 @@ export default function LeadUpdateForm() {
                     key={`${lead.leadId}-${index}`}
                     value={lead.leadId}
                     onSelect={(currentValue) => {
-                      if (currentValue) {
-                        onValueChange(currentValue);
-                      }
+                      onValueChange(currentValue === value ? '' : currentValue);
                       onOpenChange(false);
                     }}
                   >
