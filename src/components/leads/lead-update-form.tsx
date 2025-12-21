@@ -193,11 +193,11 @@ export default function LeadUpdateForm() {
 
     if (filters.fromDate) {
         const from = startOfDay(new Date(filters.fromDate)).getTime();
-        leads = leads.filter(lead => lead.creationDate >= from);
+        leads = leads.filter(lead => (lead.creationDate || 0) >= from);
     }
     if (filters.toDate) {
         const to = startOfDay(new Date(filters.toDate)).getTime() + (24*60*60*1000 - 1); // end of day
-        leads = leads.filter(lead => lead.creationDate <= to);
+        leads = leads.filter(lead => (lead.creationDate || 0) <= to);
     }
 
     if (filters.productName !== 'all') {
@@ -225,7 +225,7 @@ export default function LeadUpdateForm() {
     switch(filterType) {
         case 'Recent Leads':
             const twoDaysAgo = subDays(today, 2).getTime();
-            leads = allLeads.filter(lead => lead.creationDate >= twoDaysAgo);
+            leads = allLeads.filter(lead => (lead.creationDate || 0) >= twoDaysAgo);
             break;
         // Mock data for other filters as we don't have this data yet
         case 'Leads not Viewed':
@@ -331,11 +331,10 @@ export default function LeadUpdateForm() {
                 {allLeads.map((lead, index) => (
                   <CommandItem
                     key={`${lead.leadId}-${index}`}
-                    value={`${lead.leadId} ${lead.company} ${lead.contactPerson}`}
+                    value={lead.leadId}
                     onSelect={(currentValue) => {
-                      const leadIdToSelect = allLeads.find(l => `${l.leadId} ${l.company} ${l.contactPerson}`.toLowerCase() === currentValue.toLowerCase())?.leadId;
-                      if (leadIdToSelect) {
-                        onValueChange(leadIdToSelect);
+                      if (currentValue) {
+                        onValueChange(currentValue);
                       }
                       onOpenChange(false);
                     }}
@@ -932,7 +931,7 @@ export default function LeadUpdateForm() {
                         <TableRow key={`${lead.leadId}-${index}`}>
                             <TableCell>{index + 1}</TableCell>
                             <TableCell>{lead.leadId}</TableCell>
-                            <TableCell>{format(new Date(lead.creationDate), 'dd-MM-yyyy')}</TableCell>
+                            <TableCell>{format(new Date(lead.creationDate || 0), 'dd-MM-yyyy')}</TableCell>
                             <TableCell>{lead.selectedModule}</TableCell>
                             <TableCell>{lead.company}</TableCell>
                             <TableCell>{lead.contactPerson}</TableCell>
@@ -961,5 +960,3 @@ export default function LeadUpdateForm() {
     </div>
   );
 }
-
-    
