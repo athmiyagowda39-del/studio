@@ -47,7 +47,7 @@ export default function LeadPerformanceChart({
             tickLine={false}
             tickMargin={10}
             axisLine={false}
-            interval="preserveStartEnd"
+            interval={0}
           >
             <Label value="Number of Days" position="insideBottom" offset={-15} />
           </XAxis>
