@@ -45,7 +45,9 @@ export default function ProfileCard() {
 
   useEffect(() => {
     import('@/lib/placeholder-images').then((images) => {
-      setUserAvatar(images.PlaceHolderImages.find((img) => img.id === 'user-avatar'));
+      setUserAvatar(
+        images.PlaceHolderImages.find((img) => img.id === 'user-avatar')
+      );
     });
   }, []);
 
@@ -114,10 +116,10 @@ export default function ProfileCard() {
                 </DropdownMenuItem>
               </DialogTrigger>
               <DialogTrigger asChild>
-                 <DropdownMenuItem>
-                    <Lock className="mr-2 h-4 w-4" />
-                    <span>Change Password</span>
-                 </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Lock className="mr-2 h-4 w-4" />
+                  <span>Change Password</span>
+                </DropdownMenuItem>
               </DialogTrigger>
               <DropdownMenuItem onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
@@ -154,7 +156,7 @@ export default function ProfileCard() {
                   </div>
                   <DialogFooter>
                     <DialogClose asChild>
-                       <Button type="submit">Save changes</Button>
+                      <Button type="submit">Save changes</Button>
                     </DialogClose>
                   </DialogFooter>
                 </form>
@@ -162,56 +164,62 @@ export default function ProfileCard() {
             </Dialog>
 
             <Dialog>
-                <DialogTrigger asChild>
-                    <Button variant="outline" className="w-full justify-start">
-                        <Lock className="mr-4 h-5 w-5" />
-                        <span>CHANGE PASSWORD</span>
-                    </Button>
-                </DialogTrigger>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Change Password</DialogTitle>
-                    </DialogHeader>
-                    <form onSubmit={handleChangePassword}>
-                        <div className="grid gap-4 py-4">
-                            <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="current-password" className="text-right">
-                                    Current
-                                </Label>
-                                <Input
-                                    id="current-password"
-                                    type="password"
-                                    className="col-span-3"
-                                />
-                            </div>
-                             <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="new-password" className="text-right">
-                                    New
-                                </Label>
-                                <Input
-                                    id="new-password"
-                                    type="password"
-                                    className="col-span-3"
-                                />
-                            </div>
-                             <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="confirm-password" className="text-right">
-                                    Confirm
-                                </Label>
-                                <Input
-                                    id="confirm-password"
-                                    type="password"
-                                    className="col-span-3"
-                                />
-                            </div>
-                        </div>
-                        <DialogFooter>
-                            <DialogClose asChild>
-                                <Button type="submit">Update Password</Button>
-                            </DialogClose>
-                        </DialogFooter>
-                    </form>
-                </DialogContent>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="w-full justify-start">
+                  <Lock className="mr-4 h-5 w-5" />
+                  <span>CHANGE PASSWORD</span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Change Password</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleChangePassword}>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label
+                        htmlFor="current-password"
+                        className="text-right"
+                      >
+                        Current
+                      </Label>
+                      <Input
+                        id="current-password"
+                        type="password"
+                        className="col-span-3"
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="new-password" className="text-right">
+                        New
+                      </Label>
+                      <Input
+                        id="new-password"
+                        type="password"
+                        className="col-span-3"
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label
+                        htmlFor="confirm-password"
+                        className="text-right"
+                      >
+                        Confirm
+                      </Label>
+                      <Input
+                        id="confirm-password"
+                        type="password"
+                        className="col-span-3"
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <DialogClose asChild>
+                      <Button type="submit">Update Password</Button>
+                    </DialogClose>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
             </Dialog>
 
             <Button
@@ -222,6 +230,19 @@ export default function ProfileCard() {
               <LogOut className="mr-4 h-5 w-5" />
               <span>LOGOUT</span>
             </Button>
+          </div>
+
+          <div className="w-full space-y-4 border-t pt-6 text-sm text-muted-foreground">
+            <ul className="list-disc space-y-2 pl-5">
+              <li>
+                Displays user identity clearly at the top (e.g., username or
+                role).
+              </li>
+              <li>
+                Ensures role-based access by showing features relevant to the
+                logged-in user.
+              </li>
+            </ul>
           </div>
         </CardContent>
       </Card>
