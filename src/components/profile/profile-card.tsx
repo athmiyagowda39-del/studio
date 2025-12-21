@@ -128,42 +128,7 @@ export default function ProfileCard() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <div className="w-full space-y-2">
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Edit Profile</DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleUpdateName}>
-                  <div className="grid gap-4 py-4">
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="name" className="text-right">
-                        Name
-                      </Label>
-                      <Input
-                        id="name"
-                        value={nameInput}
-                        onChange={(e) => setNameInput(e.target.value)}
-                        className="col-span-3"
-                      />
-                    </div>
-                  </div>
-                  <DialogFooter>
-                    <DialogClose asChild>
-                      <Button type="submit">Save changes</Button>
-                    </DialogClose>
-                  </DialogFooter>
-                </form>
-              </DialogContent>
-            </div>
-          </Dialog>
-
-          <Dialog>
-            <Button variant="outline" className="w-full justify-start" asChild>
-              <DialogTrigger>
-                <UserCog className="mr-4 h-5 w-5" />
-                <span>EDIT PROFILE</span>
-              </DialogTrigger>
-            </Button>
+            {/* This DialogContent is for the Edit Profile option */}
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Edit Profile</DialogTitle>
@@ -192,12 +157,7 @@ export default function ProfileCard() {
           </Dialog>
 
           <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="w-full justify-start">
-                <Lock className="mr-4 h-5 w-5" />
-                <span>CHANGE PASSWORD</span>
-              </Button>
-            </DialogTrigger>
+             {/* This DialogContent is for the Change Password option */}
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Change Password</DialogTitle>
@@ -243,28 +203,6 @@ export default function ProfileCard() {
               </form>
             </DialogContent>
           </Dialog>
-
-          <Button
-            variant="outline"
-            className="w-full justify-start"
-            onClick={handleLogout}
-          >
-            <LogOut className="mr-4 h-5 w-5" />
-            <span>LOGOUT</span>
-          </Button>
-
-          <div className="w-full space-y-4 border-t pt-6 text-sm text-muted-foreground">
-            <ul className="list-disc space-y-2 pl-5">
-              <li>
-                Displays user identity clearly at the top (e.g., username or
-                role).
-              </li>
-              <li>
-                Ensures role-based access by showing features relevant to the
-                logged-in user.
-              </li>
-            </ul>
-          </div>
         </CardContent>
       </Card>
     </div>
