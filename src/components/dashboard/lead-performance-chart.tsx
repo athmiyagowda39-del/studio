@@ -26,6 +26,13 @@ type LeadPerformanceChartProps = {
 export default function LeadPerformanceChart({
   performanceData,
 }: LeadPerformanceChartProps) {
+  const maxLeads = Math.max(...performanceData.map((d) => d.leads), 0);
+  const yAxisMax = Math.ceil((maxLeads * 1.2) / 50) * 50; // Add 20% padding and round to next 50
+
+  const yAxisTicks =
+    yAxisMax > 0 ? [0, yAxisMax / 3, (yAxisMax * 2) / 3, yAxisMax].map(Math.round) : [0, 50, 100, 150];
+
+
   return (
     <div className="mt-4">
       <ChartContainer config={chartConfig} className="h-[300px] w-full">
@@ -40,7 +47,7 @@ export default function LeadPerformanceChart({
             tickLine={false}
             tickMargin={10}
             axisLine={false}
-            interval={0}
+            interval="preserveStartEnd"
           >
             <Label value="Number of Days" position="insideBottom" offset={-15} />
           </XAxis>
@@ -48,8 +55,8 @@ export default function LeadPerformanceChart({
             tickLine={false}
             axisLine={false}
             tickMargin={10}
-            domain={[0, 150]}
-            ticks={[0, 50, 100, 150]}
+            domain={[0, yAxisMax > 0 ? yAxisMax : 150]}
+            ticks={yAxisTicks}
           >
             <Label
               value="Total Number of Leads"
