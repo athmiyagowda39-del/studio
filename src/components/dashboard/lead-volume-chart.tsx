@@ -44,23 +44,23 @@ const months = [
 export default function LeadVolumeChart() {
   const allLeads = useMemo(() => getLeadData(), []);
   const [period, setPeriod] = useState('November'); // Default to November as per data
-  const [selectedState, setSelectedState] = useState('All');
+  const [selectedState, setSelectedState] = useState('Karnataka');
   const [selectedCity, setSelectedCity] = useState('All');
 
   const [stateOpen, setStateOpen] = useState(false);
   const [cityOpen, setCityOpen] = useState(false);
 
   const states = useMemo(
-    () => ['All', ...Object.keys(indianStatesAndDistricts)],
+    () => ['All', 'Karnataka'],
     []
   );
 
   const cities = useMemo(() => {
-    if (selectedState === 'All' || !indianStatesAndDistricts[selectedState]) {
-        const allCities = Object.values(indianStatesAndDistricts).flat();
-        return ['All', ...Array.from(new Set(allCities))];
+    if (selectedState === 'All' || selectedState !== 'Karnataka') {
+        const allKarnatakaCities = indianStatesAndDistricts['Karnataka'] || [];
+        return ['All', ...Array.from(new Set(allKarnatakaCities))];
     }
-    return ['All', ...(indianStatesAndDistricts[selectedState] || [])];
+    return ['All', ...(indianStatesAndDistricts['Karnataka'] || [])];
   }, [selectedState]);
 
   useEffect(() => {
@@ -170,6 +170,7 @@ export default function LeadVolumeChart() {
                   role="combobox"
                   aria-expanded={cityOpen}
                   className="w-[200px] justify-between"
+                  disabled={selectedState !== 'Karnataka'}
                 >
                   {selectedCity}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
