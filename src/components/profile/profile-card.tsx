@@ -33,15 +33,21 @@ import {
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import type { ImagePlaceholder } from '@/lib/placeholder-images';
 
 export default function ProfileCard() {
   const { toast } = useToast();
-  const userAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
+  const [userAvatar, setUserAvatar] = useState<ImagePlaceholder | undefined>();
   const [userName, setUserName] = useState('ATHMIYA');
   const [nameInput, setNameInput] = useState(userName);
+
+  useEffect(() => {
+    import('@/lib/placeholder-images').then((images) => {
+      setUserAvatar(images.PlaceHolderImages.find((img) => img.id === 'user-avatar'));
+    });
+  }, []);
 
   const handleLogout = () => {
     toast({

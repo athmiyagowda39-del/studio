@@ -4,14 +4,21 @@ import { usePathname } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { SidebarTrigger } from '@/components/ui/sidebar';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import type { ImagePlaceholder } from '@/lib/placeholder-images';
 import { Bell } from 'lucide-react';
 import Image from 'next/image';
+import { useEffect, useState } from 'react';
 
 export default function Header() {
-  const userAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
+  const [userAvatar, setUserAvatar] = useState<ImagePlaceholder | undefined>();
   const pathname = usePathname();
   const showLoginDetails = pathname !== '/leads-upload';
+
+  useEffect(() => {
+    import('@/lib/placeholder-images').then((images) => {
+      setUserAvatar(images.PlaceHolderImages.find((img) => img.id === 'user-avatar'));
+    });
+  }, []);
 
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
