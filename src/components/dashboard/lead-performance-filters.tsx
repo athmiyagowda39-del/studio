@@ -32,8 +32,23 @@ const karnatakaDistricts = indianStatesAndDistricts['Karnataka'].map(
   })
 );
 
+const months = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
+
 export default function LeadPerformanceFilters() {
-  const [period] = useState('November');
+  const [period, setPeriod] = useState('November');
   const [state] = useState('Karnataka');
   const [city, setCity] = useState('All');
   const [open, setOpen] = useState(false);
@@ -57,7 +72,11 @@ export default function LeadPerformanceFilters() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-            <DropdownMenuItem>November</DropdownMenuItem>
+            {months.map((month) => (
+              <DropdownMenuItem key={month} onSelect={() => setPeriod(month)}>
+                {month}
+              </DropdownMenuItem>
+            ))}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -114,7 +133,7 @@ export default function LeadPerformanceFilters() {
                     <CommandItem
                       key={district.value}
                       value={district.value}
-                      onSelect={handleCitySelect}
+                      onSelect={() => handleCitySelect(district.value)}
                     >
                       <Check
                         className={cn(
