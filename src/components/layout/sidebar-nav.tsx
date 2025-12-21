@@ -21,8 +21,8 @@ const links = [
   { href: '/leads-upload', label: 'LEADS UPLOAD', icon: Upload },
   { href: '/lead-details', label: 'LEAD DETAILS', icon: List },
   { href: '/leads-update', label: 'LEADS UPDATE', icon: FilePenLine },
-  { href: '/profile', label: 'PROFILE', icon: User },
   { href: '/reports', label: 'REPORTS', icon: FileText },
+  { href: '/profile', label: 'PROFILE', icon: User },
 ];
 
 export default function SidebarNav() {
@@ -52,5 +52,3 @@ export default function SidebarNav() {
     </SidebarMenu>
   );
 }
-
-    
