@@ -242,7 +242,7 @@ export default function LeadUploadForm() {
 
     processFile(selectedFile, (json) => {
         const headers = (json[0] as string[]).map(h => h.trim());
-        const leads: LeadFormData[] = json.slice(1).map((row: any[], rowIndex) => {
+        const leadsFromFile: Omit<LeadFormData, 'leadId' | 'creationDate'>[] = json.slice(1).map((row: any[]) => {
             const lead: any = {};
             headers.forEach((header, index) => {
                 lead[header] = row[index];
@@ -260,32 +260,51 @@ export default function LeadUploadForm() {
                 selectedModule = 'all-hrms';
               }
             }
-
-            const now = Date.now();
+            
             return {
-                leadId: `LEAD-${now}-${rowIndex}-${Math.floor(Math.random() * 1000)}`,
-                creationDate: now,
-                pincode: lead.pincode || '',
+                pincode: lead.pincode?.toString() || '',
                 state: location?.state || '',
                 district: location?.district || '',
                 address: lead.address || '',
                 contactPerson: lead.contactPerson || '',
-                contactNumber: lead.contactNumber || '',
+                contactNumber: lead.contactNumber?.toString() || '',
                 reference: lead.reference || '',
                 email: lead.email || '',
                 company: lead.company || '',
                 headcount: headcount,
                 selectedModule: selectedModule,
-                toDealer: false,
+                toDealer: false, // Default value
             };
         });
 
-        saveLeadsToLocalStorage(leads);
+        if (leadsFromFile.length > 0) {
+            const firstLead = leadsFromFile[0];
+            setFormData(firstLead);
+
+            // Add unique IDs and creation dates to all leads for saving
+            const leadsToSave = leadsFromFile.map((lead, index) => {
+                const now = Date.now();
+                return {
+                    ...lead,
+                    leadId: `LEAD-${now}-${index}-${Math.floor(Math.random() * 1000)}`,
+                    creationDate: now,
+                };
+            });
+            
+            saveLeadsToLocalStorage(leadsToSave);
+            
+            toast({
+                title: "Upload Confirmed",
+                description: `${leadsToSave.length} lead(s) have been saved and the first lead's data has been populated in the form.`,
+            });
+        } else {
+            toast({
+                variant: 'destructive',
+                title: 'Empty File',
+                description: 'The uploaded file does not contain any lead data.'
+            });
+        }
         
-        toast({
-            title: "Upload Confirmed",
-            description: `${leads.length} lead(s) have been successfully queued for import.`,
-        });
         handleCancel();
     });
   };
