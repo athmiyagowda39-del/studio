@@ -37,7 +37,7 @@ const chartConfig = {
   },
   'Pursuing to Purchase': {
     label: 'Pursuing to Purchase',
-    color: 'hsl(var(--chart-1))',
+    color: 'hsl(142.1 76.2% 36.3%)',
   },
   'Not interested': {
     label: 'Not interested',
@@ -45,7 +45,7 @@ const chartConfig = {
   },
   'Order closed': {
     label: 'Order closed',
-    color: 'hsl(var(--accent))',
+    color: 'hsl(47.9 95.8% 53.1%)',
   },
 };
 

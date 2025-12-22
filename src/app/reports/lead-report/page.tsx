@@ -129,9 +129,9 @@ export default function LeadReportPage() {
             case 'Not viewed': color = 'hsl(var(--chart-4))'; break;
             case 'Demo Given': color = 'hsl(var(--chart-3))'; break;
             case 'Unattended': color = 'hsl(var(--primary))'; break;
-            case 'Pursuing to Purchase': color = 'hsl(var(--chart-1))'; break;
+            case 'Pursuing to Purchase': color = 'hsl(142.1 76.2% 36.3%)'; break;
             case 'Not interested': color = 'hsl(var(--destructive))'; break;
-            case 'Order closed': color = 'hsl(var(--accent))'; break;
+            case 'Order closed': color = 'hsl(47.9 95.8% 53.1%)'; break;
         }
         return {
             name: item.status,
