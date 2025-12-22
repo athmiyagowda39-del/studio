@@ -125,10 +125,10 @@ export default function LeadReportPage() {
     .map((item) => {
         let color = '';
         switch(item.status) {
-            case 'Attended': color = 'hsl(var(--chart-1))'; break;
-            case 'Not viewed': color = 'hsl(var(--chart-2))'; break;
+            case 'Attended': color = 'hsl(var(--chart-2))'; break;
+            case 'Not viewed': color = 'hsl(var(--chart-4))'; break;
             case 'Demo Given': color = 'hsl(var(--chart-3))'; break;
-            case 'Unattended': color = 'hsl(var(--chart-4))'; break;
+            case 'Unattended': color = 'hsl(var(--primary))'; break;
             case 'Pursuing to Purchase': color = 'hsl(var(--chart-5))'; break;
             case 'Not interested': color = 'hsl(var(--destructive))'; break;
             case 'Order closed': color = 'hsl(var(--accent))'; break;

@@ -21,11 +21,11 @@ const chartConfig = {
   },
   Attended: {
     label: 'Attended',
-    color: 'hsl(var(--chart-1))',
+    color: 'hsl(var(--chart-2))',
   },
   'Not viewed': {
     label: 'Not viewed',
-    color: 'hsl(var(--chart-2))',
+    color: 'hsl(var(--chart-4))',
   },
   'Demo Given': {
     label: 'Demo Given',
@@ -33,7 +33,7 @@ const chartConfig = {
   },
   Unattended: {
     label: 'Unattended',
-    color: 'hsl(var(--chart-4))',
+    color: 'hsl(var(--primary))',
   },
   'Pursuing to Purchase': {
     label: 'Pursuing to Purchase',
