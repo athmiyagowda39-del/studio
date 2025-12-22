@@ -340,7 +340,10 @@ export default function LeadUploadForm() {
             <Label htmlFor="pincode">Pin code <span className="text-destructive">*</span></Label>
             <Input id="pincode" value={formData.pincode} onChange={handlePincodeChange} required/>
           </div>
-          <div></div>
+          <div className="col-span-2 space-y-2">
+            <Label htmlFor="address">Address <span className="text-destructive">*</span></Label>
+            <Input id="address" value={formData.address} onChange={handleInputChange} required />
+          </div>
           <div className="space-y-2">
             <Label htmlFor="state">State</Label>
             <Input id="state" value={formData.state} readOnly />
@@ -348,10 +351,6 @@ export default function LeadUploadForm() {
           <div className="space-y-2">
             <Label htmlFor="district">District</Label>
             <Input id="district" value={formData.district} readOnly />
-          </div>
-          <div className="col-span-2 space-y-2">
-            <Label htmlFor="address">Address <span className="text-destructive">*</span></Label>
-            <Input id="address" value={formData.address} onChange={handleInputChange} required />
           </div>
           <div className="space-y-2">
             <Label htmlFor="contactPerson">Contact person <span className="text-destructive">*</span></Label>
@@ -466,3 +465,5 @@ export default function LeadUploadForm() {
     </div>
   );
 }
+
+    
