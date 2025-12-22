@@ -21,8 +21,19 @@ import {
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { indianStatesAndDistricts } from '@/lib/data';
 import { cn } from '@/lib/utils';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const allStates = Object.keys(indianStatesAndDistricts);
+
+const leadStatusOptions = [
+    'Attended',
+    'Not viewed',
+    'Demo Given',
+    'Unattended',
+    'Pursuing to Purchase',
+    'Not interested',
+    'Order closed',
+];
 
 const getLeadStatusesForState = (state: string) => {
   // In a real application, this data would be fetched based on the state.
@@ -64,7 +75,8 @@ const getLeadStatusesForState = (state: string) => {
 
 export default function LeadReportPage() {
   const [selectedState, setSelectedState] = useState('Karnataka');
-  const [open, setOpen] = useState(false);
+  const [openState, setOpenState] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState('');
 
   const leadStatuses = useMemo(() => {
     return getLeadStatusesForState(selectedState);
@@ -83,7 +95,7 @@ export default function LeadReportPage() {
     if(state) {
         setSelectedState(state);
     }
-    setOpen(false);
+    setOpenState(false);
   }
 
   return (
@@ -94,47 +106,64 @@ export default function LeadReportPage() {
         </CardHeader>
         <CardContent className="p-6">
           <div className="mb-6 flex items-center gap-4">
-            <span className="font-medium">Select State:</span>
-             <Popover open={open} onOpenChange={setOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={open}
-                  className="w-[250px] justify-between"
-                >
-                  {selectedState}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[250px] p-0">
-                <Command>
-                  <CommandInput placeholder="Search state..." />
-                  <CommandList>
-                    <CommandEmpty>No state found.</CommandEmpty>
-                    <CommandGroup>
-                      {allStates.map((state) => (
-                        <CommandItem
-                          key={state}
-                          value={state.toLowerCase()}
-                          onSelect={handleStateSelect}
-                        >
-                          <Check
-                            className={cn(
-                              'mr-2 h-4 w-4',
-                              selectedState === state
-                                ? 'opacity-100'
-                                : 'opacity-0'
-                            )}
-                          />
-                          {state}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
+            <div className="flex items-center gap-2">
+                <span className="font-medium">Select State:</span>
+                <Popover open={openState} onOpenChange={setOpenState}>
+                <PopoverTrigger asChild>
+                    <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={openState}
+                    className="w-[250px] justify-between"
+                    >
+                    {selectedState}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[250px] p-0">
+                    <Command>
+                    <CommandInput placeholder="Search state..." />
+                    <CommandList>
+                        <CommandEmpty>No state found.</CommandEmpty>
+                        <CommandGroup>
+                        {allStates.map((state) => (
+                            <CommandItem
+                            key={state}
+                            value={state.toLowerCase()}
+                            onSelect={handleStateSelect}
+                            >
+                            <Check
+                                className={cn(
+                                'mr-2 h-4 w-4',
+                                selectedState === state
+                                    ? 'opacity-100'
+                                    : 'opacity-0'
+                                )}
+                            />
+                            {state}
+                            </CommandItem>
+                        ))}
+                        </CommandGroup>
+                    </CommandList>
+                    </Command>
+                </PopoverContent>
+                </Popover>
+            </div>
+            <div className="flex items-center gap-2">
+                <span className="font-medium">Status:</span>
+                <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                    <SelectTrigger className="w-[250px]">
+                        <SelectValue placeholder="Select a status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {leadStatusOptions.map(status => (
+                            <SelectItem key={status} value={status}>
+                                {status}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
             <div className="space-y-4">
