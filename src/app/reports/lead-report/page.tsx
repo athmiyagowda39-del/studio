@@ -3,7 +3,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import LeadStatusChart from '@/components/reports/lead-status-chart';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Popover,
@@ -22,6 +22,9 @@ import { Check, ChevronsUpDown } from 'lucide-react';
 import { indianStatesAndDistricts } from '@/lib/data';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import type { LeadFormData } from '@/components/leads/lead-upload-form';
+import { format } from 'date-fns';
 
 const allStates = Object.keys(indianStatesAndDistricts);
 
@@ -77,10 +80,41 @@ export default function LeadReportPage() {
   const [selectedState, setSelectedState] = useState('Karnataka');
   const [openState, setOpenState] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState('');
+  const [allLeads, setAllLeads] = useState<LeadFormData[]>([]);
+  const [filteredLeads, setFilteredLeads] = useState<LeadFormData[]>([]);
+
+  useEffect(() => {
+    try {
+      const storedLeads = localStorage.getItem('uploadedLeads');
+      if (storedLeads) {
+        const parsedLeads: LeadFormData[] = JSON.parse(storedLeads);
+        // This is mock data for status. In a real app this would come from the data
+        const leadsWithStatus = parsedLeads.map((lead, index) => ({
+          ...lead,
+          status: leadStatusOptions[index % leadStatusOptions.length],
+        }));
+        setAllLeads(leadsWithStatus as any);
+      }
+    } catch (error) {
+      console.error('Failed to load leads from local storage', error);
+    }
+  }, []);
 
   const leadStatuses = useMemo(() => {
     return getLeadStatusesForState(selectedState);
   }, [selectedState]);
+  
+  useEffect(() => {
+    if (selectedStatus) {
+      const leads = allLeads.filter(lead => 
+        lead.state === selectedState && (lead as any).status === selectedStatus
+      );
+      setFilteredLeads(leads);
+    } else {
+      setFilteredLeads([]);
+    }
+  }, [selectedState, selectedStatus, allLeads]);
+
 
   const chartData = leadStatuses
     .filter((s) => s.status !== 'Total Leads')
@@ -156,6 +190,7 @@ export default function LeadReportPage() {
                         <SelectValue placeholder="Select a status" />
                     </SelectTrigger>
                     <SelectContent>
+                         <SelectItem value="">All Statuses</SelectItem>
                         {leadStatusOptions.map(status => (
                             <SelectItem key={status} value={status}>
                                 {status}
@@ -165,27 +200,71 @@ export default function LeadReportPage() {
                 </Select>
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold mb-4">
-                Lead Status Breakdown for {selectedState}
-              </h2>
-              {leadStatuses.map((item) => (
-                <div
-                  key={item.status}
-                  className="flex justify-between items-center p-3 border rounded-lg"
-                >
-                  <span className="font-medium">{item.status}:</span>
-                  <span className="font-bold text-primary">{item.value}</span>
+          
+          {selectedStatus ? (
+             <div>
+                <h2 className="text-xl font-semibold mb-4">
+                    Leads with status "{selectedStatus}" in {selectedState} ({filteredLeads.length} records)
+                </h2>
+                 <div className="overflow-x-auto border rounded-lg">
+                    <Table>
+                        <TableHeader>
+                        <TableRow>
+                            <TableHead>Lead ID</TableHead>
+                            <TableHead>Company</TableHead>
+                            <TableHead>Contact Person</TableHead>
+                            <TableHead>Contact Number</TableHead>
+                            <TableHead>Email</TableHead>
+                             <TableHead>Date</TableHead>
+                        </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                        {filteredLeads.length > 0 ? (
+                            filteredLeads.map((lead, index) => (
+                            <TableRow key={`${lead.leadId}-${index}`}>
+                                <TableCell>{lead.leadId}</TableCell>
+                                <TableCell>{lead.company}</TableCell>
+                                <TableCell>{lead.contactPerson}</TableCell>
+                                <TableCell>{lead.contactNumber}</TableCell>
+                                <TableCell>{lead.email}</TableCell>
+                                 <TableCell>{format(new Date(lead.creationDate), 'PPP')}</TableCell>
+                            </TableRow>
+                            ))
+                        ) : (
+                             <TableRow>
+                                <TableCell colSpan={6} className="text-center h-24">
+                                    No leads found for this state and status.
+                                </TableCell>
+                            </TableRow>
+                        )}
+                        </TableBody>
+                    </Table>
                 </div>
-              ))}
             </div>
-            <div className="flex justify-center">
-              <LeadStatusChart data={chartData} />
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+              <div className="space-y-4">
+                <h2 className="text-xl font-semibold mb-4">
+                  Lead Status Breakdown for {selectedState}
+                </h2>
+                {leadStatuses.map((item) => (
+                  <div
+                    key={item.status}
+                    className="flex justify-between items-center p-3 border rounded-lg"
+                  >
+                    <span className="font-medium">{item.status}:</span>
+                    <span className="font-bold text-primary">{item.value}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="flex justify-center">
+                <LeadStatusChart data={chartData} />
+              </div>
             </div>
-          </div>
+          )}
         </CardContent>
       </Card>
     </div>
   );
 }
+
