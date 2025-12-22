@@ -95,7 +95,7 @@ export default function LeadReportPage() {
         }));
         setAllLeads(leadsWithStatus as any);
       }
-    } catch (error) => {
+    } catch (error) {
       console.error('Failed to load leads from local storage', error);
     }
   }, []);
