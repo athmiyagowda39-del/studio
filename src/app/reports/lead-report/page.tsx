@@ -4,14 +4,23 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import LeadStatusChart from '@/components/reports/lead-status-chart';
 import { useState, useMemo } from 'react';
+import { Button } from '@/components/ui/button';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
+import { Check, ChevronsUpDown } from 'lucide-react';
 import { indianStatesAndDistricts } from '@/lib/data';
+import { cn } from '@/lib/utils';
 
 const allStates = Object.keys(indianStatesAndDistricts);
 
@@ -55,6 +64,7 @@ const getLeadStatusesForState = (state: string) => {
 
 export default function LeadReportPage() {
   const [selectedState, setSelectedState] = useState('Karnataka');
+  const [open, setOpen] = useState(false);
 
   const leadStatuses = useMemo(() => {
     return getLeadStatusesForState(selectedState);
@@ -67,6 +77,14 @@ export default function LeadReportPage() {
       value: item.value,
       fill: `var(--color-${item.status.replace(/\s+/g, '')})`,
     }));
+    
+  const handleStateSelect = (currentState: string) => {
+    const state = allStates.find(s => s.toLowerCase() === currentState);
+    if(state) {
+        setSelectedState(state);
+    }
+    setOpen(false);
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -77,18 +95,46 @@ export default function LeadReportPage() {
         <CardContent className="p-6">
           <div className="mb-6 flex items-center gap-4">
             <span className="font-medium">Select State:</span>
-            <Select value={selectedState} onValueChange={setSelectedState}>
-              <SelectTrigger className="w-[250px]">
-                <SelectValue placeholder="Select a state" />
-              </SelectTrigger>
-              <SelectContent>
-                {allStates.map((state) => (
-                  <SelectItem key={state} value={state}>
-                    {state}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+             <Popover open={open} onOpenChange={setOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={open}
+                  className="w-[250px] justify-between"
+                >
+                  {selectedState}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[250px] p-0">
+                <Command>
+                  <CommandInput placeholder="Search state..." />
+                  <CommandList>
+                    <CommandEmpty>No state found.</CommandEmpty>
+                    <CommandGroup>
+                      {allStates.map((state) => (
+                        <CommandItem
+                          key={state}
+                          value={state.toLowerCase()}
+                          onSelect={handleStateSelect}
+                        >
+                          <Check
+                            className={cn(
+                              'mr-2 h-4 w-4',
+                              selectedState === state
+                                ? 'opacity-100'
+                                : 'opacity-0'
+                            )}
+                          />
+                          {state}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
             <div className="space-y-4">
