@@ -340,6 +340,18 @@ export default function LeadUploadForm() {
             <Label htmlFor="pincode">Pin code <span className="text-destructive">*</span></Label>
             <Input id="pincode" value={formData.pincode} onChange={handlePincodeChange} required/>
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="company">Company</Label>
+            <Input id="company" value={formData.company} onChange={handleInputChange} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="contactPerson">Contact person <span className="text-destructive">*</span></Label>
+            <Input id="contactPerson" value={formData.contactPerson} onChange={handleInputChange} required />
+          </div>
+           <div className="space-y-2">
+            <Label htmlFor="contactNumber">Contact Number <span className="text-destructive">*</span></Label>
+            <Input id="contactNumber" value={formData.contactNumber} onChange={handleInputChange} required />
+          </div>
           <div className="col-span-2 space-y-2">
             <Label htmlFor="address">Address <span className="text-destructive">*</span></Label>
             <Input id="address" value={formData.address} onChange={handleInputChange} required />
@@ -353,24 +365,12 @@ export default function LeadUploadForm() {
             <Input id="district" value={formData.district} readOnly />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="contactPerson">Contact person <span className="text-destructive">*</span></Label>
-            <Input id="contactPerson" value={formData.contactPerson} onChange={handleInputChange} required />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="contactNumber">Contact Number <span className="text-destructive">*</span></Label>
-            <Input id="contactNumber" value={formData.contactNumber} onChange={handleInputChange} required />
-          </div>
-          <div className="space-y-2">
             <Label htmlFor="reference">Reference</Label>
             <Input id="reference" value={formData.reference} onChange={handleInputChange} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input id="email" type="email" value={formData.email} onChange={handleInputChange} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="company">Company</Label>
-            <Input id="company" value={formData.company} onChange={handleInputChange} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="headcount">Company headcount</Label>
@@ -465,5 +465,3 @@ export default function LeadUploadForm() {
     </div>
   );
 }
-
-    
