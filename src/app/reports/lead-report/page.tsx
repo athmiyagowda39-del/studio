@@ -133,7 +133,7 @@ export default function LeadReportPage() {
         return {
             name: item.status,
             value: item.value,
-            fill: `var(--color-${item.status.replace(/\s+/g, '')})`,
+            fill: color,
         }
     });
     
