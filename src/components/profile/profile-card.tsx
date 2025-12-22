@@ -8,12 +8,7 @@ import {
 } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import {
-  UserCog,
-  Lock,
-  LogOut,
-  User as UserIcon,
-} from 'lucide-react';
+import { Lock, LogOut, User as UserIcon } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -33,11 +28,9 @@ import type { ImagePlaceholder } from '@/lib/placeholder-images';
 export default function ProfileCard() {
   const { toast } = useToast();
   const [userAvatar, setUserAvatar] = useState<ImagePlaceholder | undefined>();
-  const [userName, setUserName] = useState('ATHMIYA');
-  const [nameInput, setNameInput] = useState(userName);
+  const [userName] = useState('ATHMIYA');
 
   useEffect(() => {
-    // This will only run on the client, after initial hydration
     import('@/lib/placeholder-images').then((images) => {
       setUserAvatar(
         images.PlaceHolderImages.find((img) => img.id === 'user-avatar')
@@ -52,15 +45,6 @@ export default function ProfileCard() {
     });
     // In a real app, you would redirect to a login page.
     // window.location.href = '/login';
-  };
-
-  const handleUpdateName = (e: React.FormEvent) => {
-    e.preventDefault();
-    setUserName(nameInput);
-    toast({
-      title: 'Profile Updated',
-      description: 'Your name has been successfully updated.',
-    });
   };
 
   const handleChangePassword = (e: React.FormEvent) => {
@@ -94,43 +78,12 @@ export default function ProfileCard() {
               </AvatarFallback>
             )}
           </Avatar>
-          <h2 className="text-2xl font-bold">{userName}</h2>
-
+          
           <div className="w-full space-y-2">
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="outline" className="w-full justify-start">
-                  <UserCog className="mr-2 h-4 w-4" />
-                  Edit Profile
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Edit Profile</DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleUpdateName}>
-                  <div className="grid gap-4 py-4">
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="name" className="text-right">
-                        Name
-                      </Label>
-                      <Input
-                        id="name"
-                        value={nameInput}
-                        onChange={(e) => setNameInput(e.target.value)}
-                        className="col-span-3"
-                      />
-                    </div>
-                  </div>
-                  <DialogFooter>
-                    <DialogClose asChild>
-                      <Button type="submit">Save changes</Button>
-                    </DialogClose>
-                  </DialogFooter>
-                </form>
-              </DialogContent>
-            </Dialog>
-
+            <div className="text-center pb-4">
+               <h2 className="text-2xl font-bold">{userName}</h2>
+            </div>
+            
             <Dialog>
               <DialogTrigger asChild>
                 <Button variant="outline" className="w-full justify-start">
