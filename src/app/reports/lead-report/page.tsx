@@ -95,7 +95,7 @@ export default function LeadReportPage() {
         }));
         setAllLeads(leadsWithStatus as any);
       }
-    } catch (error) {
+    } catch (error) => {
       console.error('Failed to load leads from local storage', error);
     }
   }, []);
@@ -105,7 +105,7 @@ export default function LeadReportPage() {
   }, [selectedState]);
   
   useEffect(() => {
-    if (selectedStatus) {
+    if (selectedStatus && selectedStatus !== 'all-statuses') {
       const leads = allLeads.filter(lead => 
         lead.state === selectedState && (lead as any).status === selectedStatus
       );
@@ -131,6 +131,12 @@ export default function LeadReportPage() {
     }
     setOpenState(false);
   }
+  
+  const handleStatusChange = (value: string) => {
+      setSelectedStatus(value === 'all-statuses' ? '' : value);
+  }
+
+  const shouldShowDetails = selectedStatus && selectedStatus !== 'all-statuses';
 
   return (
     <div className="flex flex-col gap-6">
@@ -185,12 +191,12 @@ export default function LeadReportPage() {
             </div>
             <div className="flex items-center gap-2">
                 <span className="font-medium">Status:</span>
-                <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                <Select value={selectedStatus} onValueChange={handleStatusChange}>
                     <SelectTrigger className="w-[250px]">
                         <SelectValue placeholder="Select a status" />
                     </SelectTrigger>
                     <SelectContent>
-                         <SelectItem value="">All Statuses</SelectItem>
+                         <SelectItem value="all-statuses">All Statuses</SelectItem>
                         {leadStatusOptions.map(status => (
                             <SelectItem key={status} value={status}>
                                 {status}
@@ -201,7 +207,7 @@ export default function LeadReportPage() {
             </div>
           </div>
           
-          {selectedStatus ? (
+          {shouldShowDetails ? (
              <div>
                 <h2 className="text-xl font-semibold mb-4">
                     Leads with status "{selectedStatus}" in {selectedState} ({filteredLeads.length} records)
@@ -267,4 +273,3 @@ export default function LeadReportPage() {
     </div>
   );
 }
-
