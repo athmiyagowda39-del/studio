@@ -80,9 +80,10 @@ export default function ProfileCard() {
           </Avatar>
           
           <div className="w-full space-y-2">
-            <div className="text-center pb-4">
-               <h2 className="text-2xl font-bold">{userName}</h2>
-            </div>
+            <Button variant="outline" className="w-full justify-start cursor-default hover:bg-transparent">
+              <UserIcon className="mr-2 h-4 w-4" />
+              {userName}
+            </Button>
             
             <Dialog>
               <DialogTrigger asChild>
