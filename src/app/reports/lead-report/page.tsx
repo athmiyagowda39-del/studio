@@ -33,7 +33,7 @@ const leadStatusOptions = [
     'Not viewed',
     'Demo Given',
     'Unattended',
-    'Pursuing to Purchase',
+ 'Pursuing to Purchase',
     'Not interested',
     'Order closed',
 ];
@@ -41,7 +41,8 @@ const leadStatusOptions = [
 const getLeadStatusesForState = (state: string) => {
   // In a real application, this data would be fetched based on the state.
   // Here, we'll generate some semi-random data to simulate the change.
-  const seed = state.charCodeAt(0) + (state.charCodeAt(1) || 0);
+  const seed = state.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  
   const baseData = {
     'Total Leads': 890,
     'Not viewed': 32,
@@ -53,24 +54,26 @@ const getLeadStatusesForState = (state: string) => {
     'Order closed': 10,
   };
 
-  if (state === 'Karnataka') {
-    return Object.entries(baseData).map(([status, value]) => ({ status, value }));
-  }
-
-  const slightlyRandomize = (value: number) => {
-    return Math.max(0, Math.round(value * (0.8 + (seed % 40) / 100)));
+  const slightlyRandomize = (value: number, index: number) => {
+    // Use a more deterministic but varied randomization based on seed
+    const randomFactor = Math.sin(seed + index) * 0.2 + 0.9; // Fluctuate between 0.7 and 1.1
+    return Math.max(0, Math.round(value * randomFactor));
   }
 
   const newStateData = {
-    'Total Leads': slightlyRandomize(baseData['Total Leads']),
-    'Not viewed': slightlyRandomize(baseData['Not viewed']),
-    'Unattended': slightlyRandomize(baseData['Unattended']),
-    'Not interested': slightlyRandomize(baseData['Not interested']),
-    'Attended': slightlyRandomize(baseData['Attended']),
-    'Demo Given': slightlyRandomize(baseData['Demo Given']),
-    'Pursuing to Purchase': slightlyRandomize(baseData['Pursuing to Purchase']),
-    'Order closed': slightlyRandomize(baseData['Order closed']),
+    'Total Leads': slightlyRandomize(baseData['Total Leads'], 0),
+    'Not viewed': slightlyRandomize(baseData['Not viewed'], 1),
+    'Unattended': slightlyRandomize(baseData['Unattended'], 2),
+    'Not interested': slightlyRandomize(baseData['Not interested'], 3),
+    'Attended': slightlyRandomize(baseData['Attended'], 4),
+    'Demo Given': slightlyRandomize(baseData['Demo Given'], 5),
+    'Pursuing to Purchase': slightlyRandomize(baseData['Pursuing to Purchase'], 6),
+    'Order closed': slightlyRandomize(baseData['Order closed'], 7),
   };
+  
+  // Recalculate total leads based on other statuses
+  newStateData['Total Leads'] = newStateData['Not viewed'] + newStateData['Unattended'] + newStateData['Not interested'] + newStateData['Attended'] + newStateData['Demo Given'] + newStateData['Pursuing to Purchase'] + newStateData['Order closed'];
+
 
   return Object.entries(newStateData).map(([status, value]) => ({ status, value }));
 };
