@@ -23,30 +23,30 @@ const chartConfig = {
     label: 'Attended',
     color: 'hsl(var(--chart-1))',
   },
-  'Notviewed': {
+  'Not viewed': {
     label: 'Not viewed',
     color: 'hsl(var(--chart-2))',
+  },
+  'Demo Given': {
+    label: 'Demo Given',
+    color: 'hsl(var(--chart-5))',
   },
   Unattended: {
     label: 'Unattended',
     color: 'hsl(var(--chart-3))',
   },
-  'Notinterested': {
-    label: 'Not interested',
-    color: 'hsl(var(--chart-4))',
-  },
-  'DemoGiven': {
-    label: 'Demo Given',
-    color: 'hsl(var(--chart-5))',
-  },
-  'PursuingtoPurchase': {
+  'Pursuing to Purchase': {
     label: 'Pursuing to Purchase',
     color: 'hsl(var(--primary))',
   },
-  'Orderclosed': {
+  'Not interested': {
+    label: 'Not interested',
+    color: 'hsl(var(--chart-4))',
+  },
+  'Order closed': {
     label: 'Order closed',
     color: 'hsl(var(--accent))',
-  }
+  },
 };
 
 
