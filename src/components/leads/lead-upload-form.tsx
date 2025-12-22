@@ -336,7 +336,7 @@ export default function LeadUploadForm() {
       <div>
         <p className="font-semibold">Provide the new Lead detail</p>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 mt-4">
-          <div className="space-y-2">
+          <div className="space-y-2 col-span-2">
             <Label htmlFor="pincode">Pin code <span className="text-destructive">*</span></Label>
             <Input id="pincode" value={formData.pincode} onChange={handlePincodeChange} required/>
           </div>
@@ -347,10 +347,6 @@ export default function LeadUploadForm() {
           <div className="space-y-2">
             <Label htmlFor="contactPerson">Contact person <span className="text-destructive">*</span></Label>
             <Input id="contactPerson" value={formData.contactPerson} onChange={handleInputChange} required />
-          </div>
-           <div className="space-y-2">
-            <Label htmlFor="contactNumber">Contact Number <span className="text-destructive">*</span></Label>
-            <Input id="contactNumber" value={formData.contactNumber} onChange={handleInputChange} required />
           </div>
           <div className="col-span-2 space-y-2">
             <Label htmlFor="address">Address <span className="text-destructive">*</span></Label>
@@ -365,6 +361,10 @@ export default function LeadUploadForm() {
             <Input id="district" value={formData.district} readOnly />
           </div>
           <div className="space-y-2">
+            <Label htmlFor="contactNumber">Contact Number <span className="text-destructive">*</span></Label>
+            <Input id="contactNumber" value={formData.contactNumber} onChange={handleInputChange} required />
+          </div>
+          <div className="space-y-2">
             <Label htmlFor="reference">Reference</Label>
             <Input id="reference" value={formData.reference} onChange={handleInputChange} />
           </div>
@@ -376,7 +376,7 @@ export default function LeadUploadForm() {
             <Label htmlFor="headcount">Company headcount</Label>
             <Input id="headcount" value={formData.headcount} onChange={handleHeadcountChange} />
           </div>
-          <div className="space-y-2">
+          <div className="space-y-2 col-span-2">
             <Label htmlFor="modules">Modules</Label>
             <Select value={formData.selectedModule} onValueChange={handleSelectChange}>
               <SelectTrigger id="modules">
