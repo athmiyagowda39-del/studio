@@ -8,9 +8,11 @@ import type { ImagePlaceholder } from '@/lib/placeholder-images';
 import { Bell } from 'lucide-react';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
+import { format } from 'date-fns';
 
 export default function Header() {
   const [userAvatar, setUserAvatar] = useState<ImagePlaceholder | undefined>();
+  const [currentDate, setCurrentDate] = useState('');
   const pathname = usePathname();
   const showLoginDetails = pathname !== '/leads-upload';
 
@@ -18,6 +20,7 @@ export default function Header() {
     import('@/lib/placeholder-images').then((images) => {
       setUserAvatar(images.PlaceHolderImages.find((img) => img.id === 'user-avatar'));
     });
+    setCurrentDate(format(new Date(), 'dd-MM-yyyy'));
   }, []);
 
   return (
@@ -30,7 +33,7 @@ export default function Header() {
             <div className="flex flex-col text-sm">
               <span className="font-medium">Logged in as: ATHMIYA</span>
               <span className="text-xs text-muted-foreground">
-                Type: SUB ADMIN | Last Login: 15-11-2025
+                Type: SUB ADMIN | Last Login: {currentDate}
               </span>
             </div>
           )}
