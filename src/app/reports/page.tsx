@@ -1,17 +1,25 @@
 
+'use client';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import Link from 'next/link';
 
 export default function ReportsPage() {
   const reports = [
-    'LEAD REPORT',
-    'LEAD UPDATE STATUS REPORT',
-    'LEAD UPLOAD STATUS REPORT',
-    'MANAGER LIST REPORT',
-    'DEMO GIVEN STATUS REPORT',
-    'QUOTE SENT REPORT',
-    'LEAD SOURCE STATUS REPORT',
-    'DEALER LIST REPORT',
-    'MAPPING INFORMATION REPORT',
+    { name: 'LEAD REPORT', href: '/reports/lead-report' },
+    { name: 'Conversion Funnel Report' },
+    { name: 'Geography-wise Performance Report' },
+    { name: 'Product-wise Performance Report' },
+    { name: 'Sales Forecast Report' },
+    { name: 'Cost Analysis Report (CPL & CPA)' },
+    { name: 'LEAD UPDATE STATUS REPORT' },
+    { name: 'LEAD UPLOAD STATUS REPORT' },
+    { name: 'MANAGER LIST REPORT' },
+    { name: 'DEMO GIVEN STATUS REPORT' },
+    { name: 'QUOTE SENT REPORT' },
+    { name: 'LEAD SOURCE STATUS REPORT' },
+    { name: 'DEALER LIST REPORT' },
+    { name: 'MAPPING INFORMATION REPORT' },
   ];
 
   return (
@@ -21,11 +29,21 @@ export default function ReportsPage() {
           <CardTitle className="text-center text-primary">Reports</CardTitle>
         </CardHeader>
         <CardContent className="p-6 space-y-4">
-          {reports.map((report, index) => (
-            <div key={index} className="p-4 border rounded-md text-center">
-              {report}
-            </div>
-          ))}
+          {reports.map((report, index) =>
+            report.href ? (
+              <Link
+                href={report.href}
+                key={index}
+                className="block p-4 border rounded-md text-center hover:bg-accent hover:text-accent-foreground transition-colors"
+              >
+                {report.name}
+              </Link>
+            ) : (
+              <div key={index} className="p-4 border rounded-md text-center">
+                {report.name}
+              </div>
+            )
+          )}
         </CardContent>
       </Card>
     </div>
