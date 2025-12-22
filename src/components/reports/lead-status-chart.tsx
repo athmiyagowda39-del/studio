@@ -37,7 +37,7 @@ const chartConfig = {
   },
   'Pursuing to Purchase': {
     label: 'Pursuing to Purchase',
-    color: 'hsl(var(--chart-5))',
+    color: 'hsl(var(--chart-1))',
   },
   'Not interested': {
     label: 'Not interested',
@@ -54,7 +54,7 @@ export default function LeadStatusChart({ data }: LeadStatusChartProps) {
   return (
     <ChartContainer
       config={chartConfig}
-      className="mx-auto aspect-square h-[350px]"
+      className="mx-auto aspect-square h-[400px]"
     >
       <PieChart>
         <ChartTooltip
@@ -65,7 +65,7 @@ export default function LeadStatusChart({ data }: LeadStatusChartProps) {
           data={data}
           dataKey="value"
           nameKey="name"
-          innerRadius={80}
+          innerRadius={100}
           strokeWidth={5}
         >
            {data.map((entry, index) => (
