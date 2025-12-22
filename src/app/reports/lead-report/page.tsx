@@ -92,6 +92,7 @@ export default function LeadReportPage() {
         const leadsWithStatus = parsedLeads.map((lead, index) => ({
           ...lead,
           status: leadStatusOptions[index % leadStatusOptions.length],
+          creationDate: lead.creationDate ? new Date(lead.creationDate).getTime() : new Date().getTime(),
         }));
         setAllLeads(leadsWithStatus as any);
       }
@@ -118,11 +119,23 @@ export default function LeadReportPage() {
 
   const chartData = leadStatuses
     .filter((s) => s.status !== 'Total Leads')
-    .map((item) => ({
-      name: item.status,
-      value: item.value,
-      fill: `var(--color-${item.status.replace(/\s+/g, '')})`,
-    }));
+    .map((item) => {
+        let color = '';
+        switch(item.status) {
+            case 'Attended': color = 'hsl(var(--chart-1))'; break;
+            case 'Not viewed': color = 'hsl(var(--chart-2))'; break;
+            case 'Demo Given': color = 'hsl(var(--chart-3))'; break;
+            case 'Unattended': color = 'hsl(var(--chart-4))'; break;
+            case 'Pursuing to Purchase': color = 'hsl(var(--chart-5))'; break;
+            case 'Not interested': color = 'hsl(var(--destructive))'; break;
+            case 'Order closed': color = 'hsl(var(--accent))'; break;
+        }
+        return {
+            name: item.status,
+            value: item.value,
+            fill: `var(--color-${item.status.replace(/\s+/g, '')})`,
+        }
+    });
     
   const handleStateSelect = (currentState: string) => {
     const state = allStates.find(s => s.toLowerCase() === currentState);

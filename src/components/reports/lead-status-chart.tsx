@@ -29,19 +29,19 @@ const chartConfig = {
   },
   'Demo Given': {
     label: 'Demo Given',
-    color: 'hsl(var(--chart-5))',
+    color: 'hsl(var(--chart-3))',
   },
   Unattended: {
     label: 'Unattended',
-    color: 'hsl(var(--chart-3))',
+    color: 'hsl(var(--chart-4))',
   },
   'Pursuing to Purchase': {
     label: 'Pursuing to Purchase',
-    color: 'hsl(var(--primary))',
+    color: 'hsl(var(--chart-5))',
   },
   'Not interested': {
     label: 'Not interested',
-    color: 'hsl(var(--chart-4))',
+    color: 'hsl(var(--destructive))',
   },
   'Order closed': {
     label: 'Order closed',
