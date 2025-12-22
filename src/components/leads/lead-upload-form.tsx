@@ -94,21 +94,7 @@ export default function LeadUploadForm() {
 
   const handleHeadcountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newHeadcount = e.target.value;
-    const newFormData = { ...formData, headcount: newHeadcount };
-
-    const count = parseInt(newHeadcount, 10);
-    if (!isNaN(count)) {
-      if (count >= 100 && count < 200) {
-        newFormData.selectedModule = 'ar';
-      } else if (count >= 200) {
-        newFormData.selectedModule = 'all-hrms';
-      } else {
-        newFormData.selectedModule = '';
-      }
-    } else {
-      newFormData.selectedModule = '';
-    }
-    setFormData(newFormData);
+    setFormData(prev => ({ ...prev, headcount: newHeadcount }));
   };
   
   const handleSelectChange = (value: string) => {
@@ -251,15 +237,7 @@ export default function LeadUploadForm() {
             const location = pincodeData[lead.pincode];
             
             const headcount = lead.headcount?.toString() || '';
-            let selectedModule = '';
-            const count = parseInt(headcount, 10);
-            if (!isNaN(count)) {
-              if (count >= 100 && count < 200) {
-                selectedModule = 'ar';
-              } else if (count >= 200) {
-                selectedModule = 'all-hrms';
-              }
-            }
+            let selectedModule = lead.selectedModule || '';
             
             return {
                 pincode: lead.pincode?.toString() || '',
@@ -321,9 +299,9 @@ export default function LeadUploadForm() {
 
    const handleDownloadSample = () => {
     const sampleData = [
-      ['pincode', 'address', 'contactPerson', 'contactNumber', 'reference', 'email', 'company', 'headcount'],
-      ['587101', '123 MG Road, Bagalkote', 'John Doe', '9876543210', 'Friend', 'john.doe@example.com', 'Tech Solutions', '150'],
-      ['560001', '456 Brigade Road, Bengaluru', 'Jane Smith', '8765432109', 'Website', 'jane.smith@example.com', 'Innovate Corp', '250'],
+      ['pincode', 'address', 'contactPerson', 'contactNumber', 'reference', 'email', 'company', 'headcount', 'selectedModule'],
+      ['587101', '123 MG Road, Bagalkote', 'John Doe', '9876543210', 'Friend', 'john.doe@example.com', 'Tech Solutions', '150', 'ar'],
+      ['560001', '456 Brigade Road, Bengaluru', 'Jane Smith', '8765432109', 'Website', 'jane.smith@example.com', 'Innovate Corp', '250', 'all-hrms'],
     ];
     const ws = XLSX.utils.aoa_to_sheet(sampleData);
     const wb = XLSX.utils.book_new();
