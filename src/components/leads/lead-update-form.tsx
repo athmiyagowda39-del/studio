@@ -741,6 +741,8 @@ export default function LeadUpdateForm() {
                         {value: 'contactNumber', label: 'Phone'},
                         {value: 'district', label: 'District'},
                         {value: 'state', label: 'State'},
+                        {value: 'email', label: 'Email'},
+                        {value: 'manager', label: 'Manager Name'},
                       ].map((item) => (
                         <div className="flex items-center space-x-2" key={item.value}>
                           <RadioGroupItem
