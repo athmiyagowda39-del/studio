@@ -8,7 +8,12 @@ import {
 } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Lock, LogOut, User as UserIcon } from 'lucide-react';
+import { Lock, LogOut, User as UserIcon, ChevronDown } from 'lucide-react';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import {
   Dialog,
   DialogContent,
@@ -24,11 +29,13 @@ import { useToast } from '@/hooks/use-toast';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import type { ImagePlaceholder } from '@/lib/placeholder-images';
+import { cn } from '@/lib/utils';
 
 export default function ProfileCard() {
   const { toast } = useToast();
   const [userAvatar, setUserAvatar] = useState<ImagePlaceholder | undefined>();
   const [userName] = useState('ATHMIYA');
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   useEffect(() => {
     import('@/lib/placeholder-images').then((images) => {
@@ -78,13 +85,28 @@ export default function ProfileCard() {
               </AvatarFallback>
             )}
           </Avatar>
-          
+
           <div className="w-full space-y-2">
-            <Button variant="outline" className="w-full justify-start cursor-default hover:bg-transparent">
-              <UserIcon className="mr-2 h-4 w-4" />
-              {userName}
-            </Button>
-            
+            <Collapsible open={isProfileOpen} onOpenChange={setIsProfileOpen}>
+              <CollapsibleTrigger asChild>
+                <Button variant="outline" className="w-full justify-start">
+                  <UserIcon className="mr-2 h-4 w-4" />
+                  Profile
+                  <ChevronDown
+                    className={cn(
+                      'ml-auto h-4 w-4 transition-transform',
+                      isProfileOpen && 'rotate-180'
+                    )}
+                  />
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="mt-2 rounded-md border px-4 py-2 font-medium">
+                  {userName}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+
             <Dialog>
               <DialogTrigger asChild>
                 <Button variant="outline" className="w-full justify-start">
