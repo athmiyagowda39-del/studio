@@ -365,12 +365,12 @@ export default function LeadUploadForm() {
             <Input id="contactNumber" value={formData.contactNumber} onChange={handleInputChange} required />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="reference">Reference</Label>
-            <Input id="reference" value={formData.reference} onChange={handleInputChange} />
-          </div>
-          <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input id="email" type="email" value={formData.email} onChange={handleInputChange} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="reference">Reference</Label>
+            <Input id="reference" value={formData.reference} onChange={handleInputChange} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="headcount">Company headcount</Label>
