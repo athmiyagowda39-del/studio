@@ -226,16 +226,20 @@ export default function LeadReportPage() {
                         </TableHeader>
                         <TableBody>
                         {filteredLeads.length > 0 ? (
-                            filteredLeads.map((lead, index) => (
-                            <TableRow key={`${lead.leadId}-${index}`}>
-                                <TableCell>{lead.leadId}</TableCell>
-                                <TableCell>{lead.company}</TableCell>
-                                <TableCell>{lead.contactPerson}</TableCell>
-                                <TableCell>{lead.contactNumber}</TableCell>
-                                <TableCell>{lead.email}</TableCell>
-                                 <TableCell>{format(new Date(lead.creationDate), 'PPP')}</TableCell>
-                            </TableRow>
-                            ))
+                            filteredLeads.map((lead, index) => {
+                              const date = new Date(lead.creationDate);
+                              const isValidDate = !isNaN(date.getTime());
+                              return (
+                                <TableRow key={`${lead.leadId}-${index}`}>
+                                  <TableCell>{lead.leadId}</TableCell>
+                                  <TableCell>{lead.company}</TableCell>
+                                  <TableCell>{lead.contactPerson}</TableCell>
+                                  <TableCell>{lead.contactNumber}</TableCell>
+                                  <TableCell>{lead.email}</TableCell>
+                                  <TableCell>{isValidDate ? format(date, 'PPP') : 'Invalid Date'}</TableCell>
+                                </TableRow>
+                              )
+                            })
                         ) : (
                              <TableRow>
                                 <TableCell colSpan={6} className="text-center h-24">
