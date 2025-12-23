@@ -26,16 +26,18 @@ import {
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import Image from 'next/image';
 import type { ImagePlaceholder } from '@/lib/placeholder-images';
 import { cn } from '@/lib/utils';
+import { AuthContext } from '@/context/auth-context';
 
 export default function ProfileCard() {
   const { toast } = useToast();
   const [userAvatar, setUserAvatar] = useState<ImagePlaceholder | undefined>();
   const [userName] = useState('ATHMIYA');
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const authContext = useContext(AuthContext);
 
   useEffect(() => {
     import('@/lib/placeholder-images').then((images) => {
@@ -46,12 +48,11 @@ export default function ProfileCard() {
   }, []);
 
   const handleLogout = () => {
+    authContext?.logout();
     toast({
       title: 'Logged Out',
       description: 'You have been successfully logged out.',
     });
-    // In a real app, you would redirect to a login page.
-    // window.location.href = '/login';
   };
 
   const handleChangePassword = (e: React.FormEvent) => {
