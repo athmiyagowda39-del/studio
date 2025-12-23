@@ -38,6 +38,10 @@ const leadStatusOptions = [
     'Order closed',
 ];
 
+const sectors = ['All', 'IT', 'Finance', 'Healthcare', 'Manufacturing', 'Education', 'Other'];
+const headcounts = ['All', '1-50', '51-200', '201-500', '501-1000', '1000+'];
+
+
 const getLeadStatusesForState = (state: string) => {
   // In a real application, this data would be fetched based on the state.
   // Here, we'll generate some semi-random data to simulate the change.
@@ -83,6 +87,8 @@ export default function LeadReportPage() {
   const [selectedState, setSelectedState] = useState('Karnataka');
   const [openState, setOpenState] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState('');
+  const [selectedSector, setSelectedSector] = useState('All');
+  const [selectedHeadcount, setSelectedHeadcount] = useState('All');
   const [allLeads, setAllLeads] = useState<LeadFormData[]>([]);
   const [filteredLeads, setFilteredLeads] = useState<LeadFormData[]>([]);
 
@@ -95,6 +101,8 @@ export default function LeadReportPage() {
         const leadsWithStatus = parsedLeads.map((lead, index) => ({
           ...lead,
           status: lead.status || leadStatusOptions[index % leadStatusOptions.length],
+          sector: lead.sector || sectors[(index % (sectors.length -1)) + 1],
+          headcount: lead.headcount || `${Math.floor(Math.random() * 1000) + 1}`,
           creationDate: lead.creationDate ? new Date(lead.creationDate).getTime() : new Date().getTime(),
         }));
         setAllLeads(leadsWithStatus as any);
@@ -109,15 +117,36 @@ export default function LeadReportPage() {
   }, [selectedState]);
   
   useEffect(() => {
+    let leads = allLeads.filter(lead => lead.state === selectedState);
+    
     if (selectedStatus && selectedStatus !== 'all-statuses') {
-      const leads = allLeads.filter(lead => 
-        lead.state === selectedState && (lead as any).status === selectedStatus
-      );
+      leads = leads.filter(lead => (lead as any).status === selectedStatus);
+    }
+
+    if (selectedSector && selectedSector !== 'All') {
+      leads = leads.filter(lead => lead.sector === selectedSector);
+    }
+
+    if (selectedHeadcount && selectedHeadcount !== 'All') {
+      const [min, max] = selectedHeadcount.split('-').map(Number);
+      leads = leads.filter(lead => {
+        const headcount = parseInt(lead.headcount, 10);
+        if (isNaN(headcount)) return false;
+        if (max) {
+          return headcount >= min && headcount <= max;
+        }
+        // For '1000+' case
+        return headcount >= min;
+      });
+    }
+
+    if (selectedStatus && selectedStatus !== 'all-statuses') {
       setFilteredLeads(leads);
     } else {
       setFilteredLeads([]);
     }
-  }, [selectedState, selectedStatus, allLeads]);
+
+  }, [selectedState, selectedStatus, selectedSector, selectedHeadcount, allLeads]);
 
 
   const chartData = leadStatuses
@@ -170,13 +199,13 @@ export default function LeadReportPage() {
                     variant="outline"
                     role="combobox"
                     aria-expanded={openState}
-                    className="w-[250px] justify-between"
+                    className="w-[200px] justify-between"
                     >
                     {selectedState}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-[250px] p-0">
+                <PopoverContent className="w-[200px] p-0">
                     <Command>
                     <CommandInput placeholder="Search state..." />
                     <CommandList>
@@ -208,7 +237,7 @@ export default function LeadReportPage() {
             <div className="flex items-center gap-2">
                 <span className="font-medium">Status:</span>
                 <Select value={selectedStatus} onValueChange={handleStatusChange}>
-                    <SelectTrigger className="w-[250px]">
+                    <SelectTrigger className="w-[180px]">
                         <SelectValue placeholder="Select a status" />
                     </SelectTrigger>
                     <SelectContent>
@@ -216,6 +245,36 @@ export default function LeadReportPage() {
                         {leadStatusOptions.map(status => (
                             <SelectItem key={status} value={status}>
                                 {status}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
+            <div className="flex items-center gap-2">
+                <span className="font-medium">Sectors:</span>
+                <Select value={selectedSector} onValueChange={setSelectedSector}>
+                    <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Select a sector" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {sectors.map(sector => (
+                            <SelectItem key={sector} value={sector}>
+                                {sector}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
+            <div className="flex items-center gap-2">
+                <span className="font-medium">Headcount:</span>
+                <Select value={selectedHeadcount} onValueChange={setSelectedHeadcount}>
+                    <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Select headcount" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {headcounts.map(count => (
+                            <SelectItem key={count} value={count}>
+                                {count}
                             </SelectItem>
                         ))}
                     </SelectContent>

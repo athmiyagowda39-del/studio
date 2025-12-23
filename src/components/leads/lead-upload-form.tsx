@@ -49,6 +49,7 @@ export type LeadFormData = {
   email: string;
   company: string;
   headcount: string;
+  sector: string;
   selectedModule: string;
   toDealer: boolean;
   creationDate: number;
@@ -74,6 +75,7 @@ const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate'> = {
     email: '',
     company: '',
     headcount: '',
+    sector: '',
     selectedModule: '',
     toDealer: false,
 };
@@ -114,8 +116,8 @@ export default function LeadUploadForm() {
     setFormData(prev => ({ ...prev, headcount: newHeadcount }));
   };
   
-  const handleSelectChange = (value: string) => {
-    setFormData(prev => ({...prev, selectedModule: value}));
+  const handleSelectChange = (id: string, value: string) => {
+    setFormData(prev => ({...prev, [id]: value}));
   }
 
   const handleCheckboxChange = (checked: boolean) => {
@@ -267,6 +269,7 @@ export default function LeadUploadForm() {
                 email: lead.email || '',
                 company: lead.company || '',
                 headcount: headcount,
+                sector: lead.sector || '',
                 selectedModule: selectedModule,
                 toDealer: false, // Default value
             };
@@ -316,9 +319,9 @@ export default function LeadUploadForm() {
 
    const handleDownloadSample = () => {
     const sampleData = [
-      ['pincode', 'address', 'contactPerson', 'contactNumber', 'reference', 'email', 'company', 'headcount', 'selectedModule'],
-      ['587101', '123 MG Road, Bagalkote', 'John Doe', '9876543210', 'Friend', 'john.doe@example.com', 'Tech Solutions', '150', 'ar'],
-      ['560001', '456 Brigade Road, Bengaluru', 'Jane Smith', '8765432109', 'Website', 'jane.smith@example.com', 'Innovate Corp', '250', 'all-hrms'],
+      ['pincode', 'address', 'contactPerson', 'contactNumber', 'reference', 'email', 'company', 'headcount', 'sector', 'selectedModule'],
+      ['587101', '123 MG Road, Bagalkote', 'John Doe', '9876543210', 'Friend', 'john.doe@example.com', 'Tech Solutions', '150', 'IT', 'ar'],
+      ['560001', '456 Brigade Road, Bengaluru', 'Jane Smith', '8765432109', 'Website', 'jane.smith@example.com', 'Innovate Corp', '250', 'Finance', 'all-hrms'],
     ];
     const ws = XLSX.utils.aoa_to_sheet(sampleData);
     const wb = XLSX.utils.book_new();
@@ -371,9 +374,25 @@ export default function LeadUploadForm() {
             <Label htmlFor="headcount">Company headcount</Label>
             <Input id="headcount" value={formData.headcount} onChange={handleHeadcountChange} />
           </div>
-          <div className="space-y-2 col-span-2">
+           <div className="space-y-2">
+            <Label htmlFor="sector">Sector</Label>
+            <Select value={formData.sector} onValueChange={(value) => handleSelectChange('sector', value)}>
+              <SelectTrigger id="sector">
+                <SelectValue placeholder="Select Sector..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="IT">IT</SelectItem>
+                <SelectItem value="Finance">Finance</SelectItem>
+                <SelectItem value="Healthcare">Healthcare</SelectItem>
+                <SelectItem value="Manufacturing">Manufacturing</SelectItem>
+                <SelectItem value="Education">Education</SelectItem>
+                <SelectItem value="Other">Other</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
             <Label htmlFor="modules">Modules</Label>
-            <Select value={formData.selectedModule} onValueChange={handleSelectChange}>
+            <Select value={formData.selectedModule} onValueChange={(value) => handleSelectChange('selectedModule', value)}>
               <SelectTrigger id="modules">
                 <SelectValue placeholder="Select Modules..." />
               </SelectTrigger>
