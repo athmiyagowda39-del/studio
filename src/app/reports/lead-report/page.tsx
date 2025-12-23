@@ -129,9 +129,9 @@ export default function LeadReportPage() {
             case 'Not viewed': color = 'hsl(var(--chart-4))'; break;
             case 'Demo Given': color = 'hsl(var(--chart-3))'; break;
             case 'Unattended': color = 'hsl(var(--primary))'; break;
-            case 'Pursuing to Purchase': color = 'hsl(142.1 76.2% 36.3%)'; break;
+            case 'Pursuing to Purchase': color = 'hsl(120 100% 35%)'; break;
             case 'Not interested': color = 'hsl(var(--destructive))'; break;
-            case 'Order closed': color = 'hsl(47.9 95.8% 53.1%)'; break;
+            case 'Order closed': color = 'hsl(60 100% 50%)'; break;
         }
         return {
             name: item.status,
@@ -232,12 +232,30 @@ export default function LeadReportPage() {
                     <Table>
                         <TableHeader>
                         <TableRow>
-                            <TableHead>Lead ID</TableHead>
+                            <TableHead>Sl No</TableHead>
+                            <TableHead>Lead Id</TableHead>
+                            <TableHead>Lead Date</TableHead>
+                            <TableHead>Product</TableHead>
                             <TableHead>Company</TableHead>
-                            <TableHead>Contact Person</TableHead>
-                            <TableHead>Contact Number</TableHead>
-                            <TableHead>Email</TableHead>
-                             <TableHead>Date</TableHead>
+                            <TableHead>Contact</TableHead>
+                            <TableHead>Phone</TableHead>
+                            <TableHead>Cell</TableHead>
+                            <TableHead>Emailid</TableHead>
+                            <TableHead>Address</TableHead>
+                            <TableHead>Place</TableHead>
+                            <TableHead>District</TableHead>
+                            <TableHead>State</TableHead>
+                            <TableHead>Reference</TableHead>
+                            <TableHead>Dealer</TableHead>
+                            <TableHead>Manager</TableHead>
+                            <TableHead>Last Followed Date</TableHead>
+                            <TableHead>Last Followed By</TableHead>
+                            <TableHead>Next followup Date</TableHead>
+                            <TableHead>Last Followup Remarks</TableHead>
+                            <TableHead>Lead Status</TableHead>
+                            <TableHead>Lead Sub Status</TableHead>
+                            <TableHead>Lead Status Remarks</TableHead>
+                            <TableHead>Given By</TableHead>
                         </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -245,20 +263,40 @@ export default function LeadReportPage() {
                             filteredLeads.map((lead, index) => {
                               const date = new Date(lead.creationDate);
                               const isValidDate = !isNaN(date.getTime());
+                              const lastFollowUp = lead.followUps && lead.followUps.length > 0 ? lead.followUps[lead.followUps.length - 1] : null;
+
                               return (
                                 <TableRow key={`${lead.leadId}-${index}`}>
+                                  <TableCell>{index + 1}</TableCell>
                                   <TableCell>{lead.leadId}</TableCell>
+                                  <TableCell>{isValidDate ? format(date, 'PPP') : 'Invalid Date'}</TableCell>
+                                  <TableCell>{lead.selectedModule}</TableCell>
                                   <TableCell>{lead.company}</TableCell>
                                   <TableCell>{lead.contactPerson}</TableCell>
                                   <TableCell>{lead.contactNumber}</TableCell>
+                                  <TableCell>{/* Cell - No data */}</TableCell>
                                   <TableCell>{lead.email}</TableCell>
-                                  <TableCell>{isValidDate ? format(date, 'PPP') : 'Invalid Date'}</TableCell>
+                                  <TableCell>{lead.address}</TableCell>
+                                  <TableCell>{lead.district}</TableCell>
+                                  <TableCell>{lead.district}</TableCell>
+                                  <TableCell>{lead.state}</TableCell>
+                                  <TableCell>{lead.reference}</TableCell>
+                                  <TableCell>{/* Dealer - No data */}</TableCell>
+                                  <TableCell>{/* Manager - No data */}</TableCell>
+                                  <TableCell>{lastFollowUp ? lastFollowUp.date : ''}</TableCell>
+                                  <TableCell>{lastFollowUp ? lastFollowUp.enteredBy : ''}</TableCell>
+                                  <TableCell>{lastFollowUp ? lastFollowUp.nextFollowUp : ''}</TableCell>
+                                  <TableCell>{lastFollowUp ? lastFollowUp.remarks : ''}</TableCell>
+                                  <TableCell>{(lead as any).status}</TableCell>
+                                  <TableCell>{/* Lead Sub Status - No data */}</TableCell>
+                                  <TableCell>{/* Lead Status Remarks - No data */}</TableCell>
+                                  <TableCell>{/* Given By - No data */}</TableCell>
                                 </TableRow>
                               )
                             })
                         ) : (
                              <TableRow>
-                                <TableCell colSpan={6} className="text-center h-24">
+                                <TableCell colSpan={24} className="text-center h-24">
                                     No leads found for this state and status.
                                 </TableCell>
                             </TableRow>

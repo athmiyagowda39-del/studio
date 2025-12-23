@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Input } from '@/components/ui/input';
@@ -28,6 +29,14 @@ import { useToast } from '@/hooks/use-toast';
 
 type ParsedData = (string | number)[][];
 
+export type FollowUp = {
+  id: number;
+  date: string;
+  remarks: string;
+  nextFollowUp: string;
+  enteredBy: string;
+};
+
 export type LeadFormData = {
   pincode: string;
   state: string;
@@ -44,6 +53,8 @@ export type LeadFormData = {
   toDealer: boolean;
   creationDate: number;
   executiveViewDate?: number;
+  followUps?: FollowUp[];
+  nextFollowUpDate?: string;
 };
 
 const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate'> = {
