@@ -27,6 +27,7 @@ export default function LeadDetails() {
       const storedLeads = localStorage.getItem('uploadedLeads');
       if (storedLeads) {
         const parsedLeads: LeadFormData[] = JSON.parse(storedLeads);
+        
         // This is mock data for status. In a real app this would come from the data
         const leadStatusOptions = [
             'Attended',
@@ -42,7 +43,11 @@ export default function LeadDetails() {
           status: lead.status || leadStatusOptions[index % leadStatusOptions.length],
           creationDate: lead.creationDate ? new Date(lead.creationDate).getTime() : new Date().getTime(),
         }));
-        setLeads(leadsWithStatus as any);
+        
+        // Get the last lead if it exists
+        const lastLead = leadsWithStatus.length > 0 ? [leadsWithStatus[leadsWithStatus.length - 1]] : [];
+        
+        setLeads(lastLead as any);
       }
     } catch (error) {
       console.error('Failed to parse leads from localStorage', error);
@@ -141,5 +146,3 @@ export default function LeadDetails() {
     </div>
   );
 }
-
-    
