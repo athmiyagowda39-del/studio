@@ -155,7 +155,7 @@ export default function LeadUpdateForm() {
     }
   };
 
-  const handleLeadDetailChange = (field: keyof LeadFormData | 'givenBy' | 'executive' | 'manager' | 'dealer', value: string | boolean | number | Date | undefined) => {
+  const handleLeadDetailChange = (field: keyof LeadFormData, value: string | boolean | number | Date | undefined) => {
     setLeadDetails(prev => ({...prev, [field]: value}));
   }
 
@@ -220,7 +220,7 @@ export default function LeadUpdateForm() {
       return;
     }
     setCurrentStatus(selectedStatus);
-    setLeadDetails(prev => ({...prev, status: selectedStatus}));
+    handleLeadDetailChange('status', selectedStatus);
     toast({
       title: 'Status Ready to Update',
       description: `Lead status will be updated to ${selectedStatus} upon saving.`,
@@ -572,8 +572,8 @@ export default function LeadUpdateForm() {
               <div className="border-t pt-4 mt-4">
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <p>Dealer Member: {(leadDetails as any).dealer || 'N/A'}</p>
-                        <p>Manager: {(leadDetails as any).manager || 'N/A'}</p>
+                        <p>Dealer Member: {leadDetails.dealer || 'N/A'}</p>
+                        <p>Manager: {leadDetails.manager || 'N/A'}</p>
                         <div className="flex items-center space-x-2 mt-2">
                             <Checkbox id="readyToUpdate" />
                             <Label htmlFor="readyToUpdate">Yes, I am Ready to Update.</Label>
@@ -1024,3 +1024,5 @@ export default function LeadUpdateForm() {
     </div>
   );
 }
+
+    
