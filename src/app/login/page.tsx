@@ -55,7 +55,6 @@ export default function LoginPage() {
             <Input
               id="username"
               type="text"
-              placeholder="athmiya"
               required
               value={username}
               onChange={(e) => setUsername(e.target.value)}
@@ -66,7 +65,6 @@ export default function LoginPage() {
             <Input
               id="password"
               type="password"
-              placeholder="password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
