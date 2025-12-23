@@ -15,7 +15,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import type { LeadFormData } from './lead-upload-form';
+import type { LeadFormData, FollowUp } from './lead-upload-form';
+import { format } from 'date-fns';
 
 export default function LeadDetails() {
   const [leads, setLeads] = useState<LeadFormData[]>([]);
@@ -25,7 +26,23 @@ export default function LeadDetails() {
     try {
       const storedLeads = localStorage.getItem('uploadedLeads');
       if (storedLeads) {
-        setLeads(JSON.parse(storedLeads));
+        const parsedLeads: LeadFormData[] = JSON.parse(storedLeads);
+        // This is mock data for status. In a real app this would come from the data
+        const leadStatusOptions = [
+            'Attended',
+            'Not viewed',
+            'Demo Given',
+            'Unattended',
+            'Pursuing to Purchase',
+            'Not interested',
+            'Order closed',
+        ];
+        const leadsWithStatus = parsedLeads.map((lead, index) => ({
+          ...lead,
+          status: leadStatusOptions[index % leadStatusOptions.length],
+          creationDate: lead.creationDate ? new Date(lead.creationDate).getTime() : new Date().getTime(),
+        }));
+        setLeads(leadsWithStatus as any);
       }
     } catch (error) {
       console.error('Failed to parse leads from localStorage', error);
@@ -50,33 +67,66 @@ export default function LeadDetails() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Lead ID</TableHead>
+                    <TableHead>Sl No</TableHead>
+                    <TableHead>Lead Id</TableHead>
+                    <TableHead>Lead Date</TableHead>
+                    <TableHead>Product</TableHead>
                     <TableHead>Company</TableHead>
-                    <TableHead>Contact Person</TableHead>
-                    <TableHead>Contact Number</TableHead>
-                    <TableHead>Pincode</TableHead>
-                    <TableHead>State</TableHead>
-                    <TableHead>District</TableHead>
+                    <TableHead>Contact</TableHead>
+                    <TableHead>Phone</TableHead>
+                    <TableHead>Cell</TableHead>
+                    <TableHead>Emailid</TableHead>
                     <TableHead>Address</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Selected Module</TableHead>
+                    <TableHead>Place</TableHead>
+                    <TableHead>District</TableHead>
+                    <TableHead>State</TableHead>
+                    <TableHead>Reference</TableHead>
+                    <TableHead>Dealer</TableHead>
+                    <TableHead>Manager</TableHead>
+                    <TableHead>Last Followed Date</TableHead>
+                    <TableHead>Last Followed By</TableHead>
+                    <TableHead>Next followup Date</TableHead>
+                    <TableHead>Last Followup Remarks</TableHead>
+                    <TableHead>Lead Status</TableHead>
+                    <TableHead>Lead Sub Status</TableHead>
+                    <TableHead>Lead Status Remarks</TableHead>
+                    <TableHead>Given By</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {leads.map((lead, index) => (
-                    <TableRow key={`${lead.leadId}-${index}`}>
-                      <TableCell>{lead.leadId}</TableCell>
-                      <TableCell>{lead.company}</TableCell>
-                      <TableCell>{lead.contactPerson}</TableCell>
-                      <TableCell>{lead.contactNumber}</TableCell>
-                      <TableCell>{lead.pincode}</TableCell>
-                      <TableCell>{lead.state}</TableCell>
-                      <TableCell>{lead.district}</TableCell>
-                      <TableCell>{lead.address}</TableCell>
-                      <TableCell>{lead.email}</TableCell>
-                      <TableCell>{lead.selectedModule}</TableCell>
-                    </TableRow>
-                  ))}
+                  {leads.map((lead, index) => {
+                    const lastFollowUp = lead.followUps && lead.followUps.length > 0 ? lead.followUps[lead.followUps.length - 1] : null;
+                    const isValidDate = lead.creationDate && !isNaN(new Date(lead.creationDate).getTime());
+                    
+                    return (
+                        <TableRow key={`${lead.leadId}-${index}`}>
+                            <TableCell>{index + 1}</TableCell>
+                            <TableCell>{lead.leadId}</TableCell>
+                            <TableCell>{isValidDate ? format(new Date(lead.creationDate), 'PPP') : 'N/A'}</TableCell>
+                            <TableCell>{lead.selectedModule}</TableCell>
+                            <TableCell>{lead.company}</TableCell>
+                            <TableCell>{lead.contactPerson}</TableCell>
+                            <TableCell>{lead.contactNumber}</TableCell>
+                            <TableCell>{/* Cell - No data */}</TableCell>
+                            <TableCell>{lead.email}</TableCell>
+                            <TableCell>{lead.address}</TableCell>
+                            <TableCell>{lead.district}</TableCell>
+                            <TableCell>{lead.district}</TableCell>
+                            <TableCell>{lead.state}</TableCell>
+                            <TableCell>{lead.reference}</TableCell>
+                            <TableCell>{/* Dealer - No data */}</TableCell>
+                            <TableCell>{/* Manager - No data */}</TableCell>
+                            <TableCell>{lastFollowUp ? lastFollowUp.date : 'N/A'}</TableCell>
+                            <TableCell>{lastFollowUp ? lastFollowUp.enteredBy : 'N/A'}</TableCell>
+                            <TableCell>{lastFollowUp ? lastFollowUp.nextFollowUp : 'N/A'}</TableCell>
+                            <TableCell>{lastFollowUp ? lastFollowUp.remarks : 'N/A'}</TableCell>
+                            <TableCell>{(lead as any).status || 'N/A'}</TableCell>
+                            <TableCell>{/* Lead Sub Status - No data */}</TableCell>
+                            <TableCell>{/* Lead Status Remarks - No data */}</TableCell>
+                            <TableCell>{/* Given By - No data */}</TableCell>
+                        </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>
