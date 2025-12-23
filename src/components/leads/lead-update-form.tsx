@@ -153,7 +153,7 @@ export default function LeadUpdateForm() {
     }
   };
 
-  const handleLeadDetailChange = (field: keyof LeadFormData, value: string | boolean | number | Date | undefined) => {
+  const handleLeadDetailChange = (field: keyof LeadFormData | 'givenBy' | 'executive' | 'manager' | 'dealer', value: string | boolean | number | Date | undefined) => {
     setLeadDetails(prev => ({...prev, [field]: value}));
   }
 
@@ -525,15 +525,15 @@ export default function LeadUpdateForm() {
                 </div>
                  <div className="space-y-2">
                   <Label htmlFor="reference">Reference</Label>
-                  <Input id="reference" value={leadDetails.reference || ''} onChange={(e) => handleLeadDetailChange('reference', e.target.value)} />
+                  <Input id="reference" value={(leadDetails as any).reference || ''} onChange={(e) => handleLeadDetailChange('reference', e.target.value)} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="givenBy">Given By</Label>
-                  <Input id="givenBy" />
+                  <Input id="givenBy" value={(leadDetails as any).givenBy || ''} onChange={(e) => handleLeadDetailChange('givenBy', e.target.value)} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="executive">Executive</Label>
-                  <Input id="executive" />
+                  <Input id="executive" value={(leadDetails as any).executive || ''} onChange={(e) => handleLeadDetailChange('executive', e.target.value)} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="module">Module</Label>
@@ -541,14 +541,18 @@ export default function LeadUpdateForm() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="manager">Manager</Label>
-                  <Input id="manager" />
+                  <Input id="manager" value={(leadDetails as any).manager || ''} onChange={(e) => handleLeadDetailChange('manager', e.target.value)} />
+                </div>
+                 <div className="space-y-2">
+                  <Label htmlFor="dealer">Dealer</Label>
+                  <Input id="dealer" value={(leadDetails as any).dealer || ''} onChange={(e) => handleLeadDetailChange('dealer', e.target.value)} />
                 </div>
               </div>
               <div className="border-t pt-4 mt-4">
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <p>Dealer Member:</p>
-                        <p>Manager:</p>
+                        <p>Dealer Member: {(leadDetails as any).dealer || 'N/A'}</p>
+                        <p>Manager: {(leadDetails as any).manager || 'N/A'}</p>
                         <div className="flex items-center space-x-2 mt-2">
                             <Checkbox id="readyToUpdate" />
                             <Label htmlFor="readyToUpdate">Yes, I am Ready to Update.</Label>

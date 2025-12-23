@@ -55,7 +55,13 @@ export type LeadFormData = {
   executiveViewDate?: number;
   followUps?: FollowUp[];
   nextFollowUpDate?: string;
+  dealer?: string;
+  manager?: string;
+  executive?: string;
+  givenBy?: string;
+  status?: string;
 };
+
 
 const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate'> = {
     pincode: '',

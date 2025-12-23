@@ -15,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import type { LeadFormData, FollowUp } from './lead-upload-form';
+import type { LeadFormData } from './lead-upload-form';
 import { format } from 'date-fns';
 
 export default function LeadDetails() {
@@ -39,7 +39,7 @@ export default function LeadDetails() {
         ];
         const leadsWithStatus = parsedLeads.map((lead, index) => ({
           ...lead,
-          status: leadStatusOptions[index % leadStatusOptions.length],
+          status: lead.status || leadStatusOptions[index % leadStatusOptions.length],
           creationDate: lead.creationDate ? new Date(lead.creationDate).getTime() : new Date().getTime(),
         }));
         setLeads(leadsWithStatus as any);
@@ -114,8 +114,8 @@ export default function LeadDetails() {
                             <TableCell>{lead.district}</TableCell>
                             <TableCell>{lead.state}</TableCell>
                             <TableCell>{lead.reference}</TableCell>
-                            <TableCell>{/* Dealer - No data */}</TableCell>
-                            <TableCell>{/* Manager - No data */}</TableCell>
+                            <TableCell>{lead.dealer || 'N/A'}</TableCell>
+                            <TableCell>{lead.manager || 'N/A'}</TableCell>
                             <TableCell>{lastFollowUp ? lastFollowUp.date : 'N/A'}</TableCell>
                             <TableCell>{lastFollowUp ? lastFollowUp.enteredBy : 'N/A'}</TableCell>
                             <TableCell>{lastFollowUp ? lastFollowUp.nextFollowUp : 'N/A'}</TableCell>
@@ -123,7 +123,7 @@ export default function LeadDetails() {
                             <TableCell>{(lead as any).status || 'N/A'}</TableCell>
                             <TableCell>{/* Lead Sub Status - No data */}</TableCell>
                             <TableCell>{/* Lead Status Remarks - No data */}</TableCell>
-                            <TableCell>{/* Given By - No data */}</TableCell>
+                            <TableCell>{lead.givenBy || 'N/A'}</TableCell>
                         </TableRow>
                     );
                   })}
