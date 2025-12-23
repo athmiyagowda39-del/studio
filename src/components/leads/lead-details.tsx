@@ -28,7 +28,6 @@ export default function LeadDetails() {
       if (storedLeads) {
         const parsedLeads: LeadFormData[] = JSON.parse(storedLeads);
         
-        // This is mock data for status. In a real app this would come from the data
         const leadStatusOptions = [
             'Attended',
             'Not viewed',
@@ -44,7 +43,6 @@ export default function LeadDetails() {
           creationDate: lead.creationDate ? new Date(lead.creationDate).getTime() : new Date().getTime(),
         }));
         
-        // Get the last lead if it exists
         const lastLead = leadsWithStatus.length > 0 ? [leadsWithStatus[leadsWithStatus.length - 1]] : [];
         
         setLeads(lastLead as any);
