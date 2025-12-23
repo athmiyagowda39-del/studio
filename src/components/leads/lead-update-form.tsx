@@ -96,9 +96,9 @@ export default function LeadUpdateForm() {
         // Ensure creationDate is a number and add mock follow-up data
         const correctedLeads = parsedLeads.map((lead, index) => {
           
-          let leadFollowUps: FollowUp[] = [];
-          // Add some mock follow ups for some leads
-          if (index % 5 === 0) {
+          let leadFollowUps: FollowUp[] = lead.followUps || [];
+          // Add some mock follow ups for some leads if they don't have any
+          if (!lead.followUps && index % 5 === 0) {
             leadFollowUps.push({
               id: 1,
               date: new Date().toLocaleDateString(),
@@ -112,7 +112,7 @@ export default function LeadUpdateForm() {
             ...lead,
             creationDate: typeof lead.creationDate === 'string' ? new Date(lead.creationDate).getTime() : lead.creationDate,
             followUps: leadFollowUps,
-            nextFollowUpDate: index % 3 === 0 ? new Date(new Date().getTime() + 5 * 24 * 60 * 60 * 1000).toISOString() : undefined, // 5 days from now
+            nextFollowUpDate: lead.nextFollowUpDate || (index % 3 === 0 ? new Date(new Date().getTime() + 5 * 24 * 60 * 60 * 1000).toISOString() : undefined), // 5 days from now
           };
         });
         setAllLeads(correctedLeads as any);
@@ -138,6 +138,7 @@ export default function LeadUpdateForm() {
         };
         setLeadDetails(leadWithViewDate);
         setFollowUps((foundLead as any).followUps || []);
+        setCurrentStatus((foundLead as any).status || 'Initial');
         toast({
             title: 'Lead Found',
             description: `Details for ${leadId} have been loaded.`,
@@ -145,6 +146,7 @@ export default function LeadUpdateForm() {
     } else {
         setLeadDetails({});
         setFollowUps([]);
+        setCurrentStatus('Initial');
         toast({
             variant: 'destructive',
             title: 'Lead Not Found',
@@ -166,6 +168,15 @@ export default function LeadUpdateForm() {
       });
       return;
     }
+    if (!leadDetails.leadId) {
+      toast({
+        variant: 'destructive',
+        title: 'No Lead Loaded',
+        description: 'Please load a lead before adding follow-ups.',
+      });
+      return;
+    }
+
     const newFollowUp: FollowUp = {
       id: followUps.length + 1,
       date: new Date().toLocaleDateString(),
@@ -176,20 +187,19 @@ export default function LeadUpdateForm() {
     
     const updatedFollowups = [...followUps, newFollowUp];
     setFollowUps(updatedFollowups);
-
-    // Also update the lead in allLeads
-    const updatedLeads = allLeads.map(l => {
-      if (l.leadId === leadDetails.leadId) {
-        return { ...l, followUps: updatedFollowups, nextFollowUpDate: nextFollowUpDate.toISOString() };
-      }
-      return l;
-    });
-    setAllLeads(updatedLeads as any);
-    localStorage.setItem('uploadedLeads', JSON.stringify(updatedLeads));
-
+    
+    setLeadDetails(prev => ({
+      ...prev,
+      followUps: updatedFollowups,
+      nextFollowUpDate: nextFollowUpDate.toISOString(),
+    }));
 
     setRemarks('');
     setNextFollowUpDate(undefined);
+    toast({
+        title: "Follow-up added",
+        description: "Click 'Save' to persist the changes.",
+    });
   };
 
   const handleUpdateStatus = () => {
@@ -201,10 +211,19 @@ export default function LeadUpdateForm() {
       });
       return;
     }
+     if (!leadDetails.leadId) {
+      toast({
+        variant: 'destructive',
+        title: 'No Lead Loaded',
+        description: 'Please load a lead before updating its status.',
+      });
+      return;
+    }
     setCurrentStatus(selectedStatus);
+    setLeadDetails(prev => ({...prev, status: selectedStatus}));
     toast({
-      title: 'Status Updated',
-      description: `Lead status updated to ${selectedStatus}.`,
+      title: 'Status Ready to Update',
+      description: `Lead status will be updated to ${selectedStatus} upon saving.`,
     });
   };
 
@@ -343,6 +362,8 @@ export default function LeadUpdateForm() {
     setSearchLeadId('');
     setSearchInput('');
     setLeadDetails({});
+    setFollowUps([]);
+    setCurrentStatus('Initial');
   };
 
   const handleSaveLeadDetails = () => {
@@ -507,7 +528,7 @@ export default function LeadUpdateForm() {
                         <Calendar
                             mode="single"
                             selected={leadDetails.creationDate ? new Date(leadDetails.creationDate) : undefined}
-                            onSelect={(date) => handleLeadDetailChange('creationDate', date)}
+                            onSelect={(date) => handleLeadDetailChange('creationDate', date?.getTime())}
                             initialFocus
                         />
                         </PopoverContent>
@@ -525,15 +546,15 @@ export default function LeadUpdateForm() {
                 </div>
                  <div className="space-y-2">
                   <Label htmlFor="reference">Reference</Label>
-                  <Input id="reference" value={(leadDetails as any).reference || ''} onChange={(e) => handleLeadDetailChange('reference', e.target.value)} />
+                  <Input id="reference" value={leadDetails.reference || ''} onChange={(e) => handleLeadDetailChange('reference', e.target.value)} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="givenBy">Given By</Label>
-                  <Input id="givenBy" value={(leadDetails as any).givenBy || ''} onChange={(e) => handleLeadDetailChange('givenBy', e.target.value)} />
+                  <Input id="givenBy" value={leadDetails.givenBy || ''} onChange={(e) => handleLeadDetailChange('givenBy', e.target.value)} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="executive">Executive</Label>
-                  <Input id="executive" value={(leadDetails as any).executive || ''} onChange={(e) => handleLeadDetailChange('executive', e.target.value)} />
+                  <Input id="executive" value={leadDetails.executive || ''} onChange={(e) => handleLeadDetailChange('executive', e.target.value)} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="module">Module</Label>
@@ -541,11 +562,11 @@ export default function LeadUpdateForm() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="manager">Manager</Label>
-                  <Input id="manager" value={(leadDetails as any).manager || ''} onChange={(e) => handleLeadDetailChange('manager', e.target.value)} />
+                  <Input id="manager" value={leadDetails.manager || ''} onChange={(e) => handleLeadDetailChange('manager', e.target.value)} />
                 </div>
                  <div className="space-y-2">
                   <Label htmlFor="dealer">Dealer</Label>
-                  <Input id="dealer" value={(leadDetails as any).dealer || ''} onChange={(e) => handleLeadDetailChange('dealer', e.target.value)} />
+                  <Input id="dealer" value={leadDetails.dealer || ''} onChange={(e) => handleLeadDetailChange('dealer', e.target.value)} />
                 </div>
               </div>
               <div className="border-t pt-4 mt-4">
@@ -673,7 +694,7 @@ export default function LeadUpdateForm() {
               </div>
             </div>
             <div>
-              <span className="font-semibold">Current Status:</span>
+              <span className="font-semibold">Current Status: {currentStatus}</span>
             </div>
             <Select value={selectedStatus} onValueChange={setSelectedStatus}>
               <SelectTrigger className="w-[180px]">
