@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Input } from '@/components/ui/input';
@@ -139,6 +140,11 @@ export default function LeadUpdateForm() {
         setLeadDetails(leadWithViewDate);
         setFollowUps((foundLead as any).followUps || []);
         setCurrentStatus((foundLead as any).status || 'Initial');
+        if(foundLead.nextFollowUpDate) {
+          setNextFollowUpDate(new Date(foundLead.nextFollowUpDate));
+        } else {
+          setNextFollowUpDate(undefined);
+        }
         toast({
             title: 'Lead Found',
             description: `Details for ${leadId} have been loaded.`,
@@ -147,6 +153,7 @@ export default function LeadUpdateForm() {
         setLeadDetails({});
         setFollowUps([]);
         setCurrentStatus('Initial');
+        setNextFollowUpDate(undefined);
         toast({
             variant: 'destructive',
             title: 'Lead Not Found',
@@ -195,7 +202,8 @@ export default function LeadUpdateForm() {
     }));
 
     setRemarks('');
-    setNextFollowUpDate(undefined);
+    // We don't reset nextFollowUpDate here to allow it to be saved.
+    
     toast({
         title: "Follow-up added",
         description: "Click 'Save' to persist the changes.",
@@ -364,6 +372,7 @@ export default function LeadUpdateForm() {
     setLeadDetails({});
     setFollowUps([]);
     setCurrentStatus('Initial');
+    setNextFollowUpDate(undefined);
   };
 
   const handleSaveLeadDetails = () => {
@@ -375,9 +384,14 @@ export default function LeadUpdateForm() {
       });
       return;
     }
+    
+    const leadToSave = {
+        ...leadDetails,
+        nextFollowUpDate: nextFollowUpDate ? nextFollowUpDate.toISOString() : leadDetails.nextFollowUpDate
+    }
 
     const updatedLeads = allLeads.map(lead =>
-      lead.leadId === leadDetails.leadId ? { ...lead, ...leadDetails } : lead
+      lead.leadId === leadToSave.leadId ? { ...lead, ...leadToSave } : lead
     );
 
     setAllLeads(updatedLeads);

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -100,7 +101,10 @@ export default function LeadDetails() {
                   {leads.map((lead, index) => {
                     const lastFollowUp = lead.followUps && lead.followUps.length > 0 ? lead.followUps[lead.followUps.length - 1] : null;
                     const isValidDate = lead.creationDate && !isNaN(new Date(lead.creationDate).getTime());
-                    
+                    const nextFollowupDate = lead.nextFollowUpDate && !isNaN(new Date(lead.nextFollowUpDate).getTime())
+                      ? format(new Date(lead.nextFollowUpDate), 'PPP')
+                      : (lastFollowUp ? lastFollowUp.nextFollowUp : 'N/A');
+
                     return (
                         <TableRow key={`${lead.leadId}-${index}`}>
                             <TableCell>{index + 1}</TableCell>
@@ -121,7 +125,7 @@ export default function LeadDetails() {
                             <TableCell>{lead.manager || 'N/A'}</TableCell>
                             <TableCell>{lastFollowUp ? lastFollowUp.date : 'N/A'}</TableCell>
                             <TableCell>{lastFollowUp ? lastFollowUp.enteredBy : 'N/A'}</TableCell>
-                            <TableCell>{lastFollowUp ? lastFollowUp.nextFollowUp : 'N/A'}</TableCell>
+                            <TableCell>{nextFollowupDate}</TableCell>
                             <TableCell>{lastFollowUp ? lastFollowUp.remarks : 'N/A'}</TableCell>
                             <TableCell>{lead.status || 'N/A'}</TableCell>
                             <TableCell>{/* Lead Sub Status - No data */}</TableCell>
