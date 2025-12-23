@@ -281,7 +281,7 @@ export default function LeadReportPage() {
           {shouldShowDetails ? (
              <div>
                 <h2 className="text-xl font-semibold mb-4">
-                    Leads with status "{selectedStatus}" in {selectedState} ({filteredLeads.length} records)
+                    Leads with status "{selectedStatus}" in {selectedState}: <span className="text-primary font-bold">{filteredLeads.length}</span>
                 </h2>
                  <div className="overflow-x-auto border rounded-lg">
                     <Table>
