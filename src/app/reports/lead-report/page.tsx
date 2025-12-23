@@ -33,7 +33,7 @@ const leadStatusOptions = [
     'Not viewed',
     'Demo Given',
     'Unattended',
- 'Pursuing to Purchase',
+    'Pursuing to Purchase',
     'Not interested',
     'Order closed',
 ];
@@ -128,7 +128,7 @@ export default function LeadReportPage() {
     }
 
     if (selectedHeadcount && selectedHeadcount !== 'All') {
-      const [min, max] = selectedHeadcount.split('-').map(Number);
+      const [min, max] = selectedHeadcount.replace('+', '-').split('-').map(Number);
       leads = leads.filter(lead => {
         const headcount = parseInt(lead.headcount, 10);
         if (isNaN(headcount)) return false;
@@ -139,12 +139,8 @@ export default function LeadReportPage() {
         return headcount >= min;
       });
     }
-
-    if (selectedStatus && selectedStatus !== 'all-statuses') {
-      setFilteredLeads(leads);
-    } else {
-      setFilteredLeads([]);
-    }
+    
+    setFilteredLeads(leads);
 
   }, [selectedState, selectedStatus, selectedSector, selectedHeadcount, allLeads]);
 
@@ -359,7 +355,7 @@ export default function LeadReportPage() {
                         ) : (
                              <TableRow>
                                 <TableCell colSpan={24} className="text-center h-24">
-                                    No leads found for this state and status.
+                                    No leads found for the selected criteria.
                                 </TableCell>
                             </TableRow>
                         )}
@@ -393,5 +389,3 @@ export default function LeadReportPage() {
     </div>
   );
 }
-
-    
