@@ -39,6 +39,10 @@ export default function ProfileCard() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const authContext = useContext(AuthContext);
 
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+
   useEffect(() => {
     import('@/lib/placeholder-images').then((images) => {
       setUserAvatar(
@@ -57,10 +61,33 @@ export default function ProfileCard() {
 
   const handleChangePassword = (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: 'Password Changed',
-      description: 'Your password has been successfully updated.',
-    });
+    if (newPassword !== confirmPassword) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'New password and confirm password do not match.',
+      });
+      return;
+    }
+    if (!authContext) return;
+
+    const success = authContext.changePassword(currentPassword, newPassword);
+
+    if (success) {
+      toast({
+        title: 'Password Changed',
+        description: 'Your password has been successfully updated.',
+      });
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Your current password was incorrect.',
+      });
+    }
   };
 
   return (
@@ -132,6 +159,8 @@ export default function ProfileCard() {
                         id="current-password"
                         type="password"
                         className="col-span-3"
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
                       />
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
@@ -142,6 +171,8 @@ export default function ProfileCard() {
                         id="new-password"
                         type="password"
                         className="col-span-3"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
                       />
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
@@ -155,6 +186,8 @@ export default function ProfileCard() {
                         id="confirm-password"
                         type="password"
                         className="col-span-3"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
                       />
                     </div>
                   </div>
