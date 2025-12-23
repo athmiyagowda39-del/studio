@@ -38,7 +38,7 @@ const leadStatusOptions = [
     'Order closed',
 ];
 
-const sectors = ['All', 'IT', 'Finance', 'Healthcare', 'Manufacturing', 'Education', 'Other'];
+const sectors = ['All', 'IT', 'Finance', 'Healthcare', 'Manufacturing', 'Education', 'Retail', 'Hospitality', 'Telecommunication', 'Construction', 'Real Estate', 'Media & Entertainment', 'Government', 'Non-profit', 'Other'];
 const headcounts = ['All', '1-50', '51-200', '201-500', '501-1000', '1000+'];
 
 

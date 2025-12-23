@@ -386,6 +386,14 @@ export default function LeadUploadForm() {
                 <SelectItem value="Healthcare">Healthcare</SelectItem>
                 <SelectItem value="Manufacturing">Manufacturing</SelectItem>
                 <SelectItem value="Education">Education</SelectItem>
+                <SelectItem value="Retail">Retail</SelectItem>
+                <SelectItem value="Hospitality">Hospitality</SelectItem>
+                <SelectItem value="Telecommunication">Telecommunication</SelectItem>
+                <SelectItem value="Construction">Construction</SelectItem>
+                <SelectItem value="Real Estate">Real Estate</SelectItem>
+                <SelectItem value="Media & Entertainment">Media & Entertainment</SelectItem>
+                <SelectItem value="Government">Government</SelectItem>
+                <SelectItem value="Non-profit">Non-profit</SelectItem>
                 <SelectItem value="Other">Other</SelectItem>
               </SelectContent>
             </Select>
