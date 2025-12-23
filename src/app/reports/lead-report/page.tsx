@@ -94,7 +94,7 @@ export default function LeadReportPage() {
         // This is mock data for status. In a real app this would come from the data
         const leadsWithStatus = parsedLeads.map((lead, index) => ({
           ...lead,
-          status: leadStatusOptions[index % leadStatusOptions.length],
+          status: lead.status || leadStatusOptions[index % leadStatusOptions.length],
           creationDate: lead.creationDate ? new Date(lead.creationDate).getTime() : new Date().getTime(),
         }));
         setAllLeads(leadsWithStatus as any);
@@ -264,33 +264,36 @@ export default function LeadReportPage() {
                               const date = new Date(lead.creationDate);
                               const isValidDate = !isNaN(date.getTime());
                               const lastFollowUp = lead.followUps && lead.followUps.length > 0 ? lead.followUps[lead.followUps.length - 1] : null;
+                              const nextFollowupDate = lead.nextFollowUpDate && !isNaN(new Date(lead.nextFollowUpDate).getTime())
+                                ? format(new Date(lead.nextFollowUpDate), 'PPP')
+                                : (lastFollowUp ? lastFollowUp.nextFollowUp : 'N/A');
 
                               return (
                                 <TableRow key={`${lead.leadId}-${index}`}>
                                   <TableCell>{index + 1}</TableCell>
-                                  <TableCell>{lead.leadId}</TableCell>
-                                  <TableCell>{isValidDate ? format(date, 'PPP') : 'Invalid Date'}</TableCell>
-                                  <TableCell>{lead.selectedModule}</TableCell>
-                                  <TableCell>{lead.company}</TableCell>
-                                  <TableCell>{lead.contactPerson}</TableCell>
-                                  <TableCell>{lead.contactNumber}</TableCell>
+                                  <TableCell>{lead.leadId || 'N/A'}</TableCell>
+                                  <TableCell>{isValidDate ? format(date, 'PPP') : 'N/A'}</TableCell>
+                                  <TableCell>{lead.selectedModule || 'N/A'}</TableCell>
+                                  <TableCell>{lead.company || 'N/A'}</TableCell>
+                                  <TableCell>{lead.contactPerson || 'N/A'}</TableCell>
+                                  <TableCell>{lead.contactNumber || 'N/A'}</TableCell>
                                   <TableCell>{/* Cell - No data */}</TableCell>
-                                  <TableCell>{lead.email}</TableCell>
-                                  <TableCell>{lead.address}</TableCell>
-                                  <TableCell>{lead.district}</TableCell>
-                                  <TableCell>{lead.district}</TableCell>
-                                  <TableCell>{lead.state}</TableCell>
-                                  <TableCell>{lead.reference}</TableCell>
-                                  <TableCell>{/* Dealer - No data */}</TableCell>
-                                  <TableCell>{/* Manager - No data */}</TableCell>
-                                  <TableCell>{lastFollowUp ? lastFollowUp.date : ''}</TableCell>
-                                  <TableCell>{lastFollowUp ? lastFollowUp.enteredBy : ''}</TableCell>
-                                  <TableCell>{lastFollowUp ? lastFollowUp.nextFollowUp : ''}</TableCell>
-                                  <TableCell>{lastFollowUp ? lastFollowUp.remarks : ''}</TableCell>
-                                  <TableCell>{(lead as any).status}</TableCell>
+                                  <TableCell>{lead.email || 'N/A'}</TableCell>
+                                  <TableCell>{lead.address || 'N/A'}</TableCell>
+                                  <TableCell>{lead.district || 'N/A'}</TableCell>
+                                  <TableCell>{lead.district || 'N/A'}</TableCell>
+                                  <TableCell>{lead.state || 'N/A'}</TableCell>
+                                  <TableCell>{lead.reference || 'N/A'}</TableCell>
+                                  <TableCell>{lead.dealer || 'N/A'}</TableCell>
+                                  <TableCell>{lead.manager || 'N/A'}</TableCell>
+                                  <TableCell>{lastFollowUp ? lastFollowUp.date : 'N/A'}</TableCell>
+                                  <TableCell>{lastFollowUp ? lastFollowUp.enteredBy : 'N/A'}</TableCell>
+                                  <TableCell>{nextFollowupDate}</TableCell>
+                                  <TableCell>{lastFollowUp ? lastFollowUp.remarks : 'N/A'}</TableCell>
+                                  <TableCell>{lead.status || 'N/A'}</TableCell>
                                   <TableCell>{/* Lead Sub Status - No data */}</TableCell>
                                   <TableCell>{/* Lead Status Remarks - No data */}</TableCell>
-                                  <TableCell>{/* Given By - No data */}</TableCell>
+                                  <TableCell>{lead.givenBy || 'N/A'}</TableCell>
                                 </TableRow>
                               )
                             })
@@ -331,3 +334,5 @@ export default function LeadReportPage() {
     </div>
   );
 }
+
+    
