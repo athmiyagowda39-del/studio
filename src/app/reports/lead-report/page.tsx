@@ -19,14 +19,14 @@ import {
   CommandList,
 } from '@/components/ui/command';
 import { Check, ChevronsUpDown } from 'lucide-react';
-import { indianStatesAndDistricts } from '@/lib/data';
+import { indianStatesAndDistricts, getLeadData, type Lead } from '@/lib/data';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import { format } from 'date-fns';
 
-const allStates = Object.keys(indianStatesAndDistricts);
+const allStates = ["All", ...Object.keys(indianStatesAndDistricts)];
 
 const leadStatusOptions = [
     'Attended',
@@ -102,20 +102,52 @@ export default function LeadReportPage() {
   useEffect(() => {
     try {
       const storedLeads = localStorage.getItem('uploadedLeads');
+      const generatedLeads = getLeadData();
+
+      let leadsFromStorage: LeadFormData[] = [];
       if (storedLeads) {
-        const parsedLeads: LeadFormData[] = JSON.parse(storedLeads);
-        // This is mock data for status. In a real app this would come from the data
-        const leadsWithStatus = parsedLeads.map((lead, index) => ({
+        leadsFromStorage = JSON.parse(storedLeads);
+      }
+      
+      const combinedLeads = [...leadsFromStorage, ...generatedLeads.map((lead: Lead, index: number) => {
+        const randomSector = sectors[(index % (sectors.length -1)) + 1];
+        const randomHeadcount = `${Math.floor(Math.random() * 1000) + 1}`;
+        const randomStatus = leadStatusOptions[index % leadStatusOptions.length];
+
+        const date = new Date(lead.date);
+        
+        return {
+            leadId: `GEN-${date.getTime()}-${index}`,
+            pincode: '',
+            state: lead.state,
+            district: lead.city,
+            address: `${lead.city}, ${lead.state}`,
+            company: `Company ${index}`,
+            contactPerson: `Person ${index}`,
+            contactNumber: `999999999${index % 10}`,
+            email: `person${index}@example.com`,
+            reference: 'Generated',
+            headcount: randomHeadcount,
+            sector: randomSector,
+            selectedModule: 'AR',
+            toDealer: false,
+            creationDate: date.getTime(),
+            status: randomStatus,
+        } as LeadFormData
+      })];
+      
+      const leadsWithStatus = combinedLeads.map((lead, index) => ({
           ...lead,
           status: lead.status || leadStatusOptions[index % leadStatusOptions.length],
           sector: lead.sector || sectors[(index % (sectors.length -1)) + 1],
           headcount: lead.headcount || `${Math.floor(Math.random() * 1000) + 1}`,
           creationDate: lead.creationDate ? new Date(lead.creationDate).getTime() : new Date().getTime(),
         }));
-        setAllLeads(leadsWithStatus as any);
-      }
+
+      setAllLeads(leadsWithStatus as any);
+      
     } catch (error) {
-      console.error('Failed to load leads from local storage', error);
+      console.error('Failed to load leads', error);
     }
   }, []);
 
@@ -177,7 +209,7 @@ export default function LeadReportPage() {
     });
     
   const handleStateSelect = (currentState: string) => {
-    const state = allStates.find(s => s.toLowerCase() === currentState);
+    const state = allStates.find(s => s.toLowerCase() === currentState.toLowerCase());
     if(state) {
         setSelectedState(state);
     }
