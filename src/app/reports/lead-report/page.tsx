@@ -42,44 +42,48 @@ const sectors = ['All', 'IT', 'Finance', 'Healthcare', 'Manufacturing', 'Educati
 const headcounts = ['All', '1-50', '51-200', '201-500', '501-1000', '1000+'];
 
 
-const getLeadStatusesForState = (state: string) => {
-  // In a real application, this data would be fetched based on the state.
-  // Here, we'll generate some semi-random data to simulate the change.
-  const seed = state.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+const getLeadStatusesForState = (
+  leads: LeadFormData[],
+  state: string,
+  sector: string,
+  headcount: string
+) => {
+  const filteredLeads = leads.filter(lead => {
+    let matches = lead.state === state;
+    if (sector !== 'All') {
+      matches = matches && lead.sector === sector;
+    }
+    if (headcount !== 'All') {
+      const [min, max] = headcount.replace('+', '-').split('-').map(Number);
+      const leadHeadcount = parseInt(lead.headcount, 10);
+      if (isNaN(leadHeadcount)) {
+        matches = false;
+      } else if (max) {
+        matches = matches && (leadHeadcount >= min && leadHeadcount <= max);
+      } else {
+        matches = matches && (leadHeadcount >= min);
+      }
+    }
+    return matches;
+  });
+
+  const statusCounts = leadStatusOptions.reduce((acc, status) => {
+    acc[status] = 0;
+    return acc;
+  }, {} as Record<string, number>);
+
+  filteredLeads.forEach(lead => {
+    if (lead.status && statusCounts.hasOwnProperty(lead.status)) {
+      statusCounts[lead.status]++;
+    }
+  });
+
+  const totalLeads = filteredLeads.length;
+
+  const result = Object.entries(statusCounts).map(([status, value]) => ({ status, value }));
+  result.unshift({ status: 'Total Leads', value: totalLeads });
   
-  const baseData = {
-    'Total Leads': 890,
-    'Not viewed': 32,
-    'Unattended': 2,
-    'Not interested': 201,
-    'Attended': 500,
-    'Demo Given': 301,
-    'Pursuing to Purchase': 5,
-    'Order closed': 10,
-  };
-
-  const slightlyRandomize = (value: number, index: number) => {
-    // Use a more deterministic but varied randomization based on seed
-    const randomFactor = Math.sin(seed + index) * 0.2 + 0.9; // Fluctuate between 0.7 and 1.1
-    return Math.max(0, Math.round(value * randomFactor));
-  }
-
-  const newStateData = {
-    'Total Leads': slightlyRandomize(baseData['Total Leads'], 0),
-    'Not viewed': slightlyRandomize(baseData['Not viewed'], 1),
-    'Unattended': slightlyRandomize(baseData['Unattended'], 2),
-    'Not interested': slightlyRandomize(baseData['Not interested'], 3),
-    'Attended': slightlyRandomize(baseData['Attended'], 4),
-    'Demo Given': slightlyRandomize(baseData['Demo Given'], 5),
-    'Pursuing to Purchase': slightlyRandomize(baseData['Pursuing to Purchase'], 6),
-    'Order closed': slightlyRandomize(baseData['Order closed'], 7),
-  };
-  
-  // Recalculate total leads based on other statuses
-  newStateData['Total Leads'] = newStateData['Not viewed'] + newStateData['Unattended'] + newStateData['Not interested'] + newStateData['Attended'] + newStateData['Demo Given'] + newStateData['Pursuing to Purchase'] + newStateData['Order closed'];
-
-
-  return Object.entries(newStateData).map(([status, value]) => ({ status, value }));
+  return result;
 };
 
 
@@ -113,8 +117,8 @@ export default function LeadReportPage() {
   }, []);
 
   const leadStatuses = useMemo(() => {
-    return getLeadStatusesForState(selectedState);
-  }, [selectedState]);
+    return getLeadStatusesForState(allLeads, selectedState, selectedSector, selectedHeadcount);
+  }, [allLeads, selectedState, selectedSector, selectedHeadcount]);
   
   useEffect(() => {
     let leads = allLeads.filter(lead => lead.state === selectedState);
@@ -389,3 +393,4 @@ export default function LeadReportPage() {
     </div>
   );
 }
+
