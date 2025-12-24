@@ -339,7 +339,6 @@ export default function LeadReportPage() {
                             <TableHead>Company</TableHead>
                             <TableHead>Contact</TableHead>
                             <TableHead>Phone</TableHead>
-                            <TableHead>Cell</TableHead>
                             <TableHead>Emailid</TableHead>
                             <TableHead>Address</TableHead>
                             <TableHead>Place</TableHead>
@@ -377,7 +376,6 @@ export default function LeadReportPage() {
                                   <TableCell>{lead.company || 'N/A'}</TableCell>
                                   <TableCell>{lead.contactPerson || 'N/A'}</TableCell>
                                   <TableCell>{lead.contactNumber || 'N/A'}</TableCell>
-                                  <TableCell>{/* Cell - No data */}</TableCell>
                                   <TableCell>{lead.email || 'N/A'}</TableCell>
                                   <TableCell>{lead.address || 'N/A'}</TableCell>
                                   <TableCell>{lead.district || 'N/A'}</TableCell>
@@ -399,7 +397,7 @@ export default function LeadReportPage() {
                             })
                         ) : (
                              <TableRow>
-                                <TableCell colSpan={24} className="text-center h-24">
+                                <TableCell colSpan={23} className="text-center h-24">
                                     No leads found for the selected criteria.
                                 </TableCell>
                             </TableRow>
