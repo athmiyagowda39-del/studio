@@ -42,14 +42,17 @@ const sectors = ['All', 'IT', 'Finance', 'Healthcare', 'Manufacturing', 'Educati
 const headcounts = ['All', '1-50', '51-200', '201-500', '501-1000', '1000+'];
 
 
-const getLeadStatusesForState = (
+const getLeadStatusesForFilters = (
   leads: LeadFormData[],
   state: string,
   sector: string,
   headcount: string
 ) => {
   const filteredLeads = leads.filter(lead => {
-    let matches = lead.state === state;
+    let matches = true;
+    if (state !== 'All') {
+        matches = matches && lead.state === state;
+    }
     if (sector !== 'All') {
       matches = matches && lead.sector === sector;
     }
@@ -117,11 +120,15 @@ export default function LeadReportPage() {
   }, []);
 
   const leadStatuses = useMemo(() => {
-    return getLeadStatusesForState(allLeads, selectedState, selectedSector, selectedHeadcount);
+    return getLeadStatusesForFilters(allLeads, selectedState, selectedSector, selectedHeadcount);
   }, [allLeads, selectedState, selectedSector, selectedHeadcount]);
   
   useEffect(() => {
-    let leads = allLeads.filter(lead => lead.state === selectedState);
+    let leads = [...allLeads];
+    
+    if (selectedState && selectedState !== 'All') {
+        leads = leads.filter(lead => lead.state === selectedState);
+    }
     
     if (selectedStatus && selectedStatus !== 'all-statuses') {
       leads = leads.filter(lead => (lead as any).status === selectedStatus);
@@ -394,3 +401,6 @@ export default function LeadReportPage() {
   );
 }
 
+
+
+    
