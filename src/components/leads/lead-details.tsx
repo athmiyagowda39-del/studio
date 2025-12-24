@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import {
   Card,
   CardContent,
@@ -23,7 +23,8 @@ export default function LeadDetails() {
   const [leads, setLeads] = useState<LeadFormData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
+  const loadLatestLead = useCallback(() => {
+    setIsLoading(true);
     try {
       const storedLeads = localStorage.getItem('uploadedLeads');
       if (storedLeads) {
@@ -46,14 +47,35 @@ export default function LeadDetails() {
               creationDate: lastLead.creationDate ? new Date(lastLead.creationDate).getTime() : new Date().getTime(),
             };
             setLeads([leadWithStatus]);
+        } else {
+           setLeads([]);
         }
+      } else {
+        setLeads([]);
       }
     } catch (error) {
       console.error('Failed to parse leads from localStorage', error);
+      setLeads([]);
     } finally {
       setIsLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    loadLatestLead();
+
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === 'uploadedLeads') {
+        loadLatestLead();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [loadLatestLead]);
 
   return (
     <div className="flex flex-col gap-6">
