@@ -44,9 +44,7 @@ export default function LeadDetails() {
           creationDate: lead.creationDate ? new Date(lead.creationDate).getTime() : new Date().getTime(),
         }));
         
-        const lastLead = leadsWithStatus.length > 0 ? [leadsWithStatus[leadsWithStatus.length - 1]] : [];
-        
-        setLeads(lastLead as any);
+        setLeads(leadsWithStatus.reverse());
       }
     } catch (error) {
       console.error('Failed to parse leads from localStorage', error);
