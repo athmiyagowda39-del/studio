@@ -118,4 +118,64 @@ export const pincodeData: { [key: string]: { district: string; state: string } }
   // Yadgir
   '585201': { district: 'Yadgir', state: 'Karnataka' },
   '585202': { district: 'Yadgir', state: 'Karnataka' },
+
+  // Kerala
+  // Alappuzha
+  '688001': { district: 'Alappuzha', state: 'Kerala' },
+  '688006': { district: 'Alappuzha', state: 'Kerala' },
+  '690502': { district: 'Alappuzha', state: 'Kerala' },
+
+  // Ernakulam
+  '682001': { district: 'Ernakulam', state: 'Kerala' },
+  '682011': { district: 'Ernakulam', state: 'Kerala' },
+  '683101': { district: 'Ernakulam', state: 'Kerala' },
+
+  // Idukki
+  '685602': { district: 'Idukki', state: 'Kerala' },
+  '685603': { district: 'Idukki', state: 'Kerala' },
+
+  // Kannur
+  '670001': { district: 'Kannur', state: 'Kerala' },
+  '670002': { district: 'Kannur', state: 'Kerala' },
+
+  // Kasaragod
+  '671121': { district: 'Kasaragod', state: 'Kerala' },
+  '671123': { district: 'Kasaragod', state: 'Kerala' },
+
+  // Kollam
+  '691001': { district: 'Kollam', state: 'Kerala' },
+  '691009': { district: 'Kollam', state: 'Kerala' },
+
+  // Kottayam
+  '686001': { district: 'Kottayam', state: 'Kerala' },
+  '686002': { district: 'Kottayam', state: 'Kerala' },
+
+  // Kozhikode
+  '673001': { district: 'Kozhikode', state: 'Kerala' },
+  '673004': { district: 'Kozhikode', state: 'Kerala' },
+  '670000': { district: 'Kozhikode', state: 'Kerala' },
+
+  // Malappuram
+  '676505': { district: 'Malappuram', state: 'Kerala' },
+  '676519': { district: 'Malappuram', state: 'Kerala' },
+
+  // Palakkad
+  '678001': { district: 'Palakkad', state: 'Kerala' },
+  '678006': { district: 'Palakkad', state: 'Kerala' },
+
+  // Pathanamthitta
+  '689645': { district: 'Pathanamthitta', state: 'Kerala' },
+  '689648': { district: 'Pathanamthitta', state: 'Kerala' },
+
+  // Thiruvananthapuram
+  '695001': { district: 'Thiruvananthapuram', state: 'Kerala' },
+  '695004': { district: 'Thiruvananthapuram', state: 'Kerala' },
+
+  // Thrissur
+  '680001': { district: 'Thrissur', state: 'Kerala' },
+  '680005': { district: 'Thrissur', state: 'Kerala' },
+
+  // Wayanad
+  '673121': { district: 'Wayanad', state: 'Kerala' },
+  '673122': { district: 'Wayanad', state: 'Kerala' },
 };
