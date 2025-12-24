@@ -108,7 +108,8 @@ export default function LeadReportPage() {
       if (storedLeads) {
         leadsFromStorage = JSON.parse(storedLeads).map((lead: LeadFormData, index: number) => ({
             ...lead,
-            status: lead.status || leadStatusOptions[index % leadStatusOptions.length]
+            status: lead.status || leadStatusOptions[index % leadStatusOptions.length],
+            sector: lead.sector || sectors[(index + 1) % (sectors.length -1)],
         }));
       }
       
@@ -126,7 +127,7 @@ export default function LeadReportPage() {
             email: `person${index}@example.com`,
             reference: 'Generated',
             headcount: `${Math.floor(Math.random() * 1000) + 1}`,
-            sector: sectors[(index % (sectors.length -1)) + 1],
+            sector: sectors[((index + 1) % (sectors.length - 1)) + 1],
             selectedModule: 'AR',
             toDealer: false,
             creationDate: date.getTime(),
@@ -442,5 +443,7 @@ export default function LeadReportPage() {
 
 
 
+
+    
 
     
