@@ -29,22 +29,24 @@ export default function LeadDetails() {
       if (storedLeads) {
         const parsedLeads: LeadFormData[] = JSON.parse(storedLeads);
         
-        const leadStatusOptions = [
-            'Attended',
-            'Not viewed',
-            'Demo Given',
-            'Unattended',
-            'Pursuing to Purchase',
-            'Not interested',
-            'Order closed',
-        ];
-        const leadsWithStatus = parsedLeads.map((lead, index) => ({
-          ...lead,
-          status: lead.status || leadStatusOptions[index % leadStatusOptions.length],
-          creationDate: lead.creationDate ? new Date(lead.creationDate).getTime() : new Date().getTime(),
-        }));
-        
-        setLeads(leadsWithStatus.reverse());
+        if (parsedLeads.length > 0) {
+            const lastLead = parsedLeads[parsedLeads.length - 1];
+            const leadStatusOptions = [
+                'Attended',
+                'Not viewed',
+                'Demo Given',
+                'Unattended',
+                'Pursuing to Purchase',
+                'Not interested',
+                'Order closed',
+            ];
+            const leadWithStatus = {
+              ...lastLead,
+              status: lastLead.status || leadStatusOptions[0],
+              creationDate: lastLead.creationDate ? new Date(lastLead.creationDate).getTime() : new Date().getTime(),
+            };
+            setLeads([leadWithStatus]);
+        }
       }
     } catch (error) {
       console.error('Failed to parse leads from localStorage', error);
