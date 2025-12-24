@@ -293,9 +293,6 @@ export default function LeadUploadForm() {
         });
 
         if (leadsFromFile.length > 0) {
-            const firstLead = leadsFromFile[0];
-            setFormData(firstLead);
-
             // Add unique IDs and creation dates to all leads for saving
             const leadsToSave = leadsFromFile.map((lead, index) => {
                 const now = Date.now();
@@ -310,7 +307,7 @@ export default function LeadUploadForm() {
             
             toast({
                 title: "Upload Confirmed",
-                description: `${leadsToSave.length} lead(s) have been saved and the first lead's data has been populated in the form.`,
+                description: `${leadsToSave.length} lead(s) have been saved.`,
             });
         } else {
             toast({
@@ -401,7 +398,7 @@ export default function LeadUploadForm() {
                   aria-expanded={sectorOpen}
                   className="w-full justify-between font-normal"
                 >
-                  {formData.sector ? formData.sector : "Select Sector..."}
+                  {formData.sector ? sectors.find(s => s.toLowerCase() === formData.sector.toLowerCase()) || "Select Sector..." : "Select Sector..."}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
@@ -414,9 +411,10 @@ export default function LeadUploadForm() {
                       {sectors.map((sector) => (
                         <CommandItem
                           key={sector}
-                          value={sector}
+                          value={sector.toLowerCase()}
                           onSelect={(currentValue) => {
-                            handleSelectChange('sector', currentValue.charAt(0).toUpperCase() + currentValue.slice(1) === formData.sector ? '' : currentValue.charAt(0).toUpperCase() + currentValue.slice(1))
+                            const selectedSector = sectors.find(s => s.toLowerCase() === currentValue);
+                            handleSelectChange('sector', selectedSector === formData.sector ? '' : selectedSector || '')
                             setSectorOpen(false)
                           }}
                         >

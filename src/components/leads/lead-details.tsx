@@ -23,7 +23,7 @@ export default function LeadDetails() {
   const [leads, setLeads] = useState<LeadFormData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const loadLatestLead = useCallback(() => {
+  const loadLeads = useCallback(() => {
     setIsLoading(true);
     try {
       const storedLeads = localStorage.getItem('uploadedLeads');
@@ -31,7 +31,6 @@ export default function LeadDetails() {
         const parsedLeads: LeadFormData[] = JSON.parse(storedLeads);
         
         if (parsedLeads.length > 0) {
-            const lastLead = parsedLeads[parsedLeads.length - 1];
             const leadStatusOptions = [
                 'Attended',
                 'Not viewed',
@@ -41,12 +40,12 @@ export default function LeadDetails() {
                 'Not interested',
                 'Order closed',
             ];
-            const leadWithStatus = {
-              ...lastLead,
-              status: lastLead.status || leadStatusOptions[0],
-              creationDate: lastLead.creationDate ? new Date(lastLead.creationDate).getTime() : new Date().getTime(),
-            };
-            setLeads([leadWithStatus]);
+            const leadsWithStatus = parsedLeads.map((lead, index) => ({
+              ...lead,
+              status: lead.status || leadStatusOptions[index % leadStatusOptions.length],
+              creationDate: lead.creationDate ? new Date(lead.creationDate).getTime() : new Date().getTime(),
+            }));
+            setLeads(leadsWithStatus);
         } else {
            setLeads([]);
         }
@@ -62,11 +61,11 @@ export default function LeadDetails() {
   }, []);
 
   useEffect(() => {
-    loadLatestLead();
+    loadLeads();
 
     const handleStorageChange = (event: StorageEvent) => {
       if (event.key === 'uploadedLeads') {
-        loadLatestLead();
+        loadLeads();
       }
     };
 
@@ -75,7 +74,7 @@ export default function LeadDetails() {
     return () => {
       window.removeEventListener('storage', handleStorageChange);
     };
-  }, [loadLatestLead]);
+  }, [loadLeads]);
 
   return (
     <div className="flex flex-col gap-6">
