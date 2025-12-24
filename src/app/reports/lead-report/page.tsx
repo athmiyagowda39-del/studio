@@ -109,13 +109,8 @@ export default function LeadReportPage() {
         leadsFromStorage = JSON.parse(storedLeads);
       }
       
-      const combinedLeads = [...leadsFromStorage, ...generatedLeads.map((lead: Lead, index: number) => {
-        const randomSector = sectors[(index % (sectors.length -1)) + 1];
-        const randomHeadcount = `${Math.floor(Math.random() * 1000) + 1}`;
-        const randomStatus = leadStatusOptions[index % leadStatusOptions.length];
-
+      const combinedLeads: LeadFormData[] = [...leadsFromStorage, ...generatedLeads.map((lead: Lead, index: number) => {
         const date = new Date(lead.date);
-        
         return {
             leadId: `GEN-${date.getTime()}-${index}`,
             pincode: '',
@@ -127,12 +122,12 @@ export default function LeadReportPage() {
             contactNumber: `999999999${index % 10}`,
             email: `person${index}@example.com`,
             reference: 'Generated',
-            headcount: randomHeadcount,
-            sector: randomSector,
+            headcount: `${Math.floor(Math.random() * 1000) + 1}`,
+            sector: sectors[(index % (sectors.length -1)) + 1],
             selectedModule: 'AR',
             toDealer: false,
             creationDate: date.getTime(),
-            status: randomStatus,
+            status: leadStatusOptions[index % leadStatusOptions.length],
         } as LeadFormData
       })];
       
@@ -144,7 +139,7 @@ export default function LeadReportPage() {
           creationDate: lead.creationDate ? new Date(lead.creationDate).getTime() : new Date().getTime(),
         }));
 
-      setAllLeads(leadsWithStatus as any);
+      setAllLeads(leadsWithStatus);
       
     } catch (error) {
       console.error('Failed to load leads', error);
