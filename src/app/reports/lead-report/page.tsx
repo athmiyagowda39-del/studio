@@ -106,7 +106,10 @@ export default function LeadReportPage() {
 
       let leadsFromStorage: LeadFormData[] = [];
       if (storedLeads) {
-        leadsFromStorage = JSON.parse(storedLeads);
+        leadsFromStorage = JSON.parse(storedLeads).map((lead: LeadFormData, index: number) => ({
+            ...lead,
+            status: lead.status || leadStatusOptions[index % leadStatusOptions.length]
+        }));
       }
       
       const combinedLeads: LeadFormData[] = [...leadsFromStorage, ...generatedLeads.map((lead: Lead, index: number) => {
@@ -438,3 +441,6 @@ export default function LeadReportPage() {
     
 
 
+
+
+    
