@@ -67,6 +67,16 @@ const initialFilterState = {
   remarksFilter: '',
 };
 
+const leadStatusOptions = [
+    'Attended',
+    'Not viewed',
+    'Demo Given',
+    'Unattended',
+    'Pursuing to Purchase',
+    'Not interested',
+    'Order closed',
+];
+
 export default function LeadUpdateForm() {
   const [searchLeadId, setSearchLeadId] = useState('');
   const [searchInput, setSearchInput] = useState('');
@@ -111,6 +121,7 @@ export default function LeadUpdateForm() {
 
           return {
             ...lead,
+            status: lead.status || leadStatusOptions[index % leadStatusOptions.length],
             creationDate: typeof lead.creationDate === 'string' ? new Date(lead.creationDate).getTime() : lead.creationDate,
             followUps: leadFollowUps,
             nextFollowUpDate: lead.nextFollowUpDate || (index % 3 === 0 ? new Date(new Date().getTime() + 5 * 24 * 60 * 60 * 1000).toISOString() : undefined), // 5 days from now
@@ -353,16 +364,20 @@ export default function LeadUpdateForm() {
   }
 
   const summaryCards = useMemo(() => {
-    // This is mock data. In a real app, you would compute this from `allLeads` and their statuses.
+    const counts = leadStatusOptions.reduce((acc, status) => {
+      acc[status] = 0;
+      return acc;
+    }, {} as Record<string, number>);
+
+    allLeads.forEach(lead => {
+      if (lead.status && counts.hasOwnProperty(lead.status)) {
+        counts[lead.status]++;
+      }
+    });
+
     return {
       total: allLeads.length,
-      attended: 500,
-      notViewed: 32,
-      demoGiven: 301,
-      unattended: 2,
-      pursuing: 5,
-      notInterested: 201,
-      orderClosed: 10,
+      ...counts,
     };
   }, [allLeads]);
   
@@ -403,75 +418,30 @@ export default function LeadUpdateForm() {
     });
   };
 
+  const summaryDisplay = [
+    { title: 'Total Leads', value: summaryCards.total },
+    { title: 'Attended', value: summaryCards.Attended },
+    { title: 'Not viewed', value: summaryCards['Not viewed'] },
+    { title: 'Demo Given', value: summaryCards['Demo Given'] },
+    { title: 'Unattended', value: summaryCards.Unattended },
+    { title: 'Pursuing to Purchase', value: summaryCards['Pursuing to Purchase'] },
+    { title: 'Not interested', value: summaryCards['Not interested'] },
+    { title: 'Order closed', value: summaryCards['Order closed'] },
+  ];
+
   return (
     <div className="space-y-6">
        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 text-center">
-        <Card>
-          <CardHeader className="p-2">
-            <CardTitle className="text-sm font-medium">Total Leads</CardTitle>
-          </CardHeader>
-          <CardContent className="p-2">
-            <p className="text-2xl font-bold">{summaryCards.total}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="p-2">
-            <CardTitle className="text-sm font-medium">Attended</CardTitle>
-          </CardHeader>
-          <CardContent className="p-2">
-            <p className="text-2xl font-bold">{summaryCards.attended}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="p-2">
-            <CardTitle className="text-sm font-medium">Not viewed</CardTitle>
-          </CardHeader>
-          <CardContent className="p-2">
-            <p className="text-2xl font-bold">{summaryCards.notViewed}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="p-2">
-            <CardTitle className="text-sm font-medium">Demo Given</CardTitle>
-          </CardHeader>
-          <CardContent className="p-2">
-            <p className="text-2xl font-bold">{summaryCards.demoGiven}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="p-2">
-            <CardTitle className="text-sm font-medium">Unattended</CardTitle>
-          </CardHeader>
-          <CardContent className="p-2">
-            <p className="text-2xl font-bold">{summaryCards.unattended}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="p-2">
-            <CardTitle className="text-sm font-medium">
-              Pursuing to Purchase
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-2">
-            <p className="text-2xl font-bold">{summaryCards.pursuing}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="p-2">
-            <CardTitle className="text-sm font-medium">Not interested</CardTitle>
-          </CardHeader>
-          <CardContent className="p-2">
-            <p className="text-2xl font-bold">{summaryCards.notInterested}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="p-2">
-            <CardTitle className="text-sm font-medium">Order closed</CardTitle>
-          </CardHeader>
-          <CardContent className="p-2">
-            <p className="text-2xl font-bold">{summaryCards.orderClosed}</p>
-          </CardContent>
-        </Card>
+        {summaryDisplay.map(item => (
+            <Card key={item.title}>
+                <CardHeader className="p-2">
+                    <CardTitle className="text-sm font-medium">{item.title}</CardTitle>
+                </CardHeader>
+                <CardContent className="p-2">
+                    <p className="text-2xl font-bold">{item.value}</p>
+                </CardContent>
+            </Card>
+        ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
@@ -1038,5 +1008,3 @@ export default function LeadUpdateForm() {
     </div>
   );
 }
-
-    
