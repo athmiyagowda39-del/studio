@@ -93,15 +93,15 @@ function generateLeadData(): Lead[] {
         });
 
         // Add some random data for other states too
-        for (let j = 0; j < 2; j++) {
+        for (let j = 0; j < 5; j++) { // Increased loop to generate more data
             const randomStateName = Object.keys(indianStatesAndDistricts)[Math.floor(Math.random() * Object.keys(indianStatesAndDistricts).length)];
             if(randomStateName !== 'Karnataka') {
                 const cities = indianStatesAndDistricts[randomStateName];
                 const randomCityName = cities[Math.floor(Math.random() * cities.length)];
                 
                 const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-                const baseLeads = isWeekend ? 10 : 2;
-                const leads = Math.floor(baseLeads + Math.random() * 30 + (day/2));
+                const baseLeads = isWeekend ? 20 : 10; // Increased base leads
+                const leads = Math.floor(baseLeads + Math.random() * 40 + (day/2)); // Increased random factor
                 
                 data.push({
                   date: dateString,
