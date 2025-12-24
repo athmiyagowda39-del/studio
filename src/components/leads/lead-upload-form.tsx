@@ -416,7 +416,7 @@ export default function LeadUploadForm() {
                           key={sector}
                           value={sector}
                           onSelect={(currentValue) => {
-                            handleSelectChange('sector', currentValue === formData.sector ? '' : currentValue)
+                            handleSelectChange('sector', currentValue.charAt(0).toUpperCase() + currentValue.slice(1) === formData.sector ? '' : currentValue.charAt(0).toUpperCase() + currentValue.slice(1))
                             setSectorOpen(false)
                           }}
                         >
@@ -524,5 +524,3 @@ export default function LeadUploadForm() {
     </div>
   );
 }
-
-    
