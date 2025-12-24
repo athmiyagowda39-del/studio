@@ -188,25 +188,28 @@ export default function LeadReportPage() {
   }, [selectedState, selectedStatus, selectedSector, selectedHeadcount, allLeads]);
 
 
-  const chartData = leadStatuses
-    .filter((s) => s.status !== 'Total Leads')
-    .map((item) => {
-        let color = '';
-        switch(item.status) {
-            case 'Attended': color = 'hsl(var(--chart-2))'; break;
-            case 'Not viewed': color = 'hsl(var(--chart-4))'; break;
-            case 'Demo Given': color = 'hsl(var(--chart-3))'; break;
-            case 'Unattended': color = 'hsl(var(--primary))'; break;
-            case 'Pursuing to Purchase': color = 'hsl(120 100% 35%)'; break;
-            case 'Not interested': color = 'hsl(var(--destructive))'; break;
-            case 'Order closed': color = 'hsl(60 100% 50%)'; break;
-        }
-        return {
-            name: item.status,
-            value: item.value,
-            fill: color,
-        }
-    });
+  const chartData = useMemo(() => {
+    return leadStatuses
+      .filter((s) => s.status !== 'Total Leads')
+      .map((item) => {
+          let color = '';
+          switch(item.status) {
+              case 'Attended': color = 'hsl(var(--chart-2))'; break;
+              case 'Not viewed': color = 'hsl(var(--chart-4))'; break;
+              case 'Demo Given': color = 'hsl(var(--chart-3))'; break;
+              case 'Unattended': color = 'hsl(var(--primary))'; break;
+              case 'Pursuing to Purchase': color = 'hsl(120 100% 35%)'; break;
+              case 'Not interested': color = 'hsl(var(--destructive))'; break;
+              case 'Order closed': color = 'hsl(60 100% 50%)'; break;
+              default: color = 'hsl(var(--muted-foreground))'; break;
+          }
+          return {
+              name: item.status,
+              value: item.value,
+              fill: color,
+          }
+      });
+  }, [leadStatuses]);
     
   const handleStateSelect = (currentState: string) => {
     const state = allStates.find(s => s.toLowerCase() === currentState.toLowerCase());
@@ -423,7 +426,7 @@ export default function LeadReportPage() {
                 ))}
               </div>
               <div className="flex justify-center">
-                <LeadStatusChart data={chartData} />
+                <LeadStatusChart data={chartData} key={selectedState + selectedSector + selectedHeadcount} />
               </div>
             </div>
           )}
@@ -434,5 +437,7 @@ export default function LeadReportPage() {
 }
 
 
+
+    
 
     
