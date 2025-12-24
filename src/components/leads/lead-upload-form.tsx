@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
-import { Download, UploadCloud } from 'lucide-react';
+import { Check, ChevronsUpDown, Download, UploadCloud } from 'lucide-react';
 import { Card, CardContent } from '../ui/card';
 import { useState, useRef } from 'react';
 import { pincodeData } from '@/lib/pincodes';
@@ -26,6 +26,20 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
+import { cn } from '@/lib/utils';
 
 type ParsedData = (string | number)[][];
 
@@ -63,6 +77,8 @@ export type LeadFormData = {
   status?: string;
 };
 
+const sectors = ['IT', 'Finance', 'Healthcare', 'Manufacturing', 'Education', 'Retail', 'Hospitality', 'Telecommunication', 'Construction', 'Real Estate', 'Media & Entertainment', 'Government', 'Non-profit', 'Other'];
+
 
 const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate'> = {
     pincode: '',
@@ -84,6 +100,7 @@ const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate'> = {
 export default function LeadUploadForm() {
   const [formData, setFormData] = useState<Omit<LeadFormData, 'leadId' | 'creationDate'>>(initialFormState);
   const [addedLeads, setAddedLeads] = useState<LeadFormData[]>([]);
+  const [sectorOpen, setSectorOpen] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -376,27 +393,47 @@ export default function LeadUploadForm() {
           </div>
            <div className="space-y-2">
             <Label htmlFor="sector">Sector</Label>
-            <Select value={formData.sector} onValueChange={(value) => handleSelectChange('sector', value)}>
-              <SelectTrigger id="sector">
-                <SelectValue placeholder="Select Sector..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="IT">IT</SelectItem>
-                <SelectItem value="Finance">Finance</SelectItem>
-                <SelectItem value="Healthcare">Healthcare</SelectItem>
-                <SelectItem value="Manufacturing">Manufacturing</SelectItem>
-                <SelectItem value="Education">Education</SelectItem>
-                <SelectItem value="Retail">Retail</SelectItem>
-                <SelectItem value="Hospitality">Hospitality</SelectItem>
-                <SelectItem value="Telecommunication">Telecommunication</SelectItem>
-                <SelectItem value="Construction">Construction</SelectItem>
-                <SelectItem value="Real Estate">Real Estate</SelectItem>
-                <SelectItem value="Media & Entertainment">Media & Entertainment</SelectItem>
-                <SelectItem value="Government">Government</SelectItem>
-                <SelectItem value="Non-profit">Non-profit</SelectItem>
-                <SelectItem value="Other">Other</SelectItem>
-              </SelectContent>
-            </Select>
+            <Popover open={sectorOpen} onOpenChange={setSectorOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={sectorOpen}
+                  className="w-full justify-between font-normal"
+                >
+                  {formData.sector ? formData.sector : "Select Sector..."}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                <Command>
+                  <CommandInput placeholder="Search sector..." />
+                  <CommandList>
+                    <CommandEmpty>No sector found.</CommandEmpty>
+                    <CommandGroup>
+                      {sectors.map((sector) => (
+                        <CommandItem
+                          key={sector}
+                          value={sector}
+                          onSelect={(currentValue) => {
+                            handleSelectChange('sector', currentValue === formData.sector ? '' : currentValue)
+                            setSectorOpen(false)
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              formData.sector === sector ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          {sector}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
           <div className="space-y-2">
             <Label htmlFor="modules">Modules</Label>
@@ -487,3 +524,5 @@ export default function LeadUploadForm() {
     </div>
   );
 }
+
+    
