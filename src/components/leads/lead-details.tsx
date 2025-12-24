@@ -18,10 +18,25 @@ import {
 } from '@/components/ui/table';
 import type { LeadFormData } from './lead-upload-form';
 import { format } from 'date-fns';
+import { Button } from '@/components/ui/button';
+import { Trash2 } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
+
 
 export default function LeadDetails() {
   const [leads, setLeads] = useState<LeadFormData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
 
   const loadLeads = useCallback(() => {
     setIsLoading(true);
@@ -76,6 +91,16 @@ export default function LeadDetails() {
     };
   }, [loadLeads]);
 
+  const handleDelete = (leadIdToDelete: string) => {
+    const updatedLeads = leads.filter(lead => lead.leadId !== leadIdToDelete);
+    setLeads(updatedLeads);
+    localStorage.setItem('uploadedLeads', JSON.stringify(updatedLeads));
+    toast({
+      title: 'Lead Deleted',
+      description: `Lead with ID ${leadIdToDelete} has been removed.`,
+    });
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <Card>
@@ -115,6 +140,7 @@ export default function LeadDetails() {
                     <TableHead>Lead Sub Status</TableHead>
                     <TableHead>Lead Status Remarks</TableHead>
                     <TableHead>Given By</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -150,6 +176,30 @@ export default function LeadDetails() {
                             <TableCell>{/* Lead Sub Status - No data */}</TableCell>
                             <TableCell>{/* Lead Status Remarks - No data */}</TableCell>
                             <TableCell>{lead.givenBy || 'N/A'}</TableCell>
+                            <TableCell>
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button variant="destructive" size="icon">
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        This action cannot be undone. This will permanently delete the lead
+                                        and remove its data from our servers.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                      <AlertDialogAction onClick={() => handleDelete(lead.leadId)}>
+                                        Continue
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                            </TableCell>
                         </TableRow>
                     );
                   })}
