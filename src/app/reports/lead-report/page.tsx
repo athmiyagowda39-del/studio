@@ -134,7 +134,7 @@ export default function LeadReportPage() {
       const leadsWithStatus = combinedLeads.map((lead, index) => ({
           ...lead,
           status: lead.status || leadStatusOptions[index % leadStatusOptions.length],
-          sector: lead.sector || sectors[(index % (sectors.length -1)) + 1],
+          sector: lead.sector || sectors[((index + 1) % (sectors.length -1)) + 1],
           headcount: lead.headcount || `${Math.floor(Math.random() * 1000) + 1}`,
           creationDate: lead.creationDate ? new Date(lead.creationDate).getTime() : new Date().getTime(),
         }));
@@ -436,4 +436,5 @@ export default function LeadReportPage() {
     
 
     
+
 
