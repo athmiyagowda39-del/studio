@@ -1,6 +1,7 @@
 'use client';
 
 import { useContext } from 'react';
+import { usePathname } from 'next/navigation';
 import {
   Sidebar,
   SidebarContent,
@@ -24,6 +25,7 @@ export default function AppContent({
   children: React.ReactNode;
 }) {
   const authContext = useContext(AuthContext);
+  const pathname = usePathname();
 
   if (!authContext) {
     return null; // Or a loading indicator
@@ -31,6 +33,10 @@ export default function AppContent({
 
   const { isAuthenticated } = authContext;
 
+  if (pathname === '/login') {
+    return <LoginPage />;
+  }
+  
   return isAuthenticated ? (
     <SidebarProvider>
       <Sidebar>
