@@ -42,8 +42,8 @@ export default function LoginPage() {
   return (
     <div className="relative flex min-h-screen w-full items-center justify-center bg-background overflow-hidden">
       {/* Decorative shapes */}
-      <div className="absolute top-0 -left-1/3 w-2/3 h-2/3 bg-primary/10 rounded-full blur-3xl opacity-50 animate-pulse"></div>
-      <div className="absolute bottom-0 -right-1/3 w-2/3 h-2/3 bg-accent/30 rounded-full blur-3xl opacity-50 animate-pulse delay-2000"></div>
+      <div className="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 bg-primary/10 rounded-full blur-3xl opacity-50 animate-pulse"></div>
+      <div className="absolute -bottom-1/4 -right-1/4 w-1/2 h-1/2 bg-accent/20 rounded-full blur-3xl opacity-50 animate-pulse [animation-delay:2s]"></div>
       
       <div className="relative z-10 mx-auto grid w-[380px] gap-6">
         <div className="grid gap-2 text-center">
@@ -55,7 +55,7 @@ export default function LoginPage() {
             Enter your credentials to access your dashboard
           </p>
         </div>
-         <Card className="bg-background/80 backdrop-blur-sm border-0 shadow-lg">
+         <Card className="bg-background/80 backdrop-blur-sm border-border/20 shadow-lg">
           <CardHeader>
             <CardTitle className='text-xl text-center'>Login</CardTitle>
           </CardHeader>
@@ -91,7 +91,7 @@ export default function LoginPage() {
           </CardContent>
         </Card>
 
-        <Card className="mt-4 bg-background/80 backdrop-blur-sm border-dashed">
+        <Card className="mt-4 bg-background/80 backdrop-blur-sm border-border/20 border-dashed">
           <CardHeader className='pb-2'>
             <CardTitle className="text-sm font-medium text-center">Demo Credentials</CardTitle>
           </CardHeader>
