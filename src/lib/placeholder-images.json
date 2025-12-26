@@ -3,14 +3,20 @@
     {
       "id": "user-avatar",
       "description": "User avatar",
-      "imageUrl": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=1080&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "imageUrl": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=1080&auto=format=fit&crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       "imageHint": "woman professional"
     },
     {
-      "id": "login-background",
+      "id": "login-background-left",
       "description": "Sales team meeting",
-      "imageUrl": "https://images.unsplash.com/photo-1556740738-b6a63e27c4df?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-      "imageHint": "sales team"
+      "imageUrl": "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?q=80&w=2070&auto-format=fit&crop=entropy&cs=tinysrgb",
+      "imageHint": "sales team meeting"
+    },
+    {
+      "id": "login-background-right",
+      "description": "Sales professional at work",
+      "imageUrl": "https://images.unsplash.com/photo-1556742502-ec7c0e9f34b1?q=80&w=2070&auto-format=fit&crop=entropy&cs=tinysrgb",
+      "imageHint": "sales professional"
     }
   ]
 }

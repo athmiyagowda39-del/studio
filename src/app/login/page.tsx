@@ -41,7 +41,17 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="w-full min-h-screen lg:grid lg:grid-cols-2">
+    <div className="w-full min-h-screen lg:grid lg:grid-cols-3">
+      <div className="hidden bg-muted lg:block">
+        <Image
+          src="https://images.unsplash.com/photo-1542744173-8e7e53415bb0?q=80&w=2070&auto-format=fit&crop=entropy&cs=tinysrgb"
+          alt="Sales team working"
+          width="1920"
+          height="1080"
+          className="h-full w-full object-cover"
+          data-ai-hint="sales team meeting"
+        />
+      </div>
       <div className="flex items-center justify-center py-12">
         <div className="mx-auto grid w-[380px] gap-6">
           <div className="grid gap-2 text-center">
@@ -101,12 +111,12 @@ export default function LoginPage() {
       </div>
       <div className="hidden bg-muted lg:block">
         <Image
-          src="https://images.unsplash.com/photo-1542744173-8e7e53415bb0?q=80&w=2070&auto-format=fit&crop=entropy&cs=tinysrgb"
-          alt="Sales team working"
+          src="https://images.unsplash.com/photo-1556742502-ec7c0e9f34b1?q=80&w=2070&auto-format=fit&crop=entropy&cs=tinysrgb"
+          alt="Sales professional at work"
           width="1920"
           height="1080"
           className="h-full w-full object-cover"
-          data-ai-hint="sales team meeting"
+          data-ai-hint="sales professional"
         />
       </div>
     </div>
