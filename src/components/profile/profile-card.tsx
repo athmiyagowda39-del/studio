@@ -26,6 +26,11 @@ import Image from 'next/image';
 import type { ImagePlaceholder } from '@/lib/placeholder-images';
 import { AuthContext } from '@/context/auth-context';
 import { Separator } from '@/components/ui/separator';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 
 export default function ProfileCard() {
   const { toast } = useToast();
@@ -107,87 +112,106 @@ export default function ProfileCard() {
           <CardTitle className="text-2xl">{userName}</CardTitle>
         </CardHeader>
         <CardContent className="p-6 space-y-4">
-            <Separator />
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="ghost" className="w-full justify-start text-base">
-                  <Lock className="mr-3 h-5 w-5" />
-                  Change Password
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Change Password</DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleChangePassword}>
-                  <div className="grid gap-4 py-4">
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label
-                        htmlFor="current-password"
-                        className="text-right"
-                      >
-                        Current
-                      </Label>
-                      <Input
-                        id="current-password"
-                        type="password"
-                        className="col-span-3"
-                        value={currentPassword}
-                        onChange={(e) => setCurrentPassword(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="new-password" className="text-right">
-                        New
-                      </Label>
-                      <Input
-                        id="new-password"
-                        type="password"
-                        className="col-span-3"
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label
-                        htmlFor="confirm-password"
-                        className="text-right"
-                      >
-                        Confirm
-                      </Label>
-                      <Input
-                        id="confirm-password"
-                        type="password"
-                        className="col-span-3"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        required
-                      />
-                    </div>
+          <Separator />
+          <Collapsible>
+            <CollapsibleTrigger asChild>
+              <Button
+                variant="ghost"
+                className="w-full justify-start text-base"
+              >
+                <UserIcon className="mr-3 h-5 w-5" />
+                Profile
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="p-4 text-center text-sm text-muted-foreground">
+                Username: {userName}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+          <Separator />
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button
+                variant="ghost"
+                className="w-full justify-start text-base"
+              >
+                <Lock className="mr-3 h-5 w-5" />
+                Change Password
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Change Password</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleChangePassword}>
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label
+                      htmlFor="current-password"
+                      className="text-right"
+                    >
+                      Current
+                    </Label>
+                    <Input
+                      id="current-password"
+                      type="password"
+                      className="col-span-3"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      required
+                    />
                   </div>
-                  <DialogFooter>
-                    <DialogClose asChild>
-                      <Button type="submit">Update Password</Button>
-                    </DialogClose>
-                  </DialogFooter>
-                </form>
-              </DialogContent>
-            </Dialog>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="new-password" className="text-right">
+                      New
+                    </Label>
+                    <Input
+                      id="new-password"
+                      type="password"
+                      className="col-span-3"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label
+                      htmlFor="confirm-password"
+                      className="text-right"
+                    >
+                      Confirm
+                    </Label>
+                    <Input
+                      id="confirm-password"
+                      type="password"
+                      className="col-span-3"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <DialogClose asChild>
+                    <Button type="submit">Update Password</Button>
+                  </DialogClose>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
 
-            <Separator />
-            
-            <Button
-              variant="ghost"
-              className="w-full justify-start text-base text-destructive hover:text-destructive hover:bg-destructive/10"
-              onClick={handleLogout}
-            >
-              <LogOut className="mr-3 h-5 w-5" />
-              Logout
-            </Button>
-            <Separator />
+          <Separator />
 
+          <Button
+            variant="ghost"
+            className="w-full justify-start text-base text-destructive hover:text-destructive hover:bg-destructive/10"
+            onClick={handleLogout}
+          >
+            <LogOut className="mr-3 h-5 w-5" />
+            Logout
+          </Button>
+          <Separator />
         </CardContent>
       </Card>
     </div>
