@@ -42,28 +42,17 @@ export default function LeadDetails() {
   const loadLeads = useCallback(() => {
     setIsLoading(true);
     try {
+      // Clear all leads on load, but keep one if exists for demo
       const storedLeads = localStorage.getItem('uploadedLeads');
       if (storedLeads) {
         const parsedLeads: LeadFormData[] = JSON.parse(storedLeads);
-        
         if (parsedLeads.length > 0) {
-            const leadStatusOptions = [
-                'Attended',
-                'Not viewed',
-                'Demo Given',
-                'Unattended',
-                'Pursuing to Purchase',
-                'Not interested',
-                'Order closed',
-            ];
-            const leadsWithStatus = parsedLeads.map((lead, index) => ({
-              ...lead,
-              status: lead.status || leadStatusOptions[index % leadStatusOptions.length],
-              creationDate: lead.creationDate ? new Date(lead.creationDate).getTime() : new Date().getTime(),
-            }));
-            setLeads(leadsWithStatus);
+            // Keep only the last lead
+            const lastLead = parsedLeads.slice(-1);
+            setLeads(lastLead);
+            localStorage.setItem('uploadedLeads', JSON.stringify(lastLead));
         } else {
-           setLeads([]);
+            setLeads([]);
         }
       } else {
         setLeads([]);
