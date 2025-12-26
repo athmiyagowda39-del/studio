@@ -67,16 +67,16 @@ export default function Header() {
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full">
-                <Avatar className="h-10 w-10">
+              <Button variant="ghost" className="relative h-10 w-16 rounded-full p-0">
+                <Avatar className="h-10 w-16 overflow-hidden rounded-full">
                   {userAvatar && (
                     <Image
                       src={userAvatar.imageUrl}
                       alt={userAvatar.description}
-                      width={36}
-                      height={36}
+                      width={64}
+                      height={40}
                       data-ai-hint={userAvatar.imageHint}
-                      className="rounded-full"
+                      className="object-cover"
                     />
                   )}
                   <AvatarFallback>A</AvatarFallback>
