@@ -43,11 +43,11 @@ export default function LoginPage() {
   return (
     <div className="relative flex min-h-screen w-full items-center justify-center bg-background py-12">
        <Image
-        src="https://images.unsplash.com/photo-1556740738-b6a63e27c4df?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-        alt="Sales team"
+        src="https://images.unsplash.com/photo-1620336049257-2a84b431a436?q=80&w=1964&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        alt="Sales illustration"
         fill
         className="object-cover opacity-20"
-        data-ai-hint="sales team"
+        data-ai-hint="sales illustration"
       />
       <div className="relative z-10 mx-auto grid w-[380px] gap-6">
         <div className="grid gap-2 text-center">
