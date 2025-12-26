@@ -1,3 +1,4 @@
+
 'use client';
 
 import { usePathname } from 'next/navigation';
@@ -67,14 +68,15 @@ export default function Header() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="rounded-full">
-                <Avatar className="h-9 w-9">
+                <Avatar className="h-10 w-10">
                   {userAvatar && (
                     <Image
                       src={userAvatar.imageUrl}
                       alt={userAvatar.description}
-                      width={40}
-                      height={40}
+                      width={36}
+                      height={36}
                       data-ai-hint={userAvatar.imageHint}
+                      className="rounded-full"
                     />
                   )}
                   <AvatarFallback>A</AvatarFallback>
