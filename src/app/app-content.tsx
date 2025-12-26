@@ -33,7 +33,7 @@ export default function AppContent({
 
   const { isAuthenticated } = authContext;
 
-  if (pathname === '/login') {
+  if (pathname === '/login' && !isAuthenticated) {
     return <LoginPage />;
   }
   

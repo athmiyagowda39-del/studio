@@ -24,7 +24,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    // Removed logic that checks for stored authentication status
+    const storedAuth = sessionStorage.getItem('isAuthenticated');
+    if (storedAuth === 'true') {
+      setIsAuthenticated(true);
+    }
     const storedPassword = localStorage.getItem('userPassword');
     if (storedPassword) {
       setPassword(storedPassword);
@@ -34,7 +37,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = (pass: string) => {
     if (pass === password) {
-      // Removed saving authentication status to localStorage
+      sessionStorage.setItem('isAuthenticated', 'true');
       setIsAuthenticated(true);
       return true;
     }
@@ -42,7 +45,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = () => {
-    // Removed clearing authentication status from localStorage
+    sessionStorage.removeItem('isAuthenticated');
     setIsAuthenticated(false);
   };
 
