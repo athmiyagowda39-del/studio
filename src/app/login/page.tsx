@@ -86,23 +86,6 @@ export default function LoginPage() {
             </Button>
           </CardContent>
         </Card>
-        <Card className="mt-4 border-dashed">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-center">
-              Demo Credentials
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm text-muted-foreground text-center p-4 pt-0">
-            <p>
-              Username:{' '}
-              <span className="font-semibold text-foreground">athmiya</span>
-            </p>
-            <p>
-              Password:{' '}
-              <span className="font-semibold text-foreground">password</span>
-            </p>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
