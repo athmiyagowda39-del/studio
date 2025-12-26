@@ -13,7 +13,6 @@ import { Label } from '@/components/ui/label';
 import { AuthContext } from '@/context/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { Target } from 'lucide-react';
-import Image from 'next/image';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
@@ -41,14 +40,11 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative flex min-h-screen w-full items-center justify-center bg-background py-12">
-       <Image
-        src="https://images.unsplash.com/photo-1620336049257-2a84b431a436?q=80&w=1964&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-        alt="Sales illustration"
-        fill
-        className="object-cover opacity-20"
-        data-ai-hint="sales illustration"
-      />
+    <div className="relative flex min-h-screen w-full items-center justify-center bg-background overflow-hidden">
+      {/* Decorative shapes */}
+      <div className="absolute top-0 -left-1/3 w-2/3 h-2/3 bg-primary/10 rounded-full blur-3xl opacity-50"></div>
+      <div className="absolute bottom-0 -right-1/3 w-2/3 h-2/3 bg-accent/30 rounded-full blur-3xl opacity-50"></div>
+      
       <div className="relative z-10 mx-auto grid w-[380px] gap-6">
         <div className="grid gap-2 text-center">
           <div className="flex items-center justify-center gap-2 mb-4">
