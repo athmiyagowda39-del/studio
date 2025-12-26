@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -8,12 +9,7 @@ import {
 } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Lock, LogOut, User as UserIcon, ChevronDown } from 'lucide-react';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
+import { Lock, LogOut, User as UserIcon } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -29,14 +25,13 @@ import { useToast } from '@/hooks/use-toast';
 import { useState, useEffect, useContext } from 'react';
 import Image from 'next/image';
 import type { ImagePlaceholder } from '@/lib/placeholder-images';
-import { cn } from '@/lib/utils';
 import { AuthContext } from '@/context/auth-context';
+import { Separator } from '@/components/ui/separator';
 
 export default function ProfileCard() {
   const { toast } = useToast();
   const [userAvatar, setUserAvatar] = useState<ImagePlaceholder | undefined>();
   const [userName] = useState('ATHMIYA');
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const authContext = useContext(AuthContext);
 
   const [currentPassword, setCurrentPassword] = useState('');
@@ -93,52 +88,31 @@ export default function ProfileCard() {
   return (
     <div className="flex justify-center items-start pt-8">
       <Card className="w-full max-w-md">
-        <CardHeader className="bg-primary/10">
-          <CardTitle className="text-center text-primary">PROFILE</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col items-center gap-6 p-8">
-          <Avatar className="h-32 w-32">
+        <CardHeader className="items-center text-center">
+          <Avatar className="h-24 w-24 mb-4">
             {userAvatar ? (
               <Image
                 src={userAvatar.imageUrl}
                 alt={userAvatar.description}
-                width={128}
-                height={128}
-                className="rounded-full"
+                width={96}
+                height={96}
+                className="rounded-full object-cover"
                 data-ai-hint={userAvatar.imageHint}
               />
             ) : (
               <AvatarFallback>
-                <UserIcon className="h-24 w-24 text-muted-foreground" />
+                <UserIcon className="h-16 w-16 text-muted-foreground" />
               </AvatarFallback>
             )}
           </Avatar>
-
-          <div className="w-full space-y-2">
-            <Collapsible open={isProfileOpen} onOpenChange={setIsProfileOpen}>
-              <CollapsibleTrigger asChild>
-                <Button variant="outline" className="w-full justify-start">
-                  <UserIcon className="mr-2 h-4 w-4" />
-                  Profile
-                  <ChevronDown
-                    className={cn(
-                      'ml-auto h-4 w-4 transition-transform',
-                      isProfileOpen && 'rotate-180'
-                    )}
-                  />
-                </Button>
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <div className="mt-2 rounded-md border px-4 py-2 font-medium">
-                  {userName}
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
-
+          <CardTitle className="text-2xl">{userName}</CardTitle>
+        </CardHeader>
+        <CardContent className="p-6 space-y-4">
+            <Separator />
             <Dialog>
               <DialogTrigger asChild>
-                <Button variant="outline" className="w-full justify-start">
-                  <Lock className="mr-2 h-4 w-4" />
+                <Button variant="ghost" className="w-full justify-start text-base">
+                  <Lock className="mr-3 h-5 w-5" />
                   Change Password
                 </Button>
               </DialogTrigger>
@@ -161,6 +135,7 @@ export default function ProfileCard() {
                         className="col-span-3"
                         value={currentPassword}
                         onChange={(e) => setCurrentPassword(e.target.value)}
+                        required
                       />
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
@@ -173,6 +148,7 @@ export default function ProfileCard() {
                         className="col-span-3"
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
+                        required
                       />
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
@@ -188,6 +164,7 @@ export default function ProfileCard() {
                         className="col-span-3"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
+                        required
                       />
                     </div>
                   </div>
@@ -200,15 +177,18 @@ export default function ProfileCard() {
               </DialogContent>
             </Dialog>
 
+            <Separator />
+            
             <Button
-              variant="outline"
-              className="w-full justify-start"
+              variant="ghost"
+              className="w-full justify-start text-base text-destructive hover:text-destructive hover:bg-destructive/10"
               onClick={handleLogout}
             >
-              <LogOut className="mr-2 h-4 w-4" />
+              <LogOut className="mr-3 h-5 w-5" />
               Logout
             </Button>
-          </div>
+            <Separator />
+
         </CardContent>
       </Card>
     </div>
