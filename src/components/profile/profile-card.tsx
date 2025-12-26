@@ -23,7 +23,8 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useState, useEffect, useContext } from 'react';
 import Image from 'next/image';
-import type { ImagePlaceholder } from '@/lib/placeholder-images';
+import type { ImagePlaceholder } from '@/lib/placeholder-images.d';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { AuthContext } from '@/context/auth-context';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -43,11 +44,9 @@ export default function ProfileCard() {
   const [confirmPassword, setConfirmPassword] = useState('');
 
   useEffect(() => {
-    import('@/lib/placeholder-images').then((images) => {
-      setUserAvatar(
-        images.PlaceHolderImages.find((img) => img.id === 'user-avatar')
-      );
-    });
+    setUserAvatar(
+      PlaceHolderImages.find((img) => img.id === 'user-avatar')
+    );
   }, []);
 
   const handleLogout = () => {

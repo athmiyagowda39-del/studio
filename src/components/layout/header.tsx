@@ -4,7 +4,8 @@ import { usePathname } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { SidebarTrigger } from '@/components/ui/sidebar';
-import type { ImagePlaceholder } from '@/lib/placeholder-images';
+import type { ImagePlaceholder } from '@/lib/placeholder-images.d';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Bell } from 'lucide-react';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
@@ -17,9 +18,7 @@ export default function Header() {
   const showLoginDetails = pathname !== '/leads-upload';
 
   useEffect(() => {
-    import('@/lib/placeholder-images').then((images) => {
-      setUserAvatar(images.PlaceHolderImages.find((img) => img.id === 'user-avatar'));
-    });
+    setUserAvatar(PlaceHolderImages.find((img) => img.id === 'user-avatar'));
     setCurrentDate(format(new Date(), 'dd-MM-yyyy'));
   }, []);
 
