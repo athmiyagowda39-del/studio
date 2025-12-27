@@ -240,8 +240,9 @@ export default function LeadUploadForm() {
         const leadsFromFile: Omit<LeadFormData, 'leadId' | 'creationDate'>[] = json.slice(1).map((row: any[]) => {
             const lead: any = {};
             headers.forEach((header, index) => {
-                const lowerCaseHeader = header.toLowerCase();
-                lead[lowerCaseHeader] = row[index];
+                // Keep the original header for display but use a consistent key for logic
+                const key = header.toLowerCase().replace(/\s+/g, '');
+                lead[key] = row[index];
             });
              const location = pincodeData[lead.pincode];
 
@@ -521,5 +522,3 @@ export default function LeadUploadForm() {
     </div>
   );
 }
-
-    
