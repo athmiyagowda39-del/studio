@@ -25,7 +25,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '../ui/textarea';
 import { Calendar } from '../ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
-import { CalendarIcon, ChevronDown, ChevronUp, Search } from 'lucide-react';
+import { CalendarIcon, ChevronDown, ChevronUp, Search, Check, ChevronsUpDown } from 'lucide-react';
 import { format, subDays, startOfDay } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
@@ -34,6 +34,14 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import type { LeadFormData } from './lead-upload-form';
 import * as XLSX from 'xlsx';
@@ -94,6 +102,9 @@ export default function LeadUpdateForm() {
   const [filteredLeads, setFilteredLeads] = useState<LeadFormData[]>([]);
   const [showResults, setShowResults] = useState(false);
   const [activeQuickFilter, setActiveQuickFilter] = useState('');
+
+  const [transferredLead, setTransferredLead] = useState('');
+  const [transferredLeadOpen, setTransferredLeadOpen] = useState(false);
   
   const [filters, setFilters] = useState(initialFilterState);
 
@@ -581,7 +592,52 @@ export default function LeadUpdateForm() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="transferredLead">TRANSFERRED LEAD</Label>
-                <Input id="transferredLead" />
+                <Popover open={transferredLeadOpen} onOpenChange={setTransferredLeadOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={transferredLeadOpen}
+                      className="w-full justify-between font-normal"
+                    >
+                      {transferredLead
+                        ? allLeads.find((lead) => lead.leadId === transferredLead)?.contactPerson
+                        : "Select lead..."}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                    <Command>
+                      <CommandInput placeholder="Search lead..." />
+                      <CommandList>
+                        <CommandEmpty>No leads found.</CommandEmpty>
+                        <CommandGroup>
+                          {allLeads.map((lead) => (
+                            <CommandItem
+                              key={lead.leadId}
+                              value={lead.leadId}
+                              onSelect={(currentValue) => {
+                                setTransferredLead(currentValue === transferredLead ? "" : currentValue);
+                                setTransferredLeadOpen(false);
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  transferredLead === lead.leadId ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              <div>
+                                <p>{lead.contactPerson}</p>
+                                <p className="text-xs text-muted-foreground">{lead.leadId}</p>
+                              </div>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
               <p className="font-semibold">Follow Up</p>
               <div className="space-y-2">
