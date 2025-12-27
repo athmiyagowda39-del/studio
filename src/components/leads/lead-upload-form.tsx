@@ -99,7 +99,7 @@ const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate'> = {
 
 export default function LeadUploadForm() {
   const [formData, setFormData] = useState<Omit<LeadFormData, 'leadId' | 'creationDate'>>(initialFormState);
-  const [addedLeads, setAddedLeads] = useState<LeadFormData[]>([]);
+  const [addedLeads, setAddedLeads] = useState<Omit<LeadFormData, 'leadId' | 'creationDate'>[]>([]);
   const [sectorOpen, setSectorOpen] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -165,6 +165,7 @@ export default function LeadUploadForm() {
       const existingLeads: LeadFormData[] = existingLeadsJson ? JSON.parse(existingLeadsJson) : [];
       const updatedLeads = [...existingLeads, ...leads];
       localStorage.setItem('uploadedLeads', JSON.stringify(updatedLeads));
+      window.dispatchEvent(new Event('storage')); // Notify other components of the change
     } catch (error) {
       console.error("Could not save leads to localStorage", error);
       toast({
@@ -176,18 +177,17 @@ export default function LeadUploadForm() {
   }
 
   const handleSaveLeads = () => {
-    let leadsToSave: LeadFormData[] = [...addedLeads];
-    
     const formHasData = Object.values(formData).some(value => value !== '' && value !== false);
+    let leadsToProcess: Omit<LeadFormData, 'leadId' | 'creationDate'>[] = [];
 
     if (formHasData) {
-       if (!validateLead(formData)) return;
-        const now = Date.now();
-        const newLeadId = `LEAD-${now}-${Math.floor(Math.random() * 1000)}`;
-        leadsToSave.push({ ...formData, leadId: newLeadId, creationDate: now });
+        if (!validateLead(formData)) return;
+        leadsToProcess.push(formData);
     }
+    
+    leadsToProcess = [...leadsToProcess, ...addedLeads];
 
-    if (leadsToSave.length === 0) {
+    if (leadsToProcess.length === 0) {
          toast({
             variant: "destructive",
             title: "No leads to save",
@@ -196,11 +196,20 @@ export default function LeadUploadForm() {
         return;
     }
 
-    saveLeadsToLocalStorage(leadsToSave);
+    const leadsWithIds = leadsToProcess.map((lead, index) => {
+        const now = Date.now();
+        return {
+            ...lead,
+            leadId: `LEAD-${now}-${index}`,
+            creationDate: now
+        };
+    });
+
+    saveLeadsToLocalStorage(leadsWithIds);
     
     toast({
         title: "Leads added successfully",
-        description: `${leadsToSave.length} lead(s) have been successfully saved.`,
+        description: `${leadsWithIds.length} lead(s) have been successfully saved.`,
     });
     resetForm();
   };
@@ -227,7 +236,7 @@ export default function LeadUploadForm() {
             return;
         }
 
-        const headers = (json[0] as string[]).map(h => h.trim());
+        const headers = (json[0] as string[]).map(h => h.toString().trim());
         const leadsFromFile: Omit<LeadFormData, 'leadId' | 'creationDate'>[] = json.slice(1).map((row: any[]) => {
             const lead: any = {};
             headers.forEach((header, index) => {
@@ -257,11 +266,7 @@ export default function LeadUploadForm() {
             setFormData(firstLead);
 
             if(leadsFromFile.length > 1) {
-                const otherLeads = leadsFromFile.slice(1).map((lead, index) => ({
-                    ...lead,
-                    leadId: `LEAD-${Date.now()}-${index}`,
-                    creationDate: Date.now()
-                }));
+                const otherLeads = leadsFromFile.slice(1);
                 setAddedLeads(otherLeads);
             }
 
