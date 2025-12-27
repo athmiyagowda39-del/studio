@@ -562,7 +562,21 @@ export default function LeadUpdateForm() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="module">Module</Label>
-                  <Input id="module" value={leadDetails.selectedModule || ''} onChange={(e) => handleLeadDetailChange('selectedModule', e.target.value)} />
+                  <Select 
+                    value={leadDetails.selectedModule || ''} 
+                    onValueChange={(value) => handleLeadDetailChange('selectedModule', value)}
+                  >
+                    <SelectTrigger id="module">
+                      <SelectValue placeholder="Select Module" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ar">AR</SelectItem>
+                      <SelectItem value="all-hrms">All HRMS</SelectItem>
+                      <SelectItem value="module1">Module 1</SelectItem>
+                      <SelectItem value="module2">Module 2</SelectItem>
+                      <SelectItem value="module3">Module 3</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="manager">Manager</Label>
