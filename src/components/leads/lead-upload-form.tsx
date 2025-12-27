@@ -178,7 +178,7 @@ export default function LeadUploadForm() {
   const handleSaveLeads = () => {
     let leadsToSave: LeadFormData[] = [...addedLeads];
     
-    const formHasData = formData.pincode || formData.contactPerson || formData.company || formData.address || formData.contactNumber;
+    const formHasData = Object.values(formData).some(value => value !== '' && value !== false);
 
     if (formHasData) {
        if (!validateLead(formData)) return;
