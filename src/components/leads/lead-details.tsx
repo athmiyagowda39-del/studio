@@ -110,7 +110,7 @@ export default function LeadDetails() {
                     <TableHead>Sl No</TableHead>
                     <TableHead>Lead Id</TableHead>
                     <TableHead>Lead Date</TableHead>
-                    <TableHead>Product</TableHead>
+                    <TableHead>Module</TableHead>
                     <TableHead>Company</TableHead>
                     <TableHead>Contact</TableHead>
                     <TableHead>Phone</TableHead>
