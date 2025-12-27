@@ -784,7 +784,7 @@ export default function LeadUpdateForm() {
           <CardTitle className='text-primary text-base font-bold'>Lead Status</CardTitle>
         </CardHeader>
         <CardContent className='p-4 space-y-4'>
-           <div className="flex items-end gap-4">
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
                 <div className="space-y-2">
                     <Label htmlFor="lead-id-status">Lead ID</Label>
                     <Popover open={leadIdForStatusOpen} onOpenChange={setLeadIdForStatusOpen}>
@@ -793,13 +793,13 @@ export default function LeadUpdateForm() {
                             variant="outline"
                             role="combobox"
                             aria-expanded={leadIdForStatusOpen}
-                            className="w-[250px] justify-between font-normal"
+                            className="w-full justify-between font-normal"
                             >
                             {leadIdForStatus || "Select Lead ID..."}
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                             </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-[250px] p-0">
+                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
                             <Command>
                                 <CommandInput placeholder="Search lead ID..." />
                                 <CommandList>
@@ -828,7 +828,7 @@ export default function LeadUpdateForm() {
                 </div>
                 
                 {leadIdForStatus && (
-                    <div className="space-y-2 flex-1">
+                    <div className="space-y-2">
                         <Label htmlFor="initial-remarks">Initial Remarks</Label>
                         <Textarea 
                             id="initial-remarks"
@@ -840,7 +840,8 @@ export default function LeadUpdateForm() {
                 )}
            </div>
 
-           <div className="flex items-center gap-4 mt-4">
+           {leadIdForStatus && (
+            <div className="flex items-center gap-4 mt-4">
                 <div>
                     <span className="font-semibold">Current Status: {currentStatus}</span>
                 </div>
@@ -856,6 +857,7 @@ export default function LeadUpdateForm() {
                 </Select>
                 <Button onClick={handleUpdateStatus}>Update</Button>
             </div>
+           )}
         </CardContent>
       </Card>
 
