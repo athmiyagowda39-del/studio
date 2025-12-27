@@ -240,7 +240,8 @@ export default function LeadUploadForm() {
         const leadsFromFile: Omit<LeadFormData, 'leadId' | 'creationDate'>[] = json.slice(1).map((row: any[]) => {
             const lead: any = {};
             headers.forEach((header, index) => {
-                lead[header] = row[index];
+                const lowerCaseHeader = header.toLowerCase();
+                lead[lowerCaseHeader] = row[index];
             });
              const location = pincodeData[lead.pincode];
 
@@ -249,14 +250,14 @@ export default function LeadUploadForm() {
                 state: location?.state || '',
                 district: location?.district || '',
                 address: lead.address || '',
-                contactPerson: lead.contactPerson || '',
-                contactNumber: lead.contactNumber?.toString() || '',
+                contactPerson: lead.contactperson || '',
+                contactNumber: lead.contactnumber?.toString() || '',
                 reference: lead.reference || '',
                 email: lead.email || '',
                 company: lead.company || '',
                 headcount: lead.headcount?.toString() || '',
                 sector: lead.sector || '',
-                selectedModule: lead.selectedModule || '',
+                selectedModule: lead.selectedmodule || '',
                 toDealer: false, // Default value
             };
         });
@@ -520,5 +521,3 @@ export default function LeadUploadForm() {
     </div>
   );
 }
-
-    
