@@ -114,6 +114,10 @@ export default function LeadUpdateForm() {
 
   const [transferredTo, setTransferredTo] = useState('');
   const [transferredToOpen, setTransferredToOpen] = useState(false);
+
+  const [leadIdForStatus, setLeadIdForStatus] = useState('');
+  const [leadIdForStatusOpen, setLeadIdForStatusOpen] = useState(false);
+  const [initialRemarks, setInitialRemarks] = useState('');
   
   const [filters, setFilters] = useState(initialFilterState);
 
@@ -153,10 +157,9 @@ export default function LeadUpdateForm() {
       console.error('Failed to parse leads from localStorage', error);
     }
   }, []);
-  
-  const handleSearchLead = () => {
-    const leadId = searchInput;
-    if (!leadId) {
+
+  const findLeadAndSetDetails = (leadId: string) => {
+     if (!leadId) {
         setLeadDetails({});
         setSearchLeadId('');
         return;
@@ -191,6 +194,10 @@ export default function LeadUpdateForm() {
             description: `No lead found with ID: ${leadId}`,
         });
     }
+  }
+  
+  const handleSearchLead = () => {
+    findLeadAndSetDetails(searchInput);
   };
 
   const handleLeadDetailChange = (field: keyof LeadFormData, value: string | boolean | number | Date | undefined) => {
@@ -250,20 +257,47 @@ export default function LeadUpdateForm() {
       });
       return;
     }
-     if (!leadDetails.leadId) {
+     if (!leadIdForStatus) {
       toast({
         variant: 'destructive',
-        title: 'No Lead Loaded',
-        description: 'Please load a lead before updating its status.',
+        title: 'No Lead Selected',
+        description: 'Please select a lead before updating its status.',
       });
       return;
     }
-    setCurrentStatus(selectedStatus);
-    handleLeadDetailChange('status', selectedStatus);
-    toast({
-      title: 'Status Ready to Update',
-      description: `Lead status will be updated to ${selectedStatus} upon saving.`,
+
+    const updatedLeads = allLeads.map(lead => {
+        if (lead.leadId === leadIdForStatus) {
+            return {
+                ...lead,
+                status: selectedStatus,
+                // A way to store initial remarks if needed.
+                // This assumes a new field on the lead object.
+                initialRemarks: initialRemarks 
+            };
+        }
+        return lead;
     });
+
+    setAllLeads(updatedLeads);
+    localStorage.setItem('uploadedLeads', JSON.stringify(updatedLeads));
+
+    const leadToUpdate = updatedLeads.find(l => l.leadId === leadIdForStatus);
+    if(leadToUpdate) {
+        setCurrentStatus(leadToUpdate.status || 'Initial');
+    }
+
+    toast({
+      title: 'Status Updated',
+      description: `Lead ${leadIdForStatus} status updated to ${selectedStatus}.`,
+    });
+    
+    // Also update the main form if the same lead is loaded
+    if (leadDetails.leadId === leadIdForStatus) {
+        setLeadDetails(prev => ({...prev, status: selectedStatus}));
+    }
+
+    setInitialRemarks('');
   };
 
   const handleFilterChange = (field: keyof typeof filters, value: any) => {
@@ -437,6 +471,18 @@ export default function LeadUpdateForm() {
       description: `Lead ${leadDetails.leadId} has been successfully updated.`,
     });
   };
+
+  const handleSelectLeadForStatus = (leadId: string) => {
+      const selectedLeadId = leadId === leadIdForStatus ? '' : leadId;
+      setLeadIdForStatus(selectedLeadId);
+      const foundLead = allLeads.find(lead => lead.leadId === selectedLeadId);
+      if (foundLead) {
+          setCurrentStatus(foundLead.status || 'Initial');
+      } else {
+          setCurrentStatus('Initial');
+      }
+      setLeadIdForStatusOpen(false);
+  }
 
   const summaryDisplay = [
     { title: 'Total Leads', value: summaryCards.total },
@@ -737,41 +783,79 @@ export default function LeadUpdateForm() {
         <CardHeader className='bg-primary/10'>
           <CardTitle className='text-primary text-base font-bold'>Lead Status</CardTitle>
         </CardHeader>
-        <CardContent className='p-4'>
-           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <span className="font-semibold">Initial Remarks:</span>
-               <div className="w-[250px] flex gap-2">
-                <Input 
-                  placeholder="Enter Lead ID"
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearchLead()}
-                />
-                <Button onClick={handleSearchLead} size="icon"><Search className="h-4 w-4" /></Button>
-              </div>
+        <CardContent className='p-4 space-y-4'>
+           <div className="flex items-end gap-4">
+                <div className="space-y-2">
+                    <Label htmlFor="lead-id-status">Lead ID</Label>
+                    <Popover open={leadIdForStatusOpen} onOpenChange={setLeadIdForStatusOpen}>
+                        <PopoverTrigger asChild>
+                            <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={leadIdForStatusOpen}
+                            className="w-[250px] justify-between font-normal"
+                            >
+                            {leadIdForStatus || "Select Lead ID..."}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[250px] p-0">
+                            <Command>
+                                <CommandInput placeholder="Search lead ID..." />
+                                <CommandList>
+                                    <CommandEmpty>No leads found.</CommandEmpty>
+                                    <CommandGroup>
+                                    {allLeads.map((lead) => (
+                                        <CommandItem
+                                        key={lead.leadId}
+                                        value={lead.leadId}
+                                        onSelect={handleSelectLeadForStatus}
+                                        >
+                                        <Check
+                                            className={cn(
+                                            "mr-2 h-4 w-4",
+                                            leadIdForStatus === lead.leadId ? "opacity-100" : "opacity-0"
+                                            )}
+                                        />
+                                        {lead.leadId}
+                                        </CommandItem>
+                                    ))}
+                                    </CommandGroup>
+                                </CommandList>
+                            </Command>
+                        </PopoverContent>
+                    </Popover>
+                </div>
+                
+                {leadIdForStatus && (
+                    <div className="space-y-2 flex-1">
+                        <Label htmlFor="initial-remarks">Initial Remarks</Label>
+                        <Textarea 
+                            id="initial-remarks"
+                            placeholder="Enter remarks..."
+                            value={initialRemarks}
+                            onChange={(e) => setInitialRemarks(e.target.value)}
+                        />
+                    </div>
+                )}
+           </div>
+
+           <div className="flex items-center gap-4 mt-4">
+                <div>
+                    <span className="font-semibold">Current Status: {currentStatus}</span>
+                </div>
+                <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="-- Select --" />
+                </SelectTrigger>
+                <SelectContent>
+                    {leadStatusOptions.map((status) => (
+                        <SelectItem key={status} value={status}>{status}</SelectItem>
+                    ))}
+                </SelectContent>
+                </Select>
+                <Button onClick={handleUpdateStatus}>Update</Button>
             </div>
-            <div>
-              <span className="font-semibold">Current Status: {currentStatus}</span>
-            </div>
-            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="-- Select --" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Attended">Attended</SelectItem>
-                <SelectItem value="Not viewed">Not viewed</SelectItem>
-                <SelectItem value="Demo Given">Demo Given</SelectItem>
-                <SelectItem value="Unattended">Unattended</SelectItem>
-                <SelectItem value="Pursuing to Purchase">
-                  Pursuing to Purchase
-                </SelectItem>
-                <SelectItem value="Not interested">Not interested</SelectItem>
-                <SelectItem value="Order closed">Order closed</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button onClick={handleUpdateStatus}>Update</Button>
-          </div>
         </CardContent>
       </Card>
 
@@ -1041,7 +1125,7 @@ export default function LeadUpdateForm() {
                         <TableBody>
                           {filteredLeads.length > 0 ? (
                             filteredLeads.map((lead, index) => (
-                              <TableRow key={`${lead.leadId}-${index}`}>
+                              <TableRow key={`${lead.leadId}-${index}`} onClick={() => findLeadAndSetDetails(lead.leadId)} className="cursor-pointer">
                                 <TableCell>{index + 1}</TableCell>
                                 <TableCell>{lead.leadId}</TableCell>
                                 <TableCell>
