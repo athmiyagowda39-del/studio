@@ -115,6 +115,7 @@ export default function LeadDetails() {
                     <TableHead>Contact</TableHead>
                     <TableHead>Phone</TableHead>
                     <TableHead>Emailid</TableHead>
+                    <TableHead>Sector</TableHead>
                     <TableHead>Address</TableHead>
                     <TableHead>Place</TableHead>
                     <TableHead>District</TableHead>
@@ -151,6 +152,7 @@ export default function LeadDetails() {
                             <TableCell>{lead.contactPerson || 'N/A'}</TableCell>
                             <TableCell>{lead.contactNumber || 'N/A'}</TableCell>
                             <TableCell>{lead.email || 'N/A'}</TableCell>
+                            <TableCell>{lead.sector || 'N/A'}</TableCell>
                             <TableCell>{lead.address || 'N/A'}</TableCell>
                             <TableCell>{lead.district || 'N/A'}</TableCell>
                             <TableCell>{lead.district || 'N/A'}</TableCell>
