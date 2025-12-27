@@ -85,6 +85,15 @@ const leadStatusOptions = [
     'Order closed',
 ];
 
+const executiveIds = [
+    'EXEC-001',
+    'EXEC-002',
+    'EXEC-003',
+    'EXEC-004',
+    'EXEC-005',
+    'EXEC-006'
+];
+
 export default function LeadUpdateForm() {
   const [searchLeadId, setSearchLeadId] = useState('');
   const [searchInput, setSearchInput] = useState('');
@@ -103,8 +112,8 @@ export default function LeadUpdateForm() {
   const [showResults, setShowResults] = useState(false);
   const [activeQuickFilter, setActiveQuickFilter] = useState('');
 
-  const [transferredLead, setTransferredLead] = useState('');
-  const [transferredLeadOpen, setTransferredLeadOpen] = useState(false);
+  const [transferredTo, setTransferredTo] = useState('');
+  const [transferredToOpen, setTransferredToOpen] = useState(false);
   
   const [filters, setFilters] = useState(initialFilterState);
 
@@ -592,45 +601,40 @@ export default function LeadUpdateForm() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="transferredLead">TRANSFERRED LEAD</Label>
-                <Popover open={transferredLeadOpen} onOpenChange={setTransferredLeadOpen}>
+                <Popover open={transferredToOpen} onOpenChange={setTransferredToOpen}>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
                       role="combobox"
-                      aria-expanded={transferredLeadOpen}
+                      aria-expanded={transferredToOpen}
                       className="w-full justify-between font-normal"
                     >
-                      {transferredLead
-                        ? allLeads.find((lead) => lead.leadId === transferredLead)?.contactPerson
-                        : "Select lead..."}
+                      {transferredTo || "Select Executive ID..."}
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
                     <Command>
-                      <CommandInput placeholder="Search lead..." />
+                      <CommandInput placeholder="Search executive ID..." />
                       <CommandList>
-                        <CommandEmpty>No leads found.</CommandEmpty>
+                        <CommandEmpty>No executives found.</CommandEmpty>
                         <CommandGroup>
-                          {allLeads.map((lead) => (
+                          {executiveIds.map((execId) => (
                             <CommandItem
-                              key={lead.leadId}
-                              value={lead.leadId}
+                              key={execId}
+                              value={execId}
                               onSelect={(currentValue) => {
-                                setTransferredLead(currentValue === transferredLead ? "" : currentValue);
-                                setTransferredLeadOpen(false);
+                                setTransferredTo(currentValue === transferredTo ? "" : currentValue);
+                                setTransferredToOpen(false);
                               }}
                             >
                               <Check
                                 className={cn(
                                   "mr-2 h-4 w-4",
-                                  transferredLead === lead.leadId ? "opacity-100" : "opacity-0"
+                                  transferredTo === execId ? "opacity-100" : "opacity-0"
                                 )}
                               />
-                              <div>
-                                <p>{lead.contactPerson}</p>
-                                <p className="text-xs text-muted-foreground">{lead.leadId}</p>
-                              </div>
+                              {execId}
                             </CommandItem>
                           ))}
                         </CommandGroup>
