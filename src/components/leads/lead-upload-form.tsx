@@ -144,6 +144,7 @@ export default function LeadUploadForm() {
   const resetForm = () => {
     setFormData(initialFormState);
     setAddedLeads([]);
+    handleCancel();
   };
 
   const validateLead = (lead: Omit<LeadFormData, 'leadId' | 'creationDate'>) => {
@@ -210,9 +211,66 @@ export default function LeadUploadForm() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setSelectedFile(e.target.files[0]);
+      const file = e.target.files[0];
+      setSelectedFile(file);
       setShowPreview(false);
       setParsedData(null);
+      setAddedLeads([]);
+
+      processFile(file, (json) => {
+        if (json.length < 2) {
+            toast({
+                variant: "destructive",
+                title: "Empty File",
+                description: "The selected file has no data rows.",
+            });
+            return;
+        }
+
+        const headers = (json[0] as string[]).map(h => h.trim());
+        const leadsFromFile: Omit<LeadFormData, 'leadId' | 'creationDate'>[] = json.slice(1).map((row: any[]) => {
+            const lead: any = {};
+            headers.forEach((header, index) => {
+                lead[header] = row[index];
+            });
+             const location = pincodeData[lead.pincode];
+
+            return {
+                pincode: lead.pincode?.toString() || '',
+                state: location?.state || '',
+                district: location?.district || '',
+                address: lead.address || '',
+                contactPerson: lead.contactPerson || '',
+                contactNumber: lead.contactNumber?.toString() || '',
+                reference: lead.reference || '',
+                email: lead.email || '',
+                company: lead.company || '',
+                headcount: lead.headcount?.toString() || '',
+                sector: lead.sector || '',
+                selectedModule: lead.selectedModule || '',
+                toDealer: false, // Default value
+            };
+        });
+
+        if (leadsFromFile.length > 0) {
+            const firstLead = leadsFromFile[0];
+            setFormData(firstLead);
+
+            if(leadsFromFile.length > 1) {
+                const otherLeads = leadsFromFile.slice(1).map((lead, index) => ({
+                    ...lead,
+                    leadId: `LEAD-${Date.now()}-${index}`,
+                    creationDate: Date.now()
+                }));
+                setAddedLeads(otherLeads);
+            }
+
+            toast({
+                title: "File Loaded",
+                description: "The first lead has been loaded into the form. The rest are staged. Click 'Save Lead' to save all.",
+            });
+        }
+      });
     }
   };
 
@@ -253,72 +311,7 @@ export default function LeadUploadForm() {
   };
   
   const handleConfirmUpload = () => {
-    if (!selectedFile) {
-        toast({
-            variant: "destructive",
-            title: "No file selected",
-            description: "Please select a file to upload.",
-        });
-      return;
-    }
-
-    processFile(selectedFile, (json) => {
-        const headers = (json[0] as string[]).map(h => h.trim());
-        const leadsFromFile: Omit<LeadFormData, 'leadId' | 'creationDate'>[] = json.slice(1).map((row: any[]) => {
-            const lead: any = {};
-            headers.forEach((header, index) => {
-                lead[header] = row[index];
-            });
-
-            const location = pincodeData[lead.pincode];
-            
-            const headcount = lead.headcount?.toString() || '';
-            let selectedModule = lead.selectedModule || '';
-            
-            return {
-                pincode: lead.pincode?.toString() || '',
-                state: location?.state || '',
-                district: location?.district || '',
-                address: lead.address || '',
-                contactPerson: lead.contactPerson || '',
-                contactNumber: lead.contactNumber?.toString() || '',
-                reference: lead.reference || '',
-                email: lead.email || '',
-                company: lead.company || '',
-                headcount: headcount,
-                sector: lead.sector || '',
-                selectedModule: selectedModule,
-                toDealer: false, // Default value
-            };
-        });
-
-        if (leadsFromFile.length > 0) {
-            // Add unique IDs and creation dates to all leads for saving
-            const leadsToSave = leadsFromFile.map((lead, index) => {
-                const now = Date.now();
-                return {
-                    ...lead,
-                    leadId: `LEAD-${now}-${index}-${Math.floor(Math.random() * 1000)}`,
-                    creationDate: now,
-                };
-            });
-            
-            saveLeadsToLocalStorage(leadsToSave);
-            
-            toast({
-                title: "Upload Confirmed",
-                description: `${leadsToSave.length} lead(s) have been saved.`,
-            });
-        } else {
-            toast({
-                variant: 'destructive',
-                title: 'Empty File',
-                description: 'The uploaded file does not contain any lead data.'
-            });
-        }
-        
-        handleCancel();
-    });
+     handleSaveLeads();
   };
 
 
@@ -522,3 +515,5 @@ export default function LeadUploadForm() {
     </div>
   );
 }
+
+    
