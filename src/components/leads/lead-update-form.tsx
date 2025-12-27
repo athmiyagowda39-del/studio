@@ -684,7 +684,7 @@ export default function LeadUpdateForm() {
                               key={execId}
                               value={execId}
                               onSelect={(currentValue) => {
-                                setTransferredTo(currentValue === transferredTo ? "" : currentValue);
+                                setTransferredTo(currentValue === transferredTo ? "" : currentValue.toUpperCase());
                                 setTransferredToOpen(false);
                               }}
                             >
@@ -809,7 +809,7 @@ export default function LeadUpdateForm() {
                                         <CommandItem
                                         key={lead.leadId}
                                         value={lead.leadId}
-                                        onSelect={handleSelectLeadForStatus}
+                                        onSelect={() => handleSelectLeadForStatus(lead.leadId)}
                                         >
                                         <Check
                                             className={cn(
