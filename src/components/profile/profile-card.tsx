@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -36,8 +37,8 @@ import {
 export default function ProfileCard() {
   const { toast } = useToast();
   const [userAvatar, setUserAvatar] = useState<ImagePlaceholder | undefined>();
-  const [userName] = useState('ATHMIYA');
   const authContext = useContext(AuthContext);
+  const userName = authContext?.user?.username.toUpperCase() || 'User';
 
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -126,7 +127,7 @@ export default function ProfileCard() {
             </CollapsibleTrigger>
             <CollapsibleContent>
               <div className="p-4 text-center text-sm text-muted-foreground">
-                Username: {userName}
+                Username: {authContext?.user?.username}
               </div>
             </CollapsibleContent>
           </Collapsible>

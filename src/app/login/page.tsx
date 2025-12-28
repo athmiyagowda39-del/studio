@@ -23,20 +23,12 @@ export default function LoginPage() {
   const { toast } = useToast();
 
   const handleLogin = () => {
-    if (username.toLowerCase() !== 'athmiya') {
-      toast({
-        variant: 'destructive',
-        title: 'Login Failed',
-        description: 'Invalid username.',
-      });
-      return;
-    }
-    const success = authContext?.login(password);
+    const success = authContext?.login(username, password);
     if (!success) {
       toast({
         variant: 'destructive',
         title: 'Login Failed',
-        description: 'Invalid password.',
+        description: 'Invalid username or password.',
       });
     }
   };
@@ -70,7 +62,7 @@ export default function LoginPage() {
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                autoComplete="off"
+                autoComplete="username"
               />
             </div>
             <div className="grid gap-2">
@@ -85,7 +77,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-                  autoComplete="off"
+                  autoComplete="current-password"
                 />
                 <Button
                   type="button"

@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -10,7 +11,8 @@ import {
 import { getLeadsForToday, getLeadData, type Lead } from '@/lib/data';
 import LeadPerformanceChart from '@/components/dashboard/lead-performance-chart';
 import LeadPerformanceFilters from '@/components/dashboard/lead-performance-filters';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useContext } from 'react';
+import { AuthContext } from '@/context/auth-context';
 
 const months = [
   'January',
@@ -31,6 +33,7 @@ export default function DashboardPage() {
   const [isClient, setIsClient] = useState(false);
   const [totalLeadsToday, setTotalLeadsToday] = useState(0);
   const [allLeads, setAllLeads] = useState<Lead[]>([]);
+  const authContext = useContext(AuthContext);
 
   const [period, setPeriod] = useState('November');
   const [city, setCity] = useState('All');
@@ -83,7 +86,7 @@ export default function DashboardPage() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-col">
         <h1 className="text-2xl font-bold tracking-tight font-headline">
-          WELCOME ATHMIYA!
+          WELCOME {authContext?.user?.username.toUpperCase()}!
         </h1>
         <p className="text-muted-foreground">
           Here is your lead generation overview for today.

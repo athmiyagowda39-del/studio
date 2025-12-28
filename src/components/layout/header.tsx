@@ -44,17 +44,19 @@ export default function Header() {
     });
   };
 
+  const user = authContext?.user;
+
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
       <SidebarTrigger className="md:hidden" />
 
       <div className="flex w-full items-center justify-between gap-4 md:gap-2 lg:gap-4">
         <div className="flex items-center gap-2">
-          {showLoginDetails && (
+          {showLoginDetails && user && (
             <div className="flex flex-col text-sm">
-              <span className="font-medium">Logged in as: ATHMIYA</span>
+              <span className="font-medium">Logged in as: {user.username.toUpperCase()}</span>
               <span className="text-xs text-muted-foreground">
-                Type: SUB ADMIN | Last Login: {currentDate}
+                Type: {user.type} | Last Login: {currentDate}
               </span>
             </div>
           )}
@@ -79,12 +81,12 @@ export default function Header() {
                       className="object-cover"
                     />
                   )}
-                  <AvatarFallback>A</AvatarFallback>
+                  <AvatarFallback>{user?.username.charAt(0).toUpperCase()}</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>ATHMIYA</DropdownMenuLabel>
+              <DropdownMenuLabel>{user?.username.toUpperCase()}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <Link href="/profile">
