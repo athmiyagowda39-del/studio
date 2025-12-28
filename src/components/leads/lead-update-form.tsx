@@ -855,7 +855,7 @@ export default function LeadUpdateForm() {
                             placeholder="Enter remarks..."
                             value={initialRemarks}
                             onChange={(e) => setInitialRemarks(e.target.value)}
-                            className="min-h-[60px]"
+                            className="min-h-[40px]"
                         />
                     </div>
                 )}
