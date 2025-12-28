@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -97,7 +98,6 @@ export default function LeadReportPage() {
   const [selectedSector, setSelectedSector] = useState('All');
   const [selectedHeadcount, setSelectedHeadcount] = useState('All');
   const [allLeads, setAllLeads] = useState<LeadFormData[]>([]);
-  const [filteredLeads, setFilteredLeads] = useState<LeadFormData[]>([]);
 
   useEffect(() => {
     try {
@@ -154,7 +154,7 @@ export default function LeadReportPage() {
     return getLeadStatusesForFilters(allLeads, selectedState, selectedSector, selectedHeadcount);
   }, [allLeads, selectedState, selectedSector, selectedHeadcount]);
   
-  useEffect(() => {
+  const filteredLeads = useMemo(() => {
     let leads = [...allLeads];
     
     if (selectedState && selectedState !== 'All') {
@@ -182,7 +182,7 @@ export default function LeadReportPage() {
       });
     }
     
-    setFilteredLeads(leads);
+    return leads;
 
   }, [selectedState, selectedStatus, selectedSector, selectedHeadcount, allLeads]);
 
