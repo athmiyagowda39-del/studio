@@ -830,35 +830,32 @@ export default function LeadUpdateForm() {
                         </Popover>
                     </div>
 
-                    {leadIdForStatus && (
-                        <div className="flex items-center gap-2">
-                            <span className="font-semibold shrink-0">Current Status: {currentStatus}</span>
-                            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                            <SelectTrigger className="w-full min-w-[200px]">
-                                <SelectValue placeholder="-- Select --" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {leadStatusOptions.map((status) => (
-                                    <SelectItem key={status} value={status}>{status}</SelectItem>
-                                ))}
-                            </SelectContent>
-                            </Select>
-                            <Button onClick={handleUpdateStatus}>Update</Button>
-                        </div>
-                    )}
-                </div>
-
-                {leadIdForStatus && (
-                    <div className="space-y-2">
-                        <Textarea 
-                            id="initial-remarks"
-                            placeholder="Enter remarks..."
-                            value={initialRemarks}
-                            onChange={(e) => setInitialRemarks(e.target.value)}
-                            className="min-h-[40px]"
-                        />
+                    <div className="flex items-center gap-2">
+                        <span className="font-semibold shrink-0">Current Status: {currentStatus}</span>
+                        <Select value={selectedStatus} onValueChange={setSelectedStatus} disabled={!leadIdForStatus}>
+                        <SelectTrigger className="w-full min-w-[200px]">
+                            <SelectValue placeholder="-- Select --" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {leadStatusOptions.map((status) => (
+                                <SelectItem key={status} value={status}>{status}</SelectItem>
+                            ))}
+                        </SelectContent>
+                        </Select>
+                        <Button onClick={handleUpdateStatus} disabled={!leadIdForStatus}>Update</Button>
                     </div>
-                )}
+                </div>
+                
+                <div className="space-y-2">
+                    <Textarea 
+                        id="initial-remarks"
+                        placeholder="Enter remarks..."
+                        value={initialRemarks}
+                        onChange={(e) => setInitialRemarks(e.target.value)}
+                        className="min-h-[40px]"
+                        disabled={!leadIdForStatus}
+                    />
+                </div>
             </div>
         </CardContent>
       </Card>
