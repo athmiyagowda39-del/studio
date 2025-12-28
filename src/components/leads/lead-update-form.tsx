@@ -784,9 +784,9 @@ export default function LeadUpdateForm() {
           <CardTitle className='text-primary text-base font-bold'>Lead Status</CardTitle>
         </CardHeader>
         <CardContent className='p-4 space-y-4'>
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
-                <div className="space-y-2">
-                    <Label htmlFor="lead-id-status">Lead ID</Label>
+           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                <div className="space-y-2 flex items-center gap-2">
+                    <Label htmlFor="lead-id-status" className="shrink-0">Initial Remarks:</Label>
                     <Popover open={leadIdForStatusOpen} onOpenChange={setLeadIdForStatusOpen}>
                         <PopoverTrigger asChild>
                             <Button
@@ -795,7 +795,7 @@ export default function LeadUpdateForm() {
                             aria-expanded={leadIdForStatusOpen}
                             className="w-full justify-between font-normal"
                             >
-                            {leadIdForStatus || "Select Lead ID..."}
+                            {leadIdForStatus || "Select Lead..."}
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                             </Button>
                         </PopoverTrigger>
@@ -829,7 +829,6 @@ export default function LeadUpdateForm() {
                 
                 {leadIdForStatus && (
                     <div className="space-y-2">
-                        <Label htmlFor="initial-remarks">Initial Remarks</Label>
                         <Textarea 
                             id="initial-remarks"
                             placeholder="Enter remarks..."
@@ -838,26 +837,24 @@ export default function LeadUpdateForm() {
                         />
                     </div>
                 )}
-           </div>
 
-           {leadIdForStatus && (
-            <div className="flex items-center gap-4 mt-4">
-                <div>
-                    <span className="font-semibold">Current Status: {currentStatus}</span>
-                </div>
-                <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="-- Select --" />
-                </SelectTrigger>
-                <SelectContent>
-                    {leadStatusOptions.map((status) => (
-                        <SelectItem key={status} value={status}>{status}</SelectItem>
-                    ))}
-                </SelectContent>
-                </Select>
-                <Button onClick={handleUpdateStatus}>Update</Button>
-            </div>
-           )}
+                {leadIdForStatus && (
+                  <div className="flex items-center gap-2">
+                      <span className="font-semibold shrink-0">Current Status: {currentStatus}</span>
+                      <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                      <SelectTrigger className="w-full">
+                          <SelectValue placeholder="-- Select --" />
+                      </SelectTrigger>
+                      <SelectContent>
+                          {leadStatusOptions.map((status) => (
+                              <SelectItem key={status} value={status}>{status}</SelectItem>
+                          ))}
+                      </SelectContent>
+                      </Select>
+                      <Button onClick={handleUpdateStatus}>Update</Button>
+                  </div>
+                )}
+           </div>
         </CardContent>
       </Card>
 
