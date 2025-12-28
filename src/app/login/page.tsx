@@ -69,6 +69,7 @@ export default function LoginPage() {
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
+                autoComplete="off"
               />
             </div>
             <div className="grid gap-2">
@@ -83,6 +84,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+                  autoComplete="off"
                 />
                 <Button
                   type="button"
