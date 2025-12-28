@@ -20,7 +20,7 @@ export const AuthContext = createContext<AuthContextType | undefined>(
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [password, setPassword] = useState('password');
+  const [password, setPassword] = useState('passwordd');
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
@@ -31,6 +31,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const storedPassword = localStorage.getItem('userPassword');
     if (storedPassword) {
       setPassword(storedPassword);
+    } else {
+      // For initial setup if no password is in local storage
+      localStorage.setItem('userPassword', 'passwordd');
     }
     setIsLoaded(true);
   }, []);
