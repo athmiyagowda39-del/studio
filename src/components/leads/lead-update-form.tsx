@@ -786,49 +786,68 @@ export default function LeadUpdateForm() {
           <CardTitle className='text-primary text-base font-bold'>Lead Status</CardTitle>
         </CardHeader>
         <CardContent className='p-4 space-y-4'>
-           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-                <div className="space-y-2 flex items-center gap-2">
-                    <Label htmlFor="lead-id-status" className="shrink-0">Initial Remarks:</Label>
-                    <Popover open={leadIdForStatusOpen} onOpenChange={setLeadIdForStatusOpen}>
-                        <PopoverTrigger asChild>
-                            <Button
-                            variant="outline"
-                            role="combobox"
-                            aria-expanded={leadIdForStatusOpen}
-                            className="w-full justify-between font-normal"
-                            >
-                            {leadIdForStatus || "Select Lead..."}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                            <Command>
-                                <CommandInput placeholder="Search lead ID..." />
-                                <CommandList>
-                                    <CommandEmpty>No leads found.</CommandEmpty>
-                                    <CommandGroup>
-                                    {allLeads.map((lead) => (
-                                        <CommandItem
-                                        key={lead.leadId}
-                                        value={lead.leadId}
-                                        onSelect={() => handleSelectLeadForStatus(lead.leadId)}
-                                        >
-                                        <Check
-                                            className={cn(
-                                            "mr-2 h-4 w-4",
-                                            leadIdForStatus === lead.leadId ? "opacity-100" : "opacity-0"
-                                            )}
-                                        />
-                                        {lead.leadId}
-                                        </CommandItem>
-                                    ))}
-                                    </CommandGroup>
-                                </CommandList>
-                            </Command>
-                        </PopoverContent>
-                    </Popover>
+            <div className='flex flex-col gap-4'>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+                    <div className="space-y-2">
+                        <Label htmlFor="lead-id-status" className="shrink-0">Initial Remarks:</Label>
+                        <Popover open={leadIdForStatusOpen} onOpenChange={setLeadIdForStatusOpen}>
+                            <PopoverTrigger asChild>
+                                <Button
+                                variant="outline"
+                                role="combobox"
+                                aria-expanded={leadIdForStatusOpen}
+                                className="w-full justify-between font-normal"
+                                >
+                                {leadIdForStatus || "Select Lead..."}
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                <Command>
+                                    <CommandInput placeholder="Search lead ID..." />
+                                    <CommandList>
+                                        <CommandEmpty>No leads found.</CommandEmpty>
+                                        <CommandGroup>
+                                        {allLeads.map((lead) => (
+                                            <CommandItem
+                                            key={lead.leadId}
+                                            value={lead.leadId}
+                                            onSelect={() => handleSelectLeadForStatus(lead.leadId)}
+                                            >
+                                            <Check
+                                                className={cn(
+                                                "mr-2 h-4 w-4",
+                                                leadIdForStatus === lead.leadId ? "opacity-100" : "opacity-0"
+                                                )}
+                                            />
+                                            {lead.leadId}
+                                            </CommandItem>
+                                        ))}
+                                        </CommandGroup>
+                                    </CommandList>
+                                </Command>
+                            </PopoverContent>
+                        </Popover>
+                    </div>
+
+                    {leadIdForStatus && (
+                        <div className="flex items-center gap-2">
+                            <span className="font-semibold shrink-0">Current Status: {currentStatus}</span>
+                            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                            <SelectTrigger className="w-full min-w-[200px]">
+                                <SelectValue placeholder="-- Select --" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {leadStatusOptions.map((status) => (
+                                    <SelectItem key={status} value={status}>{status}</SelectItem>
+                                ))}
+                            </SelectContent>
+                            </Select>
+                            <Button onClick={handleUpdateStatus}>Update</Button>
+                        </div>
+                    )}
                 </div>
-                
+
                 {leadIdForStatus && (
                     <div className="space-y-2">
                         <Textarea 
@@ -836,28 +855,11 @@ export default function LeadUpdateForm() {
                             placeholder="Enter remarks..."
                             value={initialRemarks}
                             onChange={(e) => setInitialRemarks(e.target.value)}
-                            className="h-10 min-h-[40px] w-full"
+                            className="min-h-[60px]"
                         />
                     </div>
                 )}
-
-                {leadIdForStatus && (
-                  <div className="flex items-center gap-2">
-                      <span className="font-semibold shrink-0">Current Status: {currentStatus}</span>
-                      <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                      <SelectTrigger className="w-full min-w-[180px]">
-                          <SelectValue placeholder="-- Select --" />
-                      </SelectTrigger>
-                      <SelectContent>
-                          {leadStatusOptions.map((status) => (
-                              <SelectItem key={status} value={status}>{status}</SelectItem>
-                          ))}
-                      </SelectContent>
-                      </Select>
-                      <Button onClick={handleUpdateStatus}>Update</Button>
-                  </div>
-                )}
-           </div>
+            </div>
         </CardContent>
       </Card>
 
