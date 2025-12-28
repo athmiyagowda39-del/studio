@@ -42,18 +42,9 @@ export default function LeadDetails() {
   const loadLeads = useCallback(() => {
     setIsLoading(true);
     try {
-      // Clear all leads on load, but keep one if exists for demo
       const storedLeads = localStorage.getItem('uploadedLeads');
       if (storedLeads) {
-        const parsedLeads: LeadFormData[] = JSON.parse(storedLeads);
-        if (parsedLeads.length > 0) {
-            // Keep only the last lead
-            const lastLead = parsedLeads.slice(-1);
-            setLeads(lastLead);
-            localStorage.setItem('uploadedLeads', JSON.stringify(lastLead));
-        } else {
-            setLeads([]);
-        }
+        setLeads(JSON.parse(storedLeads));
       } else {
         setLeads([]);
       }
@@ -165,8 +156,8 @@ export default function LeadDetails() {
                             <TableCell>{nextFollowupDate}</TableCell>
                             <TableCell>{lastFollowUp ? lastFollowUp.remarks : 'N/A'}</TableCell>
                             <TableCell>{lead.status || 'N/A'}</TableCell>
-                            <TableCell>{/* Lead Sub Status - No data */}</TableCell>
-                            <TableCell>{/* Lead Status Remarks - No data */}</TableCell>
+                            <TableCell>{lead.leadSubStatus || 'N/A'}</TableCell>
+                            <TableCell>{lead.leadStatusRemarks || 'N/A'}</TableCell>
                             <TableCell>{lead.givenBy || 'N/A'}</TableCell>
                             <TableCell>
                                 <AlertDialog>

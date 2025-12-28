@@ -75,6 +75,8 @@ export type LeadFormData = {
   executive?: string;
   givenBy?: string;
   status?: string;
+  leadSubStatus?: string;
+  leadStatusRemarks?: string;
 };
 
 const sectors = ['IT', 'Finance', 'Healthcare', 'Manufacturing', 'Education', 'Retail', 'Hospitality', 'Telecommunication', 'Construction', 'Real Estate', 'Media & Entertainment', 'Government', 'Non-profit', 'Other'];
@@ -237,14 +239,14 @@ export default function LeadUploadForm() {
         }
 
         const headers = (json[0] as string[]).map(h => h.toString().trim());
+        const lowerCaseHeaders = headers.map(h => h.toLowerCase().replace(/\s+/g, ''));
+        
         const leadsFromFile: Omit<LeadFormData, 'leadId' | 'creationDate'>[] = json.slice(1).map((row: any[]) => {
             const lead: any = {};
-            headers.forEach((header, index) => {
-                // Keep the original header for display but use a consistent key for logic
-                const key = header.toLowerCase().replace(/\s+/g, '');
-                lead[key] = row[index];
+            lowerCaseHeaders.forEach((header, index) => {
+                lead[header] = row[index];
             });
-             const location = pincodeData[lead.pincode];
+            const location = pincodeData[lead.pincode];
 
             return {
                 pincode: lead.pincode?.toString() || '',
@@ -258,7 +260,7 @@ export default function LeadUploadForm() {
                 company: lead.company || '',
                 headcount: lead.headcount?.toString() || '',
                 sector: lead.sector || '',
-                selectedModule: lead.selectedmodule || '',
+                selectedModule: lead.selectedmodule || lead.module || '',
                 toDealer: false, // Default value
             };
         });

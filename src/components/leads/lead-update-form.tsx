@@ -270,10 +270,8 @@ export default function LeadUpdateForm() {
         if (lead.leadId === leadIdForStatus) {
             return {
                 ...lead,
-                status: selectedStatus,
-                // A way to store initial remarks if needed.
-                // This assumes a new field on the lead object.
-                initialRemarks: initialRemarks 
+                leadSubStatus: selectedStatus,
+                leadStatusRemarks: initialRemarks,
             };
         }
         return lead;
@@ -281,23 +279,26 @@ export default function LeadUpdateForm() {
 
     setAllLeads(updatedLeads);
     localStorage.setItem('uploadedLeads', JSON.stringify(updatedLeads));
+    window.dispatchEvent(new Event('storage'));
 
     const leadToUpdate = updatedLeads.find(l => l.leadId === leadIdForStatus);
     if(leadToUpdate) {
-        setCurrentStatus(leadToUpdate.status || 'Initial');
+        // We dont update the main status here, but the sub-status
+        // setCurrentStatus(leadToUpdate.status || 'Initial');
     }
 
     toast({
       title: 'Status Updated',
-      description: `Lead ${leadIdForStatus} status updated to ${selectedStatus}.`,
+      description: `Lead ${leadIdForStatus} sub-status updated to ${selectedStatus}.`,
     });
     
     // Also update the main form if the same lead is loaded
     if (leadDetails.leadId === leadIdForStatus) {
-        setLeadDetails(prev => ({...prev, status: selectedStatus}));
+        setLeadDetails(prev => ({...prev, leadSubStatus: selectedStatus, leadStatusRemarks: initialRemarks}));
     }
 
     setInitialRemarks('');
+    setSelectedStatus('');
   };
 
   const handleFilterChange = (field: keyof typeof filters, value: any) => {
@@ -465,6 +466,7 @@ export default function LeadUpdateForm() {
 
     setAllLeads(updatedLeads);
     localStorage.setItem('uploadedLeads', JSON.stringify(updatedLeads));
+    window.dispatchEvent(new Event('storage'));
 
     toast({
       title: 'Lead Updated',
@@ -834,6 +836,7 @@ export default function LeadUpdateForm() {
                             placeholder="Enter remarks..."
                             value={initialRemarks}
                             onChange={(e) => setInitialRemarks(e.target.value)}
+                            className="h-10 min-h-[40px] w-full"
                         />
                     </div>
                 )}
@@ -842,7 +845,7 @@ export default function LeadUpdateForm() {
                   <div className="flex items-center gap-2">
                       <span className="font-semibold shrink-0">Current Status: {currentStatus}</span>
                       <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                      <SelectTrigger className="w-full">
+                      <SelectTrigger className="w-full min-w-[180px]">
                           <SelectValue placeholder="-- Select --" />
                       </SelectTrigger>
                       <SelectContent>
