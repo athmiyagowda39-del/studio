@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -18,8 +19,19 @@ export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [autoComplete, setAutoComplete] = useState('off');
   const authContext = useContext(AuthContext);
   const { toast } = useToast();
+
+  useEffect(() => {
+    // This timeout helps prevent browsers from autofilling on page load
+    // by delaying the enabling of the autocomplete feature.
+    const timer = setTimeout(() => {
+      setAutoComplete('on');
+    }, 500);
+    return () => clearTimeout(timer);
+  }, []);
+
 
   const handleLogin = () => {
     if (username.toLowerCase() !== 'athmiya') {
@@ -69,7 +81,7 @@ export default function LoginPage() {
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                autoComplete="username"
+                autoComplete={autoComplete === 'on' ? 'username' : 'off'}
               />
             </div>
             <div className="grid gap-2">
@@ -84,7 +96,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-                  autoComplete="current-password"
+                  autoComplete={autoComplete === 'on' ? 'current-password' : 'off'}
                 />
                 <Button
                   type="button"
