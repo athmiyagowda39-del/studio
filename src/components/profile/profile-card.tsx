@@ -42,6 +42,7 @@ export default function ProfileCard() {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
 
   useEffect(() => {
     setUserAvatar(
@@ -79,6 +80,7 @@ export default function ProfileCard() {
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
+      setIsPasswordDialogOpen(false); // Close dialog on success
     } else {
       toast({
         variant: 'destructive',
@@ -129,7 +131,7 @@ export default function ProfileCard() {
             </CollapsibleContent>
           </Collapsible>
           <Separator />
-          <Dialog>
+          <Dialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>
             <DialogTrigger asChild>
               <Button
                 variant="ghost"
@@ -192,8 +194,9 @@ export default function ProfileCard() {
                   </div>
                 </div>
                 <DialogFooter>
+                  <Button type="submit">Update Password</Button>
                   <DialogClose asChild>
-                    <Button type="submit">Update Password</Button>
+                     <Button type="button" variant="secondary">Cancel</Button>
                   </DialogClose>
                 </DialogFooter>
               </form>
