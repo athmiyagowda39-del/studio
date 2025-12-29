@@ -40,6 +40,7 @@ const leadStatusOptions = [
 ];
 
 const sectors = ['All', 'IT', 'Finance', 'Healthcare', 'Manufacturing', 'Education', 'Retail', 'Hospitality', 'Telecommunication', 'Construction', 'Real Estate', 'Media & Entertainment', 'Government', 'Non-profit', 'Other'];
+const specificSectors = sectors.slice(1); // Exclude 'All'
 const headcounts = ['All', '1-50', '51-200', '201-500', '501-1000', '1000+'];
 
 
@@ -109,7 +110,7 @@ export default function LeadReportPage() {
         leadsFromStorage = JSON.parse(storedLeads).map((lead: LeadFormData, index: number) => ({
             ...lead,
             status: lead.status || leadStatusOptions[index % leadStatusOptions.length],
-            sector: lead.sector || sectors[(index + 1) % (sectors.length -1)],
+            sector: lead.sector || specificSectors[index % specificSectors.length],
         }));
       }
       
@@ -127,7 +128,7 @@ export default function LeadReportPage() {
             email: `person${index}@example.com`,
             reference: 'Generated',
             headcount: `${Math.floor(Math.random() * 1000) + 1}`,
-            sector: sectors[((index + 1) % (sectors.length - 1)) + 1],
+            sector: specificSectors[index % specificSectors.length],
             selectedModule: 'AR',
             toDealer: false,
             creationDate: date.getTime(),
@@ -138,7 +139,7 @@ export default function LeadReportPage() {
       const leadsWithStatus = combinedLeads.map((lead, index) => ({
           ...lead,
           status: lead.status || leadStatusOptions[index % leadStatusOptions.length],
-          sector: lead.sector || sectors[((index + 1) % (sectors.length -1)) + 1],
+          sector: lead.sector || specificSectors[index % specificSectors.length],
           headcount: lead.headcount || `${Math.floor(Math.random() * 1000) + 1}`,
           creationDate: lead.creationDate ? new Date(lead.creationDate).getTime() : new Date().getTime(),
         }));
