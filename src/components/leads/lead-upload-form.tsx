@@ -178,16 +178,19 @@ export default function LeadUploadForm() {
     }
   }
 
-  const handleSaveLeads = () => {
+  const handleSaveLeads = (leadsToSave?: Omit<LeadFormData, 'leadId' | 'creationDate'>[]) => {
     const formHasData = Object.values(formData).some(value => value !== '' && value !== false);
-    let leadsToProcess: Omit<LeadFormData, 'leadId' | 'creationDate'>[] = [];
+    let leadsToProcess: Omit<LeadFormData, 'leadId' | 'creationDate'>[] = leadsToSave || [];
 
-    if (formHasData) {
+    if (formHasData && !leadsToSave) {
         if (!validateLead(formData)) return;
         leadsToProcess.push(formData);
     }
     
-    leadsToProcess = [...leadsToProcess, ...addedLeads];
+    if(!leadsToSave) {
+        leadsToProcess = [...leadsToProcess, ...addedLeads];
+    }
+
 
     if (leadsToProcess.length === 0) {
          toast({
@@ -227,58 +230,9 @@ export default function LeadUploadForm() {
       setShowPreview(false);
       setParsedData(null);
       setAddedLeads([]);
-
-      processFile(file, (json) => {
-        if (json.length < 2) {
-            toast({
-                variant: "destructive",
-                title: "Empty File",
-                description: "The selected file has no data rows.",
-            });
-            return;
-        }
-
-        const headers = (json[0] as string[]).map(h => h.toString().trim());
-        const lowerCaseHeaders = headers.map(h => h.toLowerCase().replace(/\s+/g, ''));
-        
-        const leadsFromFile: Omit<LeadFormData, 'leadId' | 'creationDate'>[] = json.slice(1).map((row: any[]) => {
-            const lead: any = {};
-            lowerCaseHeaders.forEach((header, index) => {
-                lead[header] = row[index];
-            });
-            const location = pincodeData[lead.pincode];
-
-            return {
-                pincode: lead.pincode?.toString() || '',
-                state: location?.state || '',
-                district: location?.district || '',
-                address: lead.address || '',
-                contactPerson: lead.contactperson || '',
-                contactNumber: lead.contactnumber?.toString() || '',
-                reference: lead.reference || '',
-                email: lead.email || '',
-                company: lead.company || '',
-                headcount: lead.headcount?.toString() || '',
-                sector: lead.sector || '',
-                selectedModule: lead.selectedmodule || lead.module || '',
-                toDealer: false, // Default value
-            };
-        });
-
-        if (leadsFromFile.length > 0) {
-            const firstLead = leadsFromFile[0];
-            setFormData(firstLead);
-
-            if(leadsFromFile.length > 1) {
-                const otherLeads = leadsFromFile.slice(1);
-                setAddedLeads(otherLeads);
-            }
-
-            toast({
-                title: "File Loaded",
-                description: "The first lead has been loaded into the form. The rest are staged. Click 'Save Lead' to save all.",
-            });
-        }
+      toast({
+        title: "File Selected",
+        description: `${file.name}. Click 'Preview data' or 'Confirm Upload'.`,
       });
     }
   };
@@ -320,7 +274,62 @@ export default function LeadUploadForm() {
   };
   
   const handleConfirmUpload = () => {
-     handleSaveLeads();
+    if (!selectedFile) {
+        toast({
+            variant: "destructive",
+            title: "No file selected",
+            description: "Please select a file to upload.",
+        });
+      return;
+    }
+    
+    processFile(selectedFile, (json) => {
+        if (json.length < 2) {
+            toast({
+                variant: "destructive",
+                title: "Empty File",
+                description: "The selected file has no data rows.",
+            });
+            return;
+        }
+
+        const headers = (json[0] as string[]).map(h => h.toString().trim());
+        const lowerCaseHeaders = headers.map(h => h.toLowerCase().replace(/\s+/g, ''));
+        
+        const leadsFromFile: Omit<LeadFormData, 'leadId' | 'creationDate'>[] = json.slice(1).map((row: any[]) => {
+            const lead: any = {};
+            lowerCaseHeaders.forEach((header, index) => {
+                lead[header] = row[index];
+            });
+            const location = pincodeData[lead.pincode];
+
+            return {
+                pincode: lead.pincode?.toString() || '',
+                state: location?.state || '',
+                district: location?.district || '',
+                address: lead.address || '',
+                contactPerson: lead.contactperson || '',
+                contactNumber: lead.contactnumber?.toString() || '',
+                reference: lead.reference || '',
+                email: lead.email || '',
+                company: lead.company || '',
+                headcount: lead.headcount?.toString() || '',
+                sector: lead.sector || '',
+                selectedModule: lead.selectedmodule || lead.module || '',
+                toDealer: false, // Default value
+            };
+        });
+
+        if (leadsFromFile.length > 0) {
+            handleSaveLeads(leadsFromFile);
+        } else {
+             toast({
+                variant: "destructive",
+                title: "No leads found",
+                description: "The file does not contain any leads to upload.",
+            });
+        }
+      });
   };
 
 
@@ -461,7 +470,7 @@ export default function LeadUploadForm() {
       </div>
       <div className="flex justify-end gap-2">
         <Button variant="outline" onClick={resetForm}>Reset</Button>
-        <Button onClick={handleSaveLeads}>Save Lead</Button>
+        <Button onClick={() => handleSaveLeads()}>Save Lead</Button>
       </div>
 
       <div className="space-y-4 pt-6 border-t">
