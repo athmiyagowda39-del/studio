@@ -1023,48 +1023,50 @@ export default function LeadUpdateForm() {
                         <Checkbox id="consider-follow-ups-update" checked={filters.considerFollowUps} onCheckedChange={c => handleFilterChange('considerFollowUps', c as boolean)} />
                         <Label htmlFor="consider-follow-ups-update">consider Follow Ups</Label>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div className="flex items-center gap-4">
-                            <RadioGroup value={filters.followUpStatus} onValueChange={v => handleFilterChange('followUpStatus', v)} className="flex gap-4">
-                                <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="pending" id="pending-update" />
-                                <Label htmlFor="pending-update">Follow Up Pending</Label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="made" id="made-update" />
-                                <Label htmlFor="made-update">Follow Up Made</Label>
-                                </div>
-                            </RadioGroup>
-                        </div>
-                        <div></div>
-                        <div></div>
-                        <div></div>
+                    {filters.considerFollowUps && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                          <div className="flex items-center gap-4">
+                              <RadioGroup value={filters.followUpStatus} onValueChange={v => handleFilterChange('followUpStatus', v)} className="flex gap-4">
+                                  <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="pending" id="pending-update" />
+                                  <Label htmlFor="pending-update">Follow Up Pending</Label>
+                                  </div>
+                                  <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="made" id="made-update" />
+                                  <Label htmlFor="made-update">Follow Up Made</Label>
+                                  </div>
+                              </RadioGroup>
+                          </div>
+                          <div></div>
+                          <div></div>
+                          <div></div>
 
-                        <div className="space-y-1">
-                            <Label htmlFor="follow-up-from-date-update">From Date</Label>
-                            <Input id="follow-up-from-date-update" type="date" value={filters.followUpFromDate} onChange={e => handleFilterChange('followUpFromDate', e.target.value)} />
-                        </div>
-                        <div className="space-y-1">
-                            <Label htmlFor="follow-up-to-date-update">To Date</Label>
-                            <Input id="follow-up-to-date-update" type="date" value={filters.followUpToDate} onChange={e => handleFilterChange('followUpToDate', e.target.value)} />
-                        </div>
-                        <div className="space-y-1">
-                            <Label htmlFor="enter-by-update">Enter by</Label>
-                            <Select value={filters.enterBy} onValueChange={v => handleFilterChange('enterBy', v)}>
-                                <SelectTrigger>
-                                <SelectValue placeholder="--All--" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">--All--</SelectItem>
-                                    <SelectItem value="user1">User 1</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="space-y-1">
-                            <Label htmlFor="remarks-update">Remarks</Label>
-                            <Input id="remarks-update" value={filters.remarksFilter} onChange={e => handleFilterChange('remarksFilter', e.target.value)} />
-                        </div>
-                    </div>
+                          <div className="space-y-1">
+                              <Label htmlFor="follow-up-from-date-update">From Date</Label>
+                              <Input id="follow-up-from-date-update" type="date" value={filters.followUpFromDate} onChange={e => handleFilterChange('followUpFromDate', e.target.value)} />
+                          </div>
+                          <div className="space-y-1">
+                              <Label htmlFor="follow-up-to-date-update">To Date</Label>
+                              <Input id="follow-up-to-date-update" type="date" value={filters.followUpToDate} onChange={e => handleFilterChange('followUpToDate', e.target.value)} />
+                          </div>
+                          <div className="space-y-1">
+                              <Label htmlFor="enter-by-update">Enter by</Label>
+                              <Select value={filters.enterBy} onValueChange={v => handleFilterChange('enterBy', v)}>
+                                  <SelectTrigger>
+                                  <SelectValue placeholder="--All--" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                      <SelectItem value="all">--All--</SelectItem>
+                                      <SelectItem value="user1">User 1</SelectItem>
+                                  </SelectContent>
+                              </Select>
+                          </div>
+                          <div className="space-y-1">
+                              <Label htmlFor="remarks-update">Remarks</Label>
+                              <Input id="remarks-update" value={filters.remarksFilter} onChange={e => handleFilterChange('remarksFilter', e.target.value)} />
+                          </div>
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex justify-end gap-2 pt-4">
