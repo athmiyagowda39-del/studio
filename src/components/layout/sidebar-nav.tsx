@@ -11,7 +11,6 @@ import {
   FilePenLine,
   User,
   FileText,
-  List,
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -20,7 +19,6 @@ const links = [
   { href: '/dashboard', label: 'DASHBOARD', icon: LayoutDashboard },
   { href: '/leads-upload', label: 'LEADS UPLOAD', icon: Upload },
   { href: '/leads-update', label: 'LEADS UPDATE', icon: FilePenLine },
-  { href: '/lead-details', label: 'LEAD DETAILS', icon: List },
   { href: '/reports', label: 'REPORTS', icon: FileText },
   { href: '/profile', label: 'PROFILE', icon: User },
 ];
