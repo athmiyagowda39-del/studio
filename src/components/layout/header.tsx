@@ -69,16 +69,16 @@ export default function Header() {
       <SidebarTrigger className="md:hidden" />
 
       <div className="flex w-full items-center justify-between gap-4 md:gap-2 lg:gap-4">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
           {showLoginDetails && user && (
-            <div className="flex flex-col text-sm">
+            <div className="flex items-baseline gap-4 text-sm">
               <span className="font-medium">
                 Logged in as: {user.username.toUpperCase()}
               </span>
-              <span className="text-xs text-muted-foreground">
+              <span className="text-sm text-muted-foreground">
                 Type: sub admin
               </span>
-              <span className="text-xs text-muted-foreground">
+              <span className="text-sm text-muted-foreground">
                 Last login: 30-12-2025
               </span>
             </div>
