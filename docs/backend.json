@@ -1,0 +1,215 @@
+{
+  "entities": {
+    "Lead": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Lead",
+      "type": "object",
+      "description": "Represents a lead generated in the system.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the lead."
+        },
+        "state": {
+          "type": "string",
+          "description": "The state where the lead was generated."
+        },
+        "city": {
+          "type": "string",
+          "description": "The city where the lead was generated."
+        },
+        "dateGenerated": {
+          "type": "string",
+          "description": "The date when the lead was generated.",
+          "format": "date-time"
+        },
+        "leadDetails": {
+          "type": "string",
+          "description": "Detailed information about the lead."
+        },
+        "executiveId": {
+          "type": "string",
+          "description": "Reference to Executive. (Relationship: Executive 1:N Lead)"
+        }
+      },
+      "required": [
+        "id",
+        "state",
+        "city",
+        "dateGenerated",
+        "leadDetails",
+        "executiveId"
+      ]
+    },
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the system (Manager or Executive).",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user."
+        },
+        "username": {
+          "type": "string",
+          "description": "The username of the user."
+        },
+        "role": {
+          "type": "string",
+          "description": "The role of the user (Manager or Executive)."
+        },
+        "lastLogin": {
+          "type": "string",
+          "description": "The date and time of the user's last login.",
+          "format": "date-time"
+        },
+        "managerId": {
+          "type": "string",
+          "description": "Reference to Manager. (Relationship: Manager 1:N Executive). Null if the user is a Manager"
+        }
+      },
+      "required": [
+        "id",
+        "username",
+        "role"
+      ]
+    },
+    "Dashboard": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Dashboard",
+      "type": "object",
+      "description": "Stores dashboard settings and data.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the dashboard settings."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:1 Dashboard)"
+        },
+        "period": {
+          "type": "string",
+          "description": "The selected time period for analysis on the dashboard."
+        },
+        "stateFilter": {
+          "type": "string",
+          "description": "The selected state filter for lead analysis."
+        },
+        "cityFilter": {
+          "type": "string",
+          "description": "The selected city filter for lead analysis."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "period"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profiles. 'userId' is the Firebase Auth UID. Includes 'role' (Manager or Executive).",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The Firebase Auth UID of the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/roles_manager/{userId}",
+        "definition": {
+          "entityName": "roles_manager",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Documents in this collection indicate manager status. Existence grants manager privileges.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The Firebase Auth UID of the manager."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{managerId}/executives/{executiveId}",
+        "definition": {
+          "entityName": "executive",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Establishes the Manager-Executive relationship. No data is stored here, the existence of the document is used to check the hierachical authorization.",
+          "params": [
+            {
+              "name": "managerId",
+              "description": "The Firebase Auth UID of the manager."
+            },
+            {
+              "name": "executiveId",
+              "description": "The Firebase Auth UID of the executive."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{executiveId}/leads/{leadId}",
+        "definition": {
+          "entityName": "Lead",
+          "schema": {
+            "$ref": "#/backend/entities/Lead"
+          },
+          "description": "Stores leads associated with each executive.",
+          "params": [
+            {
+              "name": "executiveId",
+              "description": "The Firebase Auth UID of the executive (lead owner)."
+            },
+            {
+              "name": "leadId",
+              "description": "The unique ID of the lead."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/dashboards/{dashboardId}",
+        "definition": {
+          "entityName": "Dashboard",
+          "schema": {
+            "$ref": "#/backend/entities/Dashboard"
+          },
+          "description": "Stores dashboard settings for each user.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The Firebase Auth UID of the user."
+            },
+            {
+              "name": "dashboardId",
+              "description": "The unique ID of the dashboard settings document."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "This Firestore data structure is designed to support the LeadView application's requirements, focusing on role-based access control (Manager and Executive), data isolation, and efficient querying. It prioritizes Authorization Independence by denormalizing authorization data where needed and supports QAPs through structural segregation.\n\n**Core Components and Justifications:**\n\n1.  **/users/{userId}**: Stores user profiles. The `role` field indicates the user's role (Manager or Executive), which is crucial for access control.\n\n2.  **/roles_manager/{userId}**: Documents in this collection indicate manager status. The existence of a document grants manager privileges. This is Existence over Content and aligns with DBAC (Database-Based Access Control).\n\n3.  **/users/{managerId}/executives/{executiveId}**: This subcollection structure establishes the Manager-Executive relationship.  `managerId` is the ID of the manager, and `executiveId` is the ID of the executive. No data is stored here, the existence of the document is used to check the hierachical authorization. This enable the manager to add or delete an executive under his managment\n\n4.  **/users/{executiveId}/leads/{leadId}**: Stores leads associated with each executive. This path-based ownership ensures that leads are directly associated with their respective executives, enabling efficient and secure access control. This structure allows for secure listing of leads associated with a specific executive (QAP - Rules are not Filters).\n\n5.  **/users/{userId}/dashboards/{dashboardId}**: Stores dashboard settings for each user. This allows each user to have their own customized dashboard configuration.\n\n**Authorization Independence (Denormalization):**\n\nThe primary strategy for achieving authorization independence involves the hierarchical path structure:  `/users/{executiveId}/leads/{leadId}`. Access to leads is determined solely by the lead's location within the hierarchy. This eliminates the need for `get()` calls in security rules to check a user's role or permissions in other documents. The executive's ID is present in the path, ensuring that rules can enforce ownership based on `request.auth.uid` without needing to read other documents.\n\n**QAPs (Rules are not Filters):**\n\nThe structure supports the QAP principle (Rules are not Filters) as follows:\n\n*   Listing leads for a specific executive: The `/users/{executiveId}/leads/{leadId}` structure enables secure listing of leads for a given executive. The rule simply checks that `request.auth.uid == executiveId`.\n*   Manager access to executive data: The `/users/{managerId}/executives/{executiveId}` structure permits a manager to confirm that an executive is managed by them. This can then be used to grant the manager access to leads owned by the executive"
+  }
+}
