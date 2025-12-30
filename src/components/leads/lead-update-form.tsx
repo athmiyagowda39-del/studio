@@ -45,6 +45,7 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import type { LeadFormData } from './lead-upload-form';
 import * as XLSX from 'xlsx';
+import { ScrollArea } from '../ui/scroll-area';
 
 type FollowUp = {
   id: number;
@@ -748,33 +749,36 @@ export default function LeadUpdateForm() {
                 <Button onClick={handleAddFollowUp}>Add&gt;&gt;</Button>
               </div>
               <div className="space-y-4 pt-4">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Sl No</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Remarks</TableHead>
-                      <TableHead>Next Follow-up</TableHead>
-                      <TableHead>Entered by</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {followUps.map((followUp) => (
-                      <TableRow key={followUp.id}>
-                        <TableCell>{followUp.id}</TableCell>
-                        <TableCell>{followUp.date}</TableCell>
-                        <TableCell>{followUp.remarks}</TableCell>
-                        <TableCell>{followUp.nextFollowUp}</TableCell>
-                        <TableCell>{followUp.enteredBy}</TableCell>
+                <ScrollArea className="h-72 w-full rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Sl No</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Remarks</TableHead>
+                        <TableHead>Next Follow-up</TableHead>
+                        <TableHead>Entered by</TableHead>
                       </TableRow>
-                    ))}
-                    {followUps.length === 0 && (
-                        <TableRow>
-                            <TableCell colSpan={5} className="text-center text-muted-foreground">No follow-ups added yet.</TableCell>
-                        </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {followUps.length > 0 ? (
+                        followUps.map((followUp) => (
+                          <TableRow key={followUp.id}>
+                            <TableCell>{followUp.id}</TableCell>
+                            <TableCell>{followUp.date}</TableCell>
+                            <TableCell>{followUp.remarks}</TableCell>
+                            <TableCell>{followUp.nextFollowUp}</TableCell>
+                            <TableCell>{followUp.enteredBy}</TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                          <TableRow>
+                              <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">No follow-ups added yet.</TableCell>
+                          </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </ScrollArea>
               </div>
             </CardContent>
           </Card>
