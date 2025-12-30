@@ -89,7 +89,7 @@ service cloud.firestore {
       allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
       allow delete: if isExistingOwner(userId);
 
-      // Nested collections for Users
+      // Nested collections for Users - grants access to leads, dashboards etc. for the owner
       match /{allChildren=**} {
         allow read, write: if isOwner(userId);
       }
