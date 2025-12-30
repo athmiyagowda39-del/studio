@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Table,
   TableBody,
@@ -123,17 +123,15 @@ export default function LeadUpdateForm() {
   const [filters, setFilters] = useState(initialFilterState);
 
   const { toast } = useToast();
-  
-  useEffect(() => {
+
+  const loadLeads = useCallback(() => {
     try {
       const storedLeads = localStorage.getItem('uploadedLeads');
       if (storedLeads) {
         const parsedLeads: LeadFormData[] = JSON.parse(storedLeads);
-        // Ensure creationDate is a number and add mock follow-up data
         const correctedLeads = parsedLeads.map((lead, index) => {
           
           let leadFollowUps: FollowUp[] = lead.followUps || [];
-          // Add some mock follow ups for some leads if they don't have any
           if (!lead.followUps && index % 5 === 0) {
             leadFollowUps.push({
               id: 1,
@@ -158,6 +156,23 @@ export default function LeadUpdateForm() {
       console.error('Failed to parse leads from localStorage', error);
     }
   }, []);
+  
+  useEffect(() => {
+    loadLeads();
+    
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === 'uploadedLeads') {
+        loadLeads();
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+
+  }, [loadLeads]);
 
   const findLeadAndSetDetails = (leadId: string) => {
      if (!leadId) {
