@@ -1,7 +1,7 @@
 'use client';
 
 import { useContext } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   Sidebar,
   SidebarContent,
@@ -15,6 +15,7 @@ import { AuthContext } from '@/context/auth-context';
 import LoginPage from './login/page';
 import { Target } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useEffect } from 'react';
 
 const CustomLogo = () => <Target className="size-full" />;
 
@@ -25,6 +26,13 @@ export default function AppContent({
 }) {
   const authContext = useContext(AuthContext);
   const pathname = usePathname();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (authContext?.isAuthenticated && pathname === '/login') {
+      router.replace('/');
+    }
+  }, [authContext?.isAuthenticated, pathname, router]);
 
   if (!authContext || authContext.isAuthLoading) {
     return (
@@ -36,11 +44,11 @@ export default function AppContent({
 
   const { isAuthenticated } = authContext;
 
-  if (pathname === '/login' && !isAuthenticated) {
+  if (!isAuthenticated) {
     return <LoginPage />;
   }
 
-  return isAuthenticated ? (
+  return (
     <SidebarProvider>
       <Sidebar>
         <SidebarHeader>
@@ -60,7 +68,5 @@ export default function AppContent({
         <main className="p-4 md:p-6">{children}</main>
       </SidebarInset>
     </SidebarProvider>
-  ) : (
-    <LoginPage />
   );
 }
