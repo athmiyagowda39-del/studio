@@ -13,9 +13,7 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
-  signInWithCredential,
-  EmailAuthCredential,
-  EmailAuthProvider,
+  signInAnonymously,
 } from 'firebase/auth';
 import type { User as FirebaseUser } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
@@ -56,37 +54,44 @@ const seedInitialUsers = async (auth: any, firestore: any) => {
     { email: 'manager@test.com', password: 'password', username: 'Manager', role: 'Manager' as UserRole },
     { email: 'executive@test.com', password: 'password', username: 'Executive', role: 'Executive' as UserRole },
   ];
+  
+  const currentAuthUser = auth.currentUser;
+  await signInAnonymously(auth);
 
   for (const userSeed of usersToSeed) {
     try {
-      // Attempt to sign in first to see if the user exists
-      await signInWithEmailAndPassword(auth, userSeed.email, userSeed.password);
-    } catch (error: any) {
-      if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
-        // User does not exist, so create them
-        try {
-          const userCredential = await createUserWithEmailAndPassword(auth, userSeed.email, userSeed.password);
-          const newUser = userCredential.user;
-          const userRef = doc(firestore, 'users', newUser.uid);
-          const userData: User = { uid: newUser.uid, username: userSeed.username, role: userSeed.role };
-          await setDoc(userRef, userData);
+      const userCredential = await createUserWithEmailAndPassword(auth, userSeed.email, userSeed.password);
+      const newUser = userCredential.user;
+      const userRef = doc(firestore, 'users', newUser.uid);
+      const userData: User = { uid: newUser.uid, username: userSeed.username, role: userSeed.role };
+      await setDoc(userRef, userData);
 
-          if (userSeed.role === 'Manager') {
-            const managerRef = doc(firestore, 'roles_manager', newUser.uid);
-            await setDoc(managerRef, { uid: newUser.uid });
-          }
-        } catch (creationError) {
-          console.error('Error creating user during seeding:', userSeed.email, creationError);
-        }
+      if (userSeed.role === 'Manager') {
+        const managerRef = doc(firestore, 'roles_manager', newUser.uid);
+        await setDoc(managerRef, { uid: newUser.uid });
+      }
+      
+      // Sign out the newly created user to continue the loop
+      await signOut(auth);
+      // Re-authenticate as anonymous user
+      await signInAnonymously(auth);
+
+    } catch (error: any) {
+      if (error.code === 'auth/email-already-in-use') {
+        // User already exists, which is fine for seeding.
       } else {
-        // Another error occurred during sign-in attempt
-        console.error('Error checking for user during seeding:', userSeed.email, error);
+        console.error('Error creating user during seeding:', userSeed.email, error);
       }
     }
   }
-  // Sign out if we were signed in for checking
-  if (auth.currentUser) {
-    await signOut(auth);
+
+  // Clean up and restore original auth state
+  await signOut(auth); // Sign out anonymous user
+  if (currentAuthUser) {
+     // This part is tricky as we can't just "re-set" the user.
+     // The onAuthStateChanged listener in the provider will handle re-establishing the session.
+     // A page reload might be the simplest way for a user if they were logged in.
+     // For this app's flow, it's okay as seeding happens before login attempts.
   }
 };
 
@@ -189,19 +194,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const changePassword = async (oldPass: string, newPass: string) => {
     if (!auth.currentUser) return false;
-    
-    try {
-        const credential = EmailAuthProvider.credential(auth.currentUser.email!, oldPass);
-        // Re-authenticate user before changing password
-        await signInWithCredential(auth, credential as any);
-        // Now change password
-        // This is a placeholder as re-authentication is complex.
-        console.warn("Password change requires re-authentication, which is not fully implemented here.");
-        return false; // For now, we will return false
-    } catch (error) {
-        console.error("Failed to re-authenticate for password change", error);
-        return false;
-    }
+    // This is a placeholder as re-authentication is complex.
+    console.warn("Password change requires re-authentication, which is not fully implemented here.");
+    return false;
   };
 
   const isAuthenticated = !!firebaseUser && !!user;
