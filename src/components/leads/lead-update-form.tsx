@@ -534,7 +534,7 @@ export default function LeadUpdateForm() {
                   <Label htmlFor="searchLeadId">Lead(id)</Label>
                     <Input 
                         id="searchLeadId" 
-                        placeholder="Select a lead from the table below"
+                        placeholder=""
                         value={searchLeadId}
                         readOnly
                         className="bg-muted"
