@@ -59,7 +59,7 @@ export default function ProfileCard() {
     });
   };
 
-  const handleChangePassword = (e: React.FormEvent) => {
+  const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
       toast({
@@ -71,7 +71,7 @@ export default function ProfileCard() {
     }
     if (!authContext) return;
 
-    const success = authContext.changePassword(currentPassword, newPassword);
+    const success = await authContext.changePassword(currentPassword, newPassword);
 
     if (success) {
       toast({
@@ -128,6 +128,8 @@ export default function ProfileCard() {
             <CollapsibleContent>
               <div className="p-4 text-center text-sm text-muted-foreground">
                 Username: {authContext?.user?.username}
+                 <br />
+                Role: {authContext?.user?.role}
               </div>
             </CollapsibleContent>
           </Collapsible>

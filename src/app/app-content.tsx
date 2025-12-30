@@ -14,10 +14,9 @@ import SidebarNav from '@/components/layout/sidebar-nav';
 import { AuthContext } from '@/context/auth-context';
 import LoginPage from './login/page';
 import { Target } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
-const CustomLogo = () => (
-  <Target className="size-full" />
-);
+const CustomLogo = () => <Target className="size-full" />;
 
 export default function AppContent({
   children,
@@ -27,8 +26,12 @@ export default function AppContent({
   const authContext = useContext(AuthContext);
   const pathname = usePathname();
 
-  if (!authContext) {
-    return null; // Or a loading indicator
+  if (!authContext || authContext.isAuthLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Skeleton className="h-12 w-12 rounded-full" />
+      </div>
+    );
   }
 
   const { isAuthenticated } = authContext;
@@ -36,7 +39,7 @@ export default function AppContent({
   if (pathname === '/login' && !isAuthenticated) {
     return <LoginPage />;
   }
-  
+
   return isAuthenticated ? (
     <SidebarProvider>
       <Sidebar>

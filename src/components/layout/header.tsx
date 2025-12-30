@@ -56,7 +56,7 @@ export default function Header() {
             <div className="flex flex-col text-sm">
               <span className="font-medium">Logged in as: {user.username.toUpperCase()}</span>
               <span className="text-xs text-muted-foreground">
-                Type: {user.type} | Last Login: {currentDate}
+                Type: {user.role} | Last Login: {currentDate}
               </span>
             </div>
           )}
@@ -70,7 +70,7 @@ export default function Header() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-10 w-16 rounded-full p-0">
-                <Avatar className="h-10 w-16 overflow-hidden rounded-full">
+                <Avatar className="h-10 w-10 overflow-hidden rounded-full">
                   {userAvatar && (
                     <Image
                       src={userAvatar.imageUrl}

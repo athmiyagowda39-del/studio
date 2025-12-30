@@ -78,7 +78,7 @@ export default function DashboardPage() {
     return dailyLeads;
   }, [allLeads, period, city, isClient]);
 
-  if (!isClient) {
+  if (!isClient || !authContext?.user) {
     return null; // or a loading skeleton
   }
 
@@ -86,7 +86,7 @@ export default function DashboardPage() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-col">
         <h1 className="text-2xl font-bold tracking-tight font-headline">
-          WELCOME {authContext?.user?.username.toUpperCase()}!
+          WELCOME {authContext.user.username.toUpperCase()}!
         </h1>
         <p className="text-muted-foreground">
           Here is your lead generation overview for today.
