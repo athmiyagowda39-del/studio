@@ -1137,7 +1137,7 @@ export default function LeadUpdateForm() {
                       List of Leads &gt;&gt; [ {activeQuickFilter} ({filteredLeads.length}{' '}
                       Records) ]
                     </p>
-                    <ScrollArea className="h-96 rounded-md border">
+                    <ScrollArea className="h-[600px] w-full rounded-md border">
                       <div className="overflow-x-auto">
                         <Table>
                           <TableHeader>
@@ -1231,3 +1231,5 @@ export default function LeadUpdateForm() {
     </div>
   );
 }
+
+    
