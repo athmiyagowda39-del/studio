@@ -176,6 +176,15 @@ const Sidebar = React.forwardRef<
     ref
   ) => {
     const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
+    const [isClient, setIsClient] = React.useState(false)
+
+    React.useEffect(() => {
+      setIsClient(true)
+    }, [])
+
+    if (!isClient) {
+      return null
+    }
 
     if (collapsible === "none") {
       return (
@@ -555,6 +564,11 @@ const SidebarMenuButton = React.forwardRef<
   ) => {
     const Comp = asChild ? Slot : "button"
     const { isMobile, state } = useSidebar()
+    const [isClient, setIsClient] = React.useState(false)
+
+    React.useEffect(() => {
+      setIsClient(true)
+    }, [])
 
     const button = (
       <Comp
@@ -566,6 +580,11 @@ const SidebarMenuButton = React.forwardRef<
         {...props}
       />
     )
+    
+    if (!isClient) {
+      return button
+    }
+
 
     if (!tooltip) {
       return button
