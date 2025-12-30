@@ -97,7 +97,6 @@ const executiveIds = [
 
 export default function LeadUpdateForm() {
   const [searchLeadId, setSearchLeadId] = useState('');
-  const [searchInput, setSearchInput] = useState('');
   const [leadDetails, setLeadDetails] = useState<Partial<LeadFormData>>({});
   
   const [remarks, setRemarks] = useState('');
@@ -181,7 +180,6 @@ export default function LeadUpdateForm() {
         return;
     }
     setSearchLeadId(leadId);
-    setSearchInput(leadId);
     const foundLead = allLeads.find(lead => lead.leadId === leadId);
     if (foundLead) {
         const leadWithViewDate: Partial<LeadFormData> = {
@@ -212,10 +210,6 @@ export default function LeadUpdateForm() {
         });
     }
   }
-  
-  const handleSearchLead = () => {
-    findLeadAndSetDetails(searchInput);
-  };
 
   const handleLeadDetailChange = (field: keyof LeadFormData, value: string | boolean | number | Date | undefined) => {
     setLeadDetails(prev => ({...prev, [field]: value}));
@@ -455,7 +449,6 @@ export default function LeadUpdateForm() {
   
   const handleResetLeadDetails = () => {
     setSearchLeadId('');
-    setSearchInput('');
     setLeadDetails({});
     setFollowUps([]);
     setCurrentStatus('Initial');
@@ -539,16 +532,13 @@ export default function LeadUpdateForm() {
                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
                 <div className="space-y-2 col-span-2">
                   <Label htmlFor="searchLeadId">Lead(id)</Label>
-                    <div className="flex gap-2">
-                      <Input 
+                    <Input 
                         id="searchLeadId" 
-                        placeholder="Enter Lead ID to search..."
-                        value={searchInput}
-                        onChange={(e) => setSearchInput(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && handleSearchLead()}
+                        placeholder="Select a lead from the table below"
+                        value={searchLeadId}
+                        readOnly
+                        className="bg-muted"
                       />
-                      <Button onClick={handleSearchLead}><Search className="mr-2 h-4 w-4" /> Search</Button>
-                    </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="contactPerson">Contact person</Label>
