@@ -9,7 +9,6 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Bell, User, LogOut } from 'lucide-react';
 import Image from 'next/image';
 import { useEffect, useState, useContext } from 'react';
-import { format } from 'date-fns';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,7 +23,6 @@ import { useToast } from '@/hooks/use-toast';
 
 export default function Header() {
   const [userAvatar, setUserAvatar] = useState<ImagePlaceholder | undefined>();
-  const [currentDate, setCurrentDate] = useState('');
   const pathname = usePathname();
   const showLoginDetails = pathname !== '/leads-upload';
   const authContext = useContext(AuthContext);
@@ -34,7 +32,6 @@ export default function Header() {
   useEffect(() => {
     setIsClient(true);
     setUserAvatar(PlaceHolderImages.find((img) => img.id === 'user-avatar'));
-    setCurrentDate(format(new Date(), 'dd-MM-yyyy'));
   }, []);
 
   const handleLogout = () => {
@@ -75,11 +72,9 @@ export default function Header() {
         <div className="flex items-center gap-2">
           {showLoginDetails && user && (
             <div className="flex flex-col text-sm">
-              <span className="font-medium">
-                Logged in as: {user.username.toUpperCase()}
-              </span>
+              <span className="font-medium">type :sub admin</span>
               <span className="text-xs text-muted-foreground">
-                Last Login: {currentDate}
+                last login:30-12-2025
               </span>
             </div>
           )}
