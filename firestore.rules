@@ -91,7 +91,7 @@ service cloud.firestore {
 
       // Nested collections for Users
       match /{allChildren=**} {
-        allow read, write: if false; // Base rule to deny access to unspecified subcollections
+        allow read, write: if isOwner(userId);
       }
     }
 
