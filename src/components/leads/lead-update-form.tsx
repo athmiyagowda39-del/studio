@@ -1230,5 +1230,3 @@ export default function LeadUpdateForm() {
     </div>
   );
 }
-
-    
