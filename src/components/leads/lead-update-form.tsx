@@ -1138,7 +1138,6 @@ export default function LeadUpdateForm() {
                       Records) ]
                     </p>
                     <ScrollArea className="h-[600px] w-full rounded-md border">
-                      <div className="overflow-x-auto">
                         <Table>
                           <TableHeader>
                             <TableRow>
@@ -1214,7 +1213,6 @@ export default function LeadUpdateForm() {
                             )}
                           </TableBody>
                         </Table>
-                      </div>
                     </ScrollArea>
                     <div className="text-center mt-4">
                       <Button variant="link">
@@ -1231,5 +1229,7 @@ export default function LeadUpdateForm() {
     </div>
   );
 }
+
+    
 
     
