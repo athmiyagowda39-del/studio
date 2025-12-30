@@ -29,12 +29,14 @@ export default function Header() {
   const showLoginDetails = pathname !== '/leads-upload';
   const authContext = useContext(AuthContext);
   const { toast } = useToast();
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
+    setIsClient(true);
     setUserAvatar(PlaceHolderImages.find((img) => img.id === 'user-avatar'));
     setCurrentDate(format(new Date(), 'dd-MM-yyyy'));
   }, []);
-  
+
   const handleLogout = () => {
     if (authContext) {
       authContext.logout();
@@ -46,7 +48,21 @@ export default function Header() {
   };
 
   const user = authContext?.user;
-  const lastLoginDate = 'N/A'; // Mocked as there's no stored last login
+  const lastLoginDate = 'sub admin'; // Mocked as there's no stored last login
+
+  if (!isClient) {
+    return (
+      <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
+        <div className="flex w-full items-center justify-end gap-4">
+          <div className="h-10 w-16 rounded-full p-0">
+            <div className="h-10 w-10 overflow-hidden rounded-full">
+              <AvatarFallback></AvatarFallback>
+            </div>
+          </div>
+        </div>
+      </header>
+    );
+  }
 
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
@@ -56,7 +72,9 @@ export default function Header() {
         <div className="flex items-center gap-2">
           {showLoginDetails && user && (
             <div className="flex flex-col text-sm">
-              <span className="font-medium">Logged in as: {user.username.toUpperCase()}</span>
+              <span className="font-medium">
+                Logged in as: {user.username.toUpperCase()}
+              </span>
               <span className="text-xs text-muted-foreground">
                 Last Login: {lastLoginDate}
               </span>
@@ -71,7 +89,10 @@ export default function Header() {
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-10 w-16 rounded-full p-0">
+              <Button
+                variant="ghost"
+                className="relative h-10 w-16 rounded-full p-0"
+              >
                 <Avatar className="h-10 w-10 overflow-hidden rounded-full">
                   {userAvatar && (
                     <Image
@@ -83,12 +104,16 @@ export default function Header() {
                       className="object-cover"
                     />
                   )}
-                  <AvatarFallback>{user?.username.charAt(0).toUpperCase()}</AvatarFallback>
+                  <AvatarFallback>
+                    {user?.username.charAt(0).toUpperCase()}
+                  </AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>{user?.username.toUpperCase()}</DropdownMenuLabel>
+              <DropdownMenuLabel>
+                {user?.username.toUpperCase()}
+              </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <Link href="/profile">
