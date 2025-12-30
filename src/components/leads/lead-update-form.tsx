@@ -181,6 +181,7 @@ export default function LeadUpdateForm() {
         return;
     }
     setSearchLeadId(leadId);
+    setSearchInput(leadId);
     const foundLead = allLeads.find(lead => lead.leadId === leadId);
     if (foundLead) {
         const leadWithViewDate: Partial<LeadFormData> = {
@@ -196,7 +197,7 @@ export default function LeadUpdateForm() {
           setNextFollowUpDate(undefined);
         }
         toast({
-            title: 'Lead Found',
+            title: 'Lead Loaded',
             description: `Details for ${leadId} have been loaded.`,
         });
     } else {
@@ -1151,10 +1152,10 @@ export default function LeadUpdateForm() {
                                 <TableCell>{index + 1}</TableCell>
                                 <TableCell>{lead.leadId}</TableCell>
                                 <TableCell>
-                                  {format(
-                                    new Date(lead.creationDate || 0),
+                                  {lead.creationDate ? format(
+                                    new Date(lead.creationDate),
                                     'dd-MM-yyyy'
-                                  )}
+                                  ) : 'N/A'}
                                 </TableCell>
                                 <TableCell>{lead.selectedModule}</TableCell>
                                 <TableCell>{lead.company}</TableCell>
