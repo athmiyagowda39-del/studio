@@ -48,7 +48,6 @@ export default function Header() {
   };
 
   const user = authContext?.user;
-  const lastLoginDate = 'sub admin'; // Mocked as there's no stored last login
 
   if (!isClient) {
     return (
@@ -80,7 +79,7 @@ export default function Header() {
                 Logged in as: {user.username.toUpperCase()}
               </span>
               <span className="text-xs text-muted-foreground">
-                Last Login: {lastLoginDate}
+                Last Login: {currentDate}
               </span>
             </div>
           )}
