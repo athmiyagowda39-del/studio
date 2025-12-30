@@ -1,4 +1,3 @@
-
 'use client';
 
 import { usePathname } from 'next/navigation';
@@ -37,14 +36,17 @@ export default function Header() {
   }, []);
   
   const handleLogout = () => {
-    authContext?.logout();
-    toast({
-      title: 'Logged Out',
-      description: 'You have been successfully logged out.',
-    });
+    if (authContext) {
+      authContext.logout();
+      toast({
+        title: 'Logged Out',
+        description: 'You have been successfully logged out.',
+      });
+    }
   };
 
   const user = authContext?.user;
+  const lastLoginDate = 'N/A'; // Mocked as there's no stored last login
 
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
@@ -56,7 +58,7 @@ export default function Header() {
             <div className="flex flex-col text-sm">
               <span className="font-medium">Logged in as: {user.username.toUpperCase()}</span>
               <span className="text-xs text-muted-foreground">
-                Type: {user.role} | Last Login: {currentDate}
+                Last Login: {lastLoginDate}
               </span>
             </div>
           )}

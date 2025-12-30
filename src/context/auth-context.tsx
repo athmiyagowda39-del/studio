@@ -1,218 +1,81 @@
-
 'use client';
 
-import React, {
-  createContext,
-  useState,
-  useEffect,
-  ReactNode,
-  useContext,
-} from 'react';
-import { useUser, useAuth } from '@/firebase';
-import {
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signOut,
-  signInAnonymously,
-} from 'firebase/auth';
-import type { User as FirebaseUser } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { useFirestore } from '@/firebase';
-
-type UserRole = 'Manager' | 'Executive';
+import React, { createContext, useState, useEffect, ReactNode } from 'react';
 
 type User = {
-  uid: string;
   username: string;
-  role: UserRole;
 };
 
 type AuthContextType = {
   isAuthenticated: boolean;
   user: User | null;
-  firebaseUser: FirebaseUser | null;
   isAuthLoading: boolean;
-  login: (email: string, pass: string) => Promise<boolean>;
+  login: (username: string, pass: string) => Promise<boolean>;
   logout: () => void;
   changePassword: (oldPass: string, newPass: string) => Promise<boolean>;
-  addUser: (
-    email: string,
-    pass: string,
-    username: string,
-    role: UserRole
-  ) => Promise<string | null>;
-  deleteUser: (uid: string) => Promise<boolean>;
 };
 
 export const AuthContext = createContext<AuthContextType | undefined>(
   undefined
 );
 
-// Function to seed initial users if they don't exist
-const seedInitialUsers = async (auth: any, firestore: any) => {
-  const usersToSeed = [
-    { email: 'manager@test.com', password: 'password', username: 'Manager', role: 'Manager' as UserRole },
-    { email: 'executive@test.com', password: 'password', username: 'Executive', role: 'Executive' as UserRole },
-  ];
-  
-  const currentAuthUser = auth.currentUser;
-  // Temporarily sign in anonymously to perform admin-like seeding tasks
-  await signInAnonymously(auth);
-
-  for (const userSeed of usersToSeed) {
-    try {
-      // Attempt to create the user
-      const userCredential = await createUserWithEmailAndPassword(auth, userSeed.email, userSeed.password);
-      const newUser = userCredential.user;
-      
-      // Set the user's profile in Firestore
-      const userRef = doc(firestore, 'users', newUser.uid);
-      const userData: User = { uid: newUser.uid, username: userSeed.username, role: userSeed.role };
-      await setDoc(userRef, userData);
-
-      // If the user is a manager, add them to the roles_manager collection
-      if (userSeed.role === 'Manager') {
-        const managerRef = doc(firestore, 'roles_manager', newUser.uid);
-        await setDoc(managerRef, { uid: newUser.uid });
-      }
-      
-      // Sign out the newly created user to allow the loop to continue
-      await signOut(auth);
-      // Re-authenticate as an anonymous user for the next iteration
-      await signInAnonymously(auth);
-
-    } catch (error: any) {
-      if (error.code !== 'auth/email-already-in-use') {
-        console.error('Error creating user during seeding:', userSeed.email, error);
-      }
-      // If user already exists, we can ignore the error and continue.
-    }
-  }
-
-  // Clean up: sign out the anonymous user
-  await signOut(auth);
-  
-  // The onAuthStateChanged listener will handle re-establishing the original user's session if they were logged in.
-};
-
-
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const {
-    user: firebaseUser,
-    isUserLoading,
-    userError,
-  } = useUser();
-  const auth = useAuth();
-  const firestore = useFirestore();
   const [user, setUser] = useState<User | null>(null);
-  const [isSeeding, setIsSeeding] = useState(true);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
 
   useEffect(() => {
-    const seed = async () => {
-        if (auth && firestore) {
-            await seedInitialUsers(auth, firestore);
-            setIsSeeding(false);
-        }
-    };
-    seed();
-  }, [auth, firestore]);
-
-  useEffect(() => {
-    if (firebaseUser) {
-      const userRef = doc(firestore, 'users', firebaseUser.uid);
-      getDoc(userRef).then((docSnap) => {
-        if (docSnap.exists()) {
-          setUser(docSnap.data() as User);
-        } else {
-          // Handle case where user exists in Auth but not in Firestore
-          setUser(null);
-        }
-      });
-    } else {
-      setUser(null);
-    }
-  }, [firebaseUser, firestore]);
-
-  const login = async (email: string, pass: string) => {
+    // Check if user is logged in from localStorage
     try {
-      await signInWithEmailAndPassword(auth, email, pass);
-      return true;
-    } catch (error) {
-      console.error('Login failed', error);
-      return false;
-    }
-  };
-
-  const logout = async () => {
-    try {
-      await signOut(auth);
-    } catch (error) {
-      console.error('Logout failed', error);
-    }
-  };
-
-  const addUser = async (
-    email: string,
-    pass: string,
-    username: string,
-    role: UserRole
-  ) => {
-    try {
-      // Note: This is not a secure way to create users.
-      // In a real app, this should be done via a backend/admin SDK.
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        pass
-      );
-      const newUser = userCredential.user;
-      const userRef = doc(firestore, 'users', newUser.uid);
-      const userData: User = { uid: newUser.uid, username, role };
-      await setDoc(userRef, userData);
-
-      // If manager, add to manager collection
-      if (role === 'Manager') {
-        const managerRef = doc(firestore, 'roles_manager', newUser.uid);
-        await setDoc(managerRef, { uid: newUser.uid });
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
       }
-
-      return newUser.uid;
     } catch (error) {
-      console.error('Failed to add user:', error);
-      return null;
+      console.error("Failed to parse user from localStorage", error);
+      localStorage.removeItem('user');
     }
+    setIsAuthLoading(false);
+  }, []);
+
+  const login = async (username: string, pass: string) => {
+    setIsAuthLoading(true);
+    // Simple mock authentication
+    if (username === 'athmiya' && pass === 'passwordd') {
+      const userData: User = { username: 'athmiya' };
+      localStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
+      setIsAuthLoading(false);
+      return true;
+    }
+    setIsAuthLoading(false);
+    return false;
   };
 
-  const deleteUser = async (uid: string) => {
-    // This is a placeholder. Deleting users requires Admin SDK.
-    console.warn(
-      'User deletion is a privileged operation and requires Admin SDK.'
-    );
-    // In a real app, you would call a Cloud Function to do this.
-    return false;
+  const logout = () => {
+    localStorage.removeItem('user');
+    setUser(null);
   };
 
   const changePassword = async (oldPass: string, newPass: string) => {
-    if (!auth.currentUser) return false;
-    // This is a placeholder as re-authentication is complex.
-    console.warn("Password change requires re-authentication, which is not fully implemented here.");
+    // This is a mock. In a real app, you'd have an API for this.
+    if (oldPass === 'passwordd') {
+      console.log('Password changed successfully (mock)');
+      return true;
+    }
     return false;
   };
 
-  const isAuthenticated = !!firebaseUser && !!user;
+  const isAuthenticated = !!user;
 
   return (
     <AuthContext.Provider
       value={{
         isAuthenticated,
         user,
-        firebaseUser,
-        isAuthLoading: isUserLoading || isSeeding,
+        isAuthLoading,
         login,
         logout,
         changePassword,
-        addUser,
-        deleteUser,
       }}
     >
       {children}

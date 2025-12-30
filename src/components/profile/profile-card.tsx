@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -128,8 +127,6 @@ export default function ProfileCard() {
             <CollapsibleContent>
               <div className="p-4 text-center text-sm text-muted-foreground">
                 Username: {authContext?.user?.username}
-                 <br />
-                Role: {authContext?.user?.role}
               </div>
             </CollapsibleContent>
           </Collapsible>
