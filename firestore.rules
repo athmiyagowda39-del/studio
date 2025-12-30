@@ -43,13 +43,16 @@ service cloud.firestore {
     // -------------------------------------------------------------------------
 
     match /users/{userId} {
-      // Allow creation for seeding or new user sign-up.
-      // Allow owners to get their own data.
+      // Allow anyone to create a user profile (for sign-up).
+      // Allow owners to read and update their own data.
       allow create: if true;
-      allow get: if isOwner(userId);
-      allow list: if false; // Do not allow listing all users.
-      allow update: if isOwner(userId);
-      allow delete: if isOwner(userId);
+      allow get, update: if isOwner(userId);
+      
+      // Managers can read their executives' profiles.
+      allow get: if isTheirManager(userId);
+
+      // Disallow listing or deleting users from the client.
+      allow list, delete: if false;
 
       // Nested collections for Users - grants access to leads, dashboards etc. for the owner
       // or for a manager accessing their executive's data.
@@ -60,7 +63,8 @@ service cloud.firestore {
          allow read, write: if isOwner(userId);
        }
        match /executives/{executiveId} {
-          allow read, write: if isOwner(userId); // A manager can manage their own list of executives
+          // A manager can manage their own list of executives.
+          allow read, write: if isOwner(userId); 
        }
     }
 
@@ -70,14 +74,13 @@ service cloud.firestore {
 
     /**
      * This collection is used to identify managers. Its existence is checked by helper functions.
-     * It is read-only for clients to prevent privilege escalation. Seeding process can write to it.
+     * It should only be written to by a trusted process (like seeding).
+     * To allow our seeding script to work, we'll allow creation.
      */
     match /roles_manager/{userId} {
       allow get: if isSignedIn();
-      allow list: if false;
       allow create: if true; // Allow trusted seeding process
-      allow update: if false;
-      allow delete: if false;
+      allow list, update, delete: if false;
     }
   }
 }
