@@ -72,9 +72,14 @@ export default function Header() {
         <div className="flex items-center gap-2">
           {showLoginDetails && user && (
             <div className="flex flex-col text-sm">
-              <span className="font-medium">type :sub admin</span>
+              <span className="font-medium">
+                Logged in as: {user.username.toUpperCase()}
+              </span>
               <span className="text-xs text-muted-foreground">
-                last login:30-12-2025
+                Type: sub admin
+              </span>
+              <span className="text-xs text-muted-foreground">
+                Last login: 30-12-2025
               </span>
             </div>
           )}
