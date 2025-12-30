@@ -771,7 +771,7 @@ export default function LeadUpdateForm() {
                 <Button onClick={handleAddFollowUp}>Add&gt;&gt;</Button>
               </div>
               <div className="space-y-4 pt-4">
-                <ScrollArea className="h-72 w-full rounded-md border">
+                <ScrollArea className="h-48 w-full rounded-md border">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -899,333 +899,336 @@ export default function LeadUpdateForm() {
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent>
-            <div className="space-y-4">
-              <Card className="mt-2">
-                <CardContent className="p-4 space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-center">
-                    <div className="flex items-center gap-2">
-                      <Label htmlFor="search">Search</Label>
-                      <Input id="search" placeholder="Leave empty for all" value={filters.search} onChange={e => handleFilterChange('search', e.target.value)} />
+            <Card className="mt-2">
+              <CardContent className="p-0">
+                <ScrollArea className="max-h-[50vh] p-4">
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-center">
+                      <div className="flex items-center gap-2">
+                        <Label htmlFor="search">Search</Label>
+                        <Input id="search" placeholder="Leave empty for all" value={filters.search} onChange={e => handleFilterChange('search', e.target.value)} />
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <Label>From:</Label>
+                        <RadioGroup value={filters.fromSource} onValueChange={v => handleFilterChange('fromSource', v)} className="flex gap-4">
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="web" id="web-update" />
+                            <Label htmlFor="web-update">Web Downloads</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="manual" id="manual-update" />
+                            <Label htmlFor="manual-update">Manual Uploads</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="both" id="both-update" />
+                            <Label htmlFor="both-update">Both</Label>
+                          </div>
+                        </RadioGroup>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-4">
-                      <Label>From:</Label>
-                      <RadioGroup value={filters.fromSource} onValueChange={v => handleFilterChange('fromSource', v)} className="flex gap-4">
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="web" id="web-update" />
-                          <Label htmlFor="web-update">Web Downloads</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="manual" id="manual-update" />
-                          <Label htmlFor="manual-update">Manual Uploads</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="both" id="both-update" />
-                          <Label htmlFor="both-update">Both</Label>
-                        </div>
+                    <div>
+                      <RadioGroup onValueChange={v => handleFilterChange('searchFor', v)} value={filters.searchFor} className="flex flex-wrap gap-4">
+                        <Label>Search for:</Label>
+                        {[
+                          {value: 'leadId', label: 'Lead ID'},
+                          {value: 'company', label: 'Company'},
+                          {value: 'contactPerson', label: 'Contact Person'},
+                          {value: 'contactNumber', label: 'Phone'},
+                          {value: 'district', label: 'District'},
+                          {value: 'state', label: 'State'},
+                          {value: 'email', label: 'Email'},
+                          {value: 'manager', label: 'Manager Name'},
+                        ].map((item) => (
+                          <div className="flex items-center space-x-2" key={item.value}>
+                            <RadioGroupItem
+                              value={item.value}
+                              id={`search-for-update-${item.value}`}
+                            />
+                            <Label htmlFor={`search-for-update-${item.value}`}>
+                              {item.label}
+                            </Label>
+                          </div>
+                        ))}
                       </RadioGroup>
                     </div>
-                  </div>
-                  <div>
-                    <RadioGroup onValueChange={v => handleFilterChange('searchFor', v)} value={filters.searchFor} className="flex flex-wrap gap-4">
-                      <Label>Search for:</Label>
-                      {[
-                        {value: 'leadId', label: 'Lead ID'},
-                        {value: 'company', label: 'Company'},
-                        {value: 'contactPerson', label: 'Contact Person'},
-                        {value: 'contactNumber', label: 'Phone'},
-                        {value: 'district', label: 'District'},
-                        {value: 'state', label: 'State'},
-                        {value: 'email', label: 'Email'},
-                        {value: 'manager', label: 'Manager Name'},
-                      ].map((item) => (
-                        <div className="flex items-center space-x-2" key={item.value}>
-                          <RadioGroupItem
-                            value={item.value}
-                            id={`search-for-update-${item.value}`}
-                          />
-                          <Label htmlFor={`search-for-update-${item.value}`}>
-                            {item.label}
-                          </Label>
-                        </div>
-                      ))}
-                    </RadioGroup>
-                  </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="space-y-1">
-                      <Label htmlFor="from-date-update">From Date</Label>
-                      <Input id="from-date-update" type="date" value={filters.fromDate} onChange={e => handleFilterChange('fromDate', e.target.value)} />
-                    </div>
-                    <div className="space-y-1">
-                      <Label htmlFor="to-date-update">To Date</Label>
-                      <Input id="to-date-update" type="date" value={filters.toDate} onChange={e => handleFilterChange('toDate', e.target.value)} />
-                    </div>
-                    <div className="space-y-1">
-                      <Label htmlFor="product-name-update">Product Name</Label>
-                      <Select value={filters.productName} onValueChange={v => handleFilterChange('productName', v)}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="--All--" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">--All--</SelectItem>
-                          <SelectItem value="ar">AR</SelectItem>
-                          <SelectItem value="all-hrms">All HRMS</SelectItem>
-                          <SelectItem value="module1">Module 1</SelectItem>
-                          <SelectItem value="module2">Module 2</SelectItem>
-                          <SelectItem value="module3">Module 3</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-1">
-                      <Label htmlFor="executive-name-update">Executive Name</Label>
-                      <Select value={filters.executiveName} onValueChange={v => handleFilterChange('executiveName', v)}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="--All--" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">--All--</SelectItem>
-                          <SelectItem value="exec1">Executive 1</SelectItem>
-                          <SelectItem value="exec2">Executive 2</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-1">
-                      <Label htmlFor="given-by-update">Given by</Label>
-                      <Select value={filters.givenBy} onValueChange={v => handleFilterChange('givenBy', v)}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="--All--" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">--All--</SelectItem>
-                          <SelectItem value="given1">Given by 1</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-1">
-                      <Label htmlFor="status-of-lead-update">Status of Lead</Label>
-                       <Select value={filters.statusOfLead} onValueChange={v => handleFilterChange('statusOfLead', v)}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="--All--" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">--All--</SelectItem>
-                          <SelectItem value="status1">Status 1</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-1">
-                      <Label htmlFor="sub-status-of-lead-update">Sub Status of Lead</Label>
-                       <Select value={filters.subStatusOfLead} onValueChange={v => handleFilterChange('subStatusOfLead', v)}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="--All--" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">--All--</SelectItem>
-                          <SelectItem value="substatus1">Sub-Status 1</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-1">
-                      <Label htmlFor="lead-source-update">Lead Source</Label>
-                       <Select value={filters.leadSource} onValueChange={v => handleFilterChange('leadSource', v)}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="--All--" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">--All--</SelectItem>
-                          <SelectItem value="source1">Source 1</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                   <div className="flex items-center space-x-2">
-                    <Checkbox id="do-not-consider-update" checked={filters.doNotConsider} onCheckedChange={c => handleFilterChange('doNotConsider', c as boolean)} />
-                    <Label htmlFor="do-not-consider-update">
-                      Do not consider Order Closed/Fake/Existing Users/Not Interested
-                    </Label>
-                  </div>
-                  <div className="border-t pt-4 mt-4">
-                    <div className="flex items-center space-x-2 mb-4">
-                        <Checkbox id="consider-follow-ups-update" checked={filters.considerFollowUps} onCheckedChange={c => handleFilterChange('considerFollowUps', c as boolean)} />
-                        <Label htmlFor="consider-follow-ups-update">consider Follow Ups</Label>
-                    </div>
-                    {filters.considerFollowUps && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                          <div className="flex items-center gap-4">
-                              <RadioGroup value={filters.followUpStatus} onValueChange={v => handleFilterChange('followUpStatus', v)} className="flex gap-4">
-                                  <div className="flex items-center space-x-2">
-                                  <RadioGroupItem value="pending" id="pending-update" />
-                                  <Label htmlFor="pending-update">Follow Up Pending</Label>
-                                  </div>
-                                  <div className="flex items-center space-x-2">
-                                  <RadioGroupItem value="made" id="made-update" />
-                                  <Label htmlFor="made-update">Follow Up Made</Label>
-                                  </div>
-                              </RadioGroup>
-                          </div>
-                          <div></div>
-                          <div></div>
-                          <div></div>
-
-                          <div className="space-y-1">
-                              <Label htmlFor="follow-up-from-date-update">From Date</Label>
-                              <Input id="follow-up-from-date-update" type="date" value={filters.followUpFromDate} onChange={e => handleFilterChange('followUpFromDate', e.target.value)} />
-                          </div>
-                          <div className="space-y-1">
-                              <Label htmlFor="follow-up-to-date-update">To Date</Label>
-                              <Input id="follow-up-to-date-update" type="date" value={filters.followUpToDate} onChange={e => handleFilterChange('followUpToDate', e.target.value)} />
-                          </div>
-                          <div className="space-y-1">
-                              <Label htmlFor="enter-by-update">Enter by</Label>
-                              <Select value={filters.enterBy} onValueChange={v => handleFilterChange('enterBy', v)}>
-                                  <SelectTrigger>
-                                  <SelectValue placeholder="--All--" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                      <SelectItem value="all">--All--</SelectItem>
-                                      <SelectItem value="user1">User 1</SelectItem>
-                                  </SelectContent>
-                              </Select>
-                          </div>
-                          <div className="space-y-1">
-                              <Label htmlFor="remarks-update">Remarks</Label>
-                              <Input id="remarks-update" value={filters.remarksFilter} onChange={e => handleFilterChange('remarksFilter', e.target.value)} />
-                          </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div className="space-y-1">
+                        <Label htmlFor="from-date-update">From Date</Label>
+                        <Input id="from-date-update" type="date" value={filters.fromDate} onChange={e => handleFilterChange('fromDate', e.target.value)} />
                       </div>
-                    )}
-                  </div>
+                      <div className="space-y-1">
+                        <Label htmlFor="to-date-update">To Date</Label>
+                        <Input id="to-date-update" type="date" value={filters.toDate} onChange={e => handleFilterChange('toDate', e.target.value)} />
+                      </div>
+                      <div className="space-y-1">
+                        <Label htmlFor="product-name-update">Product Name</Label>
+                        <Select value={filters.productName} onValueChange={v => handleFilterChange('productName', v)}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="--All--" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">--All--</SelectItem>
+                            <SelectItem value="ar">AR</SelectItem>
+                            <SelectItem value="all-hrms">All HRMS</SelectItem>
+                            <SelectItem value="module1">Module 1</SelectItem>
+                            <SelectItem value="module2">Module 2</SelectItem>
+                            <SelectItem value="module3">Module 3</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1">
+                        <Label htmlFor="executive-name-update">Executive Name</Label>
+                        <Select value={filters.executiveName} onValueChange={v => handleFilterChange('executiveName', v)}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="--All--" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">--All--</SelectItem>
+                            <SelectItem value="exec1">Executive 1</SelectItem>
+                            <SelectItem value="exec2">Executive 2</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1">
+                        <Label htmlFor="given-by-update">Given by</Label>
+                        <Select value={filters.givenBy} onValueChange={v => handleFilterChange('givenBy', v)}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="--All--" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">--All--</SelectItem>
+                            <SelectItem value="given1">Given by 1</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1">
+                        <Label htmlFor="status-of-lead-update">Status of Lead</Label>
+                        <Select value={filters.statusOfLead} onValueChange={v => handleFilterChange('statusOfLead', v)}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="--All--" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">--All--</SelectItem>
+                            <SelectItem value="status1">Status 1</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1">
+                        <Label htmlFor="sub-status-of-lead-update">Sub Status of Lead</Label>
+                        <Select value={filters.subStatusOfLead} onValueChange={v => handleFilterChange('subStatusOfLead', v)}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="--All--" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">--All--</SelectItem>
+                            <SelectItem value="substatus1">Sub-Status 1</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1">
+                        <Label htmlFor="lead-source-update">Lead Source</Label>
+                        <Select value={filters.leadSource} onValueChange={v => handleFilterChange('leadSource', v)}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="--All--" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">--All--</SelectItem>
+                            <SelectItem value="source1">Source 1</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox id="do-not-consider-update" checked={filters.doNotConsider} onCheckedChange={c => handleFilterChange('doNotConsider', c as boolean)} />
+                      <Label htmlFor="do-not-consider-update">
+                        Do not consider Order Closed/Fake/Existing Users/Not Interested
+                      </Label>
+                    </div>
+                    <div className="border-t pt-4 mt-4">
+                      <div className="flex items-center space-x-2 mb-4">
+                          <Checkbox id="consider-follow-ups-update" checked={filters.considerFollowUps} onCheckedChange={c => handleFilterChange('considerFollowUps', c as boolean)} />
+                          <Label htmlFor="consider-follow-ups-update">consider Follow Ups</Label>
+                      </div>
+                      {filters.considerFollowUps && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div className="flex items-center gap-4">
+                                <RadioGroup value={filters.followUpStatus} onValueChange={v => handleFilterChange('followUpStatus', v)} className="flex gap-4">
+                                    <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="pending" id="pending-update" />
+                                    <Label htmlFor="pending-update">Follow Up Pending</Label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="made" id="made-update" />
+                                    <Label htmlFor="made-update">Follow Up Made</Label>
+                                    </div>
+                                </RadioGroup>
+                            </div>
+                            <div></div>
+                            <div></div>
+                            <div></div>
 
-                  <div className="flex justify-end gap-2 pt-4">
+                            <div className="space-y-1">
+                                <Label htmlFor="follow-up-from-date-update">From Date</Label>
+                                <Input id="follow-up-from-date-update" type="date" value={filters.followUpFromDate} onChange={e => handleFilterChange('followUpFromDate', e.target.value)} />
+                            </div>
+                            <div className="space-y-1">
+                                <Label htmlFor="follow-up-to-date-update">To Date</Label>
+                                <Input id="follow-up-to-date-update" type="date" value={filters.followUpToDate} onChange={e => handleFilterChange('followUpToDate', e.target.value)} />
+                            </div>
+                            <div className="space-y-1">
+                                <Label htmlFor="enter-by-update">Enter by</Label>
+                                <Select value={filters.enterBy} onValueChange={v => handleFilterChange('enterBy', v)}>
+                                    <SelectTrigger>
+                                    <SelectValue placeholder="--All--" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">--All--</SelectItem>
+                                        <SelectItem value="user1">User 1</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-1">
+                                <Label htmlFor="remarks-update">Remarks</Label>
+                                <Input id="remarks-update" value={filters.remarksFilter} onChange={e => handleFilterChange('remarksFilter', e.target.value)} />
+                            </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-2 p-4 border-t">
                     <Button onClick={handleShowClick}>SHOW</Button>
                     <Button variant="outline" onClick={handleToExcel}>TO EXCEL</Button>
                     <Button variant="destructive" onClick={handleResetClick}>
                       RESET
                     </Button>
                   </div>
-                </CardContent>
-              </Card>
-
-              {showResults && (
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {[
-                        'Recent Leads',
-                        'Leads not Viewed',
-                        'Follow Ups Due',
-                        'Zero Follow Ups!',
-                        'Search Result',
-                      ].map(filterName => (
-                        <Button
-                          key={filterName}
-                          variant={
-                            activeQuickFilter === filterName
-                              ? 'secondary'
-                              : 'outline'
-                          }
-                          onClick={() => handleQuickFilter(filterName)}
-                          disabled={
-                            filterName === 'Search Result' &&
-                            activeQuickFilter !== 'Search Result'
-                          }
-                        >
-                          {filterName}
-                        </Button>
-                      ))}
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-2">
-                      List of Leads &gt;&gt; [ {activeQuickFilter} ({filteredLeads.length}{' '}
-                      Records) ]
-                    </p>
-                    <ScrollArea className="h-[600px] w-full rounded-md border">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>Sl No</TableHead>
-                              <TableHead>Lead Id</TableHead>
-                              <TableHead>Lead Date</TableHead>
-                              <TableHead>Product</TableHead>
-                              <TableHead>Company</TableHead>
-                              <TableHead>Contact</TableHead>
-                              <TableHead>Phone</TableHead>
-                              <TableHead>Email</TableHead>
-                              <TableHead>Address</TableHead>
-                              <TableHead>Place</TableHead>
-                              <TableHead>District</TableHead>
-                              <TableHead>State</TableHead>
-                              <TableHead>Reference</TableHead>
-                              <TableHead>Dealer</TableHead>
-                              <TableHead>Manager</TableHead>
-                              <TableHead>Last Followed Date</TableHead>
-                              <TableHead>Last Followed By</TableHead>
-                              <TableHead>Next followup Date</TableHead>
-                              <TableHead>Last Followup Remarks</TableHead>
-                              <TableHead>Lead Status</TableHead>
-                              <TableHead>Lead Sub Status</TableHead>
-                              <TableHead>Lead Status Remarks</TableHead>
-                              <TableHead>Given By</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {filteredLeads.length > 0 ? (
-                              filteredLeads.map((lead, index) => {
-                                const date = new Date(lead.creationDate);
-                                const isValidDate = !isNaN(date.getTime());
-                                const lastFollowUp = lead.followUps && lead.followUps.length > 0 ? lead.followUps[lead.followUps.length - 1] : null;
-                                const nextFollowupDate = lead.nextFollowUpDate && !isNaN(new Date(lead.nextFollowUpDate).getTime())
-                                  ? format(new Date(lead.nextFollowUpDate), 'PPP')
-                                  : (lastFollowUp ? lastFollowUp.nextFollowUp : 'N/A');
-
-                                return (
-                                  <TableRow key={`${lead.leadId}-${index}`} onClick={() => findLeadAndSetDetails(lead.leadId)} className="cursor-pointer">
-                                    <TableCell>{index + 1}</TableCell>
-                                    <TableCell>{lead.leadId || 'N/A'}</TableCell>
-                                    <TableCell>{isValidDate ? format(date, 'PPP') : 'N/A'}</TableCell>
-                                    <TableCell>{lead.selectedModule || 'N/A'}</TableCell>
-                                    <TableCell>{lead.company || 'N/A'}</TableCell>
-                                    <TableCell>{lead.contactPerson || 'N/A'}</TableCell>
-                                    <TableCell>{lead.contactNumber || 'N/A'}</TableCell>
-                                    <TableCell>{lead.email || 'N/A'}</TableCell>
-                                    <TableCell>{lead.address || 'N/A'}</TableCell>
-                                    <TableCell>{lead.district || 'N/A'}</TableCell>
-                                    <TableCell>{lead.district || 'N/A'}</TableCell>
-                                    <TableCell>{lead.state || 'N/A'}</TableCell>
-                                    <TableCell>{lead.reference || 'N/A'}</TableCell>
-                                    <TableCell>{lead.dealer || 'N/A'}</TableCell>
-                                    <TableCell>{lead.manager || 'N/A'}</TableCell>
-                                    <TableCell>{lastFollowUp ? lastFollowUp.date : 'N/A'}</TableCell>
-                                    <TableCell>{lastFollowUp ? lastFollowUp.enteredBy : 'N/A'}</TableCell>
-                                    <TableCell>{nextFollowupDate}</TableCell>
-                                    <TableCell>{lastFollowUp ? lastFollowUp.remarks : 'N/A'}</TableCell>
-                                    <TableCell>{lead.status || 'N/A'}</TableCell>
-                                    <TableCell>{lead.leadSubStatus || 'N/A'}</TableCell>
-                                    <TableCell>{lead.leadStatusRemarks || 'N/A'}</TableCell>
-                                    <TableCell>{lead.givenBy || 'N/A'}</TableCell>
-                                  </TableRow>
-                                )
-                              })
-                            ) : (
-                              <TableRow>
-                                <TableCell colSpan={23} className="text-center h-24">
-                                  No results
-                                </TableCell>
-                              </TableRow>
-                            )}
-                          </TableBody>
-                        </Table>
-                    </ScrollArea>
-                    <div className="text-center mt-4">
-                      <Button variant="link">
-                        Show more Records &gt;&gt; (Show All Record)
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
+                </ScrollArea>
+              </CardContent>
+            </Card>
           </CollapsibleContent>
         </Collapsible>
+        
+        {showResults && (
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex flex-wrap gap-2 mb-4">
+                {[
+                  'Recent Leads',
+                  'Leads not Viewed',
+                  'Follow Ups Due',
+                  'Zero Follow Ups!',
+                  'Search Result',
+                ].map(filterName => (
+                  <Button
+                    key={filterName}
+                    variant={
+                      activeQuickFilter === filterName
+                        ? 'secondary'
+                        : 'outline'
+                    }
+                    onClick={() => handleQuickFilter(filterName)}
+                    disabled={
+                      filterName === 'Search Result' &&
+                      activeQuickFilter !== 'Search Result'
+                    }
+                  >
+                    {filterName}
+                  </Button>
+                ))}
+              </div>
+              <p className="text-sm text-muted-foreground mb-2">
+                List of Leads &gt;&gt; [ {activeQuickFilter} ({filteredLeads.length}{' '}
+                Records) ]
+              </p>
+              <ScrollArea className="h-[600px] w-full rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Sl No</TableHead>
+                        <TableHead>Lead Id</TableHead>
+                        <TableHead>Lead Date</TableHead>
+                        <TableHead>Product</TableHead>
+                        <TableHead>Company</TableHead>
+                        <TableHead>Contact</TableHead>
+                        <TableHead>Phone</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Address</TableHead>
+                        <TableHead>Place</TableHead>
+                        <TableHead>District</TableHead>
+                        <TableHead>State</TableHead>
+                        <TableHead>Reference</TableHead>
+                        <TableHead>Dealer</TableHead>
+                        <TableHead>Manager</TableHead>
+                        <TableHead>Last Followed Date</TableHead>
+                        <TableHead>Last Followed By</TableHead>
+                        <TableHead>Next followup Date</TableHead>
+                        <TableHead>Last Followup Remarks</TableHead>
+                        <TableHead>Lead Status</TableHead>
+                        <TableHead>Lead Sub Status</TableHead>
+                        <TableHead>Lead Status Remarks</TableHead>
+                        <TableHead>Given By</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredLeads.length > 0 ? (
+                        filteredLeads.map((lead, index) => {
+                          const date = new Date(lead.creationDate);
+                          const isValidDate = !isNaN(date.getTime());
+                          const lastFollowUp = lead.followUps && lead.followUps.length > 0 ? lead.followUps[lead.followUps.length - 1] : null;
+                          const nextFollowupDate = lead.nextFollowUpDate && !isNaN(new Date(lead.nextFollowUpDate).getTime())
+                            ? format(new Date(lead.nextFollowUpDate), 'PPP')
+                            : (lastFollowUp ? lastFollowUp.nextFollowUp : 'N/A');
+
+                          return (
+                            <TableRow key={`${lead.leadId}-${index}`} onClick={() => findLeadAndSetDetails(lead.leadId)} className="cursor-pointer">
+                              <TableCell>{index + 1}</TableCell>
+                              <TableCell>{lead.leadId || 'N/A'}</TableCell>
+                              <TableCell>{isValidDate ? format(date, 'PPP') : 'N/A'}</TableCell>
+                              <TableCell>{lead.selectedModule || 'N/A'}</TableCell>
+                              <TableCell>{lead.company || 'N/A'}</TableCell>
+                              <TableCell>{lead.contactPerson || 'N/A'}</TableCell>
+                              <TableCell>{lead.contactNumber || 'N/A'}</TableCell>
+                              <TableCell>{lead.email || 'N/A'}</TableCell>
+                              <TableCell>{lead.address || 'N/A'}</TableCell>
+                              <TableCell>{lead.district || 'N/A'}</TableCell>
+                              <TableCell>{lead.district || 'N/A'}</TableCell>
+                              <TableCell>{lead.state || 'N/A'}</TableCell>
+                              <TableCell>{lead.reference || 'N/A'}</TableCell>
+                              <TableCell>{lead.dealer || 'N/A'}</TableCell>
+                              <TableCell>{lead.manager || 'N/A'}</TableCell>
+                              <TableCell>{lastFollowUp ? lastFollowUp.date : 'N/A'}</TableCell>
+                              <TableCell>{lastFollowUp ? lastFollowUp.enteredBy : 'N/A'}</TableCell>
+                              <TableCell>{nextFollowupDate}</TableCell>
+                              <TableCell>{lastFollowUp ? lastFollowUp.remarks : 'N/A'}</TableCell>
+                              <TableCell>{lead.status || 'N/A'}</TableCell>
+                              <TableCell>{lead.leadSubStatus || 'N/A'}</TableCell>
+                              <TableCell>{lead.leadStatusRemarks || 'N/A'}</TableCell>
+                              <TableCell>{lead.givenBy || 'N/A'}</TableCell>
+                            </TableRow>
+                          )
+                        })
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={23} className="text-center h-24">
+                            No results
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+              </ScrollArea>
+              <div className="text-center mt-4">
+                <Button variant="link">
+                  Show more Records &gt;&gt; (Show All Record)
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
 }
+
+    
