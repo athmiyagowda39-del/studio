@@ -13,8 +13,8 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Check, ChevronsUpDown, Download, UploadCloud } from 'lucide-react';
-import { Card, CardContent } from '../ui/card';
-import { useState, useRef } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { useState, useRef, useEffect } from 'react';
 import { pincodeData } from '@/lib/pincodes';
 import * as XLSX from 'xlsx';
 import {
@@ -40,6 +40,7 @@ import {
   CommandList,
 } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
+import { Textarea } from '../ui/textarea';
 
 type ParsedData = (string | number)[][];
 
@@ -81,6 +82,15 @@ export type LeadFormData = {
 
 const sectors = ['IT', 'Finance', 'Healthcare', 'Manufacturing', 'Education', 'Retail', 'Hospitality', 'Telecommunication', 'Construction', 'Real Estate', 'Media & Entertainment', 'Government', 'Non-profit', 'Other'];
 
+const leadStatusOptions = [
+    'Attended',
+    'Not viewed',
+    'Demo Given',
+    'Unattended',
+    'Pursuing to Purchase',
+    'Not interested',
+    'Order closed',
+];
 
 const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate'> = {
     pincode: '',
@@ -109,6 +119,42 @@ export default function LeadUploadForm() {
   const [parsedData, setParsedData] = useState<ParsedData | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const { toast } = useToast();
+
+  const [allLeads, setAllLeads] = useState<LeadFormData[]>([]);
+  const [leadIdForStatus, setLeadIdForStatus] = useState('');
+  const [leadIdForStatusOpen, setLeadIdForStatusOpen] = useState(false);
+  const [currentStatus, setCurrentStatus] = useState('Initial');
+  const [selectedStatus, setSelectedStatus] = useState('');
+  const [initialRemarks, setInitialRemarks] = useState('');
+
+  useEffect(() => {
+    try {
+      const storedLeads = localStorage.getItem('uploadedLeads');
+      if (storedLeads) {
+        setAllLeads(JSON.parse(storedLeads));
+      }
+    } catch (error) {
+      console.error('Failed to parse leads from localStorage', error);
+    }
+     const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === 'uploadedLeads') {
+         try {
+            const storedLeads = localStorage.getItem('uploadedLeads');
+            if (storedLeads) {
+                setAllLeads(JSON.parse(storedLeads));
+            }
+         } catch (error) {
+             console.error('Failed to parse leads from localStorage on update', error);
+         }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
@@ -354,6 +400,61 @@ export default function LeadUploadForm() {
     XLSX.writeFile(wb, 'sample_leads.xlsx');
   };
 
+  const handleSelectLeadForStatus = (leadId: string) => {
+      const selectedLeadId = leadId === leadIdForStatus ? '' : leadId;
+      setLeadIdForStatus(selectedLeadId);
+      const foundLead = allLeads.find(lead => lead.leadId === selectedLeadId);
+      if (foundLead) {
+          setCurrentStatus(foundLead.status || 'Initial');
+      } else {
+          setCurrentStatus('Initial');
+      }
+      setLeadIdForStatusOpen(false);
+  }
+
+  const handleUpdateStatus = () => {
+    if (!selectedStatus) {
+      toast({
+        variant: 'destructive',
+        title: 'No Status Selected',
+        description: 'Please select a status to update.',
+      });
+      return;
+    }
+     if (!leadIdForStatus) {
+      toast({
+        variant: 'destructive',
+        title: 'No Lead Selected',
+        description: 'Please select a lead before updating its status.',
+      });
+      return;
+    }
+
+    const updatedLeads = allLeads.map(lead => {
+        if (lead.leadId === leadIdForStatus) {
+            return {
+                ...lead,
+                leadSubStatus: selectedStatus,
+                leadStatusRemarks: initialRemarks,
+            };
+        }
+        return lead;
+    });
+
+    setAllLeads(updatedLeads);
+    localStorage.setItem('uploadedLeads', JSON.stringify(updatedLeads));
+    window.dispatchEvent(new Event('storage'));
+
+    toast({
+      title: 'Status Updated',
+      description: `Lead ${leadIdForStatus} sub-status updated to ${selectedStatus}.`,
+    });
+
+    setInitialRemarks('');
+    setSelectedStatus('');
+  };
+
+
   return (
     <div className="space-y-6">
       <div>
@@ -530,6 +631,87 @@ export default function LeadUploadForm() {
             </Card>
         </div>
       )}
+
+      <Card className="mt-6">
+        <CardHeader className='bg-primary/10'>
+          <CardTitle className='text-primary text-base font-bold'>Lead Status</CardTitle>
+        </CardHeader>
+        <CardContent className='p-4 space-y-4'>
+            <div className='flex flex-col gap-4'>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+                    <div className="space-y-2">
+                        <Label htmlFor="lead-id-status" className="shrink-0">Initial Remarks:</Label>
+                        <Popover open={leadIdForStatusOpen} onOpenChange={setLeadIdForStatusOpen}>
+                            <PopoverTrigger asChild>
+                                <Button
+                                variant="outline"
+                                role="combobox"
+                                aria-expanded={leadIdForStatusOpen}
+                                className="w-full justify-between font-normal"
+                                >
+                                {leadIdForStatus || "Select Lead..."}
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                <Command>
+                                    <CommandInput placeholder="Search lead ID..." />
+                                    <CommandList>
+                                        <CommandEmpty>No leads found.</CommandEmpty>
+                                        <CommandGroup>
+                                        {allLeads.map((lead) => (
+                                            <CommandItem
+                                            key={lead.leadId}
+                                            value={lead.leadId}
+                                            onSelect={() => handleSelectLeadForStatus(lead.leadId)}
+                                            >
+                                            <Check
+                                                className={cn(
+                                                "mr-2 h-4 w-4",
+                                                leadIdForStatus === lead.leadId ? "opacity-100" : "opacity-0"
+                                                )}
+                                            />
+                                            {lead.leadId}
+                                            </CommandItem>
+                                        ))}
+                                        </CommandGroup>
+                                    </CommandList>
+                                </Command>
+                            </PopoverContent>
+                        </Popover>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <span className="font-semibold shrink-0">Current Status: {currentStatus}</span>
+                        <Select value={selectedStatus} onValueChange={setSelectedStatus} disabled={!leadIdForStatus}>
+                        <SelectTrigger className="w-full min-w-[200px]">
+                            <SelectValue placeholder="-- Select --" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {leadStatusOptions.map((status) => (
+                                <SelectItem key={status} value={status}>{status}</SelectItem>
+                            ))}
+                        </SelectContent>
+                        </Select>
+                        <Button onClick={handleUpdateStatus} disabled={!leadIdForStatus}>Update</Button>
+                    </div>
+                </div>
+                
+                <div className="space-y-2">
+                    <Textarea 
+                        id="initial-remarks"
+                        placeholder="Enter remarks..."
+                        value={initialRemarks}
+                        onChange={(e) => setInitialRemarks(e.target.value)}
+                        className="min-h-[40px]"
+                        disabled={!leadIdForStatus}
+                    />
+                </div>
+            </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
+
+    
