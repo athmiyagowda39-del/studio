@@ -13,6 +13,9 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
+  signInWithCredential,
+  EmailAuthCredential,
+  EmailAuthProvider,
 } from 'firebase/auth';
 import type { User as FirebaseUser } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
@@ -54,13 +57,26 @@ const seedInitialUsers = async (auth: any, firestore: any) => {
     { email: 'executive@test.com', password: 'password', username: 'Executive', role: 'Executive' as UserRole },
   ];
 
-  let signedIn = false;
-  if (auth.currentUser) {
-    signedIn = true;
+  // Temporarily sign in to perform admin-like operations for seeding.
+  // In a real app, this would be a secure admin process.
+  const tempAdminEmail = 'admin-seeder@temp.com';
+  const tempAdminPassword = 'temp-password-seeder';
+  let tempAdminCredential;
+  try {
+    tempAdminCredential = await signInWithEmailAndPassword(auth, tempAdminEmail, tempAdminPassword);
+  } catch (error: any) {
+    if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+      tempAdminCredential = await createUserWithEmailAndPassword(auth, tempAdminEmail, tempAdminPassword);
+    } else {
+      console.error("Failed to sign in or create temporary admin for seeding:", error);
+      return;
+    }
   }
+
 
   for (const userSeed of usersToSeed) {
     try {
+      // The operation of creating user is now done by a temporary admin user.
       const userCredential = await createUserWithEmailAndPassword(auth, userSeed.email, userSeed.password);
       const newUser = userCredential.user;
       const userRef = doc(firestore, 'users', newUser.uid);
@@ -80,9 +96,9 @@ const seedInitialUsers = async (auth: any, firestore: any) => {
       }
     }
   }
-
-  // If a user was already signed in, don't sign them out. Otherwise, sign out the last created user.
-  if (!signedIn && auth.currentUser) {
+  
+  // Important: Sign out the temporary admin user to restore normal auth state.
+  if (auth.currentUser?.email === tempAdminEmail) {
     await signOut(auth);
   }
 };
@@ -185,10 +201,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const changePassword = async (oldPass: string, newPass: string) => {
-    // Firebase doesn't have a direct "change password" method with old password.
-    // Re-authentication is the standard flow.
-    console.warn('Password change requires re-authentication, which is not implemented in this mock.');
-    return false;
+    if (!auth.currentUser) return false;
+    
+    try {
+        const credential = EmailAuthProvider.credential(auth.currentUser.email!, oldPass);
+        // Re-authenticate user before changing password
+        await signInWithCredential(auth, credential as any);
+        // Now change password
+        // This is a placeholder as re-authentication is complex.
+        console.warn("Password change requires re-authentication, which is not fully implemented here.");
+        return false; // For now, we will return false
+    } catch (error) {
+        console.error("Failed to re-authenticate for password change", error);
+        return false;
+    }
   };
 
   const isAuthenticated = !!firebaseUser && !!user;
