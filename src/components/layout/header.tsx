@@ -54,11 +54,15 @@ export default function Header() {
     return (
       <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
         <div className="flex w-full items-center justify-end gap-4">
-          <div className="h-10 w-16 rounded-full p-0">
-            <div className="h-10 w-10 overflow-hidden rounded-full">
+          <Button
+            variant="ghost"
+            className="relative h-10 w-16 rounded-full p-0"
+            disabled
+          >
+            <Avatar className="h-10 w-10 overflow-hidden rounded-full">
               <AvatarFallback></AvatarFallback>
-            </div>
-          </div>
+            </Avatar>
+          </Button>
         </div>
       </header>
     );
