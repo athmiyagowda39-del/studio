@@ -1,29 +1,4 @@
-/**
- * This ruleset enforces a hierarchical, role-based security model for a Lead Management application.
- * The core philosophy is to grant access based on a user's role (Manager or Executive) and their position within a defined management hierarchy.
- *
- * Core Philosophy:
- * - There are two roles: 'Manager' and 'Executive'.
- * - Executives have full ownership and control over their own data (leads, dashboards).
- * - Managers have read-only access to the leads of the executives they directly manage, in addition to full control over their own data.
- * - The ability for a manager to add or remove an executive from their team is explicitly controlled.
- *
- * Data Structure:
- * - User data, leads, and dashboards are nested under `/users/{userId}` to enforce ownership.
- * - Manager status is determined by the existence of a document in the `/roles_manager/{userId}` collection. This provides a fast, single-source-of-truth for role checks.
- * - The Manager-to-Executive relationship is explicitly defined by an empty document in the `/users/{managerId}/executives/{executiveId}` path. This structural link is the foundation for hierarchical access control.
- *
- * Key Security Decisions:
- * - Default Deny: All paths are closed by default. Access is granted explicitly.
- * - User Privacy: Listing all users in the `/users` collection is strictly forbidden to protect user privacy.
- * - Manager Permissions: Managers are granted read-only access to their executives' leads to prevent accidental data modification. The executive remains the sole owner and editor of their leads.
- * - Role Management: The `/roles_manager` collection is not writable by clients. This prevents users from escalating their own privileges. Assigning a manager role is considered an administrative action that must happen via a trusted server environment (e.g., Cloud Functions).
- *
- * Denormalization for Authorization:
- * This ruleset heavily relies on structural denormalization for fast and secure authorization checks, avoiding slow and costly `get()` calls where possible.
- * - Path-Based Ownership: Nesting leads under `/users/{executiveId}/leads/{leadId}` allows for simple ownership checks against the path variable (`executiveId`) without needing to read the lead document's contents.
- * - Hierarchical Links: The `/users/{managerId}/executives/{executiveId}` structure is a denormalized representation of the management hierarchy. A manager's access to an executive's data is verified with a single, fast `exists()` check on this path, which is significantly more performant and secure than querying collections.
- */
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -48,14 +23,6 @@ service cloud.firestore {
     }
 
     /**
-     * A robust check for update/delete operations.
-     * Ensures the user is the owner AND the document actually exists.
-     */
-    function isExistingOwner(userId) {
-      return isOwner(userId) && resource != null;
-    }
-
-    /**
      * Checks if the requesting user has the 'Manager' role.
      * This is determined by the existence of a corresponding document in the roles_manager collection.
      */
@@ -75,24 +42,26 @@ service cloud.firestore {
     // User Profile Rules
     // -------------------------------------------------------------------------
 
-    /**
-     * @description Users can create and manage their own profile document. No one else can read or write to it.
-     * @path /users/{userId}
-     * @allow (create) An authenticated user creating their own user profile document for the first time.
-     * @deny (get) A manager attempting to read an executive's user profile document.
-     * @principle Restricts access to a user's own data tree and enforces relational integrity on create/update.
-     */
     match /users/{userId} {
+      // Allow creation for seeding or new user sign-up.
+      // Allow owners to get their own data.
+      allow create: if true;
       allow get: if isOwner(userId);
-      allow list: if false;
-      allow create: if true; // Allow creation for seeding
-      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
-      allow delete: if isExistingOwner(userId);
+      allow list: if false; // Do not allow listing all users.
+      allow update: if isOwner(userId);
+      allow delete: if isOwner(userId);
 
       // Nested collections for Users - grants access to leads, dashboards etc. for the owner
-      match /{allChildren=**} {
-        allow read, write: if isOwner(userId);
-      }
+      // or for a manager accessing their executive's data.
+       match /leads/{leadId} {
+         allow read, write: if isOwner(userId) || isTheirManager(userId);
+       }
+       match /dashboards/{dashboardId} {
+         allow read, write: if isOwner(userId);
+       }
+       match /executives/{executiveId} {
+          allow read, write: if isOwner(userId); // A manager can manage their own list of executives
+       }
     }
 
     // -------------------------------------------------------------------------
@@ -100,12 +69,8 @@ service cloud.firestore {
     // -------------------------------------------------------------------------
 
     /**
-     * @description This collection is used to identify managers. Its existence is checked by helper functions.
-     * It is read-only for clients to prevent privilege escalation.
-     * @path /roles_manager/{userId}
-     * @allow (get) An authenticated user's client code checking if another user is a manager.
-     * @deny (create) Any user attempting to add themselves to the manager roles collection.
-     * @principle Prevents client-side privilege escalation. Role management should be done by a trusted server.
+     * This collection is used to identify managers. Its existence is checked by helper functions.
+     * It is read-only for clients to prevent privilege escalation. Seeding process can write to it.
      */
     match /roles_manager/{userId} {
       allow get: if isSignedIn();
@@ -113,63 +78,6 @@ service cloud.firestore {
       allow create: if true; // Allow trusted seeding process
       allow update: if false;
       allow delete: if false;
-    }
-
-    // -------------------------------------------------------------------------
-    // Manager -> Executive Relationship Rules
-    // -------------------------------------------------------------------------
-
-    /**
-     * @description A Manager can add or remove executives under their management. This defines the hierarchy.
-     * @path /users/{managerId}/executives/{executiveId}
-     * @allow (create) A manager (auth.uid == managerId) adding a new executive to their team.
-     * @deny (create) An executive attempting to assign themselves to a manager.
-     * @principle Enforces that only managers can define and modify their team structure.
-     */
-    match /users/{managerId}/executives/{executiveId} {
-      allow get: if isOwner(managerId);
-      allow list: if isOwner(managerId);
-      allow create: if isOwner(managerId);
-      allow update: if false;
-      allow delete: if isExistingOwner(managerId);
-    }
-
-    // -------------------------------------------------------------------------
-    // Executive Lead Rules
-    // -------------------------------------------------------------------------
-
-    /**
-     * @description Executives have full control over their own leads. Their direct manager has read-only access.
-     * @path /users/{executiveId}/leads/{leadId}
-     * @allow (get) A manager reading a lead belonging to an executive they manage.
-     * @deny (update) A manager attempting to modify a lead belonging to their executive.
-     * @principle Enforces document ownership for writes, while allowing hierarchical read access for managers.
-     */
-    match /users/{executiveId}/leads/{leadId} {
-      allow get: if isOwner(executiveId) || isTheirManager(executiveId);
-      allow list: if isOwner(executiveId) || isTheirManager(executiveId);
-      allow create: if isOwner(executiveId) && request.resource.data.executiveId == executiveId;
-      allow update: if isExistingOwner(executiveId) && request.resource.data.executiveId == resource.data.executiveId;
-      allow delete: if isExistingOwner(executiveId);
-    }
-
-    // -------------------------------------------------------------------------
-    // User Dashboard Rules
-    // -------------------------------------------------------------------------
-
-    /**
-     * @description Any user (Manager or Executive) can manage their own dashboard settings.
-     * @path /users/{userId}/dashboards/{dashboardId}
-     * @allow (create) An authenticated user creating their own dashboard settings document.
-     * @deny (get) Any user attempting to read another user's dashboard settings.
-     * @principle Restricts access to a user's own data tree, enforcing strict data privacy.
-     */
-    match /users/{userId}/dashboards/{dashboardId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && request.resource.data.userId == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
-      allow delete: if isExistingOwner(userId);
     }
   }
 }

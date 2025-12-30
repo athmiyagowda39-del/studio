@@ -56,50 +56,50 @@ const seedInitialUsers = async (auth: any, firestore: any) => {
   ];
   
   const currentAuthUser = auth.currentUser;
+  // Temporarily sign in anonymously to perform admin-like seeding tasks
   await signInAnonymously(auth);
 
   for (const userSeed of usersToSeed) {
     try {
+      // Attempt to create the user
       const userCredential = await createUserWithEmailAndPassword(auth, userSeed.email, userSeed.password);
       const newUser = userCredential.user;
+      
+      // Set the user's profile in Firestore
       const userRef = doc(firestore, 'users', newUser.uid);
       const userData: User = { uid: newUser.uid, username: userSeed.username, role: userSeed.role };
       await setDoc(userRef, userData);
 
+      // If the user is a manager, add them to the roles_manager collection
       if (userSeed.role === 'Manager') {
         const managerRef = doc(firestore, 'roles_manager', newUser.uid);
         await setDoc(managerRef, { uid: newUser.uid });
       }
       
-      // Sign out the newly created user to continue the loop
+      // Sign out the newly created user to allow the loop to continue
       await signOut(auth);
-      // Re-authenticate as anonymous user
+      // Re-authenticate as an anonymous user for the next iteration
       await signInAnonymously(auth);
 
     } catch (error: any) {
-      if (error.code === 'auth/email-already-in-use') {
-        // User already exists, which is fine for seeding.
-      } else {
+      if (error.code !== 'auth/email-already-in-use') {
         console.error('Error creating user during seeding:', userSeed.email, error);
       }
+      // If user already exists, we can ignore the error and continue.
     }
   }
 
-  // Clean up and restore original auth state
-  await signOut(auth); // Sign out anonymous user
-  if (currentAuthUser) {
-     // This part is tricky as we can't just "re-set" the user.
-     // The onAuthStateChanged listener in the provider will handle re-establishing the session.
-     // A page reload might be the simplest way for a user if they were logged in.
-     // For this app's flow, it's okay as seeding happens before login attempts.
-  }
+  // Clean up: sign out the anonymous user
+  await signOut(auth);
+  
+  // The onAuthStateChanged listener will handle re-establishing the original user's session if they were logged in.
 };
 
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const {
     user: firebaseUser,
-    isUserLoading: isAuthLoading,
+    isUserLoading,
     userError,
   } = useUser();
   const auth = useAuth();
@@ -207,7 +207,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         isAuthenticated,
         user,
         firebaseUser,
-        isAuthLoading: isAuthLoading || isSeeding,
+        isAuthLoading: isUserLoading || isSeeding,
         login,
         logout,
         changePassword,
