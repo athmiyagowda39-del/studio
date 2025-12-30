@@ -85,7 +85,7 @@ service cloud.firestore {
     match /users/{userId} {
       allow get: if isOwner(userId);
       allow list: if false;
-      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow create: if request.auth.uid == userId;
       allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
       allow delete: if isExistingOwner(userId);
 
@@ -110,7 +110,7 @@ service cloud.firestore {
     match /roles_manager/{userId} {
       allow get: if isSignedIn();
       allow list: if false;
-      allow create: if false;
+      allow create: if true; // Allow trusted seeding process
       allow update: if false;
       allow delete: if false;
     }

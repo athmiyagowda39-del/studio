@@ -57,48 +57,35 @@ const seedInitialUsers = async (auth: any, firestore: any) => {
     { email: 'executive@test.com', password: 'password', username: 'Executive', role: 'Executive' as UserRole },
   ];
 
-  // Temporarily sign in to perform admin-like operations for seeding.
-  // In a real app, this would be a secure admin process.
-  const tempAdminEmail = 'admin-seeder@temp.com';
-  const tempAdminPassword = 'temp-password-seeder';
-  let tempAdminCredential;
-  try {
-    tempAdminCredential = await signInWithEmailAndPassword(auth, tempAdminEmail, tempAdminPassword);
-  } catch (error: any) {
-    if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
-      tempAdminCredential = await createUserWithEmailAndPassword(auth, tempAdminEmail, tempAdminPassword);
-    } else {
-      console.error("Failed to sign in or create temporary admin for seeding:", error);
-      return;
-    }
-  }
-
-
   for (const userSeed of usersToSeed) {
     try {
-      // The operation of creating user is now done by a temporary admin user.
-      const userCredential = await createUserWithEmailAndPassword(auth, userSeed.email, userSeed.password);
-      const newUser = userCredential.user;
-      const userRef = doc(firestore, 'users', newUser.uid);
-      const userData: User = { uid: newUser.uid, username: userSeed.username, role: userSeed.role };
-      await setDoc(userRef, userData);
-
-      if (userSeed.role === 'Manager') {
-        const managerRef = doc(firestore, 'roles_manager', newUser.uid);
-        await setDoc(managerRef, { uid: newUser.uid });
-      }
+      // Attempt to sign in first to see if the user exists
+      await signInWithEmailAndPassword(auth, userSeed.email, userSeed.password);
     } catch (error: any) {
-      if (error.code === 'auth/email-already-in-use') {
-        // User already exists, which is fine for seeding.
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+        // User does not exist, so create them
+        try {
+          const userCredential = await createUserWithEmailAndPassword(auth, userSeed.email, userSeed.password);
+          const newUser = userCredential.user;
+          const userRef = doc(firestore, 'users', newUser.uid);
+          const userData: User = { uid: newUser.uid, username: userSeed.username, role: userSeed.role };
+          await setDoc(userRef, userData);
+
+          if (userSeed.role === 'Manager') {
+            const managerRef = doc(firestore, 'roles_manager', newUser.uid);
+            await setDoc(managerRef, { uid: newUser.uid });
+          }
+        } catch (creationError) {
+          console.error('Error creating user during seeding:', userSeed.email, creationError);
+        }
       } else {
-        // Log other errors for debugging.
-        console.error('Error seeding user:', userSeed.email, error);
+        // Another error occurred during sign-in attempt
+        console.error('Error checking for user during seeding:', userSeed.email, error);
       }
     }
   }
-  
-  // Important: Sign out the temporary admin user to restore normal auth state.
-  if (auth.currentUser?.email === tempAdminEmail) {
+  // Sign out if we were signed in for checking
+  if (auth.currentUser) {
     await signOut(auth);
   }
 };
