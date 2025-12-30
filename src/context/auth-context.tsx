@@ -40,8 +40,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async (username: string, pass: string) => {
     setIsAuthLoading(true);
     // Simple mock authentication
-    if (username === 'athmiya' && pass === 'passwordd') {
-      const userData: User = { username: 'athmiya' };
+    if (
+      (username === 'athmiya' && pass === 'passwordd') ||
+      (username === 'chiranth' && pass === 'password')
+    ) {
+      const userData: User = { username };
       localStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);
       setIsAuthLoading(false);
@@ -58,7 +61,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const changePassword = async (oldPass: string, newPass: string) => {
     // This is a mock. In a real app, you'd have an API for this.
-    if (oldPass === 'passwordd') {
+    if (oldPass === 'passwordd' || oldPass === 'password') {
       console.log('Password changed successfully (mock)');
       return true;
     }
