@@ -49,45 +49,42 @@ export const AuthContext = createContext<AuthContextType | undefined>(
 
 // Function to seed initial users if they don't exist
 const seedInitialUsers = async (auth: any, firestore: any) => {
-    const usersToSeed = [
-        { email: 'manager@test.com', password: 'password', username: 'Manager', role: 'Manager' as UserRole },
-        { email: 'executive@test.com', password: 'password', username: 'Executive', role: 'Executive' as UserRole },
-    ];
+  const usersToSeed = [
+    { email: 'manager@test.com', password: 'password', username: 'Manager', role: 'Manager' as UserRole },
+    { email: 'executive@test.com', password: 'password', username: 'Executive', role: 'Executive' as UserRole },
+  ];
 
-    for (const userSeed of usersToSeed) {
-        try {
-            // Attempt to sign in to check if user exists. This is a workaround.
-            // A more robust solution would be a backend check, but for seeding this is acceptable.
-             await signInWithEmailAndPassword(auth, 'user-does-not-exist-check@test.com', 'invalidpassword');
-        } catch (error: any) {
-             if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
-                try {
-                    // This block will only run if we can confirm the user doesn't exist by failing to sign in.
-                    // A more robust check should be implemented in a real-world scenario.
-                } catch (e: any) {
-                    // This is expected if the user does not exist. We can proceed to create them.
-                    if (e.code === 'auth/user-not-found' || e.code === 'auth/invalid-credential') {
-                        try {
-                            const userCredential = await createUserWithEmailAndPassword(auth, userSeed.email, userSeed.password);
-                            const newUser = userCredential.user;
-                            const userRef = doc(firestore, 'users', newUser.uid);
-                            const userData: User = { uid: newUser.uid, username: userSeed.username, role: userSeed.role };
-                            await setDoc(userRef, userData);
+  let signedIn = false;
+  if (auth.currentUser) {
+    signedIn = true;
+  }
 
-                            if (userSeed.role === 'Manager') {
-                                const managerRef = doc(firestore, 'roles_manager', newUser.uid);
-                                await setDoc(managerRef, { uid: newUser.uid });
-                            }
-                        } catch (creationError) {
-                            // This might fail if user already exists, which is fine.
-                        }
-                    }
-                }
-            }
-        }
+  for (const userSeed of usersToSeed) {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, userSeed.email, userSeed.password);
+      const newUser = userCredential.user;
+      const userRef = doc(firestore, 'users', newUser.uid);
+      const userData: User = { uid: newUser.uid, username: userSeed.username, role: userSeed.role };
+      await setDoc(userRef, userData);
+
+      if (userSeed.role === 'Manager') {
+        const managerRef = doc(firestore, 'roles_manager', newUser.uid);
+        await setDoc(managerRef, { uid: newUser.uid });
+      }
+    } catch (error: any) {
+      if (error.code === 'auth/email-already-in-use') {
+        // User already exists, which is fine for seeding.
+      } else {
+        // Log other errors for debugging.
+        console.error('Error seeding user:', userSeed.email, error);
+      }
     }
-     // Sign out after seeding to ensure a clean state
+  }
+
+  // If a user was already signed in, don't sign them out. Otherwise, sign out the last created user.
+  if (!signedIn && auth.currentUser) {
     await signOut(auth);
+  }
 };
 
 
