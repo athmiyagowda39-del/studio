@@ -252,7 +252,8 @@ export default function LeadUploadForm() {
         return {
             ...lead,
             leadId: `LEAD-${now}-${index}`,
-            creationDate: now
+            creationDate: now,
+            status: 'Not viewed', // Default status for new leads
         };
     });
 
@@ -434,7 +435,7 @@ export default function LeadUploadForm() {
         if (lead.leadId === leadIdForStatus) {
             return {
                 ...lead,
-                leadSubStatus: selectedStatus,
+                status: selectedStatus,
                 leadStatusRemarks: initialRemarks,
             };
         }
@@ -447,7 +448,7 @@ export default function LeadUploadForm() {
 
     toast({
       title: 'Status Updated',
-      description: `Lead ${leadIdForStatus} sub-status updated to ${selectedStatus}.`,
+      description: `Lead ${leadIdForStatus} status updated to ${selectedStatus}.`,
     });
 
     setInitialRemarks('');
@@ -640,7 +641,7 @@ export default function LeadUploadForm() {
             <div className='flex flex-col gap-4'>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
                     <div className="space-y-2">
-                        <Label htmlFor="lead-id-status" className="shrink-0">Initial Remarks:</Label>
+                        <Label htmlFor="lead-id-status" className="shrink-0">Change Status For Lead:</Label>
                         <Popover open={leadIdForStatusOpen} onOpenChange={setLeadIdForStatusOpen}>
                             <PopoverTrigger asChild>
                                 <Button
@@ -685,7 +686,7 @@ export default function LeadUploadForm() {
                         <span className="font-semibold shrink-0">Current Status: {currentStatus}</span>
                         <Select value={selectedStatus} onValueChange={setSelectedStatus} disabled={!leadIdForStatus}>
                         <SelectTrigger className="w-full min-w-[200px]">
-                            <SelectValue placeholder="-- Select --" />
+                            <SelectValue placeholder="-- Select New Status --" />
                         </SelectTrigger>
                         <SelectContent>
                             {leadStatusOptions.map((status) => (
@@ -700,7 +701,7 @@ export default function LeadUploadForm() {
                 <div className="space-y-2">
                     <Textarea 
                         id="initial-remarks"
-                        placeholder="Enter remarks..."
+                        placeholder="Enter status remarks..."
                         value={initialRemarks}
                         onChange={(e) => setInitialRemarks(e.target.value)}
                         className="min-h-[40px]"

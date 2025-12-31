@@ -150,9 +150,12 @@ export default function LeadUpdateForm() {
           };
         });
         setAllLeads(correctedLeads as any);
+      } else {
+        setAllLeads([]);
       }
     } catch (error) {
       console.error('Failed to parse leads from localStorage', error);
+      setAllLeads([]);
     }
   }, []);
   
@@ -160,7 +163,7 @@ export default function LeadUpdateForm() {
     loadLeads();
     
     const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === 'uploadedLeads') {
+      if (event.key === 'uploadedLeads' || event.key === null) { // event.key is null for localStorage.clear()
         loadLeads();
       }
     };
@@ -281,7 +284,7 @@ export default function LeadUpdateForm() {
         if (lead.leadId === leadIdForStatus) {
             return {
                 ...lead,
-                leadSubStatus: selectedStatus,
+                status: selectedStatus, // Update the main status
                 leadStatusRemarks: initialRemarks,
             };
         }
@@ -294,18 +297,17 @@ export default function LeadUpdateForm() {
 
     const leadToUpdate = updatedLeads.find(l => l.leadId === leadIdForStatus);
     if(leadToUpdate) {
-        // We dont update the main status here, but the sub-status
-        // setCurrentStatus(leadToUpdate.status || 'Initial');
+        setCurrentStatus(leadToUpdate.status || 'Initial');
     }
 
     toast({
       title: 'Status Updated',
-      description: `Lead ${leadIdForStatus} sub-status updated to ${selectedStatus}.`,
+      description: `Lead ${leadIdForStatus} status updated to ${selectedStatus}.`,
     });
     
     // Also update the main form if the same lead is loaded
     if (leadDetails.leadId === leadIdForStatus) {
-        setLeadDetails(prev => ({...prev, leadSubStatus: selectedStatus, leadStatusRemarks: initialRemarks}));
+        setLeadDetails(prev => ({...prev, status: selectedStatus, leadStatusRemarks: initialRemarks}));
     }
 
     setInitialRemarks('');
@@ -345,7 +347,7 @@ export default function LeadUpdateForm() {
           const leadWithFollowup = lead as any;
           const hasPendingFollowup = leadWithFollowup.nextFollowUpDate && new Date(leadWithFollowup.nextFollowUpDate) > new Date();
           const hasNoFollowups = !leadWithFollowup.followUps || leadWithFollowup.followUps.length === 0;
-          return hasPendingFollowup && hasNoFollowups;
+          return hasPendingFollowup || hasNoFollowups;
         });
       } else if (filters.followUpStatus === 'made') {
         leads = leads.filter(lead => (lead as any).followUps && (lead as any).followUps.length > 0);
@@ -383,7 +385,7 @@ export default function LeadUpdateForm() {
   const handleQuickFilter = (filterType: string) => {
     setActiveQuickFilter(filterType);
     let leads: LeadFormData[] = [];
-    const today = new Date();
+    const today = startOfDay(new Date());
 
     switch(filterType) {
         case 'Recent Leads':
@@ -394,7 +396,7 @@ export default function LeadUpdateForm() {
             leads = allLeads.filter(lead => !lead.executiveViewDate);
             break;
         case 'Follow Ups Due':
-            const todayTimestamp = new Date().getTime();
+            const todayTimestamp = today.getTime();
             leads = allLeads.filter(lead => {
               const nextFollowUp = (lead as any).nextFollowUpDate;
               return nextFollowUp && new Date(nextFollowUp).getTime() <= todayTimestamp;
@@ -815,7 +817,7 @@ export default function LeadUpdateForm() {
             <div className='flex flex-col gap-4'>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
                     <div className="space-y-2">
-                        <Label htmlFor="lead-id-status" className="shrink-0">Initial Remarks:</Label>
+                        <Label htmlFor="lead-id-status" className="shrink-0">Change Status For Lead:</Label>
                         <Popover open={leadIdForStatusOpen} onOpenChange={setLeadIdForStatusOpen}>
                             <PopoverTrigger asChild>
                                 <Button
@@ -860,7 +862,7 @@ export default function LeadUpdateForm() {
                         <span className="font-semibold shrink-0">Current Status: {currentStatus}</span>
                         <Select value={selectedStatus} onValueChange={setSelectedStatus} disabled={!leadIdForStatus}>
                         <SelectTrigger className="w-full min-w-[200px]">
-                            <SelectValue placeholder="-- Select --" />
+                            <SelectValue placeholder="-- Select New Status --" />
                         </SelectTrigger>
                         <SelectContent>
                             {leadStatusOptions.map((status) => (
@@ -875,7 +877,7 @@ export default function LeadUpdateForm() {
                 <div className="space-y-2">
                     <Textarea 
                         id="initial-remarks"
-                        placeholder="Enter remarks..."
+                        placeholder="Enter status remarks..."
                         value={initialRemarks}
                         onChange={(e) => setInitialRemarks(e.target.value)}
                         className="min-h-[40px]"
@@ -1230,7 +1232,5 @@ export default function LeadUpdateForm() {
     </div>
   );
 }
-
-    
 
     
