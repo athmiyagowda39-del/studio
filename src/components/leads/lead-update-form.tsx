@@ -477,7 +477,9 @@ export default function LeadUpdateForm() {
     }
 
     let fileName = 'filtered_leads_report.xlsx';
-    if (filters.statusOfLead !== 'all') {
+    if (filters.leadSource !== 'all') {
+        fileName = `${filters.leadSource.replace(/\s+/g, '_').toLowerCase()}_report.xlsx`;
+    } else if (filters.statusOfLead !== 'all') {
         fileName = `${filters.statusOfLead.replace(/\s+/g, '_').toLowerCase()}_report.xlsx`;
     } else if (activeQuickFilter && activeQuickFilter !== 'Search Result') {
         fileName = `${activeQuickFilter.replace(/\s+/g, '_').toLowerCase()}_report.xlsx`;
@@ -1291,6 +1293,11 @@ export default function LeadUpdateForm() {
         
         {showResults && (
           <Card>
+            <CardHeader>
+              <CardTitle className='text-base'>
+                List of Leads &gt;&gt; [ {activeQuickFilter} ({filteredLeads.length}{' '} Records) ]
+              </CardTitle>
+            </CardHeader>
             <CardContent className="p-4">
               <div className="flex flex-wrap gap-2 mb-4">
                 {[
@@ -1317,10 +1324,6 @@ export default function LeadUpdateForm() {
                   </Button>
                 ))}
               </div>
-              <p className="text-sm text-muted-foreground mb-2">
-                List of Leads &gt;&gt; [ {activeQuickFilter} ({filteredLeads.length}{' '}
-                Records) ]
-              </p>
               <Card>
                 <CardContent className="p-0">
                   <ScrollArea className="w-full whitespace-nowrap rounded-md border">
@@ -1435,4 +1438,5 @@ export default function LeadUpdateForm() {
   );
 }
 
+    
     
