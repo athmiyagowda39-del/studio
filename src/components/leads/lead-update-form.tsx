@@ -474,10 +474,18 @@ export default function LeadUpdateForm() {
         });
         return;
     }
+
+    let fileName = 'filtered_leads_report.xlsx';
+    if (filters.statusOfLead !== 'all') {
+        fileName = `${filters.statusOfLead.replace(/\s+/g, '_').toLowerCase()}_report.xlsx`;
+    } else if (activeQuickFilter && activeQuickFilter !== 'Search Result') {
+        fileName = `${activeQuickFilter.replace(/\s+/g, '_').toLowerCase()}_report.xlsx`;
+    }
+
     const ws = XLSX.utils.json_to_sheet(filteredLeads);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Filtered Leads");
-    XLSX.writeFile(wb, "filtered_leads.xlsx");
+    XLSX.writeFile(wb, fileName);
   }
 
   const summaryCards = useMemo(() => {
@@ -1148,12 +1156,14 @@ export default function LeadUpdateForm() {
                             <SelectValue placeholder="--All--" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="all">--All--</SelectItem>
-                            {leadSourceOptions.map(source => (
-                                <SelectItem key={source} value={source}>
-                                    {source}
-                                </SelectItem>
-                            ))}
+                            <ScrollArea className="h-48">
+                                <SelectItem value="all">--All--</SelectItem>
+                                {leadSourceOptions.map(source => (
+                                    <SelectItem key={source} value={source}>
+                                        {source}
+                                    </SelectItem>
+                                ))}
+                            </ScrollArea>
                           </SelectContent>
                         </Select>
                       </div>
@@ -1390,9 +1400,6 @@ export default function LeadUpdateForm() {
                       </TableBody>
                     </Table>
                   </ScrollArea>
-                  <div className="relative w-full overflow-auto">
-    
-</div>
                 </CardContent>
               </Card>
               
@@ -1426,5 +1433,3 @@ export default function LeadUpdateForm() {
     </div>
   );
 }
-
-    
