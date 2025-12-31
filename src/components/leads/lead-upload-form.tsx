@@ -90,6 +90,13 @@ const leadStatusOptions = [
     'Pursuing to Purchase',
     'Not interested',
     'Order closed',
+    'Contacted',
+    'Qualified',
+    'Unqualified',
+    'Follow-up Required',
+    'Fake Lead',
+    'Existing Customer',
+    'Do Not Contact',
 ];
 
 const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate'> = {

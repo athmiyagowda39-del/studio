@@ -84,6 +84,13 @@ const leadStatusOptions = [
     'Pursuing to Purchase',
     'Not interested',
     'Order closed',
+    'Contacted',
+    'Qualified',
+    'Unqualified',
+    'Follow-up Required',
+    'Fake Lead',
+    'Existing Customer',
+    'Do Not Contact',
 ];
 
 const executiveIds = [
@@ -446,9 +453,12 @@ export default function LeadUpdateForm() {
         counts[lead.status]++;
       }
     });
+    
+    // Add a total count
+    const total = allLeads.length;
 
     return {
-      total: allLeads.length,
+      total: total,
       ...counts,
     };
   }, [allLeads]);
