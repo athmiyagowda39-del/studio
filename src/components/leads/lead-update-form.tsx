@@ -1279,90 +1279,149 @@ export default function LeadUpdateForm() {
                 List of Leads &gt;&gt; [ {activeQuickFilter} ({filteredLeads.length}{' '}
                 Records) ]
               </p>
-              <ScrollArea className="w-full rounded-md border">
-                <div className="overflow-x-auto">
-                    <Table className="whitespace-nowrap">
-                    <TableHeader>
-                        <TableRow>
-                        <TableHead>Sl No</TableHead>
-                        <TableHead>Lead Id</TableHead>
-                        <TableHead>Lead Date</TableHead>
-                        <TableHead>Product</TableHead>
-                        <TableHead>Company</TableHead>
-                        <TableHead>Contact</TableHead>
-                        <TableHead>Phone</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Address</TableHead>
-                        <TableHead>Place</TableHead>
-                        <TableHead>District</TableHead>
-                        <TableHead>State</TableHead>
-                        <TableHead>Reference</TableHead>
-                        <TableHead>Dealer</TableHead>
-                        <TableHead>Manager</TableHead>
-                        <TableHead>Last Followed Date</TableHead>
-                        <TableHead>Last Followed By</TableHead>
-                        <TableHead>Next followup Date</TableHead>
-                        <TableHead>Last Followup Remarks</TableHead>
-                        <TableHead>Lead Status</TableHead>
-                        <TableHead>Lead Sub Status</TableHead>
-                        <TableHead>Lead Status Remarks</TableHead>
-                        <TableHead>Given By</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {filteredLeads.length > 0 ? (
-                        filteredLeads.map((lead, index) => {
-                            const date = new Date(lead.creationDate);
-                            const isValidDate = !isNaN(date.getTime());
-                            const lastFollowUp = lead.followUps && lead.followUps.length > 0 ? lead.followUps[lead.followUps.length - 1] : null;
-                            const nextFollowupDate = lead.nextFollowUpDate && !isNaN(new Date(lead.nextFollowUpDate).getTime())
-                            ? format(new Date(lead.nextFollowUpDate), 'PPP')
-                            : (lastFollowUp ? lastFollowUp.nextFollowUp : 'N/A');
+              <ScrollArea className="w-full whitespace-nowrap rounded-md border">
+                <Table>
+                  <TableHeader>
+                      <TableRow>
+                      <TableHead>Sl No</TableHead>
+                      <TableHead>Lead Id</TableHead>
+                      <TableHead>Lead Date</TableHead>
+                      <TableHead>Product</TableHead>
+                      <TableHead>Company</TableHead>
+                      <TableHead>Contact</TableHead>
+                      <TableHead>Phone</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Address</TableHead>
+                      <TableHead>Place</TableHead>
+                      <TableHead>District</TableHead>
+                      <TableHead>State</TableHead>
+                      <TableHead>Reference</TableHead>
+                      <TableHead>Dealer</TableHead>
+                      <TableHead>Manager</TableHead>
+                      <TableHead>Last Followed Date</TableHead>
+                      <TableHead>Last Followed By</TableHead>
+                      <TableHead>Next followup Date</TableHead>
+                      <TableHead>Last Followup Remarks</TableHead>
+                      <TableHead>Lead Status</TableHead>
+                      <TableHead>Lead Sub Status</TableHead>
+                      <TableHead>Lead Status Remarks</TableHead>
+                      <TableHead>Given By</TableHead>
+                      </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                      {filteredLeads.length > 0 ? (
+                      filteredLeads.map((lead, index) => {
+                          const date = new Date(lead.creationDate);
+                          const isValidDate = !isNaN(date.getTime());
+                          const lastFollowUp = lead.followUps && lead.followUps.length > 0 ? lead.followUps[lead.followUps.length - 1] : null;
+                          const nextFollowupDate = lead.nextFollowUpDate && !isNaN(new Date(lead.nextFollowUpDate).getTime())
+                          ? format(new Date(lead.nextFollowUpDate), 'PPP')
+                          : (lastFollowUp ? lastFollowUp.nextFollowUp : 'N/A');
 
-                            return (
-                            <TableRow key={`${lead.leadId}-${index}`} onClick={() => findLeadAndSetDetails(lead.leadId)} className="cursor-pointer">
-                                <TableCell>{index + 1}</TableCell>
-                                <TableCell>{lead.leadId || 'N/A'}</TableCell>
-                                <TableCell>{isValidDate ? format(date, 'PPP') : 'N/A'}</TableCell>
-                                <TableCell>{lead.selectedModule || 'N/A'}</TableCell>
-                                <TableCell>{lead.company || 'N/A'}</TableCell>
-                                <TableCell>{lead.contactPerson || 'N/A'}</TableCell>
-                                <TableCell>{lead.contactNumber || 'N/A'}</TableCell>
-                                <TableCell>{lead.email || 'N/A'}</TableCell>
-                                <TableCell>{lead.address || 'N/A'}</TableCell>
-                                <TableCell>{lead.district || 'N/A'}</TableCell>
-                                <TableCell>{lead.district || 'N/A'}</TableCell>
-                                <TableCell>{lead.state || 'N/A'}</TableCell>
-                                <TableCell>{lead.reference || 'N/A'}</TableCell>
-                                <TableCell>{lead.dealer || 'N/A'}</TableCell>
-                                <TableCell>{lead.manager || 'N/A'}</TableCell>
-                                <TableCell>{lastFollowUp ? lastFollowUp.date : 'N/A'}</TableCell>
-                                <TableCell>{lastFollowUp ? lastFollowUp.enteredBy : 'N/A'}</TableCell>
-                                <TableCell>{nextFollowupDate}</TableCell>
-                                <TableCell>{lastFollowUp ? lastFollowUp.remarks : 'N/A'}</TableCell>
-                                <TableCell>{lead.status || 'N/A'}</TableCell>
-                                <TableCell>{lead.leadSubStatus || 'N/A'}</TableCell>
-                                <TableCell>{lead.leadStatusRemarks || 'N/A'}</TableCell>
-                                <TableCell>{lead.givenBy || 'N/A'}</TableCell>
-                            </TableRow>
-                            )
-                        })
-                        ) : (
-                        <TableRow>
-                            <TableCell colSpan={23} className="text-center h-24">
-                            No results
-                            </TableCell>
-                        </TableRow>
-                        )}
-                    </TableBody>
-                    </Table>
-                </div>
+                          return (
+                          <TableRow key={`${lead.leadId}-${index}`} onClick={() => findLeadAndSetDetails(lead.leadId)} className="cursor-pointer">
+                              <TableCell>{index + 1}</TableCell>
+                              <TableCell>{lead.leadId || 'N/A'}</TableCell>
+                              <TableCell>{isValidDate ? format(date, 'PPP') : 'N/A'}</TableCell>
+                              <TableCell>{lead.selectedModule || 'N/A'}</TableCell>
+                              <TableCell>{lead.company || 'N/A'}</TableCell>
+                              <TableCell>{lead.contactPerson || 'N/A'}</TableCell>
+                              <TableCell>{lead.contactNumber || 'N/A'}</TableCell>
+                              <TableCell>{lead.email || 'N/A'}</TableCell>
+                              <TableCell>{lead.address || 'N/A'}</TableCell>
+                              <TableCell>{lead.district || 'N/A'}</TableCell>
+                              <TableCell>{lead.district || 'N/A'}</TableCell>
+                              <TableCell>{lead.state || 'N/A'}</TableCell>
+                              <TableCell>{lead.reference || 'N/A'}</TableCell>
+                              <TableCell>{lead.dealer || 'N/A'}</TableCell>
+                              <TableCell>{lead.manager || 'N/A'}</TableCell>
+                              <TableCell>{lastFollowUp ? lastFollowUp.date : 'N/A'}</TableCell>
+                              <TableCell>{lastFollowUp ? lastFollowUp.enteredBy : 'N/A'}</TableCell>
+                              <TableCell>{nextFollowupDate}</TableCell>
+                              <TableCell>{lastFollowUp ? lastFollowUp.remarks : 'N/A'}</TableCell>
+                              <TableCell>{lead.status || 'N/A'}</TableCell>
+                              <TableCell>{lead.leadSubStatus || 'N/A'}</TableCell>
+                              <TableCell>{lead.leadStatusRemarks || 'N/A'}</TableCell>
+                              <TableCell>{lead.givenBy || 'N/A'}</TableCell>
+                          </TableRow>
+                          )
+                      })
+                      ) : (
+                      <TableRow>
+                          <TableCell colSpan={23} className="text-center h-24">
+                          No results
+                          </TableCell>
+                      </TableRow>
+                      )}
+                  </TableBody>
+                </Table>
                 <div className="text-center mt-4">
                   <Button variant="link">
                     Show more Records &gt;&gt; (Show All Record)
                   </Button>
                 </div>
               </ScrollArea>
+              {leadDetails.leadId && (
+                <div className="mt-6">
+                  <h3 className="text-lg font-semibold mb-2">Selected Lead Details</h3>
+                   <Card>
+                    <CardContent className="p-0">
+                      <Table>
+                        <TableBody>
+                          <TableRow>
+                            <TableHead className="font-bold w-1/4">Lead Id</TableHead>
+                            <TableCell>{leadDetails.leadId}</TableCell>
+                            <TableHead className="font-bold w-1/4">Lead Date</TableHead>
+                            <TableCell>{leadDetails.creationDate ? format(new Date(leadDetails.creationDate), 'PPP') : 'N/A'}</TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableHead className="font-bold">Product</TableHead>
+                            <TableCell>{leadDetails.selectedModule}</TableCell>
+                            <TableHead className="font-bold">Company</TableHead>
+                            <TableCell>{leadDetails.company}</TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableHead className="font-bold">Contact</TableHead>
+                            <TableCell>{leadDetails.contactPerson}</TableCell>
+                            <TableHead className="font-bold">Phone</TableHead>
+                            <TableCell>{leadDetails.contactNumber}</TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableHead className="font-bold">Email</TableHead>
+                            <TableCell>{leadDetails.email}</TableCell>
+                            <TableHead className="font-bold">Address</TableHead>
+                            <TableCell>{leadDetails.address}</TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableHead className="font-bold">Place</TableHead>
+                            <TableCell>{leadDetails.district}</TableCell>
+                            <TableHead className="font-bold">District</TableHead>
+                            <TableCell>{leadDetails.district}</TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableHead className="font-bold">State</TableHead>
+                            <TableCell>{leadDetails.state}</TableCell>
+                            <TableHead className="font-bold">Reference</TableHead>
+                            <TableCell>{leadDetails.reference}</TableCell>
+                          </TableRow>
+                           <TableRow>
+                            <TableHead className="font-bold">Dealer</TableHead>
+                            <TableCell>{leadDetails.dealer || 'N/A'}</TableCell>
+                            <TableHead className="font-bold">Manager</TableHead>
+                            <TableCell>{leadDetails.manager || 'N/A'}</TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableHead className="font-bold">Lead Status</TableHead>
+                            <TableCell>{leadDetails.status}</TableCell>
+                            <TableHead className="font-bold">Given By</TableHead>
+                            <TableCell>{leadDetails.givenBy || 'N/A'}</TableCell>
+                          </TableRow>
+                        </TableBody>
+                      </Table>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
