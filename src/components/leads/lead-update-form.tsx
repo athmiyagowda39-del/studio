@@ -903,7 +903,7 @@ export default function LeadUpdateForm() {
           <CollapsibleContent>
             <Card className="mt-2">
               <CardContent className="p-0">
-                <ScrollArea className="max-h-[50vh] p-4">
+                <div className="p-4">
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-center">
                       <div className="flex items-center gap-2">
@@ -1098,14 +1098,14 @@ export default function LeadUpdateForm() {
                       )}
                     </div>
                   </div>
-                  <div className="flex justify-end gap-2 p-4 border-t">
-                    <Button onClick={handleShowClick}>SHOW</Button>
-                    <Button variant="outline" onClick={handleToExcel}>TO EXCEL</Button>
-                    <Button variant="destructive" onClick={handleResetClick}>
-                      RESET
-                    </Button>
-                  </div>
-                </ScrollArea>
+                </div>
+                <div className="flex justify-end gap-2 p-4 border-t">
+                  <Button onClick={handleShowClick}>SHOW</Button>
+                  <Button variant="outline" onClick={handleToExcel}>TO EXCEL</Button>
+                  <Button variant="destructive" onClick={handleResetClick}>
+                    RESET
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </CollapsibleContent>
@@ -1232,5 +1232,3 @@ export default function LeadUpdateForm() {
     </div>
   );
 }
-
-    
