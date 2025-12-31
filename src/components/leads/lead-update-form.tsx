@@ -93,6 +93,20 @@ const leadStatusOptions = [
     'Do Not Contact',
 ];
 
+const leadSourceOptions = [
+    'Website',
+    'Social Media',
+    'Referral',
+    'Direct Call',
+    'Email Campaign',
+    'Advertisement',
+    'Trade Show',
+    'Partner',
+    'Existing Customer',
+    'Cold Call',
+    'Other'
+];
+
 const executiveIds = [
     'EXEC-001',
     'EXEC-002',
@@ -1104,7 +1118,11 @@ export default function LeadUpdateForm() {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="all">--All--</SelectItem>
-                            <SelectItem value="source1">Source 1</SelectItem>
+                            {leadSourceOptions.map(source => (
+                                <SelectItem key={source} value={source}>
+                                    {source}
+                                </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       </div>
@@ -1349,5 +1367,8 @@ export default function LeadUpdateForm() {
       </div>
     </div>
   );
+
+    
+
 
     
