@@ -327,6 +327,10 @@ export default function LeadUpdateForm() {
             return leadValue?.toString().toLowerCase().includes(filters.search.toLowerCase());
         });
     }
+    
+    if (filters.statusOfLead !== 'all') {
+        leads = leads.filter(lead => lead.status === filters.statusOfLead);
+    }
 
     if (filters.fromDate) {
         const from = startOfDay(new Date(filters.fromDate)).getTime();
@@ -1062,7 +1066,11 @@ export default function LeadUpdateForm() {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="all">--All--</SelectItem>
-                            <SelectItem value="status1">Status 1</SelectItem>
+                            {leadStatusOptions.map(status => (
+                              <SelectItem key={status} value={status}>
+                                {status}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       </div>
