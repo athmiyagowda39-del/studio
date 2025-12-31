@@ -92,6 +92,7 @@ const leadStatusOptions = [
     'Fake Lead',
     'Existing Customer',
     'Do Not Contact',
+    'Quote Sent',
 ];
 
 const leadSourceOptions = [
@@ -1433,3 +1434,5 @@ export default function LeadUpdateForm() {
     </div>
   );
 }
+
+    

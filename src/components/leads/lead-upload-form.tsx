@@ -98,6 +98,7 @@ const leadStatusOptions = [
     'Fake Lead',
     'Existing Customer',
     'Do Not Contact',
+    'Quote Sent',
 ];
 
 const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate' | 'givenBy'> = {
