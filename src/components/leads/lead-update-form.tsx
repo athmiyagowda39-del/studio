@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useContext } from 'react';
 import {
   Table,
   TableBody,
@@ -46,6 +46,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import type { LeadFormData } from './lead-upload-form';
 import * as XLSX from 'xlsx';
 import { ScrollArea } from '../ui/scroll-area';
+import { AuthContext } from '@/context/auth-context';
 
 type FollowUp = {
   id: number;
@@ -147,12 +148,25 @@ export default function LeadUpdateForm() {
   const [filters, setFilters] = useState(initialFilterState);
 
   const { toast } = useToast();
+  const authContext = useContext(AuthContext);
 
   const loadLeads = useCallback(() => {
     try {
-      const storedLeads = localStorage.getItem('uploadedLeads');
+      let storedLeads = localStorage.getItem('uploadedLeads');
+      let parsedLeads: LeadFormData[] = storedLeads ? JSON.parse(storedLeads) : [];
+      
+      const currentUser = authContext?.user;
+
+      if (currentUser && currentUser.role !== 'admin') {
+          // Filter leads for non-admin users based on username matching executive, manager, or givenBy fields
+          parsedLeads = parsedLeads.filter(lead => 
+              lead.executive?.toLowerCase() === currentUser.username.toLowerCase() || 
+              lead.manager?.toLowerCase() === currentUser.username.toLowerCase() ||
+              lead.givenBy?.toLowerCase() === currentUser.username.toLowerCase()
+          );
+      }
+      
       if (storedLeads) {
-        const parsedLeads: LeadFormData[] = JSON.parse(storedLeads);
         const correctedLeads = parsedLeads.map((lead, index) => {
           
           let leadFollowUps: FollowUp[] = lead.followUps || [];
@@ -162,7 +176,7 @@ export default function LeadUpdateForm() {
               date: new Date().toLocaleDateString(),
               remarks: 'First follow up',
               nextFollowUp: format(new Date(), 'PPP'),
-              enteredBy: 'Athmiya AG',
+              enteredBy: authContext?.user?.username || 'System',
             })
           }
 
@@ -182,7 +196,7 @@ export default function LeadUpdateForm() {
       console.error('Failed to parse leads from localStorage', error);
       setAllLeads([]);
     }
-  }, []);
+  }, [authContext?.user]);
   
   useEffect(() => {
     loadLeads();
@@ -266,7 +280,7 @@ export default function LeadUpdateForm() {
       date: new Date().toLocaleDateString(),
       remarks: remarks,
       nextFollowUp: format(nextFollowUpDate, 'PPP'),
-      enteredBy: 'Athmiya AG', // Assuming a logged-in user
+      enteredBy: authContext?.user?.username || 'System', // Assuming a logged-in user
     };
     
     const updatedFollowups = [...followUps, newFollowUp];
@@ -1375,6 +1389,9 @@ export default function LeadUpdateForm() {
                       </TableBody>
                     </Table>
                   </ScrollArea>
+                  <div className="relative w-full overflow-auto">
+    
+</div>
                 </CardContent>
               </Card>
               
