@@ -59,8 +59,8 @@ const initialFilterState = {
   search: '',
   fromSource: 'both',
   searchFor: 'company',
-  fromDate: '',
-  toDate: '',
+  fromDate: undefined as Date | undefined,
+  toDate: undefined as Date | undefined,
   productName: 'all',
   executiveName: 'all',
   givenBy: 'all',
@@ -70,8 +70,8 @@ const initialFilterState = {
   doNotConsider: true,
   considerFollowUps: false,
   followUpStatus: 'pending',
-  followUpFromDate: '',
-  followUpToDate: '',
+  followUpFromDate: undefined as Date | undefined,
+  followUpToDate: undefined as Date | undefined,
   enterBy: 'all',
   remarksFilter: '',
 };
@@ -957,11 +957,61 @@ export default function LeadUpdateForm() {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                       <div className="space-y-1">
                         <Label htmlFor="from-date-update">From Date</Label>
-                        <Input id="from-date-update" type="date" value={filters.fromDate} onChange={e => handleFilterChange('fromDate', e.target.value)} />
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant={'outline'}
+                              className={cn(
+                                'w-full justify-start text-left font-normal',
+                                !filters.fromDate && 'text-muted-foreground'
+                              )}
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {filters.fromDate ? (
+                                format(filters.fromDate, 'PPP')
+                              ) : (
+                                <span>Pick a date</span>
+                              )}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0">
+                            <Calendar
+                              mode="single"
+                              selected={filters.fromDate}
+                              onSelect={(date) => handleFilterChange('fromDate', date)}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
                       </div>
                       <div className="space-y-1">
                         <Label htmlFor="to-date-update">To Date</Label>
-                        <Input id="to-date-update" type="date" value={filters.toDate} onChange={e => handleFilterChange('toDate', e.target.value)} />
+                         <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant={'outline'}
+                              className={cn(
+                                'w-full justify-start text-left font-normal',
+                                !filters.toDate && 'text-muted-foreground'
+                              )}
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {filters.toDate ? (
+                                format(filters.toDate, 'PPP')
+                              ) : (
+                                <span>Pick a date</span>
+                              )}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0">
+                            <Calendar
+                              mode="single"
+                              selected={filters.toDate}
+                              onSelect={(date) => handleFilterChange('toDate', date)}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
                       </div>
                       <div className="space-y-1">
                         <Label htmlFor="product-name-update">Product Name</Label>
@@ -1072,11 +1122,61 @@ export default function LeadUpdateForm() {
 
                             <div className="space-y-1">
                                 <Label htmlFor="follow-up-from-date-update">From Date</Label>
-                                <Input id="follow-up-from-date-update" type="date" value={filters.followUpFromDate} onChange={e => handleFilterChange('followUpFromDate', e.target.value)} />
+                                <Popover>
+                                  <PopoverTrigger asChild>
+                                    <Button
+                                      variant={'outline'}
+                                      className={cn(
+                                        'w-full justify-start text-left font-normal',
+                                        !filters.followUpFromDate && 'text-muted-foreground'
+                                      )}
+                                    >
+                                      <CalendarIcon className="mr-2 h-4 w-4" />
+                                      {filters.followUpFromDate ? (
+                                        format(filters.followUpFromDate, 'PPP')
+                                      ) : (
+                                        <span>Pick a date</span>
+                                      )}
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-auto p-0">
+                                    <Calendar
+                                      mode="single"
+                                      selected={filters.followUpFromDate}
+                                      onSelect={(date) => handleFilterChange('followUpFromDate', date)}
+                                      initialFocus
+                                    />
+                                  </PopoverContent>
+                                </Popover>
                             </div>
                             <div className="space-y-1">
                                 <Label htmlFor="follow-up-to-date-update">To Date</Label>
-                                <Input id="follow-up-to-date-update" type="date" value={filters.followUpToDate} onChange={e => handleFilterChange('followUpToDate', e.target.value)} />
+                                <Popover>
+                                  <PopoverTrigger asChild>
+                                    <Button
+                                      variant={'outline'}
+                                      className={cn(
+                                        'w-full justify-start text-left font-normal',
+                                        !filters.followUpToDate && 'text-muted-foreground'
+                                      )}
+                                    >
+                                      <CalendarIcon className="mr-2 h-4 w-4" />
+                                      {filters.followUpToDate ? (
+                                        format(filters.followUpToDate, 'PPP')
+                                      ) : (
+                                        <span>Pick a date</span>
+                                      )}
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-auto p-0">
+                                    <Calendar
+                                      mode="single"
+                                      selected={filters.followUpToDate}
+                                      onSelect={(date) => handleFilterChange('followUpToDate', date)}
+                                      initialFocus
+                                    />
+                                  </PopoverContent>
+                                </Popover>
                             </div>
                             <div className="space-y-1">
                                 <Label htmlFor="enter-by-update">Enter by</Label>
@@ -1231,4 +1331,5 @@ export default function LeadUpdateForm() {
       </div>
     </div>
   );
-}
+
+    
