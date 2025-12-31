@@ -15,7 +15,6 @@ export default function ReportsPage() {
     { name: 'LEAD UPDATE STATUS REPORT' },
     { name: 'LEAD UPLOAD STATUS REPORT' },
     { name: 'MANAGER LIST REPORT' },
-    { name: 'QUOTE SENT REPORT' },
     { name: 'LEAD SOURCE STATUS REPORT' },
     { name: 'DEALER LIST REPORT' },
     { name: 'MAPPING INFORMATION REPORT' },
