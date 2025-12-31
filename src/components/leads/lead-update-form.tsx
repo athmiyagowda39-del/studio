@@ -1401,68 +1401,6 @@ export default function LeadUpdateForm() {
                   </Button>
                 </div>
               )}
-              
-              {leadDetails.leadId && (
-                <div className="mt-6">
-                  <h3 className="text-lg font-semibold mb-2">Selected Lead Details</h3>
-                   <Card>
-                    <CardContent className="p-0">
-                      <Table>
-                        <TableBody>
-                          <TableRow>
-                            <TableHead className="font-bold w-1/4">Lead Id</TableHead>
-                            <TableCell>{leadDetails.leadId}</TableCell>
-                            <TableHead className="font-bold w-1/4">Lead Date</TableHead>
-                            <TableCell>{leadDetails.creationDate ? format(new Date(leadDetails.creationDate), 'PPP') : 'N/A'}</TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableHead className="font-bold">Product</TableHead>
-                            <TableCell>{leadDetails.selectedModule}</TableCell>
-                            <TableHead className="font-bold">Company</TableHead>
-                            <TableCell>{leadDetails.company}</TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableHead className="font-bold">Contact</TableHead>
-                            <TableCell>{leadDetails.contactPerson}</TableCell>
-                            <TableHead className="font-bold">Phone</TableHead>
-                            <TableCell>{leadDetails.contactNumber}</TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableHead className="font-bold">Email</TableHead>
-                            <TableCell>{leadDetails.email}</TableCell>
-                            <TableHead className="font-bold">Address</TableHead>
-                            <TableCell>{leadDetails.address}</TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableHead className="font-bold">Place</TableHead>
-                            <TableCell>{leadDetails.district}</TableCell>
-                            <TableHead className="font-bold">District</TableHead>
-                            <TableCell>{leadDetails.district}</TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableHead className="font-bold">State</TableHead>
-                            <TableCell>{leadDetails.state}</TableCell>
-                            <TableHead className="font-bold">Reference</TableHead>
-                            <TableCell>{leadDetails.reference}</TableCell>
-                          </TableRow>
-                           <TableRow>
-                            <TableHead className="font-bold">Dealer</TableHead>
-                            <TableCell>{leadDetails.dealer || 'N/A'}</TableCell>
-                            <TableHead className="font-bold">Manager</TableHead>
-                            <TableCell>{leadDetails.manager || 'N/A'}</TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableHead className="font-bold">Lead Status</TableHead>
-                            <TableCell>{leadDetails.status}</TableCell>
-                            <TableHead className="font-bold">Given By</TableHead>
-                            <TableCell>{leadDetails.givenBy || 'N/A'}</TableCell>
-                          </TableRow>
-                        </TableBody>
-                      </Table>
-                    </CardContent>
-                  </Card>
-                </div>
-              )}
             </CardContent>
           </Card>
         )}
