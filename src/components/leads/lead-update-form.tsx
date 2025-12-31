@@ -155,17 +155,6 @@ export default function LeadUpdateForm() {
       let storedLeads = localStorage.getItem('uploadedLeads');
       let parsedLeads: LeadFormData[] = storedLeads ? JSON.parse(storedLeads) : [];
       
-      const currentUser = authContext?.user;
-
-      if (currentUser && currentUser.role !== 'admin') {
-          // Filter leads for non-admin users based on username matching executive, manager, or givenBy fields
-          parsedLeads = parsedLeads.filter(lead => 
-              lead.executive?.toLowerCase() === currentUser.username.toLowerCase() || 
-              lead.manager?.toLowerCase() === currentUser.username.toLowerCase() ||
-              lead.givenBy?.toLowerCase() === currentUser.username.toLowerCase()
-          );
-      }
-      
       if (storedLeads) {
         const correctedLeads = parsedLeads.map((lead, index) => {
           
@@ -182,13 +171,25 @@ export default function LeadUpdateForm() {
 
           return {
             ...lead,
+            executive: lead.executive || (index % 2 === 0 ? 'chiranth' : 'athmiya'), // Assign some data
             status: lead.status || leadStatusOptions[index % leadStatusOptions.length],
             creationDate: typeof lead.creationDate === 'string' ? new Date(lead.creationDate).getTime() : lead.creationDate,
             followUps: leadFollowUps,
             nextFollowUpDate: lead.nextFollowUpDate || (index % 3 === 0 ? new Date(new Date().getTime() + 5 * 24 * 60 * 60 * 1000).toISOString() : undefined), // 5 days from now
           };
         });
-        setAllLeads(correctedLeads as any);
+        
+        const currentUser = authContext?.user;
+        let finalLeads = correctedLeads;
+
+        if (currentUser && currentUser.role !== 'admin') {
+            finalLeads = correctedLeads.filter(lead => 
+                lead.executive?.toLowerCase() === currentUser.username.toLowerCase() || 
+                lead.manager?.toLowerCase() === currentUser.username.toLowerCase() ||
+                lead.givenBy?.toLowerCase() === currentUser.username.toLowerCase()
+            );
+        }
+        setAllLeads(finalLeads as any);
       } else {
         setAllLeads([]);
       }
@@ -1425,3 +1426,5 @@ export default function LeadUpdateForm() {
     </div>
   );
 }
+
+    

@@ -14,7 +14,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Check, ChevronsUpDown, Download, UploadCloud } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useContext } from 'react';
 import { pincodeData } from '@/lib/pincodes';
 import * as XLSX from 'xlsx';
 import {
@@ -41,6 +41,7 @@ import {
 } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
 import { Textarea } from '../ui/textarea';
+import { AuthContext } from '@/context/auth-context';
 
 type ParsedData = (string | number)[][];
 
@@ -99,7 +100,7 @@ const leadStatusOptions = [
     'Do Not Contact',
 ];
 
-const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate'> = {
+const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate' | 'givenBy'> = {
     pincode: '',
     state: '',
     district: '',
@@ -117,6 +118,7 @@ const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate'> = {
 
 
 export default function LeadUploadForm() {
+  const authContext = useContext(AuthContext);
   const [formData, setFormData] = useState<Omit<LeadFormData, 'leadId' | 'creationDate'>>(initialFormState);
   const [addedLeads, setAddedLeads] = useState<Omit<LeadFormData, 'leadId' | 'creationDate'>[]>([]);
   const [sectorOpen, setSectorOpen] = useState(false);
@@ -261,10 +263,11 @@ export default function LeadUploadForm() {
             leadId: `LEAD-${now}-${index}`,
             creationDate: now,
             status: 'Not viewed', // Default status for new leads
+            givenBy: lead.givenBy || authContext?.user?.username
         };
     });
 
-    saveLeadsToLocalStorage(leadsWithIds);
+    saveLeadsToLocalStorage(leadsWithIds as LeadFormData[]);
     
     toast({
         title: "Leads added successfully",
