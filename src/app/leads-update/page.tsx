@@ -372,6 +372,13 @@ export default function LeadsUpdatePage() {
         </CardHeader>
         <CardContent className="p-6">
            <div className="space-y-4">
+        
+        {selectedLeadId && (
+            <div className="mb-6">
+                <LeadUpdateForm leadId={selectedLeadId} onUpdate={loadLeads} />
+            </div>
+        )}
+
         <Collapsible open={isFilterOpen} onOpenChange={setIsFilterOpen}>
           <CollapsibleTrigger asChild>
             <Button variant="outline" className="w-full justify-between">
@@ -845,11 +852,6 @@ export default function LeadsUpdatePage() {
               )}
             </CardContent>
           </Card>
-        )}
-        {selectedLeadDetails && (
-            <div className="mt-6">
-                <LeadUpdateForm leadId={selectedLeadId} onUpdate={loadLeads} />
-            </div>
         )}
       </div>
         </CardContent>
