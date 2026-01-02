@@ -318,27 +318,28 @@ export default function LeadsUpdatePage() {
   }
 
   const summaryCards = useMemo(() => {
-    const counts = leadStatusOptions.reduce((acc, status) => {
-      acc[status] = 0;
-      return acc;
-    }, {} as Record<string, number>);
-
+    const counts: Record<string, number> = {
+      'Total Leads': allLeads.length,
+      'Attended': 0,
+      'Not viewed': 0,
+      'Demo Given': 0,
+      'Unattended': 0,
+      'Pursuing to Purchase': 0,
+      'Not interested': 0,
+      'Order closed': 0,
+    };
+  
     allLeads.forEach(lead => {
       if (lead.status && counts.hasOwnProperty(lead.status)) {
         counts[lead.status]++;
       }
     });
-    
-    const total = allLeads.length;
-
-    return {
-      total: total,
-      ...counts,
-    };
+  
+    return counts;
   }, [allLeads]);
 
   const summaryDisplay = [
-    { title: 'Total Leads', value: summaryCards.total },
+    { title: 'Total Leads', value: summaryCards['Total Leads'] },
     { title: 'Attended', value: summaryCards.Attended },
     { title: 'Not viewed', value: summaryCards['Not viewed'] },
     { title: 'Demo Given', value: summaryCards['Demo Given'] },
@@ -373,11 +374,24 @@ export default function LeadsUpdatePage() {
         <CardContent className="p-6">
            <div className="space-y-4">
         
-        {selectedLeadId && (
-            <div className="mb-6">
-                <LeadUpdateForm leadId={selectedLeadId} onUpdate={loadLeads} />
-            </div>
-        )}
+             <Card>
+                <CardContent className="p-4">
+                  <div className="flex flex-wrap items-center justify-around gap-x-4 gap-y-2">
+                    {summaryDisplay.map(item => (
+                      <div key={item.title} className="flex items-center gap-2 text-sm">
+                        <span className="font-medium text-muted-foreground">{item.title}:</span>
+                        <span className="font-bold text-primary">{item.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+            {selectedLeadId && (
+                <div className="mb-6">
+                    <LeadUpdateForm leadId={selectedLeadId} onUpdate={loadLeads} />
+                </div>
+            )}
 
         <Collapsible open={isFilterOpen} onOpenChange={setIsFilterOpen}>
           <CollapsibleTrigger asChild>
