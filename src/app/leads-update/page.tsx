@@ -824,7 +824,7 @@ export default function LeadsUpdatePage() {
                                   <TableCell>{lead.status || 'N/A'}</TableCell>
                                   <TableCell>{lead.leadSubStatus || 'N/A'}</TableCell>
                                   <TableCell>{lead.leadStatusRemarks || 'N/A'}</TableCell>
-                                  <TableCell>{lead.givenBy || 'N/A'}</TableCell>
+                                  <TableCell>{lead.givenBy || 'N_A'}</TableCell>
                               </TableRow>
                               )
                           })
@@ -873,3 +873,5 @@ export default function LeadsUpdatePage() {
     </div>
   );
 }
+
+    

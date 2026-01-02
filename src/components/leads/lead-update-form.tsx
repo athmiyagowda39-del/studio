@@ -344,11 +344,11 @@ export default function LeadUpdateForm({ leadId, onUpdate }: { leadId: string | 
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="district">District</Label>
-                  <Input id="district" value={leadDetails.district || ''} readOnly />
+                  <Input id="district" value={leadDetails.district || ''} readOnly className="bg-muted" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="state">State</Label>
-                  <Input id="state" value={leadDetails.state || ''} readOnly />
+                  <Input id="state" value={leadDetails.state || ''} readOnly className="bg-muted"/>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="dateOfLead">Date of lead</Label>
@@ -381,7 +381,7 @@ export default function LeadUpdateForm({ leadId, onUpdate }: { leadId: string | 
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="dealerViewDate">Dealer viewed date</Label>
-                  <div className="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm">
+                  <div className="flex h-10 w-full items-center rounded-md border border-input bg-muted px-3 py-2 text-sm">
                     {leadDetails.executiveViewDate ? (
                         format(new Date(leadDetails.executiveViewDate), 'PPP')
                     ) : (
