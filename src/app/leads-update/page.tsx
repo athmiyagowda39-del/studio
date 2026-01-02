@@ -36,9 +36,9 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import * as XLSX from 'xlsx';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { AuthContext } from '@/context/auth-context';
 import LeadUpdateForm from '@/components/leads/lead-update-form';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const initialFilterState = {
   search: '',
@@ -758,8 +758,8 @@ export default function LeadsUpdatePage() {
               </div>
               <Card>
                 <CardContent className="p-0">
-                  <ScrollArea className="w-full whitespace-nowrap rounded-md border">
-                    <Table>
+                <div className="w-full overflow-x-auto rounded-md border">
+                <Table className="min-w-[2200px]">
                       <TableHeader>
                           <TableRow>
                           <TableHead>Sl No</TableHead>
@@ -835,7 +835,7 @@ export default function LeadsUpdatePage() {
                           )}
                       </TableBody>
                     </Table>
-                  </ScrollArea>
+                    </div>   
                 </CardContent>
               </Card>
               
@@ -871,3 +871,5 @@ export default function LeadsUpdatePage() {
     </div>
   );
 }
+
+    
