@@ -120,9 +120,9 @@ export default function LeadUpdateForm({ leadId, onUpdate }: { leadId: string | 
 
    useEffect(() => {
     if (leadId) {
-      findLeadAndSetDetails(leadId);
+        findLeadAndSetDetails(leadId);
     } else {
-      handleResetLeadDetails();
+        handleResetLeadDetails();
     }
   }, [leadId, allLeads]);
 
@@ -302,10 +302,6 @@ export default function LeadUpdateForm({ leadId, onUpdate }: { leadId: string | 
     });
   };
 
-  if (!leadId) {
-     return null;
-  }
-
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
@@ -320,7 +316,7 @@ export default function LeadUpdateForm({ leadId, onUpdate }: { leadId: string | 
                   <Label htmlFor="searchLeadId">Lead(id)</Label>
                     <Input 
                         id="searchLeadId" 
-                        placeholder=""
+                        placeholder="Select a lead from the table below"
                         value={leadDetails.leadId || ''}
                         readOnly
                         className="bg-muted"
@@ -626,5 +622,3 @@ export default function LeadUpdateForm({ leadId, onUpdate }: { leadId: string | 
     </div>
   );
 }
-
-    

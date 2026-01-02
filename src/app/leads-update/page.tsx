@@ -387,11 +387,9 @@ export default function LeadsUpdatePage() {
                 </CardContent>
               </Card>
 
-            {selectedLeadId && (
-                <div className="mb-6">
-                    <LeadUpdateForm leadId={selectedLeadId} onUpdate={loadLeads} />
-                </div>
-            )}
+            <div className="mb-6">
+                <LeadUpdateForm leadId={selectedLeadId} onUpdate={loadLeads} />
+            </div>
 
         <Collapsible open={isFilterOpen} onOpenChange={setIsFilterOpen}>
           <CollapsibleTrigger asChild>
@@ -873,5 +871,3 @@ export default function LeadsUpdatePage() {
     </div>
   );
 }
-
-    
