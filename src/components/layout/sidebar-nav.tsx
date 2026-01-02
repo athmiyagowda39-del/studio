@@ -12,7 +12,6 @@ import {
   User,
   FileText,
   Users,
-  List,
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState, useContext } from 'react';
@@ -22,7 +21,6 @@ const links = [
   { href: '/dashboard', label: 'DASHBOARD', icon: LayoutDashboard },
   { href: '/leads-upload', label: 'LEADS UPLOAD', icon: Upload },
   { href: '/leads-update', label: 'LEADS UPDATE', icon: FilePenLine },
-  { href: '/lead-details', label: 'LEAD DETAILS', icon: List },
   { href: '/reports', label: 'REPORTS', icon: FileText },
   { href: '/profile', label: 'PROFILE', icon: User },
   { href: '/admin/users', label: 'MANAGE USERS', icon: Users, adminOnly: true },

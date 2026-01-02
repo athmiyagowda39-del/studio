@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
-import { useState, useEffect, useCallback, useContext } from 'react';
+import { useState, useEffect, useCallback, useContext, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '../ui/textarea';
 import { Calendar } from '../ui/calendar';
@@ -32,7 +32,6 @@ import {
 import type { LeadFormData } from './lead-upload-form';
 import { ScrollArea } from '../ui/scroll-area';
 import { AuthContext } from '@/context/auth-context';
-import { useSearchParams, useRouter } from 'next/navigation';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '../ui/table';
 
 type FollowUp = {
@@ -71,8 +70,7 @@ const executiveIds = [
 ];
 
 
-export default function LeadUpdateForm() {
-  const [searchLeadId, setSearchLeadId] = useState('');
+export default function LeadUpdateForm({ leadId, onUpdate }: { leadId: string | null, onUpdate: () => void }) {
   const [leadDetails, setLeadDetails] = useState<Partial<LeadFormData>>({});
   
   const [remarks, setRemarks] = useState('');
@@ -87,14 +85,10 @@ export default function LeadUpdateForm() {
   const [transferredToOpen, setTransferredToOpen] = useState(false);
 
   const [leadIdForStatus, setLeadIdForStatus] = useState('');
-  const [leadIdForStatusOpen, setLeadIdForStatusOpen] = useState(false);
   const [initialRemarks, setInitialRemarks] = useState('');
   
   const { toast } = useToast();
   const authContext = useContext(AuthContext);
-  const searchParams = useSearchParams();
-  const router = useRouter();
-
 
   const loadLeads = useCallback(() => {
     try {
@@ -111,7 +105,7 @@ export default function LeadUpdateForm() {
     loadLeads();
     
     const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === 'uploadedLeads' || event.key === null) { // event.key is null for localStorage.clear()
+      if (event.key === 'uploadedLeads' || event.key === null) { 
         loadLeads();
       }
     };
@@ -125,49 +119,36 @@ export default function LeadUpdateForm() {
   }, [loadLeads]);
 
    useEffect(() => {
-    const leadId = searchParams.get('leadId');
     if (leadId && allLeads.length > 0) {
       findLeadAndSetDetails(leadId);
     } else if (allLeads.length > 0 && !leadId) {
-      // Clear details if no leadId in URL
       handleResetLeadDetails();
     }
-  }, [searchParams, allLeads]);
+  }, [leadId, allLeads]);
 
 
-  const findLeadAndSetDetails = (leadId: string) => {
-     if (!leadId) {
+  const findLeadAndSetDetails = (id: string) => {
+     if (!id) {
         setLeadDetails({});
-        setSearchLeadId('');
         return;
     }
-    setSearchLeadId(leadId);
-    const foundLead = allLeads.find(lead => lead.leadId === leadId);
+    const foundLead = allLeads.find(lead => lead.leadId === id);
     if (foundLead) {
         const leadWithViewDate: Partial<LeadFormData> = {
           ...foundLead,
-          executiveViewDate: foundLead.executiveViewDate || new Date().getTime() // If not present, set to now
+          executiveViewDate: foundLead.executiveViewDate || new Date().getTime() 
         };
         setLeadDetails(leadWithViewDate);
         setFollowUps((foundLead as any).followUps || []);
         setCurrentStatus((foundLead as any).status || 'Initial');
-        setLeadIdForStatus(leadId); // Set this for the status update section
+        setLeadIdForStatus(id);
         if(foundLead.nextFollowUpDate) {
           setNextFollowUpDate(new Date(foundLead.nextFollowUpDate));
         } else {
           setNextFollowUpDate(undefined);
         }
-        toast({
-            title: 'Lead Loaded',
-            description: `Details for ${leadId} have been loaded.`,
-        });
     } else {
         handleResetLeadDetails();
-        toast({
-            variant: 'destructive',
-            title: 'Lead Not Found',
-            description: `No lead found with ID: ${leadId}`,
-        });
     }
   }
 
@@ -198,7 +179,7 @@ export default function LeadUpdateForm() {
       date: new Date().toLocaleDateString(),
       remarks: remarks,
       nextFollowUp: format(nextFollowUpDate, 'PPP'),
-      enteredBy: authContext?.user?.username || 'System', // Assuming a logged-in user
+      enteredBy: authContext?.user?.username || 'System',
     };
     
     const updatedFollowups = [...followUps, newFollowUp];
@@ -211,7 +192,6 @@ export default function LeadUpdateForm() {
     }));
 
     setRemarks('');
-    // We don't reset nextFollowUpDate here to allow it to be saved.
     
     toast({
         title: "Follow-up added",
@@ -241,7 +221,7 @@ export default function LeadUpdateForm() {
         if (lead.leadId === leadIdForStatus) {
             return {
                 ...lead,
-                status: selectedStatus, // Update the main status
+                status: selectedStatus,
                 leadStatusRemarks: initialRemarks,
             };
         }
@@ -262,7 +242,6 @@ export default function LeadUpdateForm() {
       description: `Lead ${leadIdForStatus} status updated to ${selectedStatus}.`,
     });
     
-    // Also update the main form if the same lead is loaded
     if (leadDetails.leadId === leadIdForStatus) {
         setLeadDetails(prev => ({...prev, status: selectedStatus, leadStatusRemarks: initialRemarks}));
     }
@@ -272,7 +251,6 @@ export default function LeadUpdateForm() {
   };
   
   const handleResetLeadDetails = () => {
-    setSearchLeadId('');
     setLeadDetails({});
     setFollowUps([]);
     setCurrentStatus('Initial');
@@ -281,7 +259,6 @@ export default function LeadUpdateForm() {
     setLeadIdForStatus('');
     setInitialRemarks('');
     setSelectedStatus('');
-    router.replace('/leads-update');
   };
 
   const handleSaveLeadDetails = () => {
@@ -294,10 +271,9 @@ export default function LeadUpdateForm() {
       return;
     }
     
-    // Consolidate all updates before saving
     let leadToSave: Partial<LeadFormData> = {
         ...leadDetails,
-        followUps: followUps, // From lead tracker
+        followUps: followUps,
         nextFollowUpDate: nextFollowUpDate ? nextFollowUpDate.toISOString() : leadDetails.nextFollowUpDate,
     };
 
@@ -305,7 +281,6 @@ export default function LeadUpdateForm() {
         leadToSave.executive = transferredTo;
     }
     
-    // Status from the dedicated status section
     if (leadIdForStatus === leadDetails.leadId && selectedStatus) {
         leadToSave.status = selectedStatus;
         leadToSave.leadStatusRemarks = initialRemarks;
@@ -319,6 +294,7 @@ export default function LeadUpdateForm() {
     setAllLeads(updatedLeads);
     localStorage.setItem('uploadedLeads', JSON.stringify(updatedLeads));
     window.dispatchEvent(new Event('storage'));
+    onUpdate();
     
     toast({
       title: 'Lead Updated',
@@ -326,22 +302,8 @@ export default function LeadUpdateForm() {
     });
   };
 
-
-  if (!searchLeadId) {
-     return (
-        <div className="flex flex-col items-center justify-center h-full text-center p-8">
-            <Card className="w-full max-w-md">
-                <CardHeader>
-                    <CardTitle>Update Lead Details</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <p className="text-muted-foreground">
-                        Please select a lead from the <a href="/lead-details" className="text-primary underline">Lead Details</a> page to view and edit its information.
-                    </p>
-                </CardContent>
-            </Card>
-        </div>
-    );
+  if (!leadId) {
+     return null;
   }
 
   return (
@@ -359,7 +321,7 @@ export default function LeadUpdateForm() {
                     <Input 
                         id="searchLeadId" 
                         placeholder=""
-                        value={searchLeadId}
+                        value={leadDetails.leadId || ''}
                         readOnly
                         className="bg-muted"
                       />
