@@ -23,20 +23,33 @@ const leadStatusOptions = [
     'Pursuing to Purchase',
     'Not interested',
     'Order closed',
+    'Contacted',
+    'Qualified',
+    'Unqualified',
+    'Follow-up Required',
+    'Fake Lead',
+    'Existing Customer',
+    'Do Not Contact',
+    'Quote Sent',
 ];
 
 const specificSectors = ['IT', 'Finance', 'Healthcare', 'Manufacturing', 'Education', 'Retail', 'Hospitality', 'Telecommunication', 'Construction', 'Real Estate', 'Media & Entertainment', 'Government', 'Non-profit', 'Other'];
 
 
 const getFunnelData = (leads: LeadFormData[]) => {
+  // Define the order of progression through the funnel.
   const stageOrder: { [key: string]: number } = {
     'Not viewed': 0,
+    'Unattended': 0,
+    'Contacted': 1,
     'Attended': 1,
     'Demo Given': 2,
     'Pursuing to Purchase': 3,
+    'Quote Sent': 3,
     'Order closed': 4,
   };
 
+  // Initialize counts for each stage of our desired funnel.
   const statusCounts = {
     'Total Leads': leads.length,
     'Attended': 0,
@@ -46,18 +59,21 @@ const getFunnelData = (leads: LeadFormData[]) => {
   };
 
   leads.forEach(lead => {
-    const leadStageIndex = stageOrder[lead.status || 'Not viewed'];
+    // Get the numeric progression level for the lead's current status.
+    // Default to 0 if status is unknown or not in the progression path.
+    const leadStageIndex = stageOrder[lead.status || ''] || 0;
 
-    if (leadStageIndex >= stageOrder['Attended']) {
+    // A lead that has reached a certain stage has also reached all previous stages.
+    if (leadStageIndex >= 1) { // Attended / Contacted
       statusCounts['Attended']++;
     }
-    if (leadStageIndex >= stageOrder['Demo Given']) {
+    if (leadStageIndex >= 2) { // Demo Given
       statusCounts['Demo Given']++;
     }
-    if (leadStageIndex >= stageOrder['Pursuing to Purchase']) {
+    if (leadStageIndex >= 3) { // Pursuing / Quote Sent
       statusCounts['Pursuing to Purchase']++;
     }
-    if (leadStageIndex >= stageOrder['Order closed']) {
+    if (leadStageIndex >= 4) { // Order Closed
       statusCounts['Order closed']++;
     }
   });
