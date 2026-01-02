@@ -12,6 +12,7 @@ import {
   User,
   FileText,
   Users,
+  List,
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState, useContext } from 'react';
@@ -21,6 +22,7 @@ const links = [
   { href: '/dashboard', label: 'DASHBOARD', icon: LayoutDashboard },
   { href: '/leads-upload', label: 'LEADS UPLOAD', icon: Upload },
   { href: '/leads-update', label: 'LEADS UPDATE', icon: FilePenLine },
+  { href: '/lead-details', label: 'LEAD DETAILS', icon: List },
   { href: '/reports', label: 'REPORTS', icon: FileText },
   { href: '/profile', label: 'PROFILE', icon: User },
   { href: '/admin/users', label: 'MANAGE USERS', icon: Users, adminOnly: true },
@@ -37,7 +39,7 @@ export default function SidebarNav() {
   
   const userRole = authContext?.user?.role;
 
-  const isActive = (href: string) => pathname === href || (href === "/dashboard" && pathname === "/");
+  const isActive = (href: string) => pathname.startsWith(href) && (href !== '/' || pathname === '/');
 
   return (
     <SidebarMenu>
@@ -45,6 +47,24 @@ export default function SidebarNav() {
         if (link.adminOnly && userRole !== 'admin') {
             return null;
         }
+        // Special handling for dashboard/home
+        if (link.href === '/dashboard' && pathname === '/') {
+             return (
+                <SidebarMenuItem key={link.href}>
+                <SidebarMenuButton
+                    asChild
+                    isActive={true}
+                    tooltip={link.label}
+                >
+                    <a href="/">
+                    <link.icon />
+                    <span>{link.label}</span>
+                    </a>
+                </SidebarMenuButton>
+                </SidebarMenuItem>
+            )
+        }
+
         return (
             <SidebarMenuItem key={link.href}>
             <SidebarMenuButton
