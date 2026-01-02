@@ -7,7 +7,11 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { ChartTooltipContent } from '@/components/ui/chart';
+import {
+  ChartContainer,
+  ChartTooltipContent,
+  type ChartConfig,
+} from '@/components/ui/chart';
 
 type ConversionFunnelChartProps = {
   data: { name: string; value: number }[];
@@ -22,32 +26,49 @@ const colors = [
   'hsl(var(--primary))',
 ];
 
-export default function ConversionFunnelChart({ data }: ConversionFunnelChartProps) {
-  const chartData = data.map((item, index) => ({ ...item, fill: colors[index % colors.length] }));
+export default function ConversionFunnelChart({
+  data,
+}: ConversionFunnelChartProps) {
+  const chartData = data.map((item, index) => ({
+    ...item,
+    fill: colors[index % colors.length],
+  }));
+
+  const chartConfig = {} satisfies ChartConfig;
+  data.forEach((item) => {
+    chartConfig[item.name as keyof typeof chartConfig] = {
+      label: item.name,
+    };
+  });
 
   return (
     <div style={{ width: '100%', height: 400 }}>
-      <ResponsiveContainer>
-        <FunnelChart>
-          <Tooltip content={<ChartTooltipContent />} />
-          <Funnel dataKey="value" data={chartData} isAnimationActive>
-            <LabelList
-              position="right"
-              fill="#000"
-              stroke="none"
-              dataKey="name"
-              className="font-semibold"
-            />
-            <LabelList
+      <ChartContainer
+        config={chartConfig}
+        className="min-h-[200px] w-full"
+      >
+        <ResponsiveContainer>
+          <FunnelChart>
+            <Tooltip content={<ChartTooltipContent hideLabel />} />
+            <Funnel dataKey="value" data={chartData} isAnimationActive>
+              <LabelList
+                position="right"
+                fill="hsl(var(--foreground))"
+                stroke="none"
+                dataKey="name"
+                className="font-semibold"
+              />
+              <LabelList
                 position="center"
                 fill="#fff"
                 stroke="none"
                 dataKey="value"
                 className="font-bold text-lg"
-            />
-          </Funnel>
-        </FunnelChart>
-      </ResponsiveContainer>
+              />
+            </Funnel>
+          </FunnelChart>
+        </ResponsiveContainer>
+      </ChartContainer>
     </div>
   );
 }
