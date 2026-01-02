@@ -8,7 +8,7 @@ import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import { getLeadData, type Lead } from '@/lib/data';
 
 const funnelStages = [
-  'Not viewed',
+  'Total Leads',
   'Attended',
   'Demo Given',
   'Pursuing to Purchase',
@@ -29,47 +29,43 @@ const specificSectors = ['IT', 'Finance', 'Healthcare', 'Manufacturing', 'Educat
 
 
 const getFunnelData = (leads: LeadFormData[]) => {
-  const statusCounts = funnelStages.reduce((acc, status) => {
-    acc[status] = 0;
-    return acc;
-  }, {} as Record<string, number>);
+  const stageOrder: { [key: string]: number } = {
+    'Not viewed': 0,
+    'Attended': 1,
+    'Demo Given': 2,
+    'Pursuing to Purchase': 3,
+    'Order closed': 4,
+  };
 
-  let totalLeads = 0;
+  const statusCounts = {
+    'Total Leads': leads.length,
+    'Attended': 0,
+    'Demo Given': 0,
+    'Pursuing to Purchase': 0,
+    'Order closed': 0,
+  };
 
   leads.forEach(lead => {
-    if (lead.status && statusCounts.hasOwnProperty(lead.status)) {
-        // This logic assumes a linear progression.
-        // A lead in a later stage has also passed through earlier stages.
-        const stageIndex = funnelStages.indexOf(lead.status);
-        for (let i = 0; i <= stageIndex; i++) {
-            statusCounts[funnelStages[i]]++;
-        }
-    } else if (lead.status === 'Not viewed') {
-        statusCounts['Not viewed']++;
+    const leadStageIndex = stageOrder[lead.status || 'Not viewed'];
+
+    if (leadStageIndex >= stageOrder['Attended']) {
+      statusCounts['Attended']++;
+    }
+    if (leadStageIndex >= stageOrder['Demo Given']) {
+      statusCounts['Demo Given']++;
+    }
+    if (leadStageIndex >= stageOrder['Pursuing to Purchase']) {
+      statusCounts['Pursuing to Purchase']++;
+    }
+    if (leadStageIndex >= stageOrder['Order closed']) {
+      statusCounts['Order closed']++;
     }
   });
 
-  // Ensure that counts are not decreasing up the funnel
-  for (let i = 1; i < funnelStages.length; i++) {
-    if (statusCounts[funnelStages[i]] > statusCounts[funnelStages[i-1]]) {
-        statusCounts[funnelStages[i-1]] = statusCounts[funnelStages[i]];
-    }
-  }
-
-
-  const result = funnelStages.map(stage => ({
+  return funnelStages.map(stage => ({
     name: stage,
-    value: statusCounts[stage],
+    value: statusCounts[stage as keyof typeof statusCounts],
   }));
-
-  // Add total leads as the first stage if it's greater than "Not viewed"
-  const totalNotViewed = leads.filter(l => l.status === 'Not viewed').length;
-  const totalLeadsCount = leads.length;
-
-  return [
-      { name: 'Total Leads', value: totalLeadsCount },
-      ...result
-  ]
 };
 
 export default function ConversionFunnelReportPage() {
