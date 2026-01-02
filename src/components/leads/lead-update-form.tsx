@@ -119,9 +119,9 @@ export default function LeadUpdateForm({ leadId, onUpdate }: { leadId: string | 
   }, [loadLeads]);
 
    useEffect(() => {
-    if (leadId && allLeads.length > 0) {
+    if (leadId) {
       findLeadAndSetDetails(leadId);
-    } else if (allLeads.length > 0 && !leadId) {
+    } else {
       handleResetLeadDetails();
     }
   }, [leadId, allLeads]);
@@ -626,3 +626,5 @@ export default function LeadUpdateForm({ leadId, onUpdate }: { leadId: string | 
     </div>
   );
 }
+
+    
