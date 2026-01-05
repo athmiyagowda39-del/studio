@@ -18,18 +18,8 @@ service cloud.firestore {
     function documentExists() {
       return resource != null;
     }
-
-    function isAdmin() {
-      let userProfile = get(/databases/$(database)/documents/users/$(request.auth.uid));
-      return isSignedIn() && userProfile.data.type == 'admin';
-    }
-
-    function isAtLeastUser() {
-      let userProfile = get(/databases/$(database)/documents/users/$(request.auth.uid));
-      return isSignedIn() && (userProfile.data.type == 'admin' || userProfile.data.type == 'user');
-    }
-
-    function isExistingLeadOwner() {
+    
+    function isLeadOwner() {
       return documentExists() && resource.data.subAdminId == request.auth.uid;
     }
 
@@ -46,21 +36,21 @@ service cloud.firestore {
     }
 
     match /leads/{leadId} {
-      // Admins can get any lead. Users can only get leads assigned to them.
-      allow get: if isAdmin() || (isAtLeastUser() && resource.data.subAdminId == request.auth.uid);
+      // Any authenticated user can get a lead, but only if they are the owner.
+      allow get: if isSignedIn() && isLeadOwner();
       
-      // Admins can list all leads. Users MUST filter by their own subAdminId.
-      allow list: if isAdmin() || (isAtLeastUser() && request.query.where.subAdminId == request.auth.uid);
+      // Users can only list leads assigned to them.
+      // This rule requires a `where("subAdminId", "==", request.auth.uid)` clause in all list queries.
+      allow list: if isSignedIn() && request.query.where.subAdminId == request.auth.uid;
       
-      // Any authenticated user can create a lead (it will be assigned to them).
-      allow create: if isAtLeastUser();
+      // Any authenticated user can create a lead. The client will assign their UID.
+      allow create: if isSignedIn();
       
-      // Admins or the assigned owner can update or delete a lead.
-      allow update, delete: if isAdmin() || isExistingLeadOwner();
+      // Only the assigned owner can update or delete a lead.
+      allow update, delete: if isSignedIn() && isLeadOwner();
     }
     
-    // This collection is no longer used for primary role checks.
-    // It can be kept for future use or removed. For now, access is restricted.
+    // This collection is no longer used for primary role checks. Access is restricted.
     match /roles_sub_admin/{userId} {
       allow read, write: if false;
     }

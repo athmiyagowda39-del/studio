@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, {
@@ -42,6 +41,7 @@ type AuthContextType = {
   isAuthenticated: boolean;
   user: User | null;
   isUserLoading: boolean;
+  isAuthLoading: boolean;
   login: (username: string, pass: string) => Promise<boolean>;
   logout: () => void;
   changePassword: (oldPass: string, newPass: string) => Promise<boolean>;
@@ -149,11 +149,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const email = `${username.toLowerCase()}@example.com`;
 
     try {
-      // Check if any users already exist.
       const usersCollectionRef = collection(firestore, 'users');
       const q = query(usersCollectionRef, limit(1));
       const querySnapshot = await getDocs(q);
       const isFirstUser = querySnapshot.empty;
+      
       const finalRole: UserRole = isFirstUser ? 'admin' : role;
 
       const userCredential = await createUserWithEmailAndPassword(
@@ -171,7 +171,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         lastLogin: new Date().toISOString(),
       });
       
-      // Sign out the new user immediately after creation so they have to log in.
       await signOut(auth);
 
       return { success: true, message: 'User created successfully.' };
@@ -192,6 +191,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         isAuthenticated,
         user,
         isUserLoading: isAuthLoading,
+        isAuthLoading: isAuthLoading,
         login,
         logout,
         changePassword,

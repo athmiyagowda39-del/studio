@@ -27,13 +27,9 @@ export default function DashboardPage() {
 
   const leadsQuery = useMemoFirebase(() => {
     if (!user || !firestore) return null;
-    
-    let q = query(collection(firestore, 'leads'));
-    // Non-admin users can only see leads assigned to them. This matches security rules.
-    if (user.role !== 'admin') {
-      q = query(q, where('subAdminId', '==', user.uid));
-    }
-    return q;
+    // ALL users can only see leads assigned to them.
+    // This is a requirement for the security rules to pass.
+    return query(collection(firestore, 'leads'), where('subAdminId', '==', user.uid));
   }, [user, firestore]);
 
   const { data: allLeads, isLoading } = useCollection<LeadFormData>(leadsQuery);

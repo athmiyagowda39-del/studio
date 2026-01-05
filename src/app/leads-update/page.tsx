@@ -102,11 +102,7 @@ export default function LeadsUpdatePage() {
 
   const leadsQuery = useMemoFirebase(() => {
     if (!user || !firestore) return null;
-    let q = query(collection(firestore, 'leads'));
-    if (user.role !== 'admin') {
-      q = query(q, where('subAdminId', '==', user.uid));
-    }
-    return q;
+    return query(collection(firestore, 'leads'), where('subAdminId', '==', user.uid));
   }, [user, firestore]);
   const { data: allLeads } = useCollection<LeadFormData>(leadsQuery);
   
