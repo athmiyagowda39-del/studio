@@ -350,118 +350,109 @@ export default function LeadUploadForm() {
       <div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 mt-4">
           <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="pincode">Pincode</Label>
-              <Input id="pincode" value={formData.pincode} onChange={handleInputChange} />
+            <Label htmlFor="pincode">Pincode</Label>
+            <Input id="pincode" value={formData.pincode} onChange={handleInputChange} />
           </div>
-          <div className="space-y-2 md:col-span-2 grid grid-cols-2 gap-x-8">
-            <div className="space-y-2">
-              <Label htmlFor="company">Company</Label>
-              <Input id="company" value={formData.company} onChange={handleInputChange} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="contactPerson">Contact person <span className="text-destructive">*</span></Label>
-              <Input id="contactPerson" value={formData.contactPerson} onChange={handleInputChange} required />
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="company">Company</Label>
+            <Input id="company" value={formData.company} onChange={handleInputChange} />
           </div>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="address">Address <span className="text-destructive">*</span></Label>
-              <Input id="address" value={formData.address} onChange={handleInputChange} required />
-            </div>
-            <div className="grid grid-cols-2 gap-x-8">
-                <div className="space-y-2">
-                <Label htmlFor="state">State</Label>
-                <Input id="state" value={formData.state} onChange={handleInputChange} />
-                </div>
-                <div className="space-y-2">
-                <Label htmlFor="district">District</Label>
-                <Input id="district" value={formData.district} onChange={handleInputChange} />
-                </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="contactNumber">Contact Number <span className="text-destructive">*</span></Label>
-              <Input id="contactNumber" value={formData.contactNumber} onChange={handleInputChange} required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="reference">Reference</Label>
-              <Input id="reference" value={formData.reference} onChange={handleInputChange} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="sector">Sector</Label>
-              <Popover open={sectorOpen} onOpenChange={setSectorOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    aria-expanded={sectorOpen}
-                    className="w-full justify-between font-normal"
-                  >
-                    {formData.sector ? sectors.find(s => s.toLowerCase() === formData.sector.toLowerCase()) || "Select Sector..." : "Select Sector..."}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                  <Command>
-                    <CommandInput placeholder="Search sector..." />
-                    <CommandList>
-                      <CommandEmpty>No sector found.</CommandEmpty>
-                      <CommandGroup>
-                        {sectors.map((sector) => (
-                          <CommandItem
-                            key={sector}
-                            value={sector.toLowerCase()}
-                            onSelect={(currentValue) => {
-                              const selectedSector = sectors.find(s => s.toLowerCase() === currentValue);
-                              handleSelectChange('sector', selectedSector === formData.sector ? '' : selectedSector || '')
-                              setSectorOpen(false)
-                            }}
-                          >
-                            <Check
-                              className={cn(
-                                "mr-2 h-4 w-4",
-                                formData.sector === sector ? "opacity-100" : "opacity-0"
-                              )}
-                            />
-                            {sector}
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="contactPerson">Contact person <span className="text-destructive">*</span></Label>
+            <Input id="contactPerson" value={formData.contactPerson} onChange={handleInputChange} required />
           </div>
-
-          <div className="space-y-4">
-             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" value={formData.email} onChange={handleInputChange} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="headcount">Company headcount</Label>
-              <Input id="headcount" value={formData.headcount} onChange={handleInputChange} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="selectedModule">Modules</Label>
-              <Select value={formData.selectedModule} onValueChange={(value) => handleSelectChange('selectedModule', value)}>
-                <SelectTrigger id="selectedModule">
-                  <SelectValue placeholder="Select Modules..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ar">AR</SelectItem>
-                  <SelectItem value="all-hrms">All HRMS</SelectItem>
-                  <SelectItem value="module1">Module 1</SelectItem>
-                  <SelectItem value="module2">Module 2</SelectItem>
-                  <SelectItem value="module3">Module 3</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-             <div className="flex items-center space-x-2 pt-8">
-              <Checkbox id="toDealer" checked={formData.toDealer} onCheckedChange={handleCheckboxChange} />
-              <Label htmlFor="toDealer">To Dealer</Label>
-              <span className="text-xs text-muted-foreground">As per Mapping</span>
-            </div>
+          <div className="space-y-2 md:col-span-2">
+            <Label htmlFor="address">Address <span className="text-destructive">*</span></Label>
+            <Input id="address" value={formData.address} onChange={handleInputChange} required />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="state">State</Label>
+            <Input id="state" value={formData.state} onChange={handleInputChange} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="district">District</Label>
+            <Input id="district" value={formData.district} onChange={handleInputChange} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="headcount">Company headcount</Label>
+            <Input id="headcount" value={formData.headcount} onChange={handleInputChange} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="contactNumber">Contact Number <span className="text-destructive">*</span></Label>
+            <Input id="contactNumber" value={formData.contactNumber} onChange={handleInputChange} required />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="reference">Reference</Label>
+            <Input id="reference" value={formData.reference} onChange={handleInputChange} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input id="email" type="email" value={formData.email} onChange={handleInputChange} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="sector">Sector</Label>
+            <Popover open={sectorOpen} onOpenChange={setSectorOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={sectorOpen}
+                  className="w-full justify-between font-normal"
+                >
+                  {formData.sector ? sectors.find(s => s.toLowerCase() === formData.sector.toLowerCase()) || "Select Sector..." : "Select Sector..."}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                <Command>
+                  <CommandInput placeholder="Search sector..." />
+                  <CommandList>
+                    <CommandEmpty>No sector found.</CommandEmpty>
+                    <CommandGroup>
+                      {sectors.map((sector) => (
+                        <CommandItem
+                          key={sector}
+                          value={sector.toLowerCase()}
+                          onSelect={(currentValue) => {
+                            const selectedSector = sectors.find(s => s.toLowerCase() === currentValue);
+                            handleSelectChange('sector', selectedSector === formData.sector ? '' : selectedSector || '')
+                            setSectorOpen(false)
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              formData.sector === sector ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          {sector}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="selectedModule">Modules</Label>
+            <Select value={formData.selectedModule} onValueChange={(value) => handleSelectChange('selectedModule', value)}>
+              <SelectTrigger id="selectedModule">
+                <SelectValue placeholder="Select Modules..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ar">AR</SelectItem>
+                <SelectItem value="all-hrms">All HRMS</SelectItem>
+                <SelectItem value="module1">Module 1</SelectItem>
+                <SelectItem value="module2">Module 2</SelectItem>
+                <SelectItem value="module3">Module 3</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-center space-x-2 pt-8 md:col-span-2">
+            <Checkbox id="toDealer" checked={formData.toDealer} onCheckedChange={handleCheckboxChange} />
+            <Label htmlFor="toDealer">To Dealer</Label>
+            <span className="text-xs text-muted-foreground">As per Mapping</span>
           </div>
         </div>
       </div>
