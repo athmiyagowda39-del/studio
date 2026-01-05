@@ -44,7 +44,7 @@ type AuthContextType = {
   user: User | null;
   users: User[];
   isAuthLoading: boolean;
-  login: (username: string, pass: string) => Promise<boolean>;
+  login: (email: string, pass: string) => Promise<boolean>;
   logout: () => void;
   changePassword: (oldPass: string, newPass: string) => Promise<boolean>;
   addUser: (
@@ -109,15 +109,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       console.log('Default admin user created and profile stored.');
       
+      // Sign the new admin user out so the login screen is presented
+      await signOut(auth);
+
     } catch (error: any) {
         if (error.code === 'auth/email-already-in-use') {
-             try {
-                // If user exists in Auth, just sign them in to ensure session is active
-                // for subsequent operations or page loads.
-                await signInWithEmailAndPassword(auth, 'admin@example.com', 'password');
-             } catch (signInError) {
-                console.error('Failed to sign in default admin after creation attempt:', signInError);
-             }
+           // This is expected if the admin already exists, do nothing.
+           return;
         } else {
           console.error('Failed to create default admin user:', error);
         }
@@ -164,12 +162,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [isFirebaseUserLoading, firebaseUser, fetchUserRole, fetchAllUsers]);
 
-  const login = async (username: string, pass: string): Promise<boolean> => {
+  const login = async (email: string, pass: string): Promise<boolean> => {
     if (!auth) return false;
     setIsAuthLoading(true);
     try {
-      // Assuming email is username for login
-      await signInWithEmailAndPassword(auth, `${username}@example.com`, pass);
+      await signInWithEmailAndPassword(auth, email, pass);
       router.push('/');
       return true;
     } catch (error) {
