@@ -13,7 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Check, ChevronsUpDown, Download, UploadCloud } from 'lucide-react';
 import { Card, CardContent } from '../ui/card';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import * as XLSX from 'xlsx';
 import {
   Table,
@@ -99,6 +99,7 @@ const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdmin
 const saveLeadsToLocalStorage = (leads: LeadFormData[]) => {
   if (typeof window !== 'undefined') {
     localStorage.setItem('allLeads', JSON.stringify(leads));
+    window.dispatchEvent(new Event('storage'));
   }
 };
 
@@ -151,7 +152,7 @@ export default function LeadUploadForm() {
     return true;
   }
 
-  const handleSaveLead = async () => {
+  const handleSaveLead = () => {
     if (!validateLead(formData)) {
       return;
     }
@@ -192,7 +193,8 @@ export default function LeadUploadForm() {
             const firstDataRow = json[1] as (string | number)[];
             const leadObject: any = {};
             headers.forEach((header, index) => {
-                leadObject[header] = firstDataRow[index];
+                const headerStr = String(header);
+                leadObject[headerStr] = firstDataRow[index];
             });
             
             setFormData({
@@ -286,7 +288,8 @@ export default function LeadUploadForm() {
       const newLeads: LeadFormData[] = parsedData.slice(1).map(row => {
         const leadObject: any = {};
         headers.forEach((header, index) => {
-            leadObject[header] = row[index];
+            const headerStr = String(header);
+            leadObject[headerStr] = row[index];
         });
         return {
             pincode: leadObject.pincode ? String(leadObject.pincode) : '',
@@ -332,9 +335,9 @@ export default function LeadUploadForm() {
 
    const handleDownloadSample = () => {
     const sampleData = [
-      ['pincode', 'address', 'contactPerson', 'contactNumber', 'reference', 'email', 'company', 'headcount', 'sector', 'selectedModule', 'state', 'district'],
-      ['587101', '123 MG Road, Bagalkote', 'John Doe', '9876543210', 'Friend', 'john.doe@example.com', 'Tech Solutions', '150', 'IT', 'ar', 'Karnataka', 'Bagalkote'],
-      ['560001', '456 Brigade Road, Bengaluru', 'Jane Smith', '8765432109', 'Website', 'jane.smith@example.com', 'Innovate Corp', '250', 'Finance', 'all-hrms', 'Karnataka', 'Bengaluru Urban'],
+      ['pincode', 'company', 'contactPerson', 'address', 'state', 'district', 'contactNumber', 'email', 'reference', 'headcount', 'sector', 'selectedModule'],
+      ['587101', 'Tech Solutions', 'John Doe', '123 MG Road, Bagalkote', 'Karnataka', 'Bagalkote', '9876543210', 'john.doe@example.com', 'Friend', '150', 'IT', 'ar'],
+      ['560001', 'Innovate Corp', 'Jane Smith', '456 Brigade Road, Bengaluru', 'Karnataka', 'Bengaluru Urban', '8765432109', 'jane.smith@example.com', 'Website', '250', 'Finance', 'all-hrms'],
     ];
     const ws = XLSX.utils.aoa_to_sheet(sampleData);
     const wb = XLSX.utils.book_new();
@@ -350,18 +353,30 @@ export default function LeadUploadForm() {
               <Label htmlFor="pincode">Pincode</Label>
               <Input id="pincode" value={formData.pincode} onChange={handleInputChange} />
           </div>
-          <div className="space-y-4">
+          <div className="space-y-2 md:col-span-2 grid grid-cols-2 gap-x-8">
             <div className="space-y-2">
               <Label htmlFor="company">Company</Label>
               <Input id="company" value={formData.company} onChange={handleInputChange} />
             </div>
             <div className="space-y-2">
+              <Label htmlFor="contactPerson">Contact person <span className="text-destructive">*</span></Label>
+              <Input id="contactPerson" value={formData.contactPerson} onChange={handleInputChange} required />
+            </div>
+          </div>
+          <div className="space-y-4">
+            <div className="space-y-2">
               <Label htmlFor="address">Address <span className="text-destructive">*</span></Label>
               <Input id="address" value={formData.address} onChange={handleInputChange} required />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="state">State</Label>
-              <Input id="state" value={formData.state} onChange={handleInputChange} />
+            <div className="grid grid-cols-2 gap-x-8">
+                <div className="space-y-2">
+                <Label htmlFor="state">State</Label>
+                <Input id="state" value={formData.state} onChange={handleInputChange} />
+                </div>
+                <div className="space-y-2">
+                <Label htmlFor="district">District</Label>
+                <Input id="district" value={formData.district} onChange={handleInputChange} />
+                </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="contactNumber">Contact Number <span className="text-destructive">*</span></Label>
@@ -419,14 +434,6 @@ export default function LeadUploadForm() {
           </div>
 
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="contactPerson">Contact person <span className="text-destructive">*</span></Label>
-              <Input id="contactPerson" value={formData.contactPerson} onChange={handleInputChange} required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="district">District</Label>
-              <Input id="district" value={formData.district} onChange={handleInputChange} />
-            </div>
              <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input id="email" type="email" value={formData.email} onChange={handleInputChange} />
@@ -500,7 +507,7 @@ export default function LeadUploadForm() {
                             {parsedData.length > 0 && (
                                 <TableRow>
                                     {parsedData[0].map((header, index) => (
-                                        <TableHead key={index}>{header}</TableHead>
+                                        <TableHead key={index}>{String(header)}</TableHead>
                                     ))}
                                 </TableRow>
                             )}
@@ -523,7 +530,3 @@ export default function LeadUploadForm() {
     </div>
   );
 }
-
-    
-
-    
