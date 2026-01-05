@@ -14,7 +14,6 @@ import {
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { useAuthContext } from '@/context/auth-context';
 
 const links = [
   { href: '/dashboard', label: 'DASHBOARD', icon: LayoutDashboard },
@@ -28,13 +27,10 @@ const links = [
 export default function SidebarNav() {
   const pathname = usePathname();
   const [isClient, setIsClient] = useState(false);
-  const authContext = useAuthContext();
 
   useEffect(() => {
     setIsClient(true);
   }, []);
-  
-  const userRole = authContext?.user?.role;
 
   const isActive = (href: string) => pathname.startsWith(href) && (href !== '/' || pathname === '/');
 

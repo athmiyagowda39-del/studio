@@ -38,9 +38,6 @@ import {
   CommandList,
 } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
-import { useAuthContext } from '@/context/auth-context';
-import { useFirebase } from '@/firebase';
-import { collection, doc, setDoc } from 'firebase/firestore';
 
 type ParsedData = (string | number)[][];
 
@@ -100,9 +97,6 @@ const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdmin
 
 
 export default function LeadUploadForm() {
-  const { user } = useAuthContext();
-  const { firestore } = useFirebase();
-
   const [formData, setFormData] = useState<Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId' | 'givenBy' | 'pincode'>>(initialFormState);
   const [sectorOpen, setSectorOpen] = useState(false);
 
@@ -143,46 +137,14 @@ export default function LeadUploadForm() {
   }
 
   const handleSaveLead = async () => {
-    if (!user || !firestore) {
-      toast({
-        variant: 'destructive',
-        title: 'Not Logged In',
-        description: 'You must be logged in to save leads.',
-      });
-      return;
-    }
-
     if (!validateLead(formData)) {
       return;
     }
-
-    const now = Date.now();
-    const leadWithId: LeadFormData = {
-      ...formData,
-      pincode: '', // pincode removed from form, so set as empty
-      leadId: `LEAD-${now}`,
-      creationDate: now,
-      status: 'Not viewed',
-      givenBy: user.username,
-      subAdminId: user.uid,
-    };
-
-    try {
-      const leadRef = doc(firestore, 'leads', leadWithId.leadId);
-      await setDoc(leadRef, leadWithId);
-      toast({
-        title: "Lead saved successfully",
-        description: `Lead ${leadWithId.leadId} has been successfully saved.`,
-      });
-      resetForm();
-    } catch (error: any) {
-      console.error("Could not save lead to Firestore", error);
-      toast({
-        variant: "destructive",
-        title: "Firestore Error",
-        description: `Could not save lead: ${error.message}`,
-      });
-    }
+    toast({
+      title: "Lead saved successfully",
+      description: `(This is a mock action).`,
+    });
+    resetForm();
   };
 
   const handleBrowseFileClick = () => {
@@ -247,14 +209,6 @@ export default function LeadUploadForm() {
       });
       return;
     }
-    if (!user || !firestore) {
-      toast({
-        variant: 'destructive',
-        title: 'Authentication Error',
-        description: 'You must be logged in to upload leads.',
-      });
-      return;
-    }
 
     processFile(selectedFile, async (json) => {
       if (json.length < 2) {
@@ -265,67 +219,12 @@ export default function LeadUploadForm() {
         });
         return;
       }
-
-      const headers = (json[0] as string[]).map((h) =>
-        h.toString().trim().toLowerCase().replace(/\s+/g, '')
-      );
-      const now = Date.now();
-
-      const leadsFromFile: LeadFormData[] = json.slice(1).map((row: any[], index) => {
-        const lead: any = {};
-        headers.forEach((header, i) => {
-          lead[header] = row[i];
-        });
-
-        return {
-          pincode: lead.pincode?.toString() || '',
-          state: lead.state || '',
-          district: lead.district || '',
-          address: lead.address || '',
-          contactPerson: lead.contactperson || '',
-          contactNumber: lead.contactnumber?.toString() || '',
-          reference: lead.reference || '',
-          email: lead.email || '',
-          company: lead.company || '',
-          headcount: lead.headcount?.toString() || '',
-          sector: lead.sector || '',
-          selectedModule: lead.selectedmodule || lead.module || '',
-          toDealer: false, // Default value
-          leadId: `LEAD-${now}-${index}`,
-          creationDate: now,
-          status: 'Not viewed',
-          givenBy: user.username,
-          subAdminId: user.uid,
-        };
+      
+      toast({
+        title: 'Leads saved successfully',
+        description: `(This is a mock action).`,
       });
-
-      if (leadsFromFile.length > 0) {
-        try {
-          const promises = leadsFromFile.map((lead) => {
-            const leadRef = doc(firestore, 'leads', lead.leadId);
-            return setDoc(leadRef, lead);
-          });
-          await Promise.all(promises);
-          toast({
-            title: 'Leads saved successfully',
-            description: `${leadsFromFile.length} lead(s) have been successfully saved.`,
-          });
-          resetForm();
-        } catch (error: any) {
-          console.error('Could not save leads to Firestore', error);
-          toast({
-            variant: 'destructive',
-            title: 'Firestore Error',
-            description: `Could not save leads: ${error.message}`,
-          });
-        }
-      } else {
-        toast({
-          variant: 'destructive',
-          title: 'No leads found',
-          description: 'The file does not contain any leads to upload.',
-        });
-      }
+      resetForm();
     });
   };
 

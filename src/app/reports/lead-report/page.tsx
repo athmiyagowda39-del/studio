@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import LeadStatusChart from '@/components/reports/lead-status-chart';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Popover,
@@ -23,10 +23,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import { format } from 'date-fns';
-import { useAuthContext } from '@/context/auth-context';
-import { useCollection, useFirebase, useMemoFirebase } from '@/firebase';
-import { collection, query, where } from 'firebase/firestore';
-
 
 const allStates = ["All", "Andaman and Nicobar Islands", "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chandigarh", "Chhattisgarh", "Dadra and Nagar Haveli and Daman and Diu", "Delhi", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jammu and Kashmir", "Jharkhand", "Karnataka", "Kerala", "Ladakh", "Lakshadweep", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Puducherry", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"];
 
@@ -93,14 +89,11 @@ const getLeadStatusesForFilters = (
 
 
 export default function LeadReportPage() {
-  const { user } = useAuthContext();
-  const { firestore } = useFirebase();
-
-  const leadsQuery = useMemoFirebase(() => {
-    if (!user || !firestore) return null;
-    return query(collection(firestore, 'leads'), where('subAdminId', '==', user.uid));
-  }, [user, firestore]);
-  const { data: allLeads } = useCollection<LeadFormData>(leadsQuery);
+  const [allLeads, setAllLeads] = useState<LeadFormData[]>([]);
+  useEffect(() => {
+    // mock data
+    setAllLeads([]);
+  }, []);
 
   const [selectedState, setSelectedState] = useState('Karnataka');
   const [openState, setOpenState] = useState(false);

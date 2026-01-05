@@ -2,11 +2,8 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import ConversionFunnelChart from '@/components/reports/conversion-funnel-chart';
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
-import { useAuthContext } from '@/context/auth-context';
-import { useCollection, useFirebase, useMemoFirebase } from '@/firebase';
-import { collection, query, where } from 'firebase/firestore';
 
 const funnelStages = [
   'Total Leads',
@@ -54,14 +51,13 @@ const getFunnelData = (leads: LeadFormData[]) => {
 };
 
 export default function ConversionFunnelReportPage() {
-  const { user } = useAuthContext();
-  const { firestore } = useFirebase();
+  const [allLeads, setAllLeads] = useState<LeadFormData[]>([]);
 
-  const leadsQuery = useMemoFirebase(() => {
-    if (!user || !firestore) return null;
-    return query(collection(firestore, 'leads'), where('subAdminId', '==', user.uid));
-  }, [user, firestore]);
-  const { data: allLeads } = useCollection<LeadFormData>(leadsQuery);
+  useEffect(() => {
+    // Mock data for now, will be replaced with API call
+    setAllLeads([]);
+  }, []);
+
 
   const funnelData = useMemo(() => {
     if (!allLeads) return [];

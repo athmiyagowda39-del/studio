@@ -10,10 +10,7 @@ import {
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import LeadPerformanceChart from '@/components/dashboard/lead-performance-chart';
 import LeadPerformanceFilters from '@/components/dashboard/lead-performance-filters';
-import { useState, useMemo } from 'react';
-import { useAuthContext } from '@/context/auth-context';
-import { useCollection, useMemoFirebase, useFirestore } from '@/firebase';
-import { collection, query, where } from 'firebase/firestore';
+import { useState, useMemo, useEffect } from 'react';
 import { startOfDay, endOfDay } from 'date-fns';
 
 const months = [
@@ -22,15 +19,16 @@ const months = [
 ];
 
 export default function DashboardPage() {
-  const { user } = useAuthContext();
-  const firestore = useFirestore();
+  const [allLeads, setAllLeads] = useState<LeadFormData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const leadsQuery = useMemoFirebase(() => {
-    if (!user || !firestore) return null;
-    return query(collection(firestore, 'leads'), where('subAdminId', '==', user.uid));
-  }, [user, firestore]);
-
-  const { data: allLeads, isLoading } = useCollection<LeadFormData>(leadsQuery);
+  // Mock data fetching
+  useEffect(() => {
+    // In a real app, you would fetch this data from an API.
+    const mockLeads: LeadFormData[] = []; // Replace with mock data if needed
+    setAllLeads(mockLeads);
+    setIsLoading(false);
+  }, []);
 
   const [period, setPeriod] = useState('November');
   const [city, setCity] = useState('All');
@@ -78,7 +76,7 @@ export default function DashboardPage() {
     return dailyLeads;
   }, [allLeads, period, city]);
 
-  if (isLoading || !user) {
+  if (isLoading) {
     return null; // or a loading skeleton
   }
 
@@ -86,7 +84,7 @@ export default function DashboardPage() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-col">
         <h1 className="text-2xl font-bold tracking-tight font-headline">
-          WELCOME {user.username.toUpperCase()}!
+          WELCOME!
         </h1>
         <p className="text-muted-foreground">
           Here is your lead generation overview for today.

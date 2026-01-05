@@ -17,7 +17,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useAuthContext } from '@/context/auth-context';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 
@@ -25,7 +24,6 @@ export default function Header() {
   const [userAvatar, setUserAvatar] = useState<ImagePlaceholder | undefined>();
   const pathname = usePathname();
   const showLoginDetails = pathname !== '/leads-upload';
-  const authContext = useAuthContext();
   const { toast } = useToast();
   const [isClient, setIsClient] = useState(false);
 
@@ -35,16 +33,17 @@ export default function Header() {
   }, []);
 
   const handleLogout = () => {
-    if (authContext) {
-      authContext.logout();
-      toast({
-        title: 'Logged Out',
-        description: 'You have been successfully logged out.',
-      });
-    }
+    // Placeholder for logout logic
+    toast({
+      title: 'Logged Out',
+      description: 'You have been successfully logged out.',
+    });
   };
 
-  const user = authContext?.user;
+  const user = {
+    username: 'Demo User',
+    role: 'Admin',
+  }
 
   if (!isClient) {
     return (

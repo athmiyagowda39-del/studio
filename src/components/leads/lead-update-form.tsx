@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '../ui/textarea';
 import { Calendar } from '../ui/calendar';
@@ -30,11 +30,7 @@ import {
 } from '@/components/ui/command';
 import type { LeadFormData } from './lead-upload-form';
 import { ScrollArea } from '../ui/scroll-area';
-import { useAuthContext } from '@/context/auth-context';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '../ui/table';
-import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, doc, setDoc, query, where } from 'firebase/firestore';
-
 
 type FollowUp = {
   id: number;
@@ -72,7 +68,7 @@ const executiveIds = [
 ];
 
 
-export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
+export default function LeadUpdateForm({ leadId, allLeads }: { leadId: string | null, allLeads: LeadFormData[] }) {
   const [leadDetails, setLeadDetails] = useState<Partial<LeadFormData>>({});
   
   const [remarks, setRemarks] = useState('');
@@ -80,16 +76,6 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
   const [followUps, setFollowUps] = useState<FollowUp[]>([]);
   const [currentStatus, setCurrentStatus] = useState('Initial');
   const [selectedStatus, setSelectedStatus] = useState('');
-  
-  const { user } = useAuthContext();
-  const { firestore } = useFirebase();
-
-  const leadsQuery = useMemoFirebase(() => {
-    if (!user || !firestore) return null;
-    return query(collection(firestore, 'leads'), where('subAdminId', '==', user.uid));
-  }, [user, firestore]);
-  const { data: allLeads } = useCollection<LeadFormData>(leadsQuery);
-
   
   const [transferredTo, setTransferredTo] = useState('');
   const [transferredToOpen, setTransferredToOpen] = useState(false);
@@ -118,8 +104,8 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
         let leadWithViewDate: Partial<LeadFormData> = { ...foundLead };
         if (!foundLead.executiveViewDate) {
           leadWithViewDate.executiveViewDate = new Date().getTime();
-          const leadRef = doc(firestore, 'leads', id);
-          setDoc(leadRef, { executiveViewDate: leadWithViewDate.executiveViewDate }, { merge: true });
+          // In a real app, you would save this back to the database
+          console.log("Setting executiveViewDate for lead:", id);
         }
 
         setLeadDetails(leadWithViewDate);
@@ -163,7 +149,7 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
       date: new Date().toLocaleDateString(),
       remarks: remarks,
       nextFollowUp: format(nextFollowUpDate, 'PPP'),
-      enteredBy: user?.username || 'System',
+      enteredBy: 'Demo User',
     };
     
     const updatedFollowups = [...followUps, newFollowUp];
@@ -192,22 +178,15 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
       toast({ variant: 'destructive', title: 'No Lead Selected', description: 'Please select a lead before updating its status.' });
       return;
     }
-    if (!firestore) return;
+    
+    toast({ title: 'Status Updated', description: `Lead ${leadIdForStatus} status updated to ${selectedStatus}. (This is a mock action)` });
 
-    const leadRef = doc(firestore, 'leads', leadIdForStatus);
-    try {
-        await setDoc(leadRef, { status: selectedStatus, leadStatusRemarks: initialRemarks }, { merge: true });
-        toast({ title: 'Status Updated', description: `Lead ${leadIdForStatus} status updated to ${selectedStatus}.` });
-
-        if (leadDetails.leadId === leadIdForStatus) {
-            setLeadDetails(prev => ({...prev, status: selectedStatus, leadStatusRemarks: initialRemarks}));
-            setCurrentStatus(selectedStatus);
-        }
-        setInitialRemarks('');
-        setSelectedStatus('');
-    } catch(error: any) {
-        toast({ variant: 'destructive', title: 'Update Failed', description: error.message });
+    if (leadDetails.leadId === leadIdForStatus) {
+        setLeadDetails(prev => ({...prev, status: selectedStatus, leadStatusRemarks: initialRemarks}));
+        setCurrentStatus(selectedStatus);
     }
+    setInitialRemarks('');
+    setSelectedStatus('');
   };
   
   const handleResetLeadDetails = () => {
@@ -222,33 +201,13 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
   };
 
   const handleSaveLeadDetails = async () => {
-    if (!leadDetails.leadId || !firestore) {
+    if (!leadDetails.leadId) {
       toast({ variant: 'destructive', title: 'No Lead Loaded', description: 'Please search and load a lead before saving.' });
       return;
     }
     
-    let leadToSave: Partial<LeadFormData> = {
-        ...leadDetails,
-        followUps: followUps,
-        nextFollowUpDate: nextFollowUpDate ? nextFollowUpDate.toISOString() : leadDetails.nextFollowUpDate,
-    };
-
-    if (transferredTo) {
-        leadToSave.executive = transferredTo;
-    }
-    
-    if (leadIdForStatus === leadDetails.leadId && selectedStatus) {
-        leadToSave.status = selectedStatus;
-        leadToSave.leadStatusRemarks = initialRemarks;
-    }
-
-    const leadRef = doc(firestore, 'leads', leadDetails.leadId);
-    try {
-        await setDoc(leadRef, leadToSave, { merge: true });
-        toast({ title: 'Lead Updated', description: `Lead ${leadDetails.leadId} has been successfully updated.` });
-    } catch (error: any) {
-        toast({ variant: 'destructive', title: 'Save Failed', description: error.message });
-    }
+    // In a real app, this is where you'd save to a database.
+    toast({ title: 'Lead Updated', description: `Lead ${leadDetails.leadId} has been successfully updated. (This is a mock action)` });
   };
 
   return (

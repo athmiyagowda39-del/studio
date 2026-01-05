@@ -35,11 +35,8 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import * as XLSX from 'xlsx';
-import { useAuthContext } from '@/context/auth-context';
 import LeadUpdateForm from '@/components/leads/lead-update-form';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useCollection, useFirebase, useMemoFirebase } from '@/firebase';
-import { collection, query, where } from 'firebase/firestore';
 
 const initialFilterState = {
   search: '',
@@ -97,14 +94,7 @@ const leadSourceOptions = [
 const LEADS_PER_PAGE = 10;
 export default function LeadsUpdatePage() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const { user } = useAuthContext();
-  const { firestore } = useFirebase();
-
-  const leadsQuery = useMemoFirebase(() => {
-    if (!user || !firestore) return null;
-    return query(collection(firestore, 'leads'), where('subAdminId', '==', user.uid));
-  }, [user, firestore]);
-  const { data: allLeads } = useCollection<LeadFormData>(leadsQuery);
+  const [allLeads, setAllLeads] = useState<LeadFormData[]>([]);
   
   const [filteredLeads, setFilteredLeads] = useState<LeadFormData[]>([]);
   const [showResults, setShowResults] = useState(true);
@@ -118,12 +108,13 @@ export default function LeadsUpdatePage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (allLeads) {
-      setFilteredLeads(allLeads);
-      setShowResults(true);
-      setActiveQuickFilter('All Leads');
-    }
-  }, [allLeads]);
+    // Mock data fetching, in a real app this would be an API call
+    const mockLeads: LeadFormData[] = [];
+    setAllLeads(mockLeads);
+    setFilteredLeads(mockLeads);
+    setShowResults(true);
+    setActiveQuickFilter('All Leads');
+  }, []);
   
   const handleFilterChange = (field: keyof typeof filters, value: any) => {
     setFilters(prev => ({...prev, [field]: value}));
@@ -337,7 +328,7 @@ export default function LeadsUpdatePage() {
                 </CardContent>
               </Card>
 
-            <LeadUpdateForm leadId={selectedLeadId} />
+            <LeadUpdateForm leadId={selectedLeadId} allLeads={allLeads} />
 
         <Collapsible open={isFilterOpen} onOpenChange={setIsFilterOpen}>
           <CollapsibleTrigger asChild>

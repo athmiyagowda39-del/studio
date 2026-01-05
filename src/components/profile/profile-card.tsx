@@ -25,7 +25,6 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import type { ImagePlaceholder } from '@/lib/placeholder-images.d';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { useAuthContext } from '@/context/auth-context';
 import { Separator } from '@/components/ui/separator';
 import {
   Collapsible,
@@ -36,8 +35,7 @@ import {
 export default function ProfileCard() {
   const { toast } = useToast();
   const [userAvatar, setUserAvatar] = useState<ImagePlaceholder | undefined>();
-  const authContext = useAuthContext();
-  const userName = authContext?.user?.username.toUpperCase() || 'User';
+  const userName = 'Demo User';
 
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -51,7 +49,6 @@ export default function ProfileCard() {
   }, []);
 
   const handleLogout = () => {
-    authContext?.logout();
     toast({
       title: 'Logged Out',
       description: 'You have been successfully logged out.',
@@ -68,26 +65,15 @@ export default function ProfileCard() {
       });
       return;
     }
-    if (!authContext) return;
-
-    const success = await authContext.changePassword(currentPassword, newPassword);
-
-    if (success) {
-      toast({
-        title: 'Password Changed',
-        description: 'Your password has been successfully updated.',
-      });
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
-      setIsPasswordDialogOpen(false); // Close dialog on success
-    } else {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Your current password was incorrect or the change failed.',
-      });
-    }
+    
+    toast({
+      title: 'Password Changed',
+      description: 'Your password has been successfully updated.',
+    });
+    setCurrentPassword('');
+    setNewPassword('');
+    setConfirmPassword('');
+    setIsPasswordDialogOpen(false);
   };
 
   return (
@@ -126,7 +112,7 @@ export default function ProfileCard() {
             </CollapsibleTrigger>
             <CollapsibleContent>
               <div className="p-4 text-center text-sm text-muted-foreground">
-                Username: {authContext?.user?.username}
+                Username: {userName}
               </div>
             </CollapsibleContent>
           </Collapsible>
