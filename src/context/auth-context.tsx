@@ -62,24 +62,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           uid: currentFirebaseUser.uid,
           username:
             userData.username || currentFirebaseUser.email || 'Unnamed',
-          role: (userData.role as UserRole) || 'admin',
+          role: (userData.type as UserRole) || 'admin',
+        };
+      } else {
+        // If the user exists in Auth but not Firestore (e.g. first login of default admin)
+        // create the document.
+        const username = currentFirebaseUser.email?.split('@')[0] || 'admin';
+        const newUserDoc = {
+          id: currentFirebaseUser.uid,
+          username: username,
+          type: 'admin',
+          lastLogin: new Date().toISOString(),
+        };
+        await setDoc(userDocRef, newUserDoc);
+        return {
+          uid: currentFirebaseUser.uid,
+          username: username,
+          role: 'admin' as UserRole,
         };
       }
-      // If user doc doesn't exist, create it for the logged in user.
-      // This handles the case where the user was created in Auth but not Firestore.
-      const username = currentFirebaseUser.email?.split('@')[0] || 'admin';
-      const newUser = {
-        uid: currentFirebaseUser.uid,
-        username: username,
-        role: 'admin' as UserRole,
-      };
-      await setDoc(userDocRef, {
-        id: newUser.uid,
-        username: newUser.username,
-        type: newUser.role,
-        lastLogin: new Date().toISOString(),
-      });
-      return newUser;
     },
     [firestore]
   );
@@ -100,7 +101,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async (username: string, pass: string): Promise<boolean> => {
     if (!auth || !firestore) return false;
     
-    // Construct email from username
     const email = `${username.toLowerCase()}@example.com`;
 
     setIsAuthLoading(true);
@@ -117,13 +117,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             email,
             pass
           );
-          const userDocRef = doc(firestore, 'users', userCredential.user.uid);
-          await setDoc(userDocRef, {
-            username: username,
-            role: 'admin',
-            id: userCredential.user.uid,
-          });
-          // Auth state listener will handle setting the user and loading state
+          // The useEffect hook will handle fetching/creating the user role document.
           router.push('/');
           return true;
         } catch (creationError) {
