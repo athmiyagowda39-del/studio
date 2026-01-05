@@ -166,9 +166,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         type: finalRole,
         lastLogin: new Date().toISOString(),
       });
-      
-      // Sign out the user immediately after creation so they can log in
-      await signOut(auth);
 
       return { success: true, message: 'User created successfully.' };
     } catch (error: any) {
