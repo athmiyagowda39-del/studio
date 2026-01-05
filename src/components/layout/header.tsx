@@ -8,7 +8,7 @@ import type { ImagePlaceholder } from '@/lib/placeholder-images.d';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Bell, User, LogOut } from 'lucide-react';
 import Image from 'next/image';
-import { useEffect, useState, useContext } from 'react';
+import { useEffect, useState } from 'react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,7 +17,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { AuthContext } from '@/context/auth-context';
+import { useAuthContext } from '@/context/auth-context';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 
@@ -25,7 +25,7 @@ export default function Header() {
   const [userAvatar, setUserAvatar] = useState<ImagePlaceholder | undefined>();
   const pathname = usePathname();
   const showLoginDetails = pathname !== '/leads-upload';
-  const authContext = useContext(AuthContext);
+  const authContext = useAuthContext();
   const { toast } = useToast();
   const [isClient, setIsClient] = useState(false);
 
@@ -77,7 +77,7 @@ export default function Header() {
               </span>
               <div className="flex items-baseline gap-4">
                 <span className="text-sm text-muted-foreground">
-                  Type: sub admin
+                  Type: {user.role}
                 </span>
                 <span className="text-sm text-muted-foreground">
                   Last login: 30-12-2025

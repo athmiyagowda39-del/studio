@@ -14,7 +14,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Check, ChevronsUpDown, Download, UploadCloud } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { useState, useRef, useEffect, useContext } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { pincodeData } from '@/lib/pincodes';
 import * as XLSX from 'xlsx';
 import {
@@ -41,7 +41,7 @@ import {
 } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
 import { Textarea } from '../ui/textarea';
-import { AuthContext } from '@/context/auth-context';
+import { useAuthContext } from '@/context/auth-context';
 
 type ParsedData = (string | number)[][];
 
@@ -119,7 +119,7 @@ const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate' | 'givenBy'
 
 
 export default function LeadUploadForm() {
-  const authContext = useContext(AuthContext);
+  const authContext = useAuthContext();
   const [formData, setFormData] = useState<Omit<LeadFormData, 'leadId' | 'creationDate'>>(initialFormState);
   const [addedLeads, setAddedLeads] = useState<Omit<LeadFormData, 'leadId' | 'creationDate'>[]>([]);
   const [sectorOpen, setSectorOpen] = useState(false);
@@ -725,5 +725,3 @@ export default function LeadUploadForm() {
     </div>
   );
 }
-
-    

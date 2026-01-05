@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
-import { useState, useEffect, useMemo, useCallback, useContext } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Table,
   TableBody,
@@ -36,7 +36,7 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import * as XLSX from 'xlsx';
-import { AuthContext } from '@/context/auth-context';
+import { useAuthContext } from '@/context/auth-context';
 import LeadUpdateForm from '@/components/leads/lead-update-form';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -108,7 +108,7 @@ export default function LeadsUpdatePage() {
   const [filters, setFilters] = useState(initialFilterState);
 
   const { toast } = useToast();
-  const authContext = useContext(AuthContext);
+  const authContext = useAuthContext();
 
 
   const loadLeads = useCallback(() => {
@@ -387,9 +387,7 @@ export default function LeadsUpdatePage() {
                 </CardContent>
               </Card>
 
-            <div className="mb-6">
-                <LeadUpdateForm leadId={selectedLeadId} onUpdate={loadLeads} />
-            </div>
+            <LeadUpdateForm leadId={selectedLeadId} onUpdate={loadLeads} />
 
         <Collapsible open={isFilterOpen} onOpenChange={setIsFilterOpen}>
           <CollapsibleTrigger asChild>
@@ -758,8 +756,8 @@ export default function LeadsUpdatePage() {
               </div>
               <Card>
                 <CardContent className="p-0">
-                <div className="w-full overflow-x-auto rounded-md border">
-                <Table className="min-w-[2200px]">
+                <ScrollArea className="w-full whitespace-nowrap rounded-md border">
+                  <Table className="min-w-max">
                       <TableHeader>
                           <TableRow>
                           <TableHead>Sl No</TableHead>
@@ -835,7 +833,7 @@ export default function LeadsUpdatePage() {
                           )}
                       </TableBody>
                     </Table>
-                    </div>   
+                  </ScrollArea>
                 </CardContent>
               </Card>
               
@@ -871,5 +869,3 @@ export default function LeadsUpdatePage() {
     </div>
   );
 }
-
-    

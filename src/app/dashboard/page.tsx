@@ -10,8 +10,8 @@ import {
 import { getLeadsForToday, getLeadData, type Lead } from '@/lib/data';
 import LeadPerformanceChart from '@/components/dashboard/lead-performance-chart';
 import LeadPerformanceFilters from '@/components/dashboard/lead-performance-filters';
-import { useState, useMemo, useEffect, useContext } from 'react';
-import { AuthContext } from '@/context/auth-context';
+import { useState, useMemo, useEffect } from 'react';
+import { useAuthContext } from '@/context/auth-context';
 
 const months = [
   'January',
@@ -32,7 +32,7 @@ export default function DashboardPage() {
   const [isClient, setIsClient] = useState(false);
   const [totalLeadsToday, setTotalLeadsToday] = useState(0);
   const [allLeads, setAllLeads] = useState<Lead[]>([]);
-  const authContext = useContext(AuthContext);
+  const authContext = useAuthContext();
 
   const [period, setPeriod] = useState('November');
   const [city, setCity] = useState('All');

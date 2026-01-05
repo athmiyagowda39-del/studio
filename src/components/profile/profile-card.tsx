@@ -21,11 +21,11 @@ import {
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import type { ImagePlaceholder } from '@/lib/placeholder-images.d';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { AuthContext } from '@/context/auth-context';
+import { useAuthContext } from '@/context/auth-context';
 import { Separator } from '@/components/ui/separator';
 import {
   Collapsible,
@@ -36,7 +36,7 @@ import {
 export default function ProfileCard() {
   const { toast } = useToast();
   const [userAvatar, setUserAvatar] = useState<ImagePlaceholder | undefined>();
-  const authContext = useContext(AuthContext);
+  const authContext = useAuthContext();
   const userName = authContext?.user?.username.toUpperCase() || 'User';
 
   const [currentPassword, setCurrentPassword] = useState('');
@@ -85,7 +85,7 @@ export default function ProfileCard() {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'Your current password was incorrect.',
+        description: 'Your current password was incorrect or the change failed.',
       });
     }
   };

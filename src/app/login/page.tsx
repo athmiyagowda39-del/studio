@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useContext } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { AuthContext } from '@/context/auth-context';
+import { useAuthContext } from '@/context/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { Eye, EyeOff, Target } from 'lucide-react';
 
@@ -18,11 +18,12 @@ export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const authContext = useContext(AuthContext);
+  const authContext = useAuthContext();
   const { toast } = useToast();
 
   const handleLogin = async () => {
     if (!authContext) return;
+    // Assuming email is username for login purposes in this app
     const success = await authContext.login(username, password);
     if (!success) {
       toast({

@@ -1,6 +1,5 @@
 'use client';
 
-import { useContext } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   Sidebar,
@@ -11,11 +10,11 @@ import {
 } from '@/components/ui/sidebar';
 import Header from '@/components/layout/header';
 import SidebarNav from '@/components/layout/sidebar-nav';
-import { AuthContext } from '@/context/auth-context';
 import LoginPage from './login/page';
 import { Target } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useEffect } from 'react';
+import { useUser } from '@/firebase';
 
 const CustomLogo = () => <Target className="size-full" />;
 
@@ -24,25 +23,24 @@ export default function AppContent({
 }: {
   children: React.ReactNode;
 }) {
-  const authContext = useContext(AuthContext);
+  const { user, isUserLoading } = useUser();
   const pathname = usePathname();
   const router = useRouter();
+  const isAuthenticated = !!user;
 
   useEffect(() => {
-    if (authContext?.isAuthenticated && pathname === '/login') {
+    if (isAuthenticated && pathname === '/login') {
       router.replace('/');
     }
-  }, [authContext?.isAuthenticated, pathname, router]);
+  }, [isAuthenticated, pathname, router]);
 
-  if (!authContext || authContext.isAuthLoading) {
+  if (isUserLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Skeleton className="h-12 w-12 rounded-full" />
       </div>
     );
   }
-
-  const { isAuthenticated } = authContext;
 
   if (!isAuthenticated) {
     return <LoginPage />;

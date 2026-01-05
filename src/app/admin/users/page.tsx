@@ -1,7 +1,6 @@
 'use client';
 
-import { useContext, useState, useEffect } from 'react';
-import { AuthContext } from '@/context/auth-context';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,15 +28,18 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useAuthContext } from '@/context/auth-context';
+
+type UserRole = 'admin' | 'user';
 
 export default function ManageUsersPage() {
-  const authContext = useContext(AuthContext);
+  const authContext = useAuthContext();
   const router = useRouter();
   const { toast } = useToast();
 
   const [newUsername, setNewUsername] = useState('');
   const [newPassword, setNewPassword] = useState('');
-  const [newRole, setNewRole] = useState<'admin' | 'user'>('user');
+  const [newRole, setNewRole] = useState<UserRole>('user');
 
   useEffect(() => {
     if (authContext && !authContext.isAuthLoading && authContext.user?.role !== 'admin') {
@@ -56,7 +58,7 @@ export default function ManageUsersPage() {
 
   const { users, addUser, removeUser } = authContext;
 
-  const handleAddUser = () => {
+  const handleAddUser = async () => {
     if (!newUsername || !newPassword) {
       toast({
         variant: 'destructive',
@@ -73,19 +75,27 @@ export default function ManageUsersPage() {
         });
         return;
     }
-    // Note: Password is not stored here in this mock setup.
-    // In a real app, you'd send this to a backend for secure creation.
-    addUser({ username: newUsername, role: newRole });
-    toast({
-      title: 'User Added',
-      description: `User "${newUsername}" has been successfully created.`,
-    });
-    setNewUsername('');
-    setNewPassword('');
-    setNewRole('user');
+    
+    const success = await addUser(newUsername, newPassword, newRole);
+
+    if (success) {
+      toast({
+        title: 'User Added',
+        description: `User "${newUsername}" has been successfully created.`,
+      });
+      setNewUsername('');
+      setNewPassword('');
+      setNewRole('user');
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'Failed to Add User',
+        description: 'Could not create the user. They may already exist or an error occurred.',
+      });
+    }
   };
 
-  const handleRemoveUser = (username: string) => {
+  const handleRemoveUser = async (username: string) => {
     if (username === authContext.user?.username) {
         toast({
             variant: 'destructive',
@@ -94,7 +104,7 @@ export default function ManageUsersPage() {
         });
         return;
     }
-    removeUser(username);
+    await removeUser(username);
     toast({
       title: 'User Removed',
       description: `User "${username}" has been removed.`,
@@ -128,7 +138,7 @@ export default function ManageUsersPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="new-role">Role</Label>
-              <Select value={newRole} onValueChange={(value: 'admin' | 'user') => setNewRole(value)}>
+              <Select value={newRole} onValueChange={(value: UserRole) => setNewRole(value)}>
                 <SelectTrigger id="new-role">
                   <SelectValue placeholder="Select role" />
                 </SelectTrigger>

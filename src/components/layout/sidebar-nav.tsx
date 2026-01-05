@@ -14,8 +14,8 @@ import {
   Users,
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
-import { useEffect, useState, useContext } from 'react';
-import { AuthContext } from '@/context/auth-context';
+import { useEffect, useState } from 'react';
+import { useAuthContext } from '@/context/auth-context';
 
 const links = [
   { href: '/dashboard', label: 'DASHBOARD', icon: LayoutDashboard },
@@ -29,7 +29,7 @@ const links = [
 export default function SidebarNav() {
   const pathname = usePathname();
   const [isClient, setIsClient] = useState(false);
-  const authContext = useContext(AuthContext);
+  const authContext = useAuthContext();
 
   useEffect(() => {
     setIsClient(true);

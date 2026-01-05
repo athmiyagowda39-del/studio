@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
-import { useState, useEffect, useCallback, useContext, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '../ui/textarea';
 import { Calendar } from '../ui/calendar';
@@ -31,7 +31,7 @@ import {
 } from '@/components/ui/command';
 import type { LeadFormData } from './lead-upload-form';
 import { ScrollArea } from '../ui/scroll-area';
-import { AuthContext } from '@/context/auth-context';
+import { useAuthContext } from '@/context/auth-context';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '../ui/table';
 
 type FollowUp = {
@@ -88,7 +88,7 @@ export default function LeadUpdateForm({ leadId, onUpdate }: { leadId: string | 
   const [initialRemarks, setInitialRemarks] = useState('');
   
   const { toast } = useToast();
-  const authContext = useContext(AuthContext);
+  const authContext = useAuthContext();
 
   const loadLeads = useCallback(() => {
     try {
