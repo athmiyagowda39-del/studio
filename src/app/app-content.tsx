@@ -29,19 +29,20 @@ export default function AppContent({
   const router = useRouter();
   const isAuthenticated = !!user;
 
-  const allowedPaths = ['/login', '/signup'];
+  const authRoutes = ['/login', '/signup'];
+  const isAuthRoute = authRoutes.includes(pathname);
 
   useEffect(() => {
     if (!isUserLoading) {
-      if (isAuthenticated && allowedPaths.includes(pathname)) {
+      if (isAuthenticated && isAuthRoute) {
         router.replace('/');
-      } else if (!isAuthenticated && !allowedPaths.includes(pathname)) {
+      } else if (!isAuthenticated && !isAuthRoute) {
         router.replace('/login');
       }
     }
-  }, [isAuthenticated, isUserLoading, pathname, router]);
+  }, [isAuthenticated, isUserLoading, pathname, router, isAuthRoute]);
 
-  if (isUserLoading) {
+  if (isUserLoading || (!isAuthenticated && !isAuthRoute)) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Skeleton className="h-12 w-12 rounded-full" />
@@ -49,32 +50,41 @@ export default function AppContent({
     );
   }
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated && isAuthRoute) {
     if (pathname === '/signup') {
       return <SignUpPage />;
     }
     return <LoginPage />;
   }
-
-  return (
-    <SidebarProvider>
-      <Sidebar>
-        <SidebarHeader>
-          <div className="flex items-center gap-2">
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <CustomLogo />
+  
+  if (isAuthenticated && !isAuthRoute) {
+    return (
+      <SidebarProvider>
+        <Sidebar>
+          <SidebarHeader>
+            <div className="flex items-center gap-2">
+              <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                <CustomLogo />
+              </div>
+              <span className="text-lg font-semibold">Sales Lead Tracking</span>
             </div>
-            <span className="text-lg font-semibold">Sales Lead Tracking</span>
-          </div>
-        </SidebarHeader>
-        <SidebarContent>
-          <SidebarNav />
-        </SidebarContent>
-      </Sidebar>
-      <SidebarInset>
-        <Header />
-        <main className="p-4 md:p-6">{children}</main>
-      </SidebarInset>
-    </SidebarProvider>
+          </SidebarHeader>
+          <SidebarContent>
+            <SidebarNav />
+          </SidebarContent>
+        </Sidebar>
+        <SidebarInset>
+          <Header />
+          <main className="p-4 md:p-6">{children}</main>
+        </SidebarInset>
+      </SidebarProvider>
+    );
+  }
+
+  // Fallback for edge cases, renders a loading state
+  return (
+    <div className="flex items-center justify-center min-h-screen">
+      <Skeleton className="h-12 w-12 rounded-full" />
+    </div>
   );
 }
