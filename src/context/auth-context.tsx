@@ -16,7 +16,7 @@ import {
   signInWithEmailAndPassword,
   signOut,
   updatePassword,
-  signInWithCredential,
+  reauthenticateWithCredential,
   EmailAuthProvider,
 } from 'firebase/auth';
 import {
@@ -26,7 +26,6 @@ import {
   deleteDoc,
   collection,
   getDocs,
-  DocumentData,
   writeBatch,
 } from 'firebase/firestore';
 import { useFirebase, useUser } from '@/firebase';
@@ -91,24 +90,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
      try {
       const adminEmail = 'admin@example.com';
       const adminPass = 'password';
-
-      // Temporarily sign out any active user to avoid conflicts
-      if (auth.currentUser) {
-        await signOut(auth);
-      }
       
+      // We don't need to create the user, just their profile if they authenticated
+      // but don't have one. For the default admin, we must create it.
+      // This is a simplified bootstrap, in a real app this would be a setup script.
       const userCredential = await createUserWithEmailAndPassword(auth, adminEmail, adminPass);
       const newUser = userCredential.user;
       
-      // The new user is now authenticated. We can safely write to Firestore.
       const userDocRef = doc(firestore, 'users', newUser.uid);
       await setDoc(userDocRef, {
         username: 'admin',
         role: 'admin',
       });
-
       console.log('Default admin user created and profile stored.');
-      
+
       // Sign the new admin user out so the login screen is presented
       await signOut(auth);
 
@@ -124,23 +119,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchAllUsers = useCallback(async () => {
     if (!firestore) return;
-    const usersCollectionRef = collection(firestore, 'users');
-    const snapshot = await getDocs(usersCollectionRef);
-    
-    if (snapshot.empty) {
-        await createDefaultAdmin();
-        // After creating, refetch to update the list
-        const newSnapshot = await getDocs(usersCollectionRef);
-        const userList = newSnapshot.docs.map(
-          (doc) => ({ uid: doc.id, ...doc.data() } as User)
-        );
-        setUsers(userList);
+    try {
+        const usersCollectionRef = collection(firestore, 'users');
+        const snapshot = await getDocs(usersCollectionRef);
+        
+        if (snapshot.empty) {
+            await createDefaultAdmin();
+            // After creating, refetch to update the list
+            const newSnapshot = await getDocs(usersCollectionRef);
+            const userList = newSnapshot.docs.map(
+              (doc) => ({ uid: doc.id, ...doc.data() } as User)
+            );
+            setUsers(userList);
 
-    } else {
-        const userList = snapshot.docs.map(
-          (doc) => ({ uid: doc.id, ...doc.data() } as User)
-        );
-        setUsers(userList);
+        } else {
+            const userList = snapshot.docs.map(
+              (doc) => ({ uid: doc.id, ...doc.data() } as User)
+            );
+            setUsers(userList);
+        }
+    } catch (e) {
+        console.error("Error fetching users:", e);
     }
   }, [firestore, createDefaultAdmin]);
 
@@ -193,7 +192,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (!email) return false;
       const credential = EmailAuthProvider.credential(email, oldPass);
       // Reauthenticate before changing password
-      await signInWithCredential(auth.currentUser, credential);
+      await reauthenticateWithCredential(auth.currentUser, credential);
       await updatePassword(auth.currentUser, newPass);
       return true;
     } catch (error) {
@@ -209,50 +208,44 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   ): Promise<boolean> => {
     if (!auth || !firestore) return false;
     
-    // This is tricky client-side. We need to create the user, sign out,
-    // then sign the original user back in.
+    // This is tricky client-side. A backend function is the robust way.
+    // For this demo, we'll assume we can temporarily create a user.
+    // NOTE: This flow has security implications in a real app.
     const originalUser = auth.currentUser;
-    const originalUserEmail = originalUser?.email;
-    // IMPORTANT: This is a simplified demo. In a real app, you would not have the original user's password.
-    // This flow would need to be handled by a backend function (e.g., a Firebase Function) with admin privileges.
-    const originalUserPassword = "password"; // This is a placeholder and a security risk.
 
     try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        `${username}@example.com`,
-        pass
-      );
-      const newUser = userCredential.user;
+        // Create a temporary auth instance to not disturb the current session
+        const tempAuth = auth; // In a real app, this would be an admin SDK call.
+        const userCredential = await createUserWithEmailAndPassword(
+            tempAuth,
+            `${username}@example.com`,
+            pass
+        );
+        const newUser = userCredential.user;
 
-      const userDocRef = doc(firestore, 'users', newUser.uid);
-      await setDoc(userDocRef, {
-        username: username,
-        role: role,
-      });
+        const userDocRef = doc(firestore, 'users', newUser.uid);
+        await setDoc(userDocRef, {
+            username: username,
+            role: role,
+        });
 
-      fetchAllUsers();
-      
-      // Sign out the new user and sign back in the original user
-      await signOut(auth);
-      if (originalUserEmail) {
-          await signInWithEmailAndPassword(auth, originalUserEmail, originalUserPassword).catch(reauthError => {
-            console.error("Could not re-authenticate original user. They may need to log in again.", reauthError);
-            router.push('/login');
-          });
-      }
-
-      return true;
+        // If the temporary auth is the same as the main one, the new user is now signed in.
+        // We need to sign them out and restore the original session.
+        if (auth.currentUser?.uid === newUser.uid) {
+            await signOut(auth);
+            // This part is problematic client-side as we don't have the original user's password.
+            // In a real app, you would not do this. The admin would remain logged in.
+            // For this tool, we will just force a redirect to login.
+            if (originalUser) {
+                router.push('/login'); // Force re-login for simplicity
+            }
+        }
+        
+        fetchAllUsers();
+        return true;
     } catch (error) {
-      console.error('Failed to add user:', error);
-      // Ensure original user is signed in if something goes wrong
-       if (originalUser && auth.currentUser?.uid !== originalUser.uid && originalUserEmail) {
-           await signInWithEmailAndPassword(auth, originalUserEmail, originalUserPassword).catch(reauthError => {
-            console.error("Could not re-authenticate original user. They may need to log in again.", reauthError);
-            router.push('/login');
-          });
-       }
-      return false;
+        console.error('Failed to add user:', error);
+        return false;
     }
   };
 
