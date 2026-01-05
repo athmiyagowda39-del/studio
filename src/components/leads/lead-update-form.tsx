@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Input } from '@/components/ui/input';
@@ -12,7 +11,7 @@ import {
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '../ui/textarea';
 import { Calendar } from '../ui/calendar';
@@ -33,6 +32,9 @@ import type { LeadFormData } from './lead-upload-form';
 import { ScrollArea } from '../ui/scroll-area';
 import { useAuthContext } from '@/context/auth-context';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '../ui/table';
+import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, doc, setDoc, query, where } from 'firebase/firestore';
+
 
 type FollowUp = {
   id: number;
@@ -70,7 +72,7 @@ const executiveIds = [
 ];
 
 
-export default function LeadUpdateForm({ leadId, onUpdate }: { leadId: string | null, onUpdate: () => void }) {
+export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
   const [leadDetails, setLeadDetails] = useState<Partial<LeadFormData>>({});
   
   const [remarks, setRemarks] = useState('');
@@ -79,7 +81,15 @@ export default function LeadUpdateForm({ leadId, onUpdate }: { leadId: string | 
   const [currentStatus, setCurrentStatus] = useState('Initial');
   const [selectedStatus, setSelectedStatus] = useState('');
   
-  const [allLeads, setAllLeads] = useState<LeadFormData[]>([]);
+  const { user } = useAuthContext();
+  const { firestore } = useFirebase();
+
+  const leadsQuery = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+    return query(collection(firestore, 'leads'), where('subAdminId', '==', user.uid));
+  }, [user, firestore]);
+  const { data: allLeads } = useCollection<LeadFormData>(leadsQuery);
+
   
   const [transferredTo, setTransferredTo] = useState('');
   const [transferredToOpen, setTransferredToOpen] = useState(false);
@@ -88,35 +98,6 @@ export default function LeadUpdateForm({ leadId, onUpdate }: { leadId: string | 
   const [initialRemarks, setInitialRemarks] = useState('');
   
   const { toast } = useToast();
-  const authContext = useAuthContext();
-
-  const loadLeads = useCallback(() => {
-    try {
-      let storedLeads = localStorage.getItem('uploadedLeads');
-      let parsedLeads: LeadFormData[] = storedLeads ? JSON.parse(storedLeads) : [];
-      setAllLeads(parsedLeads as any);
-    } catch (error) {
-      console.error('Failed to parse leads from localStorage', error);
-      setAllLeads([]);
-    }
-  }, []);
-  
-  useEffect(() => {
-    loadLeads();
-    
-    const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === 'uploadedLeads' || event.key === null) { 
-        loadLeads();
-      }
-    };
-    
-    window.addEventListener('storage', handleStorageChange);
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
-
-  }, [loadLeads]);
 
    useEffect(() => {
     if (leadId) {
@@ -128,16 +109,19 @@ export default function LeadUpdateForm({ leadId, onUpdate }: { leadId: string | 
 
 
   const findLeadAndSetDetails = (id: string) => {
-     if (!id) {
+     if (!id || !allLeads) {
         setLeadDetails({});
         return;
     }
     const foundLead = allLeads.find(lead => lead.leadId === id);
     if (foundLead) {
-        const leadWithViewDate: Partial<LeadFormData> = {
-          ...foundLead,
-          executiveViewDate: foundLead.executiveViewDate || new Date().getTime() 
-        };
+        let leadWithViewDate: Partial<LeadFormData> = { ...foundLead };
+        if (!foundLead.executiveViewDate) {
+          leadWithViewDate.executiveViewDate = new Date().getTime();
+          const leadRef = doc(firestore, 'leads', id);
+          setDoc(leadRef, { executiveViewDate: leadWithViewDate.executiveViewDate }, { merge: true });
+        }
+
         setLeadDetails(leadWithViewDate);
         setFollowUps((foundLead as any).followUps || []);
         setCurrentStatus((foundLead as any).status || 'Initial');
@@ -179,7 +163,7 @@ export default function LeadUpdateForm({ leadId, onUpdate }: { leadId: string | 
       date: new Date().toLocaleDateString(),
       remarks: remarks,
       nextFollowUp: format(nextFollowUpDate, 'PPP'),
-      enteredBy: authContext?.user?.username || 'System',
+      enteredBy: user?.username || 'System',
     };
     
     const updatedFollowups = [...followUps, newFollowUp];
@@ -199,55 +183,31 @@ export default function LeadUpdateForm({ leadId, onUpdate }: { leadId: string | 
     });
   };
 
-  const handleUpdateStatus = () => {
+  const handleUpdateStatus = async () => {
     if (!selectedStatus) {
-      toast({
-        variant: 'destructive',
-        title: 'No Status Selected',
-        description: 'Please select a status to update.',
-      });
+      toast({ variant: 'destructive', title: 'No Status Selected', description: 'Please select a status to update.' });
       return;
     }
      if (!leadIdForStatus) {
-      toast({
-        variant: 'destructive',
-        title: 'No Lead Selected',
-        description: 'Please select a lead before updating its status.',
-      });
+      toast({ variant: 'destructive', title: 'No Lead Selected', description: 'Please select a lead before updating its status.' });
       return;
     }
+    if (!firestore) return;
 
-    const updatedLeads = allLeads.map(lead => {
-        if (lead.leadId === leadIdForStatus) {
-            return {
-                ...lead,
-                status: selectedStatus,
-                leadStatusRemarks: initialRemarks,
-            };
+    const leadRef = doc(firestore, 'leads', leadIdForStatus);
+    try {
+        await setDoc(leadRef, { status: selectedStatus, leadStatusRemarks: initialRemarks }, { merge: true });
+        toast({ title: 'Status Updated', description: `Lead ${leadIdForStatus} status updated to ${selectedStatus}.` });
+
+        if (leadDetails.leadId === leadIdForStatus) {
+            setLeadDetails(prev => ({...prev, status: selectedStatus, leadStatusRemarks: initialRemarks}));
+            setCurrentStatus(selectedStatus);
         }
-        return lead;
-    });
-
-    setAllLeads(updatedLeads);
-    localStorage.setItem('uploadedLeads', JSON.stringify(updatedLeads));
-    window.dispatchEvent(new Event('storage'));
-
-    const leadToUpdate = updatedLeads.find(l => l.leadId === leadIdForStatus);
-    if(leadToUpdate) {
-        setCurrentStatus(leadToUpdate.status || 'Initial');
+        setInitialRemarks('');
+        setSelectedStatus('');
+    } catch(error: any) {
+        toast({ variant: 'destructive', title: 'Update Failed', description: error.message });
     }
-
-    toast({
-      title: 'Status Updated',
-      description: `Lead ${leadIdForStatus} status updated to ${selectedStatus}.`,
-    });
-    
-    if (leadDetails.leadId === leadIdForStatus) {
-        setLeadDetails(prev => ({...prev, status: selectedStatus, leadStatusRemarks: initialRemarks}));
-    }
-
-    setInitialRemarks('');
-    setSelectedStatus('');
   };
   
   const handleResetLeadDetails = () => {
@@ -261,13 +221,9 @@ export default function LeadUpdateForm({ leadId, onUpdate }: { leadId: string | 
     setSelectedStatus('');
   };
 
-  const handleSaveLeadDetails = () => {
-    if (!leadDetails.leadId) {
-      toast({
-        variant: 'destructive',
-        title: 'No Lead Loaded',
-        description: 'Please search and load a lead before saving.',
-      });
+  const handleSaveLeadDetails = async () => {
+    if (!leadDetails.leadId || !firestore) {
+      toast({ variant: 'destructive', title: 'No Lead Loaded', description: 'Please search and load a lead before saving.' });
       return;
     }
     
@@ -286,20 +242,13 @@ export default function LeadUpdateForm({ leadId, onUpdate }: { leadId: string | 
         leadToSave.leadStatusRemarks = initialRemarks;
     }
 
-
-    const updatedLeads = allLeads.map(lead =>
-      lead.leadId === leadToSave.leadId ? { ...lead, ...leadToSave } : lead
-    );
-
-    setAllLeads(updatedLeads);
-    localStorage.setItem('uploadedLeads', JSON.stringify(updatedLeads));
-    window.dispatchEvent(new Event('storage'));
-    onUpdate();
-    
-    toast({
-      title: 'Lead Updated',
-      description: `Lead ${leadDetails.leadId} has been successfully updated.`,
-    });
+    const leadRef = doc(firestore, 'leads', leadDetails.leadId);
+    try {
+        await setDoc(leadRef, leadToSave, { merge: true });
+        toast({ title: 'Lead Updated', description: `Lead ${leadDetails.leadId} has been successfully updated.` });
+    } catch (error: any) {
+        toast({ variant: 'destructive', title: 'Save Failed', description: error.message });
+    }
   };
 
   return (

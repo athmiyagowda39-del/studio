@@ -7,54 +7,58 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { getLeadsForToday, getLeadData, type Lead } from '@/lib/data';
+import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import LeadPerformanceChart from '@/components/dashboard/lead-performance-chart';
 import LeadPerformanceFilters from '@/components/dashboard/lead-performance-filters';
 import { useState, useMemo, useEffect } from 'react';
 import { useAuthContext } from '@/context/auth-context';
+import { useCollection, useMemoFirebase } from '@/firebase';
+import { collection, query, where } from 'firebase/firestore';
+import { useFirestore } from '@/firebase';
+import { startOfDay, endOfDay } from 'date-fns';
 
 const months = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
+  'January', 'February', 'March', 'April', 'May', 'June', 'July',
+  'August', 'September', 'October', 'November', 'December',
 ];
 
 export default function DashboardPage() {
-  const [isClient, setIsClient] = useState(false);
-  const [totalLeadsToday, setTotalLeadsToday] = useState(0);
-  const [allLeads, setAllLeads] = useState<Lead[]>([]);
-  const authContext = useAuthContext();
+  const { user } = useAuthContext();
+  const firestore = useFirestore();
+
+  const leadsQuery = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+    return query(
+      collection(firestore, 'leads'),
+      where('subAdminId', '==', user.uid)
+    );
+  }, [user, firestore]);
+
+  const { data: allLeads, isLoading } = useCollection<LeadFormData>(leadsQuery);
 
   const [period, setPeriod] = useState('November');
   const [city, setCity] = useState('All');
 
-  useEffect(() => {
-    setIsClient(true);
-    setTotalLeadsToday(getLeadsForToday());
-    setAllLeads(getLeadData());
-  }, []);
+  const totalLeadsToday = useMemo(() => {
+    if (!allLeads) return 0;
+    const todayStart = startOfDay(new Date()).getTime();
+    const todayEnd = endOfDay(new Date()).getTime();
+    return allLeads.filter(lead => 
+      lead.creationDate >= todayStart && lead.creationDate <= todayEnd
+    ).length;
+  }, [allLeads]);
 
   const performanceData = useMemo(() => {
-    if (!isClient) return [];
+    if (!allLeads) return [];
 
     const monthIndex = months.indexOf(period);
-    const year = 2025; // Fixed year from data generation
+    const year = new Date().getFullYear();
 
     const filteredLeads = allLeads.filter((lead) => {
-      const leadDate = new Date(lead.date);
+      const leadDate = new Date(lead.creationDate);
       const isMonthMatch = leadDate.getMonth() === monthIndex;
-      const isStateMatch = lead.state === 'Karnataka'; // State is fixed
-      const isCityMatch = city === 'All' || lead.city === city;
-      return isMonthMatch && isStateMatch && isCityMatch;
+      const isCityMatch = city === 'All' || lead.district === city;
+      return isMonthMatch && isCityMatch;
     });
 
     const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
@@ -64,20 +68,19 @@ export default function DashboardPage() {
     }));
 
     filteredLeads.forEach((lead) => {
-      const leadDate = new Date(lead.date);
-      // Ensure we only add leads for the correct month.
+      const leadDate = new Date(lead.creationDate);
       if (leadDate.getMonth() === monthIndex) {
         const dayOfMonth = leadDate.getDate();
         if (dayOfMonth > 0 && dayOfMonth <= daysInMonth) {
-          dailyLeads[dayOfMonth - 1].leads += lead.leads;
+          dailyLeads[dayOfMonth - 1].leads += 1;
         }
       }
     });
 
     return dailyLeads;
-  }, [allLeads, period, city, isClient]);
+  }, [allLeads, period, city]);
 
-  if (!isClient || !authContext?.user) {
+  if (isLoading || !user) {
     return null; // or a loading skeleton
   }
 
@@ -85,7 +88,7 @@ export default function DashboardPage() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-col">
         <h1 className="text-2xl font-bold tracking-tight font-headline">
-          WELCOME {authContext.user.username.toUpperCase()}!
+          WELCOME {user.username.toUpperCase()}!
         </h1>
         <p className="text-muted-foreground">
           Here is your lead generation overview for today.
@@ -99,7 +102,7 @@ export default function DashboardPage() {
           <CardContent>
             <p className="text-4xl font-bold text-primary">{totalLeadsToday}</p>
             <CardDescription>
-              Total number of Leads: {totalLeadsToday}
+              Total number of Leads: {allLeads?.length || 0}
             </CardDescription>
           </CardContent>
         </Card>

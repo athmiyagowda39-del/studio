@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,14 +18,17 @@ import {
   CommandList,
 } from '@/components/ui/command';
 import { Check, ChevronsUpDown } from 'lucide-react';
-import { indianStatesAndDistricts, getLeadData, type Lead } from '@/lib/data';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import { format } from 'date-fns';
+import { useAuthContext } from '@/context/auth-context';
+import { useCollection, useFirebase, useMemoFirebase } from '@/firebase';
+import { collection, query, where } from 'firebase/firestore';
 
-const allStates = ["All", ...Object.keys(indianStatesAndDistricts)];
+
+const allStates = ["All", "Andaman and Nicobar Islands", "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chandigarh", "Chhattisgarh", "Dadra and Nagar Haveli and Daman and Diu", "Delhi", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jammu and Kashmir", "Jharkhand", "Karnataka", "Kerala", "Ladakh", "Lakshadweep", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Puducherry", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"];
 
 const leadStatusOptions = [
     'Attended',
@@ -40,7 +41,6 @@ const leadStatusOptions = [
 ];
 
 const sectors = ['All', 'IT', 'Finance', 'Healthcare', 'Manufacturing', 'Education', 'Retail', 'Hospitality', 'Telecommunication', 'Construction', 'Real Estate', 'Media & Entertainment', 'Government', 'Non-profit', 'Other'];
-const specificSectors = sectors.slice(1); // Exclude 'All'
 const headcounts = ['All', '1-50', '51-200', '201-500', '501-1000', '1000+'];
 
 
@@ -93,69 +93,28 @@ const getLeadStatusesForFilters = (
 
 
 export default function LeadReportPage() {
+  const { user } = useAuthContext();
+  const { firestore } = useFirebase();
+
+  const leadsQuery = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+    return query(collection(firestore, 'leads'), where('subAdminId', '==', user.uid));
+  }, [user, firestore]);
+  const { data: allLeads } = useCollection<LeadFormData>(leadsQuery);
+
   const [selectedState, setSelectedState] = useState('Karnataka');
   const [openState, setOpenState] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedSector, setSelectedSector] = useState('All');
   const [selectedHeadcount, setSelectedHeadcount] = useState('All');
-  const [allLeads, setAllLeads] = useState<LeadFormData[]>([]);
-
-  useEffect(() => {
-    try {
-      const storedLeads = localStorage.getItem('uploadedLeads');
-      const generatedLeads = getLeadData();
-
-      let leadsFromStorage: LeadFormData[] = [];
-      if (storedLeads) {
-        leadsFromStorage = JSON.parse(storedLeads).map((lead: LeadFormData, index: number) => ({
-            ...lead,
-            status: lead.status || leadStatusOptions[index % leadStatusOptions.length],
-            sector: lead.sector || specificSectors[index % specificSectors.length],
-        }));
-      }
-      
-      const combinedLeads: LeadFormData[] = [...leadsFromStorage, ...generatedLeads.map((lead: Lead, index: number) => {
-        const date = new Date(lead.date);
-        return {
-            leadId: `GEN-${date.getTime()}-${index}`,
-            pincode: '',
-            state: lead.state,
-            district: lead.city,
-            address: `${lead.city}, ${lead.state}`,
-            company: `Company ${index}`,
-            contactPerson: `Person ${index}`,
-            contactNumber: `999999999${index % 10}`,
-            email: `person${index}@example.com`,
-            reference: 'Generated',
-            headcount: `${Math.floor(Math.random() * 1000) + 1}`,
-            sector: specificSectors[index % specificSectors.length],
-            selectedModule: 'AR',
-            toDealer: false,
-            creationDate: date.getTime(),
-            status: leadStatusOptions[index % leadStatusOptions.length],
-        } as LeadFormData
-      })];
-      
-      const leadsWithStatus = combinedLeads.map((lead, index) => ({
-          ...lead,
-          status: lead.status || leadStatusOptions[index % leadStatusOptions.length],
-          sector: lead.sector || specificSectors[index % specificSectors.length],
-          headcount: lead.headcount || `${Math.floor(Math.random() * 1000) + 1}`,
-          creationDate: lead.creationDate ? new Date(lead.creationDate).getTime() : new Date().getTime(),
-        }));
-
-      setAllLeads(leadsWithStatus);
-      
-    } catch (error) {
-      console.error('Failed to load leads', error);
-    }
-  }, []);
 
   const leadStatuses = useMemo(() => {
+    if (!allLeads) return [];
     return getLeadStatusesForFilters(allLeads, selectedState, selectedSector, selectedHeadcount);
   }, [allLeads, selectedState, selectedSector, selectedHeadcount]);
   
   const filteredLeads = useMemo(() => {
+    if (!allLeads) return [];
     let leads = [...allLeads];
     
     if (selectedState && selectedState !== 'All') {
@@ -433,16 +392,3 @@ export default function LeadReportPage() {
     </div>
   );
 }
-
-
-
-    
-
-    
-
-
-
-
-    
-
-    

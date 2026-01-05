@@ -22,10 +22,10 @@ import {
 } from '@/components/ui/popover';
 import { Check, ChevronDown, ChevronsUpDown } from 'lucide-react';
 import { useState } from 'react';
-import { indianStatesAndDistricts } from '@/lib/data';
 import { cn } from '@/lib/utils';
 
-const karnatakaDistricts = indianStatesAndDistricts['Karnataka'].map(
+
+const karnatakaDistricts = ["Bagalkote", "Ballari", "Belagavi", "Bengaluru Rural", "Bengaluru Urban", "Bidar", "Chamarajanagara", "Chikkaballapura", "Chikkamagaluru", "Chitradurga", "Dakshina Kannada", "Davanagere", "Dharwad", "Gadag", "Hassan", "Haveri", "Kalaburagi", "Kodagu", "Kolar", "Koppal", "Mandya", "Mysuru", "Raichur", "Ramanagara", "Shivamogga", "Tumakuru", "Udupi", "Uttara Kannada", "Vijayapura", "Yadgir"].map(
   (district) => ({
     value: district.toLowerCase(),
     label: district,

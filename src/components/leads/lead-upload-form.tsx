@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Input } from '@/components/ui/input';
@@ -15,7 +14,6 @@ import { Button } from '@/components/ui/button';
 import { Check, ChevronsUpDown, Download, UploadCloud } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { useState, useRef, useEffect } from 'react';
-import { pincodeData } from '@/lib/pincodes';
 import * as XLSX from 'xlsx';
 import {
   Table,
@@ -42,6 +40,8 @@ import {
 import { cn } from '@/lib/utils';
 import { Textarea } from '../ui/textarea';
 import { useAuthContext } from '@/context/auth-context';
+import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, doc, setDoc, query, where } from 'firebase/firestore';
 
 type ParsedData = (string | number)[][];
 
@@ -79,6 +79,7 @@ export type LeadFormData = {
   status?: string;
   leadSubStatus?: string;
   leadStatusRemarks?: string;
+  subAdminId: string;
 };
 
 const sectors = ['IT', 'Finance', 'Healthcare', 'Manufacturing', 'Education', 'Retail', 'Hospitality', 'Telecommunication', 'Construction', 'Real Estate', 'Media & Entertainment', 'Government', 'Non-profit', 'Other'];
@@ -101,7 +102,7 @@ const leadStatusOptions = [
     'Quote Sent',
 ];
 
-const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate' | 'givenBy'> = {
+const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId' | 'givenBy'> = {
     pincode: '',
     state: '',
     district: '',
@@ -119,9 +120,11 @@ const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate' | 'givenBy'
 
 
 export default function LeadUploadForm() {
-  const authContext = useAuthContext();
-  const [formData, setFormData] = useState<Omit<LeadFormData, 'leadId' | 'creationDate'>>(initialFormState);
-  const [addedLeads, setAddedLeads] = useState<Omit<LeadFormData, 'leadId' | 'creationDate'>[]>([]);
+  const { user } = useAuthContext();
+  const { firestore } = useFirebase();
+
+  const [formData, setFormData] = useState<Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId'>>(initialFormState);
+  const [addedLeads, setAddedLeads] = useState<Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId'>[]>([]);
   const [sectorOpen, setSectorOpen] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -130,41 +133,18 @@ export default function LeadUploadForm() {
   const [showPreview, setShowPreview] = useState(false);
   const { toast } = useToast();
 
-  const [allLeads, setAllLeads] = useState<LeadFormData[]>([]);
+  const leadsQuery = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+    return query(collection(firestore, 'leads'), where('subAdminId', '==', user.uid));
+  }, [user, firestore]);
+  const { data: allLeads } = useCollection<LeadFormData>(leadsQuery);
+
   const [leadIdForStatus, setLeadIdForStatus] = useState('');
   const [leadIdForStatusOpen, setLeadIdForStatusOpen] = useState(false);
   const [currentStatus, setCurrentStatus] = useState('Initial');
   const [selectedStatus, setSelectedStatus] = useState('');
   const [initialRemarks, setInitialRemarks] = useState('');
 
-  useEffect(() => {
-    try {
-      const storedLeads = localStorage.getItem('uploadedLeads');
-      if (storedLeads) {
-        setAllLeads(JSON.parse(storedLeads));
-      }
-    } catch (error) {
-      console.error('Failed to parse leads from localStorage', error);
-    }
-     const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === 'uploadedLeads') {
-         try {
-            const storedLeads = localStorage.getItem('uploadedLeads');
-            if (storedLeads) {
-                setAllLeads(JSON.parse(storedLeads));
-            }
-         } catch (error) {
-             console.error('Failed to parse leads from localStorage on update', error);
-         }
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
-  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
@@ -174,15 +154,8 @@ export default function LeadUploadForm() {
   const handlePincodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newPincode = e.target.value;
     const newFormData = { ...formData, pincode: newPincode };
-
-    const location = pincodeData[newPincode];
-    if (location) {
-        newFormData.state = location.state;
-        newFormData.district = location.district;
-    } else {
-        newFormData.state = '';
-        newFormData.district = '';
-    }
+    // Pincode logic removed as src/lib/pincodes.ts is deleted.
+    // User will have to enter state/district manually if needed.
     setFormData(newFormData);
   };
 
@@ -205,7 +178,7 @@ export default function LeadUploadForm() {
     handleCancel();
   };
 
-  const validateLead = (lead: Omit<LeadFormData, 'leadId' | 'creationDate'>) => {
+  const validateLead = (lead: Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId'>) => {
     if (!lead.pincode || !lead.contactPerson || !lead.contactNumber || !lead.address) {
       toast({
         variant: 'destructive',
@@ -217,26 +190,29 @@ export default function LeadUploadForm() {
     return true;
   }
 
-  const saveLeadsToLocalStorage = (leads: LeadFormData[]) => {
+  const saveLeadsToFirestore = async (leads: LeadFormData[]) => {
+    if (!firestore) return;
+    const promises = leads.map(lead => {
+      const leadRef = doc(firestore, 'leads', lead.leadId);
+      return setDoc(leadRef, lead);
+    });
     try {
-      const existingLeadsJson = localStorage.getItem('uploadedLeads');
-      const existingLeads: LeadFormData[] = existingLeadsJson ? JSON.parse(existingLeadsJson) : [];
-      const updatedLeads = [...existingLeads, ...leads];
-      localStorage.setItem('uploadedLeads', JSON.stringify(updatedLeads));
-      window.dispatchEvent(new Event('storage')); // Notify other components of the change
-    } catch (error) {
-      console.error("Could not save leads to localStorage", error);
+      await Promise.all(promises);
+    } catch (error: any) {
+       console.error("Could not save leads to Firestore", error);
       toast({
         variant: "destructive",
-        title: "Storage Error",
-        description: "Could not save leads. Your browser might be in private mode or has storage disabled.",
+        title: "Firestore Error",
+        description: `Could not save leads: ${error.message}`,
       });
     }
   }
 
-  const handleSaveLeads = (leadsToSave?: Omit<LeadFormData, 'leadId' | 'creationDate'>[]) => {
+  const handleSaveLeads = (leadsToSave?: Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId'>[]) => {
+    if (!user) return;
+    
     const formHasData = Object.values(formData).some(value => value !== '' && value !== false);
-    let leadsToProcess: Omit<LeadFormData, 'leadId' | 'creationDate'>[] = leadsToSave || [];
+    let leadsToProcess: Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId'>[] = leadsToSave || [];
 
     if (formHasData && !leadsToSave) {
         if (!validateLead(formData)) return;
@@ -246,7 +222,6 @@ export default function LeadUploadForm() {
     if(!leadsToSave) {
         leadsToProcess = [...leadsToProcess, ...addedLeads];
     }
-
 
     if (leadsToProcess.length === 0) {
          toast({
@@ -264,11 +239,12 @@ export default function LeadUploadForm() {
             leadId: `LEAD-${now}-${index}`,
             creationDate: now,
             status: 'Not viewed', // Default status for new leads
-            givenBy: lead.givenBy || authContext?.user?.username
+            givenBy: lead.givenBy || user?.username,
+            subAdminId: user.uid,
         };
     });
 
-    saveLeadsToLocalStorage(leadsWithIds as LeadFormData[]);
+    saveLeadsToFirestore(leadsWithIds as LeadFormData[]);
     
     toast({
         title: "Leads added successfully",
@@ -354,17 +330,16 @@ export default function LeadUploadForm() {
         const headers = (json[0] as string[]).map(h => h.toString().trim());
         const lowerCaseHeaders = headers.map(h => h.toLowerCase().replace(/\s+/g, ''));
         
-        const leadsFromFile: Omit<LeadFormData, 'leadId' | 'creationDate'>[] = json.slice(1).map((row: any[]) => {
+        const leadsFromFile: Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId'>[] = json.slice(1).map((row: any[]) => {
             const lead: any = {};
             lowerCaseHeaders.forEach((header, index) => {
                 lead[header] = row[index];
             });
-            const location = pincodeData[lead.pincode];
 
             return {
                 pincode: lead.pincode?.toString() || '',
-                state: location?.state || '',
-                district: location?.district || '',
+                state: lead.state || '',
+                district: lead.district || '',
                 address: lead.address || '',
                 contactPerson: lead.contactperson || '',
                 contactNumber: lead.contactnumber?.toString() || '',
@@ -402,9 +377,9 @@ export default function LeadUploadForm() {
 
    const handleDownloadSample = () => {
     const sampleData = [
-      ['pincode', 'address', 'contactPerson', 'contactNumber', 'reference', 'email', 'company', 'headcount', 'sector', 'selectedModule'],
-      ['587101', '123 MG Road, Bagalkote', 'John Doe', '9876543210', 'Friend', 'john.doe@example.com', 'Tech Solutions', '150', 'IT', 'ar'],
-      ['560001', '456 Brigade Road, Bengaluru', 'Jane Smith', '8765432109', 'Website', 'jane.smith@example.com', 'Innovate Corp', '250', 'Finance', 'all-hrms'],
+      ['pincode', 'address', 'contactPerson', 'contactNumber', 'reference', 'email', 'company', 'headcount', 'sector', 'selectedModule', 'state', 'district'],
+      ['587101', '123 MG Road, Bagalkote', 'John Doe', '9876543210', 'Friend', 'john.doe@example.com', 'Tech Solutions', '150', 'IT', 'ar', 'Karnataka', 'Bagalkote'],
+      ['560001', '456 Brigade Road, Bengaluru', 'Jane Smith', '8765432109', 'Website', 'jane.smith@example.com', 'Innovate Corp', '250', 'Finance', 'all-hrms', 'Karnataka', 'Bengaluru Urban'],
     ];
     const ws = XLSX.utils.aoa_to_sheet(sampleData);
     const wb = XLSX.utils.book_new();
@@ -415,7 +390,7 @@ export default function LeadUploadForm() {
   const handleSelectLeadForStatus = (leadId: string) => {
       const selectedLeadId = leadId === leadIdForStatus ? '' : leadId;
       setLeadIdForStatus(selectedLeadId);
-      const foundLead = allLeads.find(lead => lead.leadId === selectedLeadId);
+      const foundLead = allLeads?.find(lead => lead.leadId === selectedLeadId);
       if (foundLead) {
           setCurrentStatus(foundLead.status || 'Initial');
       } else {
@@ -424,46 +399,28 @@ export default function LeadUploadForm() {
       setLeadIdForStatusOpen(false);
   }
 
-  const handleUpdateStatus = () => {
+  const handleUpdateStatus = async () => {
+    if (!firestore || !leadIdForStatus) {
+      toast({ variant: 'destructive', title: 'Selection missing', description: 'Please select a lead.' });
+      return;
+    }
     if (!selectedStatus) {
-      toast({
-        variant: 'destructive',
-        title: 'No Status Selected',
-        description: 'Please select a status to update.',
-      });
-      return;
-    }
-     if (!leadIdForStatus) {
-      toast({
-        variant: 'destructive',
-        title: 'No Lead Selected',
-        description: 'Please select a lead before updating its status.',
-      });
+      toast({ variant: 'destructive', title: 'Status missing', description: 'Please select a new status.' });
       return;
     }
 
-    const updatedLeads = allLeads.map(lead => {
-        if (lead.leadId === leadIdForStatus) {
-            return {
-                ...lead,
-                status: selectedStatus,
-                leadStatusRemarks: initialRemarks,
-            };
-        }
-        return lead;
-    });
+    const leadRef = doc(firestore, 'leads', leadIdForStatus);
+    try {
+      await setDoc(leadRef, { status: selectedStatus, leadStatusRemarks: initialRemarks }, { merge: true });
+      toast({ title: 'Status Updated', description: `Lead ${leadIdForStatus} updated to ${selectedStatus}.` });
+      setInitialRemarks('');
+      setSelectedStatus('');
+      const foundLead = allLeads?.find(lead => lead.leadId === leadIdForStatus);
+      if(foundLead) setCurrentStatus(selectedStatus);
 
-    setAllLeads(updatedLeads);
-    localStorage.setItem('uploadedLeads', JSON.stringify(updatedLeads));
-    window.dispatchEvent(new Event('storage'));
-
-    toast({
-      title: 'Status Updated',
-      description: `Lead ${leadIdForStatus} status updated to ${selectedStatus}.`,
-    });
-
-    setInitialRemarks('');
-    setSelectedStatus('');
+    } catch (error: any) {
+      toast({ variant: 'destructive', title: 'Update failed', description: error.message });
+    }
   };
 
 
@@ -490,11 +447,11 @@ export default function LeadUploadForm() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="state">State</Label>
-            <Input id="state" value={formData.state} readOnly />
+            <Input id="state" value={formData.state} onChange={handleInputChange} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="district">District</Label>
-            <Input id="district" value={formData.district} readOnly />
+            <Input id="district" value={formData.district} onChange={handleInputChange} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="contactNumber">Contact Number <span className="text-destructive">*</span></Label>
@@ -671,7 +628,7 @@ export default function LeadUploadForm() {
                                     <CommandList>
                                         <CommandEmpty>No leads found.</CommandEmpty>
                                         <CommandGroup>
-                                        {allLeads.map((lead) => (
+                                        {allLeads?.map((lead) => (
                                             <CommandItem
                                             key={lead.leadId}
                                             value={lead.leadId}

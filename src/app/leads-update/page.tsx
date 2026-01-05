@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Input } from '@/components/ui/input';
@@ -39,6 +38,8 @@ import * as XLSX from 'xlsx';
 import { useAuthContext } from '@/context/auth-context';
 import LeadUpdateForm from '@/components/leads/lead-update-form';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useCollection, useFirebase, useMemoFirebase } from '@/firebase';
+import { collection, query, where } from 'firebase/firestore';
 
 const initialFilterState = {
   search: '',
@@ -96,8 +97,19 @@ const leadSourceOptions = [
 const LEADS_PER_PAGE = 10;
 export default function LeadsUpdatePage() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const { user } = useAuthContext();
+  const { firestore } = useFirebase();
+
+  const leadsQuery = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+    let q = query(collection(firestore, 'leads'));
+    if (user.role !== 'admin') {
+      q = query(q, where('subAdminId', '==', user.uid));
+    }
+    return q;
+  }, [user, firestore]);
+  const { data: allLeads } = useCollection<LeadFormData>(leadsQuery);
   
-  const [allLeads, setAllLeads] = useState<LeadFormData[]>([]);
   const [filteredLeads, setFilteredLeads] = useState<LeadFormData[]>([]);
   const [showResults, setShowResults] = useState(false);
   const [activeQuickFilter, setActiveQuickFilter] = useState('');
@@ -108,82 +120,13 @@ export default function LeadsUpdatePage() {
   const [filters, setFilters] = useState(initialFilterState);
 
   const { toast } = useToast();
-  const authContext = useAuthContext();
-
-
-  const loadLeads = useCallback(() => {
-    try {
-      let storedLeads = localStorage.getItem('uploadedLeads');
-      let parsedLeads: LeadFormData[] = storedLeads ? JSON.parse(storedLeads) : [];
-      
-      if (storedLeads) {
-        const correctedLeads = parsedLeads.map((lead, index) => {
-          
-          let leadFollowUps: any[] = lead.followUps || [];
-          if (!lead.followUps && index % 5 === 0) {
-            leadFollowUps.push({
-              id: 1,
-              date: new Date().toLocaleDateString(),
-              remarks: 'First follow up',
-              nextFollowUp: format(new Date(), 'PPP'),
-              enteredBy: authContext?.user?.username || 'System',
-            })
-          }
-
-          return {
-            ...lead,
-            executive: lead.executive || (index % 2 === 0 ? 'chiranth' : 'athmiya'), // Assign some data
-            status: lead.status || leadStatusOptions[index % leadStatusOptions.length],
-            creationDate: typeof lead.creationDate === 'string' ? new Date(lead.creationDate).getTime() : lead.creationDate,
-            followUps: leadFollowUps,
-            nextFollowUpDate: lead.nextFollowUpDate || (index % 3 === 0 ? new Date(new Date().getTime() + 5 * 24 * 60 * 60 * 1000).toISOString() : undefined), // 5 days from now
-          };
-        });
-        
-        const currentUser = authContext?.user;
-        let finalLeads = correctedLeads;
-
-        if (currentUser && currentUser.role !== 'admin') {
-            finalLeads = correctedLeads.filter(lead => 
-                lead.executive?.toLowerCase() === currentUser.username.toLowerCase() || 
-                lead.manager?.toLowerCase() === currentUser.username.toLowerCase() ||
-                lead.givenBy?.toLowerCase() === currentUser.username.toLowerCase()
-            );
-        }
-        setAllLeads(finalLeads as any);
-      } else {
-        setAllLeads([]);
-      }
-    } catch (error) {
-      console.error('Failed to parse leads from localStorage', error);
-      setAllLeads([]);
-    }
-  }, [authContext?.user]);
   
-  useEffect(() => {
-    loadLeads();
-    
-    const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === 'uploadedLeads' || event.key === null) { // event.key is null for localStorage.clear()
-        loadLeads();
-      }
-    };
-    
-    window.addEventListener('storage', handleStorageChange);
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
-
-  }, [loadLeads]);
-
-
   const handleFilterChange = (field: keyof typeof filters, value: any) => {
     setFilters(prev => ({...prev, [field]: value}));
   }
 
   const handleShowClick = () => {
-    let leads = [...allLeads];
+    let leads = [...(allLeads || [])];
 
     if (filters.search && filters.searchFor) {
         leads = leads.filter(lead => {
@@ -258,26 +201,26 @@ export default function LeadsUpdatePage() {
 
   const handleQuickFilter = (filterType: string) => {
     setActiveQuickFilter(filterType);
-    let leads: LeadFormData[] = [];
+    let leads: LeadFormData[] = allLeads ? [...allLeads] : [];
     const today = startOfDay(new Date());
 
     switch(filterType) {
         case 'Recent Leads':
             const twoDaysAgo = subDays(today, 2).getTime();
-            leads = allLeads.filter(lead => (lead.creationDate || 0) >= twoDaysAgo);
+            leads = leads.filter(lead => (lead.creationDate || 0) >= twoDaysAgo);
             break;
         case 'Leads not Viewed':
-            leads = allLeads.filter(lead => !lead.executiveViewDate);
+            leads = leads.filter(lead => !lead.executiveViewDate);
             break;
         case 'Follow Ups Due':
             const todayTimestamp = today.getTime();
-            leads = allLeads.filter(lead => {
+            leads = leads.filter(lead => {
               const nextFollowUp = (lead as any).nextFollowUpDate;
               return nextFollowUp && new Date(nextFollowUp).getTime() <= todayTimestamp;
             });
             break;
         case 'Zero Follow Ups!':
-            leads = allLeads.filter(lead => !(lead as any).followUps || (lead as any).followUps.length === 0);
+            leads = leads.filter(lead => !(lead as any).followUps || (lead as any).followUps.length === 0);
             break;
         case 'Search Result':
             handleShowClick();
@@ -318,6 +261,7 @@ export default function LeadsUpdatePage() {
   }
 
   const summaryCards = useMemo(() => {
+    if (!allLeads) return {};
     const counts: Record<string, number> = {
       'Total Leads': allLeads.length,
       'Attended': 0,
@@ -339,14 +283,14 @@ export default function LeadsUpdatePage() {
   }, [allLeads]);
 
   const summaryDisplay = [
-    { title: 'Total Leads', value: summaryCards['Total Leads'] },
-    { title: 'Attended', value: summaryCards.Attended },
-    { title: 'Not viewed', value: summaryCards['Not viewed'] },
-    { title: 'Demo Given', value: summaryCards['Demo Given'] },
-    { title: 'Unattended', value: summaryCards.Unattended },
-    { title: 'Pursuing to Purchase', value: summaryCards['Pursuing to Purchase'] },
-    { title: 'Not interested', value: summaryCards['Not interested'] },
-    { title: 'Order closed', value: summaryCards['Order closed'] },
+    { title: 'Total Leads', value: summaryCards['Total Leads'] || 0 },
+    { title: 'Attended', value: summaryCards.Attended || 0 },
+    { title: 'Not viewed', value: summaryCards['Not viewed'] || 0 },
+    { title: 'Demo Given', value: summaryCards['Demo Given'] || 0 },
+    { title: 'Unattended', value: summaryCards.Unattended || 0 },
+    { title: 'Pursuing to Purchase', value: summaryCards['Pursuing to Purchase'] || 0 },
+    { title: 'Not interested', value: summaryCards['Not interested'] || 0 },
+    { title: 'Order closed', value: summaryCards['Order closed'] || 0 },
   ];
 
   const paginatedLeads = useMemo(() => {
@@ -359,11 +303,6 @@ export default function LeadsUpdatePage() {
   const handleRowClick = (leadId: string) => {
     setSelectedLeadId(leadId);
   };
-
-  const selectedLeadDetails = useMemo(() => {
-    if (!selectedLeadId) return null;
-    return allLeads.find(lead => lead.leadId === selectedLeadId);
-  }, [selectedLeadId, allLeads]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -387,7 +326,7 @@ export default function LeadsUpdatePage() {
                 </CardContent>
               </Card>
 
-            <LeadUpdateForm leadId={selectedLeadId} onUpdate={loadLeads} />
+            <LeadUpdateForm leadId={selectedLeadId} />
 
         <Collapsible open={isFilterOpen} onOpenChange={setIsFilterOpen}>
           <CollapsibleTrigger asChild>
