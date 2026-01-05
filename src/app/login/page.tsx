@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { useAuthContext } from '@/context/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { Eye, EyeOff, Target } from 'lucide-react';
+import Link from 'next/link';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
@@ -100,6 +101,12 @@ export default function LoginPage() {
             <Button type="submit" className="w-full" onClick={handleLogin} disabled={authContext?.isAuthLoading}>
               {authContext?.isAuthLoading ? 'Logging in...' : 'Login'}
             </Button>
+            <div className="mt-4 text-center text-sm">
+              Don&apos;t have an account?{' '}
+              <Link href="/signup" className="underline">
+                Sign up
+              </Link>
+            </div>
           </CardContent>
         </Card>
       </div>

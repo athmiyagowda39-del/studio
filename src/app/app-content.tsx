@@ -16,6 +16,7 @@ import { useEffect } from 'react';
 import { useAuthContext } from '@/context/auth-context';
 import SidebarNav from '@/components/layout/sidebar-nav';
 import SetupPage from './setup/page';
+import SignUpPage from './signup/page';
 
 const CustomLogo = () => <Target className="size-full" />;
 
@@ -29,12 +30,14 @@ export default function AppContent({
   const router = useRouter();
   const isAuthenticated = !!user;
 
+  const allowedPaths = ['/login', '/setup', '/signup'];
+
   useEffect(() => {
     if (needsSetup && pathname !== '/setup') {
       router.replace('/setup');
-    } else if (!needsSetup && isAuthenticated && (pathname === '/login' || pathname === '/setup')) {
+    } else if (!needsSetup && isAuthenticated && allowedPaths.includes(pathname)) {
       router.replace('/');
-    } else if (!needsSetup && !isAuthenticated && pathname !== '/login') {
+    } else if (!needsSetup && !isAuthenticated && !allowedPaths.includes(pathname)) {
       router.replace('/login');
     }
   }, [isAuthenticated, pathname, router, needsSetup]);
@@ -50,8 +53,11 @@ export default function AppContent({
   if (needsSetup) {
     return <SetupPage />;
   }
-
+  
   if (!isAuthenticated) {
+    if (pathname === '/signup') {
+      return <SignUpPage />;
+    }
     return <LoginPage />;
   }
 
