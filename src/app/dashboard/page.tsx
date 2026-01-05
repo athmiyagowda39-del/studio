@@ -10,11 +10,10 @@ import {
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import LeadPerformanceChart from '@/components/dashboard/lead-performance-chart';
 import LeadPerformanceFilters from '@/components/dashboard/lead-performance-filters';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useAuthContext } from '@/context/auth-context';
-import { useCollection, useMemoFirebase } from '@/firebase';
+import { useCollection, useMemoFirebase, useFirestore } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
-import { useFirestore } from '@/firebase';
 import { startOfDay, endOfDay } from 'date-fns';
 
 const months = [
@@ -28,10 +27,13 @@ export default function DashboardPage() {
 
   const leadsQuery = useMemoFirebase(() => {
     if (!user || !firestore) return null;
-    return query(
-      collection(firestore, 'leads'),
-      where('subAdminId', '==', user.uid)
-    );
+    
+    let q = query(collection(firestore, 'leads'));
+    // Non-admin users can only see leads assigned to them.
+    if (user.role !== 'admin') {
+      q = query(q, where('subAdminId', '==', user.uid));
+    }
+    return q;
   }, [user, firestore]);
 
   const { data: allLeads, isLoading } = useCollection<LeadFormData>(leadsQuery);

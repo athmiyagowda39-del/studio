@@ -60,16 +60,17 @@ service cloud.firestore {
      * This is secure because users can only read their own profile.
      */
     function isAdmin() {
-      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.type == 'admin';
+      let userProfile = get(/databases/$(database)/documents/users/$(request.auth.uid));
+      return isSignedIn() && userProfile.data.type == 'admin';
     }
-
+    
     /**
-     * Checks for Sub Admin role by verifying the existence of a corresponding
-     * document in the roles collection. This is a fast and scalable lookup.
-     * Also allows full admins.
+     * Checks if the user is at least a standard 'user' or an 'admin'.
+     * This is used for basic access to create or view their own leads.
      */
-    function isSubAdmin() {
-      return isAdmin() || (isSignedIn() && exists(/databases/$(database)/documents/roles_sub_admin/$(request.auth.uid)));
+    function isAtLeastUser() {
+        let userProfile = get(/databases/$(database)/documents/users/$(request.auth.uid));
+        return isSignedIn() && (userProfile.data.type == 'admin' || userProfile.data.type == 'user');
     }
 
     /**
@@ -104,11 +105,11 @@ service cloud.firestore {
      * @path /leads/{leadId}
      */
     match /leads/{leadId} {
-      allow get: if isSubAdmin() && (isAdmin() || resource.data.subAdminId == request.auth.uid);
-      allow list: if isSubAdmin(); // Admins can list all, Sub Admins must filter on client.
-      allow create: if isSubAdmin();
-      allow update: if isSubAdmin() && (isAdmin() || isExistingLeadOwner());
-      allow delete: if isSubAdmin() && (isAdmin() || isExistingLeadOwner());
+      allow get: if isAdmin() || (isAtLeastUser() && resource.data.subAdminId == request.auth.uid);
+      allow list: if isAdmin() || (isAtLeastUser() && request.query.where.subAdminId == request.auth.uid);
+      allow create: if isAtLeastUser();
+      allow update: if isAdmin() || isExistingLeadOwner();
+      allow delete: if isAdmin() || isExistingLeadOwner();
     }
 
     /**

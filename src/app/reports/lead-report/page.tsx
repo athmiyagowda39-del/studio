@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import LeadStatusChart from '@/components/reports/lead-status-chart';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Popover,
@@ -98,7 +98,11 @@ export default function LeadReportPage() {
 
   const leadsQuery = useMemoFirebase(() => {
     if (!user || !firestore) return null;
-    return query(collection(firestore, 'leads'), where('subAdminId', '==', user.uid));
+    let q = query(collection(firestore, 'leads'));
+    if (user.role !== 'admin') {
+      q = query(q, where('subAdminId', '==', user.uid));
+    }
+    return q;
   }, [user, firestore]);
   const { data: allLeads } = useCollection<LeadFormData>(leadsQuery);
 

@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import ConversionFunnelChart from '@/components/reports/conversion-funnel-chart';
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import { useAuthContext } from '@/context/auth-context';
 import { useCollection, useFirebase, useMemoFirebase } from '@/firebase';
@@ -59,7 +59,11 @@ export default function ConversionFunnelReportPage() {
 
   const leadsQuery = useMemoFirebase(() => {
     if (!user || !firestore) return null;
-    return query(collection(firestore, 'leads'), where('subAdminId', '==', user.uid));
+    let q = query(collection(firestore, 'leads'));
+    if (user.role !== 'admin') {
+      q = query(q, where('subAdminId', '==', user.uid));
+    }
+    return q;
   }, [user, firestore]);
   const { data: allLeads } = useCollection<LeadFormData>(leadsQuery);
 
