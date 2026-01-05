@@ -107,8 +107,8 @@ export default function LeadsUpdatePage() {
   const { data: allLeads } = useCollection<LeadFormData>(leadsQuery);
   
   const [filteredLeads, setFilteredLeads] = useState<LeadFormData[]>([]);
-  const [showResults, setShowResults] = useState(false);
-  const [activeQuickFilter, setActiveQuickFilter] = useState('');
+  const [showResults, setShowResults] = useState(true);
+  const [activeQuickFilter, setActiveQuickFilter] = useState('All Leads');
 
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
@@ -116,6 +116,14 @@ export default function LeadsUpdatePage() {
   const [filters, setFilters] = useState(initialFilterState);
 
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (allLeads) {
+      setFilteredLeads(allLeads);
+      setShowResults(true);
+      setActiveQuickFilter('All Leads');
+    }
+  }, [allLeads]);
   
   const handleFilterChange = (field: keyof typeof filters, value: any) => {
     setFilters(prev => ({...prev, [field]: value}));
@@ -189,9 +197,13 @@ export default function LeadsUpdatePage() {
 
   const handleResetClick = () => {
     setFilters(initialFilterState);
-    setFilteredLeads([]);
-    setShowResults(false);
-    setActiveQuickFilter('');
+    if (allLeads) {
+      setFilteredLeads(allLeads);
+    } else {
+      setFilteredLeads([]);
+    }
+    setShowResults(true);
+    setActiveQuickFilter('All Leads');
     setSelectedLeadId(null);
   };
 
@@ -201,6 +213,9 @@ export default function LeadsUpdatePage() {
     const today = startOfDay(new Date());
 
     switch(filterType) {
+        case 'All Leads':
+            // No additional filtering needed
+            break;
         case 'Recent Leads':
             const twoDaysAgo = subDays(today, 2).getTime();
             leads = leads.filter(lead => (lead.creationDate || 0) >= twoDaysAgo);
@@ -666,6 +681,7 @@ export default function LeadsUpdatePage() {
             <CardContent className="p-4">
               <div className="flex flex-wrap gap-2 mb-4">
                 {[
+                  'All Leads',
                   'Recent Leads',
                   'Leads not Viewed',
                   'Follow Ups Due',
