@@ -11,7 +11,6 @@ import {
   FilePenLine,
   User,
   FileText,
-  Users,
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -23,7 +22,6 @@ const links = [
   { href: '/leads-update', label: 'LEADS UPDATE', icon: FilePenLine },
   { href: '/reports', label: 'REPORTS', icon: FileText },
   { href: '/profile', label: 'PROFILE', icon: User },
-  { href: '/admin/users', label: 'MANAGE USERS', icon: Users, adminOnly: true },
 ];
 
 export default function SidebarNav() {
@@ -42,9 +40,6 @@ export default function SidebarNav() {
   return (
     <SidebarMenu>
       {isClient && links.map((link) => {
-        if (link.adminOnly && userRole !== 'admin') {
-            return null;
-        }
         // Special handling for dashboard/home
         if (link.href === '/dashboard' && pathname === '/') {
              return (

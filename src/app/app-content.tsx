@@ -14,7 +14,6 @@ import { Target } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useEffect } from 'react';
 import { useUser } from '@/firebase';
-import { useAuthContext } from '@/context/auth-context';
 import SidebarNav from '@/components/layout/sidebar-nav';
 
 const CustomLogo = () => <Target className="size-full" />;
@@ -25,12 +24,9 @@ export default function AppContent({
   children: React.ReactNode;
 }) {
   const { user, isUserLoading } = useUser();
-  const authContext = useAuthContext();
   const pathname = usePathname();
   const router = useRouter();
   const isAuthenticated = !!user;
-
-  const usersExist = authContext ? authContext.users.length > 0 : true;
 
   useEffect(() => {
     if (isAuthenticated && pathname === '/login') {
@@ -45,33 +41,10 @@ export default function AppContent({
       </div>
     );
   }
-  
-  if (!isAuthenticated) {
-    // If no users exist, allow access to the user creation page
-    if (!usersExist && pathname.startsWith('/admin/users')) {
-       // Allow child to render, which will be the user management page
-    } else if (!usersExist) {
-      router.replace('/admin/users');
-      return null;
-    }
-    else if (pathname !== '/login') {
-      return <LoginPage />;
-    }
-  }
 
   if (!isAuthenticated && pathname !== '/login') {
-    if (!usersExist) {
-       if (pathname.startsWith('/admin/users')) {
-         // This is okay, render children
-       } else {
-         router.replace('/admin/users');
-         return null;
-       }
-    } else {
-      return <LoginPage />;
-    }
+    return <LoginPage />;
   }
-
 
   return (
     <SidebarProvider>
