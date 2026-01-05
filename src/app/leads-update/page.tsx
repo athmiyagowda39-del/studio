@@ -50,6 +50,10 @@ const initialFilterState = {
   statusOfLead: 'all',
   subStatusOfLead: 'all',
   leadSource: 'all',
+  pincode: '',
+  email: '',
+  headcount: '',
+  sector: 'all',
   doNotConsider: true,
   considerFollowUps: false,
   followUpStatus: 'pending',
@@ -90,6 +94,9 @@ const leadSourceOptions = [
     'Cold Call',
     'Other'
 ];
+
+const sectors = ['all', 'IT', 'Finance', 'Healthcare', 'Manufacturing', 'Education', 'Retail', 'Hospitality', 'Telecommunication', 'Construction', 'Real Estate', 'Media & Entertainment', 'Government', 'Non-profit', 'Other'];
+
 
 const LEADS_PER_PAGE = 10;
 
@@ -171,6 +178,19 @@ export default function LeadsUpdatePage() {
 
     if (filters.productName !== 'all') {
         leads = leads.filter(lead => lead.selectedModule === filters.productName);
+    }
+
+    if(filters.pincode) {
+        leads = leads.filter(lead => lead.pincode.includes(filters.pincode));
+    }
+    if(filters.email) {
+        leads = leads.filter(lead => lead.email?.toLowerCase().includes(filters.email.toLowerCase()));
+    }
+    if(filters.headcount) {
+        leads = leads.filter(lead => lead.headcount.includes(filters.headcount));
+    }
+    if(filters.sector !== 'all') {
+        leads = leads.filter(lead => lead.sector?.toLowerCase() === filters.sector.toLowerCase());
     }
     
     if(filters.considerFollowUps) {
@@ -561,6 +581,33 @@ export default function LeadsUpdatePage() {
                                     </SelectItem>
                                 ))}
                             </ScrollArea>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                       <div className="space-y-1">
+                        <Label htmlFor="pincode-filter">Pincode</Label>
+                        <Input id="pincode-filter" value={filters.pincode} onChange={e => handleFilterChange('pincode', e.target.value)} />
+                      </div>
+                      <div className="space-y-1">
+                        <Label htmlFor="email-filter">Email</Label>
+                        <Input id="email-filter" value={filters.email} onChange={e => handleFilterChange('email', e.target.value)} />
+                      </div>
+                      <div className="space-y-1">
+                        <Label htmlFor="headcount-filter">Company Headcount</Label>
+                        <Input id="headcount-filter" value={filters.headcount} onChange={e => handleFilterChange('headcount', e.target.value)} />
+                      </div>
+                      <div className="space-y-1">
+                        <Label htmlFor="sector-filter">Sector</Label>
+                        <Select value={filters.sector} onValueChange={v => handleFilterChange('sector', v)}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="--All--" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {sectors.map(sector => (
+                              <SelectItem key={sector} value={sector} className="capitalize">
+                                {sector === 'all' ? '--All--' : sector}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       </div>
