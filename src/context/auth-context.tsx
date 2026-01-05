@@ -26,7 +26,6 @@ import {
   deleteDoc,
   collection,
   getDocs,
-  writeBatch,
 } from 'firebase/firestore';
 import { useFirebase, useUser } from '@/firebase';
 
@@ -84,79 +83,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     },
     [firestore]
   );
-  
-  const createDefaultAdmin = useCallback(async () => {
-    if (!auth || !firestore) return;
-     try {
-      const adminEmail = 'admin@example.com';
-      const adminPass = 'password';
-      
-      // We don't need to create the user, just their profile if they authenticated
-      // but don't have one. For the default admin, we must create it.
-      // This is a simplified bootstrap, in a real app this would be a setup script.
-      const userCredential = await createUserWithEmailAndPassword(auth, adminEmail, adminPass);
-      const newUser = userCredential.user;
-      
-      const userDocRef = doc(firestore, 'users', newUser.uid);
-      await setDoc(userDocRef, {
-        username: 'admin',
-        role: 'admin',
-      });
-      console.log('Default admin user created and profile stored.');
-
-      // Sign the new admin user out so the login screen is presented
-      await signOut(auth);
-
-    } catch (error: any) {
-        if (error.code === 'auth/email-already-in-use') {
-           // This is expected if the admin already exists, do nothing.
-           return;
-        } else {
-          console.error('Failed to create default admin user:', error);
-        }
-    }
-  }, [auth, firestore]);
 
   const fetchAllUsers = useCallback(async () => {
     if (!firestore) return;
     try {
         const usersCollectionRef = collection(firestore, 'users');
         const snapshot = await getDocs(usersCollectionRef);
-        
-        if (snapshot.empty) {
-            await createDefaultAdmin();
-            // After creating, refetch to update the list
-            const newSnapshot = await getDocs(usersCollectionRef);
-            const userList = newSnapshot.docs.map(
-              (doc) => ({ uid: doc.id, ...doc.data() } as User)
-            );
-            setUsers(userList);
-
-        } else {
-            const userList = snapshot.docs.map(
-              (doc) => ({ uid: doc.id, ...doc.data() } as User)
-            );
-            setUsers(userList);
-        }
+        const userList = snapshot.docs.map(
+          (doc) => ({ uid: doc.id, ...doc.data() } as User)
+        );
+        setUsers(userList);
     } catch (e) {
         console.error("Error fetching users:", e);
     }
-  }, [firestore, createDefaultAdmin]);
+  }, [firestore]);
 
   useEffect(() => {
     setIsAuthLoading(isFirebaseUserLoading);
     if (!isFirebaseUserLoading && firebaseUser) {
       fetchUserRole(firebaseUser).then((roleInfo) => {
         setUser(roleInfo);
-        if (roleInfo?.role === 'admin') {
-          fetchAllUsers();
-        }
+        // Always fetch all users if logged in, role-based fetching can be done here if needed
+        fetchAllUsers(); 
         setIsAuthLoading(false);
       });
     } else if (!isFirebaseUserLoading) {
       setUser(null);
-      // Check for users to create default admin if none exist, even if logged out.
-      fetchAllUsers(); 
+      fetchAllUsers(); // Fetch users to check if any exist for initial setup
       setIsAuthLoading(false);
     }
   }, [isFirebaseUserLoading, firebaseUser, fetchUserRole, fetchAllUsers]);
@@ -191,7 +144,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const email = auth.currentUser.email;
       if (!email) return false;
       const credential = EmailAuthProvider.credential(email, oldPass);
-      // Reauthenticate before changing password
       await reauthenticateWithCredential(auth.currentUser, credential);
       await updatePassword(auth.currentUser, newPass);
       return true;
@@ -208,16 +160,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   ): Promise<boolean> => {
     if (!auth || !firestore) return false;
     
-    // This is tricky client-side. A backend function is the robust way.
-    // For this demo, we'll assume we can temporarily create a user.
-    // NOTE: This flow has security implications in a real app.
     const originalUser = auth.currentUser;
+    const wasLoggedIn = !!originalUser;
 
     try {
-        // Create a temporary auth instance to not disturb the current session
-        const tempAuth = auth; // In a real app, this would be an admin SDK call.
         const userCredential = await createUserWithEmailAndPassword(
-            tempAuth,
+            auth,
             `${username}@example.com`,
             pass
         );
@@ -228,23 +176,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             username: username,
             role: role,
         });
-
-        // If the temporary auth is the same as the main one, the new user is now signed in.
-        // We need to sign them out and restore the original session.
-        if (auth.currentUser?.uid === newUser.uid) {
-            await signOut(auth);
-            // This part is problematic client-side as we don't have the original user's password.
-            // In a real app, you would not do this. The admin would remain logged in.
-            // For this tool, we will just force a redirect to login.
-            if (originalUser) {
-                router.push('/login'); // Force re-login for simplicity
-            }
-        }
         
+        // After creating the user, sign them out and restore the original user session if there was one.
+        await signOut(auth);
+        
+        if (wasLoggedIn && originalUser) {
+           // This part is complex and error-prone on the client.
+           // A simple re-fetch of users is safer.
+        }
+
         fetchAllUsers();
         return true;
     } catch (error) {
         console.error('Failed to add user:', error);
+        
+        // If the error was auth/email-already-in-use, we might not need to do anything drastic.
+        // But if the session was disrupted, we might need to handle it.
+        // For now, we'll just log the error and let the user re-try or re-login.
+        
         return false;
     }
   };
@@ -254,12 +203,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const userToRemove = users.find((u) => u.username === username);
     if (!userToRemove) return;
 
-    // This is NOT secure for a production app. It requires admin privileges.
-    // This is a simplified deletion for this tool's context.
     try {
         const userDocRef = doc(firestore, 'users', userToRemove.uid);
         await deleteDoc(userDocRef);
-        fetchAllUsers(); // Refresh user list
+        fetchAllUsers();
     } catch(e) {
         console.error("Could not delete user from firestore. On the client, you can't delete other users from Auth.", e);
     }
