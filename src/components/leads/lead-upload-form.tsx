@@ -193,7 +193,7 @@ export default function LeadUploadForm() {
             const firstDataRow = json[1] as (string | number)[];
             const leadObject: any = {};
             headers.forEach((header, index) => {
-                const headerStr = String(header);
+                const headerStr = String(header).toLowerCase() === 'pin code' ? 'pincode' : String(header);
                 leadObject[headerStr] = firstDataRow[index];
             });
             
@@ -283,7 +283,7 @@ export default function LeadUploadForm() {
       }
     
       const allLeads = getLeadsFromLocalStorage();
-      const headers = parsedData[0].map(h => String(h));
+      const headers = parsedData[0].map(h => String(h).toLowerCase() === 'pin code' ? 'pincode' : String(h));
 
       const newLeads: LeadFormData[] = parsedData.slice(1).map(row => {
         const leadObject: any = {};
@@ -335,7 +335,7 @@ export default function LeadUploadForm() {
 
    const handleDownloadSample = () => {
     const sampleData = [
-      ['pincode', 'company', 'contactPerson', 'address', 'state', 'district', 'contactNumber', 'email', 'reference', 'headcount', 'sector', 'selectedModule'],
+      ['Pin code', 'company', 'contactPerson', 'address', 'state', 'district', 'contactNumber', 'email', 'reference', 'headcount', 'sector', 'selectedModule'],
       ['587101', 'Tech Solutions', 'John Doe', '123 MG Road, Bagalkote', 'Karnataka', 'Bagalkote', '9876543210', 'john.doe@example.com', 'Friend', '150', 'IT', 'ar'],
       ['560001', 'Innovate Corp', 'Jane Smith', '456 Brigade Road, Bengaluru', 'Karnataka', 'Bengaluru Urban', '8765432109', 'jane.smith@example.com', 'Website', '250', 'Finance', 'all-hrms'],
     ];
@@ -348,9 +348,10 @@ export default function LeadUploadForm() {
   return (
     <div className="space-y-6">
       <div>
+        <p className="font-semibold mb-4 text-primary">Provide the new Lead detail</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 mt-4">
           <div className="space-y-2 md:col-span-2">
-            <Label htmlFor="pincode">Pincode</Label>
+            <Label htmlFor="pincode">Pin code <span className="text-destructive">*</span></Label>
             <Input id="pincode" value={formData.pincode} onChange={handleInputChange} />
           </div>
           <div className="space-y-2">
