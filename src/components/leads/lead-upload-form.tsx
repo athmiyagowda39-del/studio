@@ -80,7 +80,8 @@ export type LeadFormData = {
 
 const sectors = ['IT', 'Finance', 'Healthcare', 'Manufacturing', 'Education', 'Retail', 'Hospitality', 'Telecommunication', 'Construction', 'Real Estate', 'Media & Entertainment', 'Government', 'Non-profit', 'Other'];
 
-const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId' | 'givenBy' | 'pincode'> = {
+const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId' | 'givenBy'> = {
+    pincode: '',
     state: '',
     district: '',
     address: '',
@@ -111,7 +112,7 @@ const getLeadsFromLocalStorage = (): LeadFormData[] => {
 
 
 export default function LeadUploadForm() {
-  const [formData, setFormData] = useState<Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId' | 'givenBy' | 'pincode'>>(initialFormState);
+  const [formData, setFormData] = useState<Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId' | 'givenBy'>>(initialFormState);
   const [sectorOpen, setSectorOpen] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -138,7 +139,7 @@ export default function LeadUploadForm() {
     handleCancel();
   };
 
-  const validateLead = (lead: Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId' | 'pincode' | 'givenBy'>) => {
+  const validateLead = (lead: Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId' | 'givenBy'>) => {
     if (!lead.contactPerson || !lead.contactNumber || !lead.address) {
       toast({
         variant: 'destructive',
@@ -161,7 +162,6 @@ export default function LeadUploadForm() {
       leadId: `LEAD-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
       creationDate: new Date().getTime(),
       givenBy: 'Manual',
-      pincode: '',
       subAdminId: 'demo-user', // Placeholder
       status: 'Not viewed',
     };
@@ -196,6 +196,7 @@ export default function LeadUploadForm() {
             });
             
             setFormData({
+                pincode: leadObject.pincode || '',
                 state: leadObject.state || '',
                 district: leadObject.district || '',
                 address: leadObject.address || '',
@@ -347,6 +348,10 @@ export default function LeadUploadForm() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 mt-4">
           {/* Left Column */}
           <div className="space-y-4">
+             <div className="space-y-2">
+              <Label htmlFor="pincode">Pincode</Label>
+              <Input id="pincode" value={formData.pincode} onChange={handleInputChange} />
+            </div>
             <div className="space-y-2">
               <Label htmlFor="company">Company</Label>
               <Input id="company" value={formData.company} onChange={handleInputChange} />
@@ -520,3 +525,5 @@ export default function LeadUploadForm() {
     </div>
   );
 }
+
+    
