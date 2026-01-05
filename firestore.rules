@@ -1,3 +1,4 @@
+
 /**
  * Core Philosophy:
  * This ruleset implements a Role-Based Access Control (RBAC) model centered
@@ -87,19 +88,20 @@ service cloud.firestore {
     // -------------------------------------------------------------------------
 
     /**
-     * @description Manages user profiles. Users can create, read, and update
-     *   their own profile but cannot view others' profiles or delete their own.
+     * @description Manages user profiles. Users can read and update their own profile.
+     * Creation is open to allow for user sign-up. Listing is also open to check if it's the first user.
      * @path /users/{userId}
-     * @allow (create) A user creating their own profile document.
-     *   `db.collection('users').doc('user_abc').set({ id: 'user_abc', ... })`
+     * @allow (create) Anyone can create a user document as part of sign-up.
+     * @allow (get) A user can get their own profile.
      * @deny (get) User 'user_abc' trying to read the profile of 'user_xyz'.
      * @principle Restricts access to a user's own data tree (Ownership).
      */
     match /users/{userId} {
       allow get: if isOwner(userId);
-      allow list: if isSignedIn();
-      // Allow a user to create their own user document. This is crucial for sign-up.
-      allow create: if isOwner(userId);
+      // Allow listing to check if any users exist (for first admin creation)
+      allow list: if true;
+      // Allow creation for any user during sign-up
+      allow create: if true;
       allow update: if isOwner(userId) && documentExists() && request.resource.data.id == resource.data.id;
       allow delete: if false;
     }
