@@ -157,8 +157,9 @@ export default function LeadUploadForm() {
     }
 
     const now = Date.now();
-    const leadWithId: Omit<LeadFormData, 'pincode'> & {leadId: string; creationDate: number; subAdminId: string; givenBy: string; status: string} = {
+    const leadWithId: LeadFormData = {
       ...formData,
+      pincode: '', // pincode removed from form, so set as empty
       leadId: `LEAD-${now}`,
       creationDate: now,
       status: 'Not viewed',
@@ -270,7 +271,7 @@ export default function LeadUploadForm() {
       );
       const now = Date.now();
 
-      const leadsFromFile = json.slice(1).map((row: any[], index) => {
+      const leadsFromFile: LeadFormData[] = json.slice(1).map((row: any[], index) => {
         const lead: any = {};
         headers.forEach((header, i) => {
           lead[header] = row[i];
@@ -421,11 +422,6 @@ export default function LeadUploadForm() {
                 </PopoverContent>
               </Popover>
             </div>
-            <div className="flex items-center space-x-2 pt-2">
-              <Checkbox id="toDealer" checked={formData.toDealer} onCheckedChange={handleCheckboxChange} />
-              <Label htmlFor="toDealer">To Dealer</Label>
-              <span className="text-xs text-muted-foreground">As per Mapping</span>
-            </div>
           </div>
 
           {/* Right Column */}
@@ -438,7 +434,7 @@ export default function LeadUploadForm() {
               <Label htmlFor="district">District</Label>
               <Input id="district" value={formData.district} onChange={handleInputChange} />
             </div>
-            <div className="space-y-2">
+             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input id="email" type="email" value={formData.email} onChange={handleInputChange} />
             </div>
@@ -460,6 +456,11 @@ export default function LeadUploadForm() {
                   <SelectItem value="module3">Module 3</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+             <div className="flex items-center space-x-2 pt-8">
+              <Checkbox id="toDealer" checked={formData.toDealer} onCheckedChange={handleCheckboxChange} />
+              <Label htmlFor="toDealer">To Dealer</Label>
+              <span className="text-xs text-muted-foreground">As per Mapping</span>
             </div>
           </div>
         </div>
