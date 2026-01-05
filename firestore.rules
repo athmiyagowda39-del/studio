@@ -28,7 +28,7 @@ service cloud.firestore {
     }
 
     match /leads/{leadId} {
-      // Any authenticated user can read and write to the leads collection.
+      // Allow any authenticated user to read, create, update, and delete leads.
       // The application logic is responsible for showing the correct leads to the correct user.
       allow read, write: if isSignedIn();
     }
