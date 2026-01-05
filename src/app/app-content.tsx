@@ -13,8 +13,9 @@ import LoginPage from './login/page';
 import { Target } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useEffect } from 'react';
-import { useUser } from '@/firebase';
+import { useAuthContext } from '@/context/auth-context';
 import SidebarNav from '@/components/layout/sidebar-nav';
+import SetupPage from './setup/page';
 
 const CustomLogo = () => <Target className="size-full" />;
 
@@ -23,16 +24,20 @@ export default function AppContent({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, isUserLoading } = useUser();
+  const { user, isUserLoading, needsSetup } = useAuthContext();
   const pathname = usePathname();
   const router = useRouter();
   const isAuthenticated = !!user;
 
   useEffect(() => {
-    if (isAuthenticated && pathname === '/login') {
+    if (needsSetup && pathname !== '/setup') {
+      router.replace('/setup');
+    } else if (!needsSetup && isAuthenticated && (pathname === '/login' || pathname === '/setup')) {
       router.replace('/');
+    } else if (!needsSetup && !isAuthenticated && pathname !== '/login') {
+      router.replace('/login');
     }
-  }, [isAuthenticated, pathname, router]);
+  }, [isAuthenticated, pathname, router, needsSetup]);
 
   if (isUserLoading) {
     return (
@@ -42,7 +47,11 @@ export default function AppContent({
     );
   }
 
-  if (!isAuthenticated && pathname !== '/login') {
+  if (needsSetup) {
+    return <SetupPage />;
+  }
+
+  if (!isAuthenticated) {
     return <LoginPage />;
   }
 

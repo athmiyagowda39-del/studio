@@ -7,6 +7,7 @@ import React, {
   ReactNode,
   useContext,
   useCallback,
+  useMemo,
 } from 'react';
 import { useRouter } from 'next/navigation';
 import {
@@ -19,7 +20,15 @@ import {
   EmailAuthProvider,
   createUserWithEmailAndPassword,
 } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import {
+  doc,
+  getDoc,
+  setDoc,
+  getDocs,
+  collection,
+  query,
+  limit,
+} from 'firebase/firestore';
 import { useFirebase, useUser } from '@/firebase';
 
 type UserRole = 'admin' | 'user';
@@ -34,9 +43,15 @@ type AuthContextType = {
   isAuthenticated: boolean;
   user: User | null;
   isAuthLoading: boolean;
+  needsSetup: boolean;
   login: (username: string, pass: string) => Promise<boolean>;
   logout: () => void;
   changePassword: (oldPass: string, newPass: string) => Promise<boolean>;
+  createUser: (
+    username: string,
+    pass: string,
+    role: UserRole
+  ) => Promise<{ success: boolean; message: string }>;
 };
 
 export const AuthContext = createContext<AuthContextType | undefined>(
@@ -47,8 +62,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { auth, firestore } = useFirebase();
   const { user: firebaseUser, isUserLoading: isFirebaseUserLoading } =
     useUser();
+
   const [user, setUser] = useState<User | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const [needsSetup, setNeedsSetup] = useState(true); // Assume setup is needed until checked
   const router = useRouter();
 
   const fetchUserRole = useCallback(
@@ -62,45 +79,51 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           uid: currentFirebaseUser.uid,
           username:
             userData.username || currentFirebaseUser.email || 'Unnamed',
-          role: (userData.type as UserRole) || 'admin',
-        };
-      } else {
-        // If the user exists in Auth but not Firestore (e.g. first login of default admin)
-        // create the document.
-        const username = currentFirebaseUser.email?.split('@')[0] || 'admin';
-        const newUserDoc = {
-          id: currentFirebaseUser.uid,
-          username: username,
-          type: 'admin',
-          lastLogin: new Date().toISOString(),
-        };
-        await setDoc(userDocRef, newUserDoc);
-        return {
-          uid: currentFirebaseUser.uid,
-          username: username,
-          role: 'admin' as UserRole,
+          role: (userData.type as UserRole) || 'user',
         };
       }
+      return null; // User exists in Auth but not in Firestore, might be an issue
     },
     [firestore]
   );
 
-  useEffect(() => {
-    setIsAuthLoading(isFirebaseUserLoading);
-    if (!isFirebaseUserLoading && firebaseUser) {
-      fetchUserRole(firebaseUser).then((roleInfo) => {
-        setUser(roleInfo);
-        setIsAuthLoading(false);
-      });
-    } else if (!isFirebaseUserLoading) {
-      setUser(null);
+  const checkInitialSetup = useCallback(async () => {
+    if (!firestore) return;
+    setIsAuthLoading(true);
+    try {
+      const usersCollectionRef = collection(firestore, 'users');
+      const q = query(usersCollectionRef, limit(1));
+      const querySnapshot = await getDocs(q);
+      setNeedsSetup(querySnapshot.empty);
+    } catch (e) {
+      console.error('Error checking for users, assuming setup is needed:', e);
+      setNeedsSetup(true);
+    } finally {
       setIsAuthLoading(false);
     }
-  }, [isFirebaseUserLoading, firebaseUser, fetchUserRole]);
+  }, [firestore]);
+
+  useEffect(() => {
+    checkInitialSetup();
+  }, [checkInitialSetup]);
+
+  useEffect(() => {
+    if (!needsSetup) {
+      setIsAuthLoading(isFirebaseUserLoading);
+      if (!isFirebaseUserLoading && firebaseUser) {
+        fetchUserRole(firebaseUser).then((roleInfo) => {
+          setUser(roleInfo);
+          setIsAuthLoading(false);
+        });
+      } else if (!isFirebaseUserLoading) {
+        setUser(null);
+        setIsAuthLoading(false);
+      }
+    }
+  }, [isFirebaseUserLoading, firebaseUser, fetchUserRole, needsSetup]);
 
   const login = async (username: string, pass: string): Promise<boolean> => {
     if (!auth || !firestore) return false;
-    
     const email = `${username.toLowerCase()}@example.com`;
 
     setIsAuthLoading(true);
@@ -109,23 +132,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       router.push('/');
       return true;
     } catch (error: any) {
-      if (error.code === 'auth/user-not-found') {
-        // If the user does not exist, create it. This is useful for first-time setup.
-        try {
-          const userCredential = await createUserWithEmailAndPassword(
-            auth,
-            email,
-            pass
-          );
-          // The useEffect hook will handle fetching/creating the user role document.
-          router.push('/');
-          return true;
-        } catch (creationError) {
-          console.error('Failed to create default admin user:', creationError);
-          setIsAuthLoading(false);
-          return false;
-        }
-      }
       console.error('Login failed:', error);
       setIsAuthLoading(false);
       return false;
@@ -157,6 +163,48 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const createUser = async (
+    username: string,
+    pass: string,
+    role: UserRole
+  ): Promise<{ success: boolean; message: string }> => {
+    if (!auth || !firestore) {
+      return { success: false, message: 'Firebase not initialized.' };
+    }
+
+    const email = `${username.toLowerCase()}@example.com`;
+
+    try {
+      // Create user in Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        pass
+      );
+      const newFirebaseUser = userCredential.user;
+
+      // Create user document in Firestore
+      const userDocRef = doc(firestore, 'users', newFirebaseUser.uid);
+      await setDoc(userDocRef, {
+        id: newFirebaseUser.uid,
+        username: username,
+        type: role,
+        lastLogin: new Date().toISOString(),
+      });
+
+      // After successful creation, update the setup status
+      await checkInitialSetup();
+
+      return { success: true, message: 'User created successfully.' };
+    } catch (error: any) {
+      console.error('Error creating user:', error);
+      if (error.code === 'auth/email-already-in-use') {
+        return { success: false, message: 'This username is already taken.' };
+      }
+      return { success: false, message: 'Failed to create user.' };
+    }
+  };
+
   const isAuthenticated = !!user;
 
   return (
@@ -165,9 +213,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         isAuthenticated,
         user,
         isAuthLoading,
+        needsSetup,
         login,
         logout,
         changePassword,
+        createUser,
       }}
     >
       {children}
