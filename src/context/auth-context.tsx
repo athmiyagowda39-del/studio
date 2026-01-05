@@ -47,7 +47,8 @@ type AuthContextType = {
   changePassword: (oldPass: string, newPass: string) => Promise<boolean>;
   createUser: (
     username: string,
-    pass: string
+    pass: string,
+    role: UserRole
   ) => Promise<{ success: boolean; message: string }>;
 };
 
@@ -138,7 +139,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const createUser = async (
     username: string,
-    pass: string
+    pass: string,
+    role: UserRole
   ): Promise<{ success: boolean; message: string }> => {
     if (!auth || !firestore) {
       return { success: false, message: 'Firebase not initialized.' };
@@ -152,7 +154,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const q = query(usersCollectionRef, limit(1));
       const querySnapshot = await getDocs(q);
       const isFirstUser = querySnapshot.empty;
-      const role: UserRole = isFirstUser ? 'admin' : 'user';
+      const finalRole: UserRole = isFirstUser ? 'admin' : role;
 
       const userCredential = await createUserWithEmailAndPassword(
         auth,
@@ -165,10 +167,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       await setDoc(userDocRef, {
         id: newFirebaseUser.uid,
         username: username,
-        type: role,
+        type: finalRole,
         lastLogin: new Date().toISOString(),
       });
       
+      // Sign out the new user immediately after creation so they have to log in.
       await signOut(auth);
 
       return { success: true, message: 'User created successfully.' };
@@ -188,7 +191,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       value={{
         isAuthenticated,
         user,
-        isAuthLoading,
+        isUserLoading: isAuthLoading,
         login,
         logout,
         changePassword,
