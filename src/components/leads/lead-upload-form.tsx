@@ -12,8 +12,8 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Check, ChevronsUpDown, Download, UploadCloud } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { useState, useRef, useEffect } from 'react';
+import { Card, CardContent } from '../ui/card';
+import { useState, useRef } from 'react';
 import * as XLSX from 'xlsx';
 import {
   Table,
@@ -38,10 +38,9 @@ import {
   CommandList,
 } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
-import { Textarea } from '../ui/textarea';
 import { useAuthContext } from '@/context/auth-context';
-import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, doc, setDoc, query, where } from 'firebase/firestore';
+import { useFirebase } from '@/firebase';
+import { collection, doc, setDoc } from 'firebase/firestore';
 
 type ParsedData = (string | number)[][];
 
@@ -84,26 +83,7 @@ export type LeadFormData = {
 
 const sectors = ['IT', 'Finance', 'Healthcare', 'Manufacturing', 'Education', 'Retail', 'Hospitality', 'Telecommunication', 'Construction', 'Real Estate', 'Media & Entertainment', 'Government', 'Non-profit', 'Other'];
 
-const leadStatusOptions = [
-    'Attended',
-    'Not viewed',
-    'Demo Given',
-    'Unattended',
-    'Pursuing to Purchase',
-    'Not interested',
-    'Order closed',
-    'Contacted',
-    'Qualified',
-    'Unqualified',
-    'Follow-up Required',
-    'Fake Lead',
-    'Existing Customer',
-    'Do Not Contact',
-    'Quote Sent',
-];
-
-const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId' | 'givenBy'> = {
-    pincode: '',
+const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId' | 'givenBy' | 'pincode'> = {
     state: '',
     district: '',
     address: '',
@@ -123,8 +103,7 @@ export default function LeadUploadForm() {
   const { user } = useAuthContext();
   const { firestore } = useFirebase();
 
-  const [formData, setFormData] = useState<Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId'>>(initialFormState);
-  const [addedLeads, setAddedLeads] = useState<Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId'>[]>([]);
+  const [formData, setFormData] = useState<Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId' | 'givenBy' | 'pincode'>>(initialFormState);
   const [sectorOpen, setSectorOpen] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -133,37 +112,11 @@ export default function LeadUploadForm() {
   const [showPreview, setShowPreview] = useState(false);
   const { toast } = useToast();
 
-  const leadsQuery = useMemoFirebase(() => {
-    if (!user || !firestore) return null;
-    return query(collection(firestore, 'leads'), where('subAdminId', '==', user.uid));
-  }, [user, firestore]);
-  const { data: allLeads } = useCollection<LeadFormData>(leadsQuery);
-
-  const [leadIdForStatus, setLeadIdForStatus] = useState('');
-  const [leadIdForStatusOpen, setLeadIdForStatusOpen] = useState(false);
-  const [currentStatus, setCurrentStatus] = useState('Initial');
-  const [selectedStatus, setSelectedStatus] = useState('');
-  const [initialRemarks, setInitialRemarks] = useState('');
-
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
     setFormData(prev => ({ ...prev, [id]: value }));
   };
 
-  const handlePincodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newPincode = e.target.value;
-    const newFormData = { ...formData, pincode: newPincode };
-    // Pincode logic removed as src/lib/pincodes.ts is deleted.
-    // User will have to enter state/district manually if needed.
-    setFormData(newFormData);
-  };
-
-  const handleHeadcountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newHeadcount = e.target.value;
-    setFormData(prev => ({ ...prev, headcount: newHeadcount }));
-  };
-  
   const handleSelectChange = (id: string, value: string) => {
     setFormData(prev => ({...prev, [id]: value}));
   }
@@ -174,23 +127,22 @@ export default function LeadUploadForm() {
 
   const resetForm = () => {
     setFormData(initialFormState);
-    setAddedLeads([]);
     handleCancel();
   };
 
-  const validateLead = (lead: Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId'>) => {
-    if (!lead.pincode || !lead.contactPerson || !lead.contactNumber || !lead.address) {
+  const validateLead = (lead: Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId' | 'pincode' | 'givenBy'>) => {
+    if (!lead.contactPerson || !lead.contactNumber || !lead.address) {
       toast({
         variant: 'destructive',
         title: 'Missing Information',
-        description: 'Please fill all mandatory fields.',
+        description: 'Please fill all mandatory fields (Contact Person, Contact Number, Address).',
       });
       return false;
     }
     return true;
   }
 
-  const handleSaveLeads = async () => {
+  const handleSaveLead = async () => {
     if (!user || !firestore) {
       toast({
         variant: 'destructive',
@@ -205,7 +157,7 @@ export default function LeadUploadForm() {
     }
 
     const now = Date.now();
-    const leadWithId: LeadFormData = {
+    const leadWithId: Omit<LeadFormData, 'pincode'> & {leadId: string; creationDate: number; subAdminId: string; givenBy: string; status: string} = {
       ...formData,
       leadId: `LEAD-${now}`,
       creationDate: now,
@@ -242,7 +194,6 @@ export default function LeadUploadForm() {
       setSelectedFile(file);
       setShowPreview(false);
       setParsedData(null);
-      setAddedLeads([]);
       toast({
         title: "File Selected",
         description: `${file.name}. Click 'Preview data' or 'Confirm Upload'.`,
@@ -319,7 +270,7 @@ export default function LeadUploadForm() {
       );
       const now = Date.now();
 
-      const leadsFromFile: LeadFormData[] = json.slice(1).map((row: any[], index) => {
+      const leadsFromFile = json.slice(1).map((row: any[], index) => {
         const lead: any = {};
         headers.forEach((header, i) => {
           lead[header] = row[i];
@@ -399,160 +350,123 @@ export default function LeadUploadForm() {
     XLSX.writeFile(wb, 'sample_leads.xlsx');
   };
 
-  const handleSelectLeadForStatus = (leadId: string) => {
-      const selectedLeadId = leadId === leadIdForStatus ? '' : leadId;
-      setLeadIdForStatus(selectedLeadId);
-      const foundLead = allLeads?.find(lead => lead.leadId === selectedLeadId);
-      if (foundLead) {
-          setCurrentStatus(foundLead.status || 'Initial');
-      } else {
-          setCurrentStatus('Initial');
-      }
-      setLeadIdForStatusOpen(false);
-  }
-
-  const handleUpdateStatus = async () => {
-    if (!firestore || !leadIdForStatus) {
-      toast({ variant: 'destructive', title: 'Selection missing', description: 'Please select a lead.' });
-      return;
-    }
-    if (!selectedStatus) {
-      toast({ variant: 'destructive', title: 'Status missing', description: 'Please select a new status.' });
-      return;
-    }
-
-    const leadRef = doc(firestore, 'leads', leadIdForStatus);
-    try {
-      await setDoc(leadRef, { status: selectedStatus, leadStatusRemarks: initialRemarks }, { merge: true });
-      toast({ title: 'Status Updated', description: `Lead ${leadIdForStatus} updated to ${selectedStatus}.` });
-      setInitialRemarks('');
-      setSelectedStatus('');
-      const foundLead = allLeads?.find(lead => lead.leadId === leadIdForStatus);
-      if(foundLead) setCurrentStatus(selectedStatus);
-
-    } catch (error: any) {
-      toast({ variant: 'destructive', title: 'Update failed', description: error.message });
-    }
-  };
-
-
   return (
     <div className="space-y-6">
       <div>
-        <p className="font-semibold">Provide the new Lead detail</p>
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 mt-4">
-          <div className="space-y-2 col-span-2">
-            <Label htmlFor="pincode">Pin code <span className="text-destructive">*</span></Label>
-            <Input id="pincode" value={formData.pincode} onChange={handlePincodeChange} required/>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="company">Company</Label>
-            <Input id="company" value={formData.company} onChange={handleInputChange} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="contactPerson">Contact person <span className="text-destructive">*</span></Label>
-            <Input id="contactPerson" value={formData.contactPerson} onChange={handleInputChange} required />
-          </div>
-          <div className="col-span-2 space-y-2">
-            <Label htmlFor="address">Address <span className="text-destructive">*</span></Label>
-            <Input id="address" value={formData.address} onChange={handleInputChange} required />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="state">State</Label>
-            <Input id="state" value={formData.state} onChange={handleInputChange} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="district">District</Label>
-            <Input id="district" value={formData.district} onChange={handleInputChange} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="contactNumber">Contact Number <span className="text-destructive">*</span></Label>
-            <Input id="contactNumber" value={formData.contactNumber} onChange={handleInputChange} required />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" value={formData.email} onChange={handleInputChange} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="reference">Reference</Label>
-            <Input id="reference" value={formData.reference} onChange={handleInputChange} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="headcount">Company headcount</Label>
-            <Input id="headcount" value={formData.headcount} onChange={handleHeadcountChange} />
-          </div>
-           <div className="space-y-2">
-            <Label htmlFor="sector">Sector</Label>
-            <Popover open={sectorOpen} onOpenChange={setSectorOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={sectorOpen}
-                  className="w-full justify-between font-normal"
-                >
-                  {formData.sector ? sectors.find(s => s.toLowerCase() === formData.sector.toLowerCase()) || "Select Sector..." : "Select Sector..."}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                <Command>
-                  <CommandInput placeholder="Search sector..." />
-                  <CommandList>
-                    <CommandEmpty>No sector found.</CommandEmpty>
-                    <CommandGroup>
-                      {sectors.map((sector) => (
-                        <CommandItem
-                          key={sector}
-                          value={sector.toLowerCase()}
-                          onSelect={(currentValue) => {
-                            const selectedSector = sectors.find(s => s.toLowerCase() === currentValue);
-                            handleSelectChange('sector', selectedSector === formData.sector ? '' : selectedSector || '')
-                            setSectorOpen(false)
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              formData.sector === sector ? "opacity-100" : "opacity-0"
-                            )}
-                          />
-                          {sector}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="modules">Modules</Label>
-            <Select value={formData.selectedModule} onValueChange={(value) => handleSelectChange('selectedModule', value)}>
-              <SelectTrigger id="modules">
-                <SelectValue placeholder="Select Modules..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ar">AR</SelectItem>
-                <SelectItem value="all-hrms">All HRMS</SelectItem>
-                <SelectItem value="module1">Module 1</SelectItem>
-                <SelectItem value="module2">Module 2</SelectItem>
-                <SelectItem value="module3">Module 3</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="col-span-2 flex items-center justify-between">
-            <div className="flex items-center space-x-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 mt-4">
+          {/* Left Column */}
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="company">Company</Label>
+              <Input id="company" value={formData.company} onChange={handleInputChange} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="address">Address <span className="text-destructive">*</span></Label>
+              <Input id="address" value={formData.address} onChange={handleInputChange} required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="state">State</Label>
+              <Input id="state" value={formData.state} onChange={handleInputChange} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="contactNumber">Contact Number <span className="text-destructive">*</span></Label>
+              <Input id="contactNumber" value={formData.contactNumber} onChange={handleInputChange} required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="reference">Reference</Label>
+              <Input id="reference" value={formData.reference} onChange={handleInputChange} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="sector">Sector</Label>
+              <Popover open={sectorOpen} onOpenChange={setSectorOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={sectorOpen}
+                    className="w-full justify-between font-normal"
+                  >
+                    {formData.sector ? sectors.find(s => s.toLowerCase() === formData.sector.toLowerCase()) || "Select Sector..." : "Select Sector..."}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                  <Command>
+                    <CommandInput placeholder="Search sector..." />
+                    <CommandList>
+                      <CommandEmpty>No sector found.</CommandEmpty>
+                      <CommandGroup>
+                        {sectors.map((sector) => (
+                          <CommandItem
+                            key={sector}
+                            value={sector.toLowerCase()}
+                            onSelect={(currentValue) => {
+                              const selectedSector = sectors.find(s => s.toLowerCase() === currentValue);
+                              handleSelectChange('sector', selectedSector === formData.sector ? '' : selectedSector || '')
+                              setSectorOpen(false)
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                formData.sector === sector ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {sector}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div className="flex items-center space-x-2 pt-2">
               <Checkbox id="toDealer" checked={formData.toDealer} onCheckedChange={handleCheckboxChange} />
               <Label htmlFor="toDealer">To Dealer</Label>
               <span className="text-xs text-muted-foreground">As per Mapping</span>
             </div>
           </div>
+
+          {/* Right Column */}
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="contactPerson">Contact person <span className="text-destructive">*</span></Label>
+              <Input id="contactPerson" value={formData.contactPerson} onChange={handleInputChange} required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="district">District</Label>
+              <Input id="district" value={formData.district} onChange={handleInputChange} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input id="email" type="email" value={formData.email} onChange={handleInputChange} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="headcount">Company headcount</Label>
+              <Input id="headcount" value={formData.headcount} onChange={handleInputChange} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="selectedModule">Modules</Label>
+              <Select value={formData.selectedModule} onValueChange={(value) => handleSelectChange('selectedModule', value)}>
+                <SelectTrigger id="selectedModule">
+                  <SelectValue placeholder="Select Modules..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ar">AR</SelectItem>
+                  <SelectItem value="all-hrms">All HRMS</SelectItem>
+                  <SelectItem value="module1">Module 1</SelectItem>
+                  <SelectItem value="module2">Module 2</SelectItem>
+                  <SelectItem value="module3">Module 3</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </div>
       </div>
-      <div className="flex justify-end gap-2">
+      <div className="flex justify-end gap-2 mt-6">
         <Button variant="outline" onClick={resetForm}>Reset</Button>
-        <Button onClick={handleSaveLeads}>Save Lead</Button>
+        <Button onClick={handleSaveLead}>Save Lead</Button>
       </div>
 
       <div className="space-y-4 pt-6 border-t">
@@ -612,85 +526,6 @@ export default function LeadUploadForm() {
             </Card>
         </div>
       )}
-
-      <Card className="mt-6">
-        <CardHeader className='bg-primary/10'>
-          <CardTitle className='text-primary text-base font-bold'>Lead Status</CardTitle>
-        </CardHeader>
-        <CardContent className='p-4 space-y-4'>
-            <div className='flex flex-col gap-4'>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
-                    <div className="space-y-2">
-                        <Label htmlFor="lead-id-status" className="shrink-0">Change Status For Lead:</Label>
-                        <Popover open={leadIdForStatusOpen} onOpenChange={setLeadIdForStatusOpen}>
-                            <PopoverTrigger asChild>
-                                <Button
-                                variant="outline"
-                                role="combobox"
-                                aria-expanded={leadIdForStatusOpen}
-                                className="w-full justify-between font-normal"
-                                >
-                                {leadIdForStatus || "Select Lead..."}
-                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                                <Command>
-                                    <CommandInput placeholder="Search lead ID..." />
-                                    <CommandList>
-                                        <CommandEmpty>No leads found.</CommandEmpty>
-                                        <CommandGroup>
-                                        {allLeads?.map((lead) => (
-                                            <CommandItem
-                                            key={lead.leadId}
-                                            value={lead.leadId}
-                                            onSelect={() => handleSelectLeadForStatus(lead.leadId)}
-                                            >
-                                            <Check
-                                                className={cn(
-                                                "mr-2 h-4 w-4",
-                                                leadIdForStatus === lead.leadId ? "opacity-100" : "opacity-0"
-                                                )}
-                                            />
-                                            {lead.leadId}
-                                            </CommandItem>
-                                        ))}
-                                        </CommandGroup>
-                                    </CommandList>
-                                </Command>
-                            </PopoverContent>
-                        </Popover>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                        <span className="font-semibold shrink-0">Current Status: {currentStatus}</span>
-                        <Select value={selectedStatus} onValueChange={setSelectedStatus} disabled={!leadIdForStatus}>
-                        <SelectTrigger className="w-full min-w-[200px]">
-                            <SelectValue placeholder="-- Select New Status --" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {leadStatusOptions.map((status) => (
-                                <SelectItem key={status} value={status}>{status}</SelectItem>
-                            ))}
-                        </SelectContent>
-                        </Select>
-                        <Button onClick={handleUpdateStatus} disabled={!leadIdForStatus}>Update</Button>
-                    </div>
-                </div>
-                
-                <div className="space-y-2">
-                    <Textarea 
-                        id="initial-remarks"
-                        placeholder="Enter status remarks..."
-                        value={initialRemarks}
-                        onChange={(e) => setInitialRemarks(e.target.value)}
-                        className="min-h-[40px]"
-                        disabled={!leadIdForStatus}
-                    />
-                </div>
-            </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
