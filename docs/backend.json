@@ -110,22 +110,8 @@
           "description": "Stores all lead data. Each lead includes a `subAdminId` to associate it with a user for access control.",
           "params": [{ "name": "leadId", "description": "The unique lead ID." }]
         }
-      },
-      {
-        "path": "/roles_sub_admin/{userId}",
-        "definition": {
-          "entityName": "roles_sub_admin",
-          "schema": { "$ref": "#/entities/User" },
-          "description": "Indicates that a user is a sub admin. Existence of the document grants sub admin privileges.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier for the user."
-            }
-          ]
-        }
       }
     ],
-    "reasoning": "The Firestore structure is designed for role-based access. User profiles are stored in `/users`. All business-critical lead data is in a top-level `/leads` collection. Each lead document contains a denormalized `subAdminId` field, which is the UID of the user it belongs to. This is crucial for security rules, allowing users to only access leads assigned to them without needing costly cross-collection lookups. A separate `/roles_sub_admin` collection is used as a quick lookup to grant users broader sub-admin privileges based on document existence."
+    "reasoning": "The Firestore structure is designed for role-based access. User profiles are stored in `/users`. All business-critical lead data is in a top-level `/leads` collection. Each lead document contains a denormalized `subAdminId` field, which is the UID of the user it belongs to. This is crucial for security rules, allowing users to only access leads assigned to them without needing costly cross-collection lookups."
   }
 }

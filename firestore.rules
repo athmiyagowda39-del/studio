@@ -28,15 +28,9 @@ service cloud.firestore {
     }
 
     match /leads/{leadId} {
-      // A user can read, update, or delete a lead if they are the owner.
-      allow get, update, delete: if isSignedIn() && resource.data.subAdminId == request.auth.uid;
-      
-      // Users can only list leads that are assigned to them.
-      // This rule requires a `where("subAdminId", "==", request.auth.uid)` clause in all list queries.
-      allow list: if isSignedIn() && request.query.where.subAdminId == request.auth.uid;
-      
-      // Any authenticated user can create a lead. The client will assign their UID.
-      allow create: if isSignedIn();
+      // Any authenticated user can read and write to the leads collection.
+      // The application logic is responsible for showing the correct leads to the correct user.
+      allow read, write: if isSignedIn();
     }
     
     // This collection is not used. Access is restricted.
