@@ -27,8 +27,6 @@ export default function DashboardPage() {
 
   const leadsQuery = useMemoFirebase(() => {
     if (!user || !firestore) return null;
-    // ALL users can only see leads assigned to them.
-    // This is a requirement for the security rules to pass.
     return query(collection(firestore, 'leads'), where('subAdminId', '==', user.uid));
   }, [user, firestore]);
 

@@ -15,14 +15,6 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    function documentExists() {
-      return resource != null;
-    }
-    
-    function isLeadOwner() {
-      return documentExists() && resource.data.subAdminId == request.auth.uid;
-    }
-
     // -------------------------------------------------------------------------
     // Collection Rules
     // -------------------------------------------------------------------------
@@ -31,26 +23,23 @@ service cloud.firestore {
       allow get: if isOwner(userId);
       allow list: if true; 
       allow create: if true;
-      allow update: if isOwner(userId) && documentExists() && request.resource.data.id == resource.data.id;
+      allow update: if isOwner(userId);
       allow delete: if false;
     }
 
     match /leads/{leadId} {
-      // Any authenticated user can get a lead, but only if they are the owner.
-      allow get: if isSignedIn() && isLeadOwner();
+      // A user can read, update, or delete a lead if they are the owner.
+      allow get, update, delete: if isSignedIn() && resource.data.subAdminId == request.auth.uid;
       
-      // Users can only list leads assigned to them.
+      // Users can only list leads that are assigned to them.
       // This rule requires a `where("subAdminId", "==", request.auth.uid)` clause in all list queries.
       allow list: if isSignedIn() && request.query.where.subAdminId == request.auth.uid;
       
       // Any authenticated user can create a lead. The client will assign their UID.
       allow create: if isSignedIn();
-      
-      // Only the assigned owner can update or delete a lead.
-      allow update, delete: if isSignedIn() && isLeadOwner();
     }
     
-    // This collection is no longer used for primary role checks. Access is restricted.
+    // This collection is not used. Access is restricted.
     match /roles_sub_admin/{userId} {
       allow read, write: if false;
     }
