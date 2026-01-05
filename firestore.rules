@@ -22,10 +22,10 @@
  *   each document in the `/leads` collection must contain a denormalized
  *   `subAdminId` field. This allows rules to authorize access without needing
  *   slow and costly `get()` calls to other collections.
- * - Secure Listing: Listing all users or all admins is explicitly disallowed
- *   to prevent user enumeration. Sub Admins can only list leads by issuing a
- *   client-side query that filters by their own user ID, which is enforced by
- *   the security rules.
+ * - Secure Listing: Listing all users is allowed for any signed-in user to
+ *   support user management UIs, but sensitive data should be protected.
+ *   Sub Admins can only list leads by issuing a client-side query that filters
+ *   by their own user ID, which is enforced by the security rules.
  * - Privileged Operations Lockdown: The ability to grant or revoke Sub Admin
  *   roles (i.e., writing to `/roles_sub_admin`) is locked down by default. This
  *   is a critical security measure that requires explicit implementation of a
