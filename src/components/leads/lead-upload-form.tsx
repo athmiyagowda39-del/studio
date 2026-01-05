@@ -74,7 +74,6 @@ export type LeadFormData = {
   givenBy?: string;
   status?: string;
   leadSubStatus?: string;
-  leadStatusRemarks?: string;
   subAdminId: string;
 };
 
@@ -189,16 +188,16 @@ export default function LeadUploadForm() {
       setParsedData(null);
       processFile(file, (json) => {
         if (json && json.length > 1) {
-            const headers = json[0] as string[];
+            const headers = json[0].map(h => String(h).toLowerCase() === 'pin code' ? 'pincode' : String(h));
             const firstDataRow = json[1] as (string | number)[];
             const leadObject: any = {};
             headers.forEach((header, index) => {
-                const headerStr = String(header).toLowerCase() === 'pin code' ? 'pincode' : String(header);
+                const headerStr = String(header);
                 leadObject[headerStr] = firstDataRow[index];
             });
             
             setFormData({
-                pincode: leadObject.pincode || '',
+                pincode: leadObject.pincode ? String(leadObject.pincode) : '',
                 state: leadObject.state || '',
                 district: leadObject.district || '',
                 address: leadObject.address || '',
