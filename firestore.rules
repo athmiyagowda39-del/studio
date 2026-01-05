@@ -90,7 +90,7 @@ service cloud.firestore {
      * @description Manages user profiles. Users can create, read, and update
      *   their own profile but cannot view others' profiles or delete their own.
      * @path /users/{userId}
-     * @allow (create) An authenticated user creating their own profile document.
+     * @allow (create) A user creating their own profile document.
      *   `db.collection('users').doc('user_abc').set({ id: 'user_abc', ... })`
      * @deny (get) User 'user_abc' trying to read the profile of 'user_xyz'.
      * @principle Restricts access to a user's own data tree (Ownership).
@@ -98,7 +98,7 @@ service cloud.firestore {
     match /users/{userId} {
       allow get: if isOwner(userId);
       allow list: if isSignedIn();
-      allow create: if isSignedIn();
+      allow create: if isOwner(userId);
       allow update: if isOwner(userId) && documentExists() && request.resource.data.id == resource.data.id;
       allow delete: if false;
     }
