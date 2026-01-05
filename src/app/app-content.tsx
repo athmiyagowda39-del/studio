@@ -15,6 +15,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useEffect } from 'react';
 import { useUser } from '@/firebase';
 import { useAuthContext } from '@/context/auth-context';
+import SidebarNav from '@/components/layout/sidebar-nav';
 
 const CustomLogo = () => <Target className="size-full" />;
 
