@@ -7,7 +7,7 @@ import DashboardPage from './dashboard/page';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
-export default function Home() {
+export default function Home({ children }: { children?: React.ReactNode }) {
   const { user, isUserLoading } = useAuthContext();
   const router = useRouter();
 
@@ -25,5 +25,6 @@ export default function Home() {
     );
   }
 
-  return <DashboardPage />;
+  // If there are children, render them, otherwise default to DashboardPage
+  return children || <DashboardPage />;
 }
