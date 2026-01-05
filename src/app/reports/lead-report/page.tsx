@@ -39,6 +39,14 @@ const leadStatusOptions = [
 const sectors = ['All', 'IT', 'Finance', 'Healthcare', 'Manufacturing', 'Education', 'Retail', 'Hospitality', 'Telecommunication', 'Construction', 'Real Estate', 'Media & Entertainment', 'Government', 'Non-profit', 'Other'];
 const headcounts = ['All', '1-50', '51-200', '201-500', '501-1000', '1000+'];
 
+const getLeadsFromLocalStorage = (): LeadFormData[] => {
+  if (typeof window !== 'undefined') {
+    const leadsJson = localStorage.getItem('allLeads');
+    return leadsJson ? JSON.parse(leadsJson) : [];
+  }
+  return [];
+};
+
 
 const getLeadStatusesForFilters = (
   leads: LeadFormData[],
@@ -91,8 +99,8 @@ const getLeadStatusesForFilters = (
 export default function LeadReportPage() {
   const [allLeads, setAllLeads] = useState<LeadFormData[]>([]);
   useEffect(() => {
-    // mock data
-    setAllLeads([]);
+    const leads = getLeadsFromLocalStorage();
+    setAllLeads(leads);
   }, []);
 
   const [selectedState, setSelectedState] = useState('Karnataka');

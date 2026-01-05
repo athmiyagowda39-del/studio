@@ -92,6 +92,15 @@ const leadSourceOptions = [
 ];
 
 const LEADS_PER_PAGE = 10;
+
+const getLeadsFromLocalStorage = (): LeadFormData[] => {
+  if (typeof window !== 'undefined') {
+    const leadsJson = localStorage.getItem('allLeads');
+    return leadsJson ? JSON.parse(leadsJson) : [];
+  }
+  return [];
+};
+
 export default function LeadsUpdatePage() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [allLeads, setAllLeads] = useState<LeadFormData[]>([]);
@@ -108,12 +117,26 @@ export default function LeadsUpdatePage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Mock data fetching, in a real app this would be an API call
-    const mockLeads: LeadFormData[] = [];
-    setAllLeads(mockLeads);
-    setFilteredLeads(mockLeads);
+    const leads = getLeadsFromLocalStorage();
+    setAllLeads(leads);
+    setFilteredLeads(leads);
     setShowResults(true);
     setActiveQuickFilter('All Leads');
+
+    // Listen for storage changes to update leads in real-time
+    const handleStorageChange = () => {
+      const updatedLeads = getLeadsFromLocalStorage();
+      setAllLeads(updatedLeads);
+      // Re-apply filters with new data
+      // For simplicity, this example just resets to all leads.
+      // A more robust solution might re-run handleShowClick().
+      setFilteredLeads(updatedLeads);
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
   
   const handleFilterChange = (field: keyof typeof filters, value: any) => {

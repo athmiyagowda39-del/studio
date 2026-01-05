@@ -13,7 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Check, ChevronsUpDown, Download, UploadCloud } from 'lucide-react';
 import { Card, CardContent } from '../ui/card';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import * as XLSX from 'xlsx';
 import {
   Table,
@@ -95,6 +95,20 @@ const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdmin
     toDealer: false,
 };
 
+const saveLeadsToLocalStorage = (leads: LeadFormData[]) => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('allLeads', JSON.stringify(leads));
+  }
+};
+
+const getLeadsFromLocalStorage = (): LeadFormData[] => {
+  if (typeof window !== 'undefined') {
+    const leadsJson = localStorage.getItem('allLeads');
+    return leadsJson ? JSON.parse(leadsJson) : [];
+  }
+  return [];
+};
+
 
 export default function LeadUploadForm() {
   const [formData, setFormData] = useState<Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId' | 'givenBy' | 'pincode'>>(initialFormState);
@@ -140,9 +154,24 @@ export default function LeadUploadForm() {
     if (!validateLead(formData)) {
       return;
     }
+    
+    const allLeads = getLeadsFromLocalStorage();
+    const newLead: LeadFormData = {
+      ...formData,
+      leadId: `LEAD-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      creationDate: new Date().getTime(),
+      givenBy: 'Manual',
+      pincode: '',
+      subAdminId: 'demo-user', // Placeholder
+      status: 'Not viewed',
+    };
+
+    const updatedLeads = [...allLeads, newLead];
+    saveLeadsToLocalStorage(updatedLeads);
+
     toast({
       title: "Lead saved successfully",
-      description: `(This is a mock action).`,
+      description: `Lead for ${newLead.company} has been saved.`,
     });
     resetForm();
   };
@@ -157,9 +186,37 @@ export default function LeadUploadForm() {
       setSelectedFile(file);
       setShowPreview(false);
       setParsedData(null);
-      toast({
-        title: "File Selected",
-        description: `${file.name}. Click 'Preview data' or 'Confirm Upload'.`,
+      processFile(file, (json) => {
+        if (json && json.length > 1) {
+            const headers = json[0] as string[];
+            const firstDataRow = json[1] as (string | number)[];
+            const leadObject: any = {};
+            headers.forEach((header, index) => {
+                leadObject[header] = firstDataRow[index];
+            });
+            
+            setFormData({
+                state: leadObject.state || '',
+                district: leadObject.district || '',
+                address: leadObject.address || '',
+                contactPerson: leadObject.contactPerson || '',
+                contactNumber: leadObject.contactNumber ? String(leadObject.contactNumber) : '',
+                reference: leadObject.reference || '',
+                email: leadObject.email || '',
+                company: leadObject.company || '',
+                headcount: leadObject.headcount ? String(leadObject.headcount) : '',
+                sector: leadObject.sector || '',
+                selectedModule: leadObject.selectedModule || '',
+                toDealer: false,
+            });
+
+            toast({
+                title: "Form Populated",
+                description: "Lead details from the first row have been filled into the form.",
+            });
+        }
+        setParsedData(json);
+        setShowPreview(true);
       });
     }
   };
@@ -194,24 +251,26 @@ export default function LeadUploadForm() {
         });
       return;
     }
-    processFile(selectedFile, (json) => {
-      setParsedData(json);
-      setShowPreview(true);
-    });
+    if (parsedData) {
+        setShowPreview(true);
+    } else {
+        processFile(selectedFile, (json) => {
+          setParsedData(json);
+          setShowPreview(true);
+        });
+    }
   };
   
   const handleConfirmUpload = () => {
-    if (!selectedFile) {
+    if (!parsedData) {
       toast({
         variant: 'destructive',
-        title: 'No file selected',
-        description: 'Please select a file to upload.',
+        title: 'No data to upload',
+        description: 'Please select a file and preview first.',
       });
       return;
     }
-
-    processFile(selectedFile, async (json) => {
-      if (json.length < 2) {
+     if (parsedData.length < 2) {
         toast({
           variant: 'destructive',
           title: 'Empty File',
@@ -219,13 +278,45 @@ export default function LeadUploadForm() {
         });
         return;
       }
+    
+      const allLeads = getLeadsFromLocalStorage();
+      const headers = parsedData[0].map(h => String(h));
+
+      const newLeads: LeadFormData[] = parsedData.slice(1).map(row => {
+        const leadObject: any = {};
+        headers.forEach((header, index) => {
+            leadObject[header] = row[index];
+        });
+        return {
+            pincode: leadObject.pincode ? String(leadObject.pincode) : '',
+            address: leadObject.address || '',
+            contactPerson: leadObject.contactPerson || '',
+            contactNumber: leadObject.contactNumber ? String(leadObject.contactNumber) : '',
+            reference: leadObject.reference || '',
+            email: leadObject.email || '',
+            company: leadObject.company || '',
+            headcount: leadObject.headcount ? String(leadObject.headcount) : '',
+            sector: leadObject.sector || '',
+            selectedModule: leadObject.selectedModule || '',
+            state: leadObject.state || '',
+            district: leadObject.district || '',
+            toDealer: false,
+            leadId: `LEAD-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+            creationDate: new Date().getTime(),
+            givenBy: 'File Upload',
+            status: 'Not viewed',
+            subAdminId: 'demo-user' // Placeholder
+        };
+      });
+
+      const updatedLeads = [...allLeads, ...newLeads];
+      saveLeadsToLocalStorage(updatedLeads);
       
       toast({
         title: 'Leads saved successfully',
-        description: `(This is a mock action).`,
+        description: `${newLeads.length} leads have been uploaded and saved.`,
       });
       resetForm();
-    });
   };
 
 

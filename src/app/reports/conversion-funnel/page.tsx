@@ -13,6 +13,15 @@ const funnelStages = [
   'Order closed',
 ];
 
+const getLeadsFromLocalStorage = (): LeadFormData[] => {
+  if (typeof window !== 'undefined') {
+    const leadsJson = localStorage.getItem('allLeads');
+    return leadsJson ? JSON.parse(leadsJson) : [];
+  }
+  return [];
+};
+
+
 const getFunnelData = (leads: LeadFormData[]) => {
   // Define the order of progression through the funnel.
   const stageOrder: { [key: string]: number } = {
@@ -54,8 +63,8 @@ export default function ConversionFunnelReportPage() {
   const [allLeads, setAllLeads] = useState<LeadFormData[]>([]);
 
   useEffect(() => {
-    // Mock data for now, will be replaced with API call
-    setAllLeads([]);
+    const leads = getLeadsFromLocalStorage();
+    setAllLeads(leads);
   }, []);
 
 

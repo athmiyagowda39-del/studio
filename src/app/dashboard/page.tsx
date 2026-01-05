@@ -18,15 +18,21 @@ const months = [
   'August', 'September', 'October', 'November', 'December',
 ];
 
+const getLeadsFromLocalStorage = (): LeadFormData[] => {
+  if (typeof window !== 'undefined') {
+    const leadsJson = localStorage.getItem('allLeads');
+    return leadsJson ? JSON.parse(leadsJson) : [];
+  }
+  return [];
+};
+
 export default function DashboardPage() {
   const [allLeads, setAllLeads] = useState<LeadFormData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Mock data fetching
   useEffect(() => {
-    // In a real app, you would fetch this data from an API.
-    const mockLeads: LeadFormData[] = []; // Replace with mock data if needed
-    setAllLeads(mockLeads);
+    const leads = getLeadsFromLocalStorage();
+    setAllLeads(leads);
     setIsLoading(false);
   }, []);
 

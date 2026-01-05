@@ -67,6 +67,14 @@ const executiveIds = [
     'EXEC-006'
 ];
 
+const saveLeadsToLocalStorage = (leads: LeadFormData[]) => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('allLeads', JSON.stringify(leads));
+    // Dispatch a storage event to notify other tabs/windows
+    window.dispatchEvent(new Event('storage'));
+  }
+};
+
 
 export default function LeadUpdateForm({ leadId, allLeads }: { leadId: string | null, allLeads: LeadFormData[] }) {
   const [leadDetails, setLeadDetails] = useState<Partial<LeadFormData>>({});
@@ -104,7 +112,10 @@ export default function LeadUpdateForm({ leadId, allLeads }: { leadId: string | 
         let leadWithViewDate: Partial<LeadFormData> = { ...foundLead };
         if (!foundLead.executiveViewDate) {
           leadWithViewDate.executiveViewDate = new Date().getTime();
-          // In a real app, you would save this back to the database
+          
+          const updatedLeads = allLeads.map(l => l.leadId === id ? { ...l, executiveViewDate: leadWithViewDate.executiveViewDate } : l);
+          saveLeadsToLocalStorage(updatedLeads);
+
           console.log("Setting executiveViewDate for lead:", id);
         }
 
@@ -155,17 +166,22 @@ export default function LeadUpdateForm({ leadId, allLeads }: { leadId: string | 
     const updatedFollowups = [...followUps, newFollowUp];
     setFollowUps(updatedFollowups);
     
-    setLeadDetails(prev => ({
-      ...prev,
+    const updatedLeadDetails = {
+      ...leadDetails,
       followUps: updatedFollowups,
       nextFollowUpDate: nextFollowUpDate.toISOString(),
-    }));
+    };
+    setLeadDetails(updatedLeadDetails);
+
+    const updatedLeads = allLeads.map(l => l.leadId === leadDetails.leadId ? updatedLeadDetails : l);
+    saveLeadsToLocalStorage(updatedLeads as LeadFormData[]);
+
 
     setRemarks('');
     
     toast({
         title: "Follow-up added",
-        description: "Click 'Save' to persist the changes.",
+        description: "Click 'Save' to persist all changes.",
     });
   };
 
@@ -179,10 +195,19 @@ export default function LeadUpdateForm({ leadId, allLeads }: { leadId: string | 
       return;
     }
     
-    toast({ title: 'Status Updated', description: `Lead ${leadIdForStatus} status updated to ${selectedStatus}. (This is a mock action)` });
+    const updatedLeadDetails = {
+        ...leadDetails, 
+        status: selectedStatus, 
+        leadStatusRemarks: initialRemarks
+    };
+    
+    const updatedLeads = allLeads.map(l => l.leadId === leadIdForStatus ? updatedLeadDetails : l);
+    saveLeadsToLocalStorage(updatedLeads as LeadFormData[]);
+    
+    toast({ title: 'Status Updated', description: `Lead ${leadIdForStatus} status updated to ${selectedStatus}.` });
 
     if (leadDetails.leadId === leadIdForStatus) {
-        setLeadDetails(prev => ({...prev, status: selectedStatus, leadStatusRemarks: initialRemarks}));
+        setLeadDetails(updatedLeadDetails);
         setCurrentStatus(selectedStatus);
     }
     setInitialRemarks('');
@@ -205,9 +230,11 @@ export default function LeadUpdateForm({ leadId, allLeads }: { leadId: string | 
       toast({ variant: 'destructive', title: 'No Lead Loaded', description: 'Please search and load a lead before saving.' });
       return;
     }
+
+    const updatedLeads = allLeads.map(l => l.leadId === leadDetails.leadId ? leadDetails : l);
+    saveLeadsToLocalStorage(updatedLeads as LeadFormData[]);
     
-    // In a real app, this is where you'd save to a database.
-    toast({ title: 'Lead Updated', description: `Lead ${leadDetails.leadId} has been successfully updated. (This is a mock action)` });
+    toast({ title: 'Lead Updated', description: `Lead ${leadDetails.leadId} has been successfully updated.` });
   };
 
   return (
