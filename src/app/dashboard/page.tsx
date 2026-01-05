@@ -29,7 +29,7 @@ export default function DashboardPage() {
     if (!user || !firestore) return null;
     
     let q = query(collection(firestore, 'leads'));
-    // Non-admin users can only see leads assigned to them.
+    // Non-admin users can only see leads assigned to them. This matches security rules.
     if (user.role !== 'admin') {
       q = query(q, where('subAdminId', '==', user.uid));
     }
@@ -54,6 +54,8 @@ export default function DashboardPage() {
     if (!allLeads) return [];
 
     const monthIndex = months.indexOf(period);
+    if (monthIndex === -1) return [];
+    
     const year = new Date().getFullYear();
 
     const filteredLeads = allLeads.filter((lead) => {

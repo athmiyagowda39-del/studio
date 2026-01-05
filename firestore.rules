@@ -1,31 +1,4 @@
 
-/**
- * Core Philosophy:
- * This ruleset implements a Role-Based Access Control (RBAC) model centered
- * around an "Admin" and "Sub Admin" role. A user's status as a Sub Admin is
- * determined by the existence of a document in the `/roles_sub_admin`
- * collection. An Admin's status is determined by a 'type' field in their
- * user profile.
- *
- * Standard users have ownership-based access. Admins have global access,
- * and Sub Admins have access to leads assigned to them.
- *
- * Data Structure:
- * - /users/{userId}: Stores user profiles with a 'type' field for roles.
- * - /roles_sub_admin/{userId}: A lookup collection for Sub Admin privileges.
- * - /leads/{leadId}: Contains lead data, with a `subAdminId` for assignment.
- *
- * Key Security Decisions:
- * - Denormalization for Authorization: Leads have a denormalized `subAdminId`
- *   to allow fast, secure access checks for Sub Admins without costly `get()`
- *   calls.
- * - Admin Access via Get: The `isAdmin()` function performs a `get()` on the
- *   user's own profile to check their role. This is secure and efficient.
- * - Secure Listing: Sub Admins must filter leads by their own user ID.
- *   Admins can list all leads.
- * - Privileged Operations Lockdown: Creating Sub Admin roles is locked down
- *   by default, requiring a higher-level admin system.
- */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -34,48 +7,28 @@ service cloud.firestore {
     // Helper Functions
     // -------------------------------------------------------------------------
 
-    /**
-     * Returns true if the requesting user is authenticated.
-     */
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /**
-     * Returns true if the requesting user's UID matches the provided userId.
-     */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    /**
-     * Returns true if the document being accessed already exists.
-     */
     function documentExists() {
       return resource != null;
     }
 
-    /**
-     * Checks if the user is a full Admin by reading their user profile.
-     * This is secure because users can only read their own profile.
-     */
     function isAdmin() {
       let userProfile = get(/databases/$(database)/documents/users/$(request.auth.uid));
       return isSignedIn() && userProfile.data.type == 'admin';
     }
-    
-    /**
-     * Checks if the user is at least a standard 'user' or an 'admin'.
-     * This is used for basic access to create or view their own leads.
-     */
+
     function isAtLeastUser() {
-        let userProfile = get(/databases/$(database)/documents/users/$(request.auth.uid));
-        return isSignedIn() && (userProfile.data.type == 'admin' || userProfile.data.type == 'user');
+      let userProfile = get(/databases/$(database)/documents/users/$(request.auth.uid));
+      return isSignedIn() && (userProfile.data.type == 'admin' || userProfile.data.type == 'user');
     }
 
-    /**
-     * Verifies ownership for an existing lead document.
-     */
     function isExistingLeadOwner() {
       return documentExists() && resource.data.subAdminId == request.auth.uid;
     }
@@ -84,45 +37,32 @@ service cloud.firestore {
     // Collection Rules
     // -------------------------------------------------------------------------
 
-    /**
-     * @description Manages user profiles. Users can read and update their own profile.
-     * Creation and listing is open to support sign-up and first-user checks.
-     * @path /users/{userId}
-     */
     match /users/{userId} {
       allow get: if isOwner(userId);
-      // Allow listing to check if any users exist (for first admin creation)
-      allow list: if true;
-      // Allow creation for any user during sign-up
+      allow list: if true; 
       allow create: if true;
       allow update: if isOwner(userId) && documentExists() && request.resource.data.id == resource.data.id;
       allow delete: if false;
     }
 
-    /**
-     * @description Stores lead data. Admins have full access. Sub Admins can
-     *   access leads assigned to them.
-     * @path /leads/{leadId}
-     */
     match /leads/{leadId} {
+      // Admins can get any lead. Users can only get leads assigned to them.
       allow get: if isAdmin() || (isAtLeastUser() && resource.data.subAdminId == request.auth.uid);
+      
+      // Admins can list all leads. Users MUST filter by their own subAdminId.
       allow list: if isAdmin() || (isAtLeastUser() && request.query.where.subAdminId == request.auth.uid);
+      
+      // Any authenticated user can create a lead (it will be assigned to them).
       allow create: if isAtLeastUser();
-      allow update: if isAdmin() || isExistingLeadOwner();
-      allow delete: if isAdmin() || isExistingLeadOwner();
+      
+      // Admins or the assigned owner can update or delete a lead.
+      allow update, delete: if isAdmin() || isExistingLeadOwner();
     }
-
-    /**
-     * @description Defines user roles. The existence of a document here grants
-     *   a user Sub Admin privileges.
-     * @path /roles_sub_admin/{userId}
-     */
+    
+    // This collection is no longer used for primary role checks.
+    // It can be kept for future use or removed. For now, access is restricted.
     match /roles_sub_admin/{userId} {
-      allow get: if isOwner(userId);
-      allow list: if false;
-      allow create: if false; // Should be managed by a Super Admin.
-      allow update: if false; // Should be managed by a Super Admin.
-      allow delete: if false; // Should be managed by a Super Admin.
+      allow read, write: if false;
     }
   }
 }
