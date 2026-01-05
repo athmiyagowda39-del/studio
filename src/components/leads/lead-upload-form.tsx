@@ -209,20 +209,25 @@ export default function LeadUploadForm() {
   }
 
   const handleSaveLeads = (leadsToSave?: Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId'>[]) => {
-    if (!user) return;
+    if (!user || !firestore) {
+      toast({
+        variant: 'destructive',
+        title: 'Not Logged In',
+        description: 'You must be logged in to save leads.',
+      });
+      return;
+    }
     
-    const formHasData = Object.values(formData).some(value => value !== '' && value !== false);
-    let leadsToProcess: Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId'>[] = leadsToSave || [];
+    let leadsToProcess: Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId' | 'givenBy'>[] = leadsToSave || [];
 
-    if (formHasData && !leadsToSave) {
-        if (!validateLead(formData)) return;
+    if (leadsToProcess.length === 0) {
+      if (validateLead(formData)) {
         leadsToProcess.push(formData);
+      } else {
+        return;
+      }
     }
     
-    if(!leadsToSave) {
-        leadsToProcess = [...leadsToProcess, ...addedLeads];
-    }
-
     if (leadsToProcess.length === 0) {
          toast({
             variant: "destructive",
@@ -232,22 +237,20 @@ export default function LeadUploadForm() {
         return;
     }
 
-    const leadsWithIds = leadsToProcess.map((lead, index) => {
-        const now = Date.now();
-        return {
-            ...lead,
-            leadId: `LEAD-${now}-${index}`,
-            creationDate: now,
-            status: 'Not viewed', // Default status for new leads
-            givenBy: lead.givenBy || user?.username,
-            subAdminId: user.uid,
-        };
-    });
+    const now = Date.now();
+    const leadsWithIds = leadsToProcess.map((lead, index) => ({
+      ...(lead as LeadFormData),
+      leadId: `LEAD-${now}-${index}`,
+      creationDate: now,
+      status: 'Not viewed',
+      givenBy: user.username,
+      subAdminId: user.uid,
+    }));
 
-    saveLeadsToFirestore(leadsWithIds as LeadFormData[]);
+    saveLeadsToFirestore(leadsWithIds);
     
     toast({
-        title: "Leads added successfully",
+        title: "Leads saved successfully",
         description: `${leadsWithIds.length} lead(s) have been successfully saved.`,
     });
     resetForm();
