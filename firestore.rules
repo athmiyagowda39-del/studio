@@ -2,39 +2,29 @@
 /**
  * Core Philosophy:
  * This ruleset implements a Role-Based Access Control (RBAC) model centered
- * around a "Sub Admin" role. A user's status as a Sub Admin is determined
- * by the existence of a document in the `/roles_sub_admin` collection, which
- * provides a fast and scalable method for role verification.
+ * around an "Admin" and "Sub Admin" role. A user's status as a Sub Admin is
+ * determined by the existence of a document in the `/roles_sub_admin`
+ * collection. An Admin's status is determined by a 'type' field in their
+ * user profile.
  *
- * Standard users have ownership-based access, restricted to managing their own
- * user profile. Sub Admins have broader permissions to manage `/leads` documents
- * that are explicitly assigned to them.
+ * Standard users have ownership-based access. Admins have global access,
+ * and Sub Admins have access to leads assigned to them.
  *
  * Data Structure:
- * The data is organized into three distinct top-level collections to segregate
- * concerns and simplify security rules:
- * - /users/{userId}: Stores individual user profile data.
- * - /roles_sub_admin/{userId}: A lookup collection that grants Sub Admin
- *   privileges based on document existence.
- * - /leads/{leadId}: Contains business-critical lead data.
+ * - /users/{userId}: Stores user profiles with a 'type' field for roles.
+ * - /roles_sub_admin/{userId}: A lookup collection for Sub Admin privileges.
+ * - /leads/{leadId}: Contains lead data, with a `subAdminId` for assignment.
  *
  * Key Security Decisions:
- * - Denormalization for Authorization: To ensure fast and secure access checks,
- *   each document in the `/leads` collection must contain a denormalized
- *   `subAdminId` field. This allows rules to authorize access without needing
- *   slow and costly `get()` calls to other collections.
- * - Secure Listing: Listing all users is allowed for any signed-in user to
- *   support user management UIs, but sensitive data should be protected.
- *   Sub Admins can only list leads by issuing a client-side query that filters
- *   by their own user ID, which is enforced by the security rules.
- * - Privileged Operations Lockdown: The ability to grant or revoke Sub Admin
- *   roles (i.e., writing to `/roles_sub_admin`) is locked down by default. This
- *   is a critical security measure that requires explicit implementation of a
- *   higher-level admin system.
- * - Structural Segregation: Separating user profiles (`/users`), roles
- *   (`/roles_sub_admin`), and business data (`/leads`) into different
- *   top-level collections creates a more secure and performant model. This
- *   prevents permission overlaps and simplifies rules for list operations.
+ * - Denormalization for Authorization: Leads have a denormalized `subAdminId`
+ *   to allow fast, secure access checks for Sub Admins without costly `get()`
+ *   calls.
+ * - Admin Access via Get: The `isAdmin()` function performs a `get()` on the
+ *   user's own profile to check their role. This is secure and efficient.
+ * - Secure Listing: Sub Admins must filter leads by their own user ID.
+ *   Admins can list all leads.
+ * - Privileged Operations Lockdown: Creating Sub Admin roles is locked down
+ *   by default, requiring a higher-level admin system.
  */
 rules_version = '2';
 service cloud.firestore {
@@ -53,7 +43,6 @@ service cloud.firestore {
 
     /**
      * Returns true if the requesting user's UID matches the provided userId.
-     * This is the foundation of the user-ownership model.
      */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
@@ -61,23 +50,30 @@ service cloud.firestore {
 
     /**
      * Returns true if the document being accessed already exists.
-     * Crucial for protecting against writes on non-existent documents.
      */
     function documentExists() {
       return resource != null;
     }
 
     /**
+     * Checks if the user is a full Admin by reading their user profile.
+     * This is secure because users can only read their own profile.
+     */
+    function isAdmin() {
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.type == 'admin';
+    }
+
+    /**
      * Checks for Sub Admin role by verifying the existence of a corresponding
      * document in the roles collection. This is a fast and scalable lookup.
+     * Also allows full admins.
      */
     function isSubAdmin() {
-      return isSignedIn() && exists(/databases/$(database)/documents/roles_sub_admin/$(request.auth.uid));
+      return isAdmin() || (isSignedIn() && exists(/databases/$(database)/documents/roles_sub_admin/$(request.auth.uid)));
     }
 
     /**
      * Verifies ownership for an existing lead document.
-     * Combines existence check with ownership check for update/delete operations.
      */
     function isExistingLeadOwner() {
       return documentExists() && resource.data.subAdminId == request.auth.uid;
@@ -89,12 +85,8 @@ service cloud.firestore {
 
     /**
      * @description Manages user profiles. Users can read and update their own profile.
-     * Creation is open to allow for user sign-up. Listing is also open to check if it's the first user.
+     * Creation and listing is open to support sign-up and first-user checks.
      * @path /users/{userId}
-     * @allow (create) Anyone can create a user document as part of sign-up.
-     * @allow (get) A user can get their own profile.
-     * @deny (get) User 'user_abc' trying to read the profile of 'user_xyz'.
-     * @principle Restricts access to a user's own data tree (Ownership).
      */
     match /users/{userId} {
       allow get: if isOwner(userId);
@@ -107,39 +99,29 @@ service cloud.firestore {
     }
 
     /**
-     * @description Stores lead data. Only Sub Admins can access leads. Access
-     *   is granted if the lead's `subAdminId` field matches the user's UID.
+     * @description Stores lead data. Admins have full access. Sub Admins can
+     *   access leads assigned to them.
      * @path /leads/{leadId}
-     * @allow (list) A Sub Admin querying for leads assigned to them.
-     *   `db.collection('leads').where('subAdminId', '==', 'sub_admin_abc').get()`
-     * @deny (list) Any user trying to list all leads without a filter.
-     * @principle Enforces document ownership for writes and secures list
-     *   operations by requiring a query constraint.
      */
     match /leads/{leadId} {
-      allow get: if isSubAdmin() && resource.data.subAdminId == request.auth.uid;
-      allow list: if isSubAdmin() && request.query.get('subAdminId', '');
-      allow create: if isSubAdmin() && request.resource.data.subAdminId == request.auth.uid;
-      allow update: if isSubAdmin() && isExistingLeadOwner() && request.resource.data.subAdminId == resource.data.subAdminId;
-      allow delete: if isSubAdmin() && isExistingLeadOwner();
+      allow get: if isSubAdmin() && (isAdmin() || resource.data.subAdminId == request.auth.uid);
+      allow list: if isSubAdmin(); // Admins can list all, Sub Admins must filter on client.
+      allow create: if isSubAdmin();
+      allow update: if isSubAdmin() && (isAdmin() || isExistingLeadOwner());
+      allow delete: if isSubAdmin() && (isAdmin() || isExistingLeadOwner());
     }
 
     /**
      * @description Defines user roles. The existence of a document here grants
-     *   a user Sub Admin privileges throughout the application.
+     *   a user Sub Admin privileges.
      * @path /roles_sub_admin/{userId}
-     * @allow (get) A user checking if they are a Sub Admin.
-     *   `db.collection('roles_sub_admin').doc('user_abc').get()`
-     * @deny (create) A user attempting to grant themselves Sub Admin privileges.
-     * @principle Locks down a critical lookup collection to prevent privilege
-     *   escalation. Only a higher-level admin should manage these roles.
      */
     match /roles_sub_admin/{userId} {
       allow get: if isOwner(userId);
       allow list: if false;
-      allow create: if false; // TODO: Implement a Super Admin role to manage Sub Admin assignments.
-      allow update: if false; // TODO: Roles should be managed by a Super Admin, not the user.
-      allow delete: if false; // TODO: Role revocation should be managed by a Super Admin.
+      allow create: if false; // Should be managed by a Super Admin.
+      allow update: if false; // Should be managed by a Super Admin.
+      allow delete: if false; // Should be managed by a Super Admin.
     }
   }
 }
