@@ -1,0 +1,125 @@
+{
+  "entities": {
+    "Lead": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Lead",
+      "type": "object",
+      "description": "Represents a lead generated in the system.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the lead."
+        },
+        "state": {
+          "type": "string",
+          "description": "The state where the lead was generated."
+        },
+        "city": {
+          "type": "string",
+          "description": "The city where the lead was generated."
+        },
+        "dateGenerated": {
+          "type": "string",
+          "description": "The date and time when the lead was generated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "state",
+        "city",
+        "dateGenerated"
+      ]
+    },
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user."
+        },
+        "username": {
+          "type": "string",
+          "description": "The username of the user."
+        },
+        "type": {
+          "type": "string",
+          "description": "The type or role of the user (e.g., SUB ADMIN)."
+        },
+        "lastLogin": {
+          "type": "string",
+          "description": "The date and time of the user's last login.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "username",
+        "type",
+        "lastLogin"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profiles.  Includes the 'type' field, which defines the user's role (e.g., SUB ADMIN).",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/leads/{leadId}",
+        "definition": {
+          "entityName": "Lead",
+          "schema": {
+            "$ref": "#/backend/entities/Lead"
+          },
+          "description": "Stores lead data.  Includes denormalized 'subAdminId' to facilitate authorization independence.  A subadmin can access leads associated with their ID.",
+          "params": [
+            {
+              "name": "leadId",
+              "description": "The unique identifier for the lead."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/roles_sub_admin/{userId}",
+        "definition": {
+          "entityName": "roles_sub_admin",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Indicates that a user is a sub admin. Existence of the document grants sub admin privileges.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to provide a secure, scalable, and easily maintainable data model for the LeadView application, focusing on authorization independence and efficient querying. It separates user data and lead data, enabling role-based access control and optimizing data retrieval for analytics.\n\n**Authorization Independence:** The design avoids hierarchical authorization dependencies by denormalizing the sub admin user id into the leads documents. This allows security rules to validate access based on data within the document itself, avoiding expensive and brittle `get()` calls.\n\n**QAPs Support:** The structure supports the required QAPs through structural segregation. User data, with its specific access requirements, is stored separately from lead data. This segregation allows for simple and secure `list` operations on each collection, preventing unauthorized data access. Furthermore, storing leads in a flat `/leads` collection along with the sub admin id allows for efficient querying and aggregation across all leads based on the sub admin user.\n\n**Structure Overview:**\n\n*   `/users/{userId}`: Stores user profiles, including role information (type).\n*   `/leads/{leadId}`: Stores lead data, denormalizing the `userId` of the sub admin responsible for the lead to ensure authorization independence.\n*   `/roles_sub_admin/{userId}`: Indicates that a user is a sub admin. Used for existence-based role checks in security rules. A user's presence in this collection grants them sub admin privileges."
+  }
+}
