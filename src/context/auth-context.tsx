@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, {
@@ -129,7 +130,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setIsAuthLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, pass);
-      router.push('/');
+      // Let the onAuthStateChanged listener handle the rest
       return true;
     } catch (error: any) {
       console.error('Login failed:', error);
@@ -175,7 +176,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const email = `${username.toLowerCase()}@example.com`;
 
     try {
-      // Create user in Firebase Auth
+      // 1. Create user in Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
@@ -183,7 +184,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       );
       const newFirebaseUser = userCredential.user;
 
-      // Create user document in Firestore
+      // 2. The onAuthStateChanged listener will pick up this new user.
+      // We must now create the Firestore document *as this newly signed-in user*.
+
+      // 3. Create user document in Firestore
       const userDocRef = doc(firestore, 'users', newFirebaseUser.uid);
       await setDoc(userDocRef, {
         id: newFirebaseUser.uid,
@@ -192,7 +196,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         lastLogin: new Date().toISOString(),
       });
 
-      // After successful creation, update the setup status
+      // After successful creation, log the user out so they can log in manually
+      await signOut(auth);
+
+      // Re-check setup status
       await checkInitialSetup();
 
       return { success: true, message: 'User created successfully.' };
@@ -201,7 +208,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (error.code === 'auth/email-already-in-use') {
         return { success: false, message: 'This username is already taken.' };
       }
-      return { success: false, message: 'Failed to create user.' };
+      return { success: false, message: `Failed to create user: ${error.message}` };
     }
   };
 
