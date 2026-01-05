@@ -34,7 +34,7 @@ type AuthContextType = {
   isAuthenticated: boolean;
   user: User | null;
   isAuthLoading: boolean;
-  login: (email: string, pass: string) => Promise<boolean>;
+  login: (username: string, pass: string) => Promise<boolean>;
   logout: () => void;
   changePassword: (oldPass: string, newPass: string) => Promise<boolean>;
 };
@@ -65,11 +65,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           role: (userData.role as UserRole) || 'admin',
         };
       }
-      return {
+      // If user doc doesn't exist, create it for the logged in user.
+      // This handles the case where the user was created in Auth but not Firestore.
+      const username = currentFirebaseUser.email?.split('@')[0] || 'admin';
+      const newUser = {
         uid: currentFirebaseUser.uid,
-        username: currentFirebaseUser.email?.split('@')[0] || 'admin',
+        username: username,
         role: 'admin' as UserRole,
       };
+      await setDoc(userDocRef, {
+        id: newUser.uid,
+        username: newUser.username,
+        type: newUser.role,
+        lastLogin: new Date().toISOString(),
+      });
+      return newUser;
     },
     [firestore]
   );
@@ -87,8 +97,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [isFirebaseUserLoading, firebaseUser, fetchUserRole]);
 
-  const login = async (email: string, pass: string): Promise<boolean> => {
+  const login = async (username: string, pass: string): Promise<boolean> => {
     if (!auth || !firestore) return false;
+    
+    // Construct email from username
+    const email = `${username.toLowerCase()}@example.com`;
+
     setIsAuthLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, pass);
@@ -96,7 +110,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return true;
     } catch (error: any) {
       if (error.code === 'auth/user-not-found') {
-        // If the admin user does not exist, create it.
+        // If the user does not exist, create it. This is useful for first-time setup.
         try {
           const userCredential = await createUserWithEmailAndPassword(
             auth,
@@ -105,11 +119,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           );
           const userDocRef = doc(firestore, 'users', userCredential.user.uid);
           await setDoc(userDocRef, {
-            username: email.split('@')[0],
+            username: username,
             role: 'admin',
             id: userCredential.user.uid,
           });
-          // After creating, sign in again is handled by the auth state listener
+          // Auth state listener will handle setting the user and loading state
           router.push('/');
           return true;
         } catch (creationError) {
