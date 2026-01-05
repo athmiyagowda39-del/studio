@@ -13,7 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Check, ChevronsUpDown, Download, UploadCloud } from 'lucide-react';
 import { Card, CardContent } from '../ui/card';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import * as XLSX from 'xlsx';
 import {
   Table,
@@ -120,6 +120,46 @@ export default function LeadUploadForm() {
   const [parsedData, setParsedData] = useState<ParsedData | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (formData.pincode.length === 6) {
+      fetch(`https://api.postalpincode.in/pincode/${formData.pincode}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data && data[0].Status === 'Success') {
+            const postOffice = data[0].PostOffice[0];
+            setFormData(prev => ({
+              ...prev,
+              state: postOffice.State,
+              district: postOffice.District,
+            }));
+            toast({
+              title: 'Location Found',
+              description: `State and District have been auto-filled for pincode ${formData.pincode}.`,
+            });
+          } else {
+             setFormData(prev => ({
+              ...prev,
+              state: '',
+              district: '',
+            }));
+            toast({
+              variant: 'destructive',
+              title: 'Invalid Pincode',
+              description: `No details found for pincode ${formData.pincode}.`,
+            });
+          }
+        })
+        .catch(error => {
+          console.error("Error fetching pincode details:", error);
+          toast({
+              variant: 'destructive',
+              title: 'API Error',
+              description: 'Could not fetch pincode details.',
+            });
+        });
+    }
+  }, [formData.pincode, toast]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
@@ -351,7 +391,7 @@ export default function LeadUploadForm() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 mt-4">
           <div className="space-y-2 md:col-span-2">
             <Label htmlFor="pincode">Pin code <span className="text-destructive">*</span></Label>
-            <Input id="pincode" value={formData.pincode} onChange={handleInputChange} />
+            <Input id="pincode" value={formData.pincode} onChange={handleInputChange} maxLength={6} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="company">Company</Label>
@@ -361,24 +401,24 @@ export default function LeadUploadForm() {
             <Label htmlFor="contactPerson">Contact person <span className="text-destructive">*</span></Label>
             <Input id="contactPerson" value={formData.contactPerson} onChange={handleInputChange} required />
           </div>
-          <div className="space-y-2 md:col-span-2">
+           <div className="space-y-2 md:col-span-2">
             <Label htmlFor="address">Address <span className="text-destructive">*</span></Label>
             <Input id="address" value={formData.address} onChange={handleInputChange} required />
           </div>
           <div className="space-y-2">
             <Label htmlFor="state">State</Label>
-            <Input id="state" value={formData.state} onChange={handleInputChange} />
+            <Input id="state" value={formData.state} onChange={(e) => handleSelectChange('state', e.target.value)} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="district">District</Label>
-            <Input id="district" value={formData.district} onChange={handleInputChange} />
+            <Input id="district" value={formData.district} onChange={(e) => handleSelectChange('district', e.target.value)} />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="contactNumber">Contact Number <span className="text-destructive">*</span></Label>
+             <Label htmlFor="contactNumber">Contact Number <span className="text-destructive">*</span></Label>
             <Input id="contactNumber" value={formData.contactNumber} onChange={handleInputChange} required />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+             <Label htmlFor="email">Email</Label>
             <Input id="email" type="email" value={formData.email} onChange={handleInputChange} />
           </div>
           <div className="space-y-2">
