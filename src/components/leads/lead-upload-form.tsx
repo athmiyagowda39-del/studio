@@ -346,12 +346,11 @@ export default function LeadUploadForm() {
     <div className="space-y-6">
       <div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 mt-4">
-          {/* Left Column */}
-          <div className="space-y-4">
-             <div className="space-y-2">
+          <div className="space-y-2 md:col-span-2">
               <Label htmlFor="pincode">Pincode</Label>
               <Input id="pincode" value={formData.pincode} onChange={handleInputChange} />
-            </div>
+          </div>
+          <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="company">Company</Label>
               <Input id="company" value={formData.company} onChange={handleInputChange} />
@@ -419,7 +418,6 @@ export default function LeadUploadForm() {
             </div>
           </div>
 
-          {/* Right Column */}
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="contactPerson">Contact person <span className="text-destructive">*</span></Label>
@@ -525,5 +523,7 @@ export default function LeadUploadForm() {
     </div>
   );
 }
+
+    
 
     
