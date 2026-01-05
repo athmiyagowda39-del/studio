@@ -17,11 +17,9 @@ import {
   updatePassword,
   reauthenticateWithCredential,
   EmailAuthProvider,
+  createUserWithEmailAndPassword,
 } from 'firebase/auth';
-import {
-  doc,
-  getDoc,
-} from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { useFirebase, useUser } from '@/firebase';
 
 type UserRole = 'admin' | 'user';
@@ -47,7 +45,8 @@ export const AuthContext = createContext<AuthContextType | undefined>(
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { auth, firestore } = useFirebase();
-  const { user: firebaseUser, isUserLoading: isFirebaseUserLoading } = useUser();
+  const { user: firebaseUser, isUserLoading: isFirebaseUserLoading } =
+    useUser();
   const [user, setUser] = useState<User | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const router = useRouter();
@@ -63,16 +62,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           uid: currentFirebaseUser.uid,
           username:
             userData.username || currentFirebaseUser.email || 'Unnamed',
-          role: userData.role || 'admin', // Default to admin for the single user
+          role: (userData.role as UserRole) || 'admin',
         };
       }
-      // If user doc doesn't exist, assume admin for simplicity.
-      // The user must be created in Firebase console first.
       return {
-         uid: currentFirebaseUser.uid,
-         username: currentFirebaseUser.email?.split('@')[0] || 'admin',
-         role: 'admin' as UserRole,
-      }
+        uid: currentFirebaseUser.uid,
+        username: currentFirebaseUser.email?.split('@')[0] || 'admin',
+        role: 'admin' as UserRole,
+      };
     },
     [firestore]
   );
@@ -91,13 +88,36 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [isFirebaseUserLoading, firebaseUser, fetchUserRole]);
 
   const login = async (email: string, pass: string): Promise<boolean> => {
-    if (!auth) return false;
+    if (!auth || !firestore) return false;
     setIsAuthLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, pass);
       router.push('/');
       return true;
-    } catch (error) {
+    } catch (error: any) {
+      if (error.code === 'auth/user-not-found') {
+        // If the admin user does not exist, create it.
+        try {
+          const userCredential = await createUserWithEmailAndPassword(
+            auth,
+            email,
+            pass
+          );
+          const userDocRef = doc(firestore, 'users', userCredential.user.uid);
+          await setDoc(userDocRef, {
+            username: email.split('@')[0],
+            role: 'admin',
+            id: userCredential.user.uid,
+          });
+          // After creating, sign in again is handled by the auth state listener
+          router.push('/');
+          return true;
+        } catch (creationError) {
+          console.error('Failed to create default admin user:', creationError);
+          setIsAuthLoading(false);
+          return false;
+        }
+      }
       console.error('Login failed:', error);
       setIsAuthLoading(false);
       return false;
