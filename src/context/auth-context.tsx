@@ -89,31 +89,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const createDefaultAdmin = useCallback(async () => {
     if (!auth || !firestore) return;
      try {
-        // Temporarily sign out to create the admin user without conflicts
+      const adminEmail = 'admin@example.com';
+      const adminPass = 'password';
+
+      // Temporarily sign out any active user to avoid conflicts
       if (auth.currentUser) {
         await signOut(auth);
       }
       
-      const adminEmail = 'admin@example.com';
-      const adminPass = 'password';
-      
       const userCredential = await createUserWithEmailAndPassword(auth, adminEmail, adminPass);
       const newUser = userCredential.user;
       
+      // The new user is now authenticated. We can safely write to Firestore.
       const userDocRef = doc(firestore, 'users', newUser.uid);
       await setDoc(userDocRef, {
         username: 'admin',
         role: 'admin',
       });
 
-      console.log('Default admin user created.');
-      // After creation, sign the new admin user in to continue the session
-      await signInWithEmailAndPassword(auth, adminEmail, adminPass);
+      console.log('Default admin user created and profile stored.');
       
     } catch (error: any) {
-        // If admin already exists in auth but not firestore, just sign in
         if (error.code === 'auth/email-already-in-use') {
              try {
+                // If user exists in Auth, just sign them in to ensure session is active
+                // for subsequent operations or page loads.
                 await signInWithEmailAndPassword(auth, 'admin@example.com', 'password');
              } catch (signInError) {
                 console.error('Failed to sign in default admin after creation attempt:', signInError);
@@ -151,12 +151,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!isFirebaseUserLoading && firebaseUser) {
       fetchUserRole(firebaseUser).then((roleInfo) => {
         setUser(roleInfo);
-        fetchAllUsers(); // Fetch all users after getting current user role
+        if (roleInfo?.role === 'admin') {
+          fetchAllUsers();
+        }
         setIsAuthLoading(false);
       });
     } else if (!isFirebaseUserLoading) {
       setUser(null);
-       fetchAllUsers(); // Still check for users to create default admin if none exist
+      // Check for users to create default admin if none exist, even if logged out.
+      fetchAllUsers(); 
       setIsAuthLoading(false);
     }
   }, [isFirebaseUserLoading, firebaseUser, fetchUserRole, fetchAllUsers]);
@@ -212,6 +215,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // This is tricky client-side. We need to create the user, sign out,
     // then sign the original user back in.
     const originalUser = auth.currentUser;
+    const originalUserEmail = originalUser?.email;
+    // IMPORTANT: This is a simplified demo. In a real app, you would not have the original user's password.
+    // This flow would need to be handled by a backend function (e.g., a Firebase Function) with admin privileges.
+    const originalUserPassword = "password"; // This is a placeholder and a security risk.
 
     try {
       const userCredential = await createUserWithEmailAndPassword(
@@ -231,20 +238,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       // Sign out the new user and sign back in the original user
       await signOut(auth);
-      if (originalUser && originalUser.email) {
-          // This is a simplified re-login. A real app would need to securely
-          // handle the original user's password or use a different flow.
-          // For this app's context, we assume we can re-authenticate.
-          console.warn("Re-authentication flow is simplified for this context.");
+      if (originalUserEmail) {
+          await signInWithEmailAndPassword(auth, originalUserEmail, originalUserPassword).catch(reauthError => {
+            console.error("Could not re-authenticate original user. They may need to log in again.", reauthError);
+            router.push('/login');
+          });
       }
 
       return true;
     } catch (error) {
       console.error('Failed to add user:', error);
       // Ensure original user is signed in if something goes wrong
-       if (originalUser && auth.currentUser?.uid !== originalUser.uid) {
-           // Simplified re-login
-           console.error("Attempting to restore original user session.");
+       if (originalUser && auth.currentUser?.uid !== originalUser.uid && originalUserEmail) {
+           await signInWithEmailAndPassword(auth, originalUserEmail, originalUserPassword).catch(reauthError => {
+            console.error("Could not re-authenticate original user. They may need to log in again.", reauthError);
+            router.push('/login');
+          });
        }
       return false;
     }

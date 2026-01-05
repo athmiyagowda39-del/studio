@@ -98,6 +98,7 @@ service cloud.firestore {
     match /users/{userId} {
       allow get: if isOwner(userId);
       allow list: if isSignedIn();
+      // Allow a user to create their own user document. This is crucial for sign-up.
       allow create: if isOwner(userId);
       allow update: if isOwner(userId) && documentExists() && request.resource.data.id == resource.data.id;
       allow delete: if false;
