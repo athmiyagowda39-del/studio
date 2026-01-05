@@ -149,12 +149,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const email = `${username.toLowerCase()}@example.com`;
 
     try {
-      const usersCollectionRef = collection(firestore, 'users');
-      const q = query(usersCollectionRef, limit(1));
-      const querySnapshot = await getDocs(q);
-      const isFirstUser = querySnapshot.empty;
-      
-      const finalRole: UserRole = isFirstUser ? 'admin' : role;
+      // All new users will be admins for simplicity
+      const finalRole: UserRole = 'admin';
 
       const userCredential = await createUserWithEmailAndPassword(
         auth,
@@ -171,6 +167,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         lastLogin: new Date().toISOString(),
       });
       
+      // Sign out the user immediately after creation so they can log in
       await signOut(auth);
 
       return { success: true, message: 'User created successfully.' };
