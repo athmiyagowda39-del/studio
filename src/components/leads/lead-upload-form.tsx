@@ -190,25 +190,7 @@ export default function LeadUploadForm() {
     return true;
   }
 
-  const saveLeadsToFirestore = async (leads: LeadFormData[]) => {
-    if (!firestore) return;
-    const promises = leads.map(lead => {
-      const leadRef = doc(firestore, 'leads', lead.leadId);
-      return setDoc(leadRef, lead);
-    });
-    try {
-      await Promise.all(promises);
-    } catch (error: any) {
-       console.error("Could not save leads to Firestore", error);
-      toast({
-        variant: "destructive",
-        title: "Firestore Error",
-        description: `Could not save leads: ${error.message}`,
-      });
-    }
-  }
-
-  const handleSaveLeads = (leadsToSave?: Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId'>[]) => {
+  const handleSaveLeads = async () => {
     if (!user || !firestore) {
       toast({
         variant: 'destructive',
@@ -217,43 +199,37 @@ export default function LeadUploadForm() {
       });
       return;
     }
-    
-    let leadsToProcess: Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId' | 'givenBy'>[] = leadsToSave || [];
 
-    if (leadsToProcess.length === 0) {
-      if (validateLead(formData)) {
-        leadsToProcess.push(formData);
-      } else {
-        return;
-      }
-    }
-    
-    if (leadsToProcess.length === 0) {
-         toast({
-            variant: "destructive",
-            title: "No leads to save",
-            description: "Please add or enter at least one valid lead before saving.",
-        });
-        return;
+    if (!validateLead(formData)) {
+      return;
     }
 
     const now = Date.now();
-    const leadsWithIds = leadsToProcess.map((lead, index) => ({
-      ...(lead as LeadFormData),
-      leadId: `LEAD-${now}-${index}`,
+    const leadWithId: LeadFormData = {
+      ...formData,
+      leadId: `LEAD-${now}`,
       creationDate: now,
       status: 'Not viewed',
       givenBy: user.username,
       subAdminId: user.uid,
-    }));
+    };
 
-    saveLeadsToFirestore(leadsWithIds);
-    
-    toast({
-        title: "Leads saved successfully",
-        description: `${leadsWithIds.length} lead(s) have been successfully saved.`,
-    });
-    resetForm();
+    try {
+      const leadRef = doc(firestore, 'leads', leadWithId.leadId);
+      await setDoc(leadRef, leadWithId);
+      toast({
+        title: "Lead saved successfully",
+        description: `Lead ${leadWithId.leadId} has been successfully saved.`,
+      });
+      resetForm();
+    } catch (error: any) {
+      console.error("Could not save lead to Firestore", error);
+      toast({
+        variant: "destructive",
+        title: "Firestore Error",
+        description: `Could not save lead: ${error.message}`,
+      });
+    }
   };
 
   const handleBrowseFileClick = () => {
@@ -312,60 +288,93 @@ export default function LeadUploadForm() {
   
   const handleConfirmUpload = () => {
     if (!selectedFile) {
-        toast({
-            variant: "destructive",
-            title: "No file selected",
-            description: "Please select a file to upload.",
-        });
+      toast({
+        variant: 'destructive',
+        title: 'No file selected',
+        description: 'Please select a file to upload.',
+      });
       return;
     }
-    
-    processFile(selectedFile, (json) => {
-        if (json.length < 2) {
-            toast({
-                variant: "destructive",
-                title: "Empty File",
-                description: "The selected file has no data rows.",
-            });
-            return;
-        }
+    if (!user || !firestore) {
+      toast({
+        variant: 'destructive',
+        title: 'Authentication Error',
+        description: 'You must be logged in to upload leads.',
+      });
+      return;
+    }
 
-        const headers = (json[0] as string[]).map(h => h.toString().trim());
-        const lowerCaseHeaders = headers.map(h => h.toLowerCase().replace(/\s+/g, ''));
-        
-        const leadsFromFile: Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId'>[] = json.slice(1).map((row: any[]) => {
-            const lead: any = {};
-            lowerCaseHeaders.forEach((header, index) => {
-                lead[header] = row[index];
-            });
+    processFile(selectedFile, async (json) => {
+      if (json.length < 2) {
+        toast({
+          variant: 'destructive',
+          title: 'Empty File',
+          description: 'The selected file has no data rows.',
+        });
+        return;
+      }
 
-            return {
-                pincode: lead.pincode?.toString() || '',
-                state: lead.state || '',
-                district: lead.district || '',
-                address: lead.address || '',
-                contactPerson: lead.contactperson || '',
-                contactNumber: lead.contactnumber?.toString() || '',
-                reference: lead.reference || '',
-                email: lead.email || '',
-                company: lead.company || '',
-                headcount: lead.headcount?.toString() || '',
-                sector: lead.sector || '',
-                selectedModule: lead.selectedmodule || lead.module || '',
-                toDealer: false, // Default value
-            };
+      const headers = (json[0] as string[]).map((h) =>
+        h.toString().trim().toLowerCase().replace(/\s+/g, '')
+      );
+      const now = Date.now();
+
+      const leadsFromFile: LeadFormData[] = json.slice(1).map((row: any[], index) => {
+        const lead: any = {};
+        headers.forEach((header, i) => {
+          lead[header] = row[i];
         });
 
-        if (leadsFromFile.length > 0) {
-            handleSaveLeads(leadsFromFile);
-        } else {
-             toast({
-                variant: "destructive",
-                title: "No leads found",
-                description: "The file does not contain any leads to upload.",
-            });
-        }
+        return {
+          pincode: lead.pincode?.toString() || '',
+          state: lead.state || '',
+          district: lead.district || '',
+          address: lead.address || '',
+          contactPerson: lead.contactperson || '',
+          contactNumber: lead.contactnumber?.toString() || '',
+          reference: lead.reference || '',
+          email: lead.email || '',
+          company: lead.company || '',
+          headcount: lead.headcount?.toString() || '',
+          sector: lead.sector || '',
+          selectedModule: lead.selectedmodule || lead.module || '',
+          toDealer: false, // Default value
+          leadId: `LEAD-${now}-${index}`,
+          creationDate: now,
+          status: 'Not viewed',
+          givenBy: user.username,
+          subAdminId: user.uid,
+        };
       });
+
+      if (leadsFromFile.length > 0) {
+        try {
+          const promises = leadsFromFile.map((lead) => {
+            const leadRef = doc(firestore, 'leads', lead.leadId);
+            return setDoc(leadRef, lead);
+          });
+          await Promise.all(promises);
+          toast({
+            title: 'Leads saved successfully',
+            description: `${leadsFromFile.length} lead(s) have been successfully saved.`,
+          });
+          resetForm();
+        } catch (error: any) {
+          console.error('Could not save leads to Firestore', error);
+          toast({
+            variant: 'destructive',
+            title: 'Firestore Error',
+            description: `Could not save leads: ${error.message}`,
+          });
+        }
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'No leads found',
+          description: 'The file does not contain any leads to upload.',
+        });
+      }
+    });
   };
 
 
@@ -543,7 +552,7 @@ export default function LeadUploadForm() {
       </div>
       <div className="flex justify-end gap-2">
         <Button variant="outline" onClick={resetForm}>Reset</Button>
-        <Button onClick={() => handleSaveLeads()}>Save Lead</Button>
+        <Button onClick={handleSaveLeads}>Save Lead</Button>
       </div>
 
       <div className="space-y-4 pt-6 border-t">
