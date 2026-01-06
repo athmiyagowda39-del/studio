@@ -113,7 +113,7 @@ export default function LeadsUpdatePage() {
   const [allLeads, setAllLeads] = useState<LeadFormData[]>([]);
   
   const [filteredLeads, setFilteredLeads] = useState<LeadFormData[]>([]);
-  const [showResults, setShowResults] = useState(true);
+  const [showResults, setShowResults] = useState(false);
   const [activeQuickFilter, setActiveQuickFilter] = useState('All Leads');
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -127,17 +127,14 @@ export default function LeadsUpdatePage() {
     const leads = getLeadsFromLocalStorage();
     setAllLeads(leads);
     setFilteredLeads(leads);
-    setShowResults(true);
+    // setShowResults(false) to hide on initial load
+    setShowResults(false);
     setActiveQuickFilter('All Leads');
 
     // Listen for storage changes to update leads in real-time
     const handleStorageChange = () => {
       const updatedLeads = getLeadsFromLocalStorage();
       setAllLeads(updatedLeads);
-      // Re-apply filters with new data
-      // For simplicity, this example just resets to all leads.
-      // A more robust solution might re-run handleShowClick().
-      setFilteredLeads(updatedLeads);
     };
 
     window.addEventListener('storage', handleStorageChange);
@@ -236,7 +233,7 @@ export default function LeadsUpdatePage() {
     } else {
       setFilteredLeads([]);
     }
-    setShowResults(true);
+    setShowResults(false);
     setActiveQuickFilter('All Leads');
     setSelectedLeadId(null);
   };
