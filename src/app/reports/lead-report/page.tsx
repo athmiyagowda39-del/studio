@@ -353,7 +353,7 @@ export default function LeadReportPage() {
                 </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+            <>
               <div className="space-y-4">
                 <h2 className="text-xl font-semibold mb-4">
                   Lead Status Breakdown for {selectedState}
@@ -368,14 +368,12 @@ export default function LeadReportPage() {
                   </div>
                 ))}
               </div>
-              <div className="flex justify-center">
-                {chartData.some(d => d.value > 0) ? <LeadStatusChart data={chartData} /> : <div className="flex items-center justify-center h-full text-muted-foreground">No data to display in chart</div>}
+              <div className="flex justify-center mt-8">
+                <LeadStatusChart data={chartData} />
               </div>
-            </div>
+            </>
           )}
         </CardContent>
       </Card>
     </div>
   );
-
-    
