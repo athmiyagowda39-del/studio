@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -306,7 +307,6 @@ export default function LeadReportPage() {
                             <TableHead>District</TableHead>
                             <TableHead>State</TableHead>
                             <TableHead>Reference</TableHead>
-                            <TableHead>Dealer</TableHead>
                             <TableHead>Manager</TableHead>
                             <TableHead>Last Followed Date</TableHead>
                             <TableHead>Last Followed By</TableHead>
@@ -343,15 +343,14 @@ export default function LeadReportPage() {
                                   <TableCell>{lead.district || 'N/A'}</TableCell>
                                   <TableCell>{lead.state || 'N/A'}</TableCell>
                                   <TableCell>{lead.reference || 'N/A'}</TableCell>
-                                  <TableCell>{lead.dealer || 'N/A'}</TableCell>
                                   <TableCell>{lead.manager || 'N/A'}</TableCell>
                                   <TableCell>{lastFollowUp ? lastFollowUp.date : 'N/A'}</TableCell>
                                   <TableCell>{lastFollowUp ? lastFollowUp.enteredBy : 'N/A'}</TableCell>
                                   <TableCell>{nextFollowupDate}</TableCell>
                                   <TableCell>{lastFollowUp ? lastFollowUp.remarks : 'N/A'}</TableCell>
                                   <TableCell>{lead.status || 'N/A'}</TableCell>
-                                  <TableCell>{/* Lead Sub Status - No data */}</TableCell>
-                                  <TableCell>{/* Lead Status Remarks - No data */}</TableCell>
+                                  <TableCell>{lead.leadSubStatus || 'N/A'}</TableCell>
+                                  <TableCell>{lead.leadStatusRemarks || 'N/A'}</TableCell>
                                   <TableCell>{lead.givenBy || 'N/A'}</TableCell>
                                 </TableRow>
                               )
@@ -384,7 +383,7 @@ export default function LeadReportPage() {
                 ))}
               </div>
               <div className="flex justify-center">
-                <LeadStatusChart data={chartData} key={selectedState + selectedSector + selectedHeadcount} />
+                {chartData.length > 0 && <LeadStatusChart data={chartData} key={selectedState + selectedSector + selectedHeadcount} />}
               </div>
             </div>
           )}
@@ -392,4 +391,5 @@ export default function LeadReportPage() {
       </Card>
     </div>
   );
-}
+
+    
