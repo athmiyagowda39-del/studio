@@ -516,10 +516,11 @@ export default function LeadUpdateForm({ leadId, allLeads }: { leadId: string | 
             <div className='flex flex-col gap-4'>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
                     <div className="space-y-2">
-                        <Label htmlFor="lead-id-status" className="shrink-0">Change Status For Lead:</Label>
+                        <Label htmlFor="lead-id-status" className="shrink-0">Initial Remarks:</Label>
                          <Input 
                             id="lead-id-status" 
-                            value={leadIdForStatus}
+                            placeholder="Select Lead..."
+                            value={leadIdForStatus ? `${leadDetails.company} (${leadIdForStatus})` : ''}
                             readOnly
                             className="bg-muted"
                           />
@@ -529,7 +530,7 @@ export default function LeadUpdateForm({ leadId, allLeads }: { leadId: string | 
                         <span className="font-semibold shrink-0">Current Status: {currentStatus}</span>
                         <Select value={selectedStatus} onValueChange={setSelectedStatus} disabled={!leadIdForStatus}>
                         <SelectTrigger className="w-full min-w-[200px]">
-                            <SelectValue placeholder="-- Select New Status --" />
+                            <SelectValue placeholder="-- Select --" />
                         </SelectTrigger>
                         <SelectContent>
                             {leadStatusOptions.map((status) => (
@@ -544,7 +545,7 @@ export default function LeadUpdateForm({ leadId, allLeads }: { leadId: string | 
                 <div className="space-y-2">
                     <Textarea 
                         id="initial-remarks"
-                        placeholder="Enter status remarks..."
+                        placeholder="Enter remarks..."
                         value={initialRemarks}
                         onChange={(e) => setInitialRemarks(e.target.value)}
                         className="min-h-[40px]"
