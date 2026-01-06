@@ -182,7 +182,7 @@ export default function LeadUpdateForm({ leadId, allLeads }: { leadId: string | 
     
     toast({
         title: "Follow-up added",
-        description: "Click 'Save' to persist all changes.",
+        description: "Your follow-up has been recorded.",
     });
   };
 
