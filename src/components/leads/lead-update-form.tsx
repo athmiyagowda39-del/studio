@@ -354,15 +354,10 @@ export default function LeadUpdateForm({ leadId, allLeads }: { leadId: string | 
                   <Label htmlFor="manager">Manager</Label>
                   <Input id="manager" value={leadDetails.manager || ''} onChange={(e) => handleLeadDetailChange('manager', e.target.value)} />
                 </div>
-                 <div className="space-y-2">
-                  <Label htmlFor="dealer">Dealer</Label>
-                  <Input id="dealer" value={leadDetails.dealer || ''} onChange={(e) => handleLeadDetailChange('dealer', e.target.value)} />
-                </div>
               </div>
               <div className="border-t pt-4">
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <p>Dealer Member: {leadDetails.dealer || 'N/A'}</p>
                         <p>Manager: {leadDetails.manager || 'N/A'}</p>
                         <div className="flex items-center space-x-2 mt-2">
                             <Checkbox id="readyToUpdate" />
