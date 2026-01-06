@@ -113,7 +113,7 @@ export default function LeadsUpdatePage() {
   const [allLeads, setAllLeads] = useState<LeadFormData[]>([]);
   
   const [filteredLeads, setFilteredLeads] = useState<LeadFormData[]>([]);
-  const [showResults, setShowResults] = useState(true);
+  const [showResults, setShowResults] = useState(false);
   const [activeQuickFilter, setActiveQuickFilter] = useState('All Leads');
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -235,24 +235,34 @@ export default function LeadsUpdatePage() {
     const leads = getLeadsFromLocalStorage();
     setAllLeads(leads);
 
-    const initialFilteredLeads = applyQuickFilter('All Leads', leads);
-    setFilteredLeads(initialFilteredLeads);
-
     const handleStorageChange = () => {
       const updatedLeads = getLeadsFromLocalStorage();
       setAllLeads(updatedLeads);
+      
+      // Re-apply active filter to refresh the view
+      const newFilteredLeads = applyQuickFilter(activeQuickFilter, updatedLeads);
+      setFilteredLeads(newFilteredLeads);
     };
 
     window.addEventListener('storage', handleStorageChange);
+
+    // Initial load
+    if(!showResults) {
+        const initialFilteredLeads = applyQuickFilter('All Leads', leads);
+        setFilteredLeads(initialFilteredLeads);
+    }
+    
     return () => {
       window.removeEventListener('storage', handleStorageChange);
     };
-  }, [applyQuickFilter]);
+  }, [applyQuickFilter, activeQuickFilter, showResults]);
 
   useEffect(() => {
-    const newFilteredLeads = applyQuickFilter(activeQuickFilter, allLeads);
-    setFilteredLeads(newFilteredLeads);
-  }, [allLeads, activeQuickFilter, applyQuickFilter]);
+    if (showResults) {
+        const newFilteredLeads = applyQuickFilter(activeQuickFilter, allLeads);
+        setFilteredLeads(newFilteredLeads);
+    }
+  }, [allLeads, activeQuickFilter, showResults, applyQuickFilter]);
   
   const handleFilterChange = (field: keyof typeof filters, value: any) => {
     setFilters(prev => ({...prev, [field]: value}));
@@ -271,7 +281,7 @@ export default function LeadsUpdatePage() {
     setFilters(initialFilterState);
     setShowResults(false);
     setActiveQuickFilter('All Leads');
-    setFilteredLeads(allLeads);
+    setFilteredLeads([]);
     setSelectedLeadId(null);
   };
 
