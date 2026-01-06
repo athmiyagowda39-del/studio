@@ -373,7 +373,7 @@ export default function LeadsUpdatePage() {
 
             <LeadUpdateForm leadId={selectedLeadId} allLeads={allLeads} />
 
-        <Collapsible open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+        <Collapsible open={isFilterOpen} onOpenChange={setIsFilterOpen} className="pt-6">
           <CollapsibleTrigger asChild>
             <Button variant="outline" className="w-full justify-between">
               <span>Filter [{isFilterOpen ? 'hide' : 'show'}]</span>
@@ -386,8 +386,7 @@ export default function LeadsUpdatePage() {
           </CollapsibleTrigger>
           <CollapsibleContent>
             <Card className="mt-2">
-              <CardContent className="p-0">
-                <div className="p-4 space-y-4">
+              <CardContent className="p-4 space-y-4">
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-center">
                       <div className="flex items-center gap-2">
@@ -719,7 +718,6 @@ export default function LeadsUpdatePage() {
                       )}
                     </div>
                   </div>
-                </div>
                 <div className="flex justify-end gap-2 p-4 border-t">
                   <Button onClick={handleShowClick}>SHOW</Button>
                   <Button variant="outline" onClick={handleToExcel}>TO EXCEL</Button>
@@ -733,7 +731,7 @@ export default function LeadsUpdatePage() {
         </Collapsible>
         
         {showResults && (
-          <Card>
+          <Card className="mt-6">
             <CardHeader>
               <CardTitle className='text-base'>
                 List of Leads &gt;&gt; [ {activeQuickFilter} ({filteredLeads.length}{' '} Records) ]

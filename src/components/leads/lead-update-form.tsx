@@ -245,7 +245,7 @@ export default function LeadUpdateForm({ leadId, allLeads }: { leadId: string | 
             <CardHeader>
               <CardTitle className="text-base">LEAD CONTACT CARD</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 p-4">
                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
                 <div className="space-y-2 col-span-2">
                   <Label htmlFor="searchLeadId">Lead(id)</Label>
@@ -359,7 +359,7 @@ export default function LeadUpdateForm({ leadId, allLeads }: { leadId: string | 
                   <Input id="dealer" value={leadDetails.dealer || ''} onChange={(e) => handleLeadDetailChange('dealer', e.target.value)} />
                 </div>
               </div>
-              <div className="border-t pt-4 mt-4">
+              <div className="border-t pt-4">
                 <div className="grid grid-cols-2 gap-4">
                     <div>
                         <p>Dealer Member: {leadDetails.dealer || 'N/A'}</p>
@@ -384,7 +384,7 @@ export default function LeadUpdateForm({ leadId, allLeads }: { leadId: string | 
             <CardHeader>
               <CardTitle className="text-base">LEAD TRACKER</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 p-4">
               <div className="space-y-2">
                 <Label htmlFor="transferredLead">TRANSFERRED LEAD</Label>
                 <Popover open={transferredToOpen} onOpenChange={setTransferredToOpen}>
