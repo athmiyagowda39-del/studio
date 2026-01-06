@@ -269,8 +269,6 @@ export default function LeadsUpdatePage() {
 
   const handleResetClick = () => {
     setFilters(initialFilterState);
-    const allLeadsData = getLeadsFromLocalStorage();
-    setFilteredLeads(allLeadsData);
     setShowResults(false);
     setActiveQuickFilter('All Leads');
     setSelectedLeadId(null);
@@ -789,7 +787,6 @@ export default function LeadsUpdatePage() {
                           <TableHead>District</TableHead>
                           <TableHead>State</TableHead>
                           <TableHead>Reference</TableHead>
-                          <TableHead>Dealer</TableHead>
                           <TableHead>Manager</TableHead>
                           <TableHead>Last Followed Date</TableHead>
                           <TableHead>Last Followed By</TableHead>
@@ -816,7 +813,7 @@ export default function LeadsUpdatePage() {
                               <TableRow key={`${lead.leadId}-${index}`} onClick={() => handleRowClick(lead.leadId)} className="cursor-pointer">
                                   <TableCell>{absoluteIndex}</TableCell>
                                   <TableCell>{lead.leadId || 'N/A'}</TableCell>
-                                  <TableCell>{isValidDate ? format(date, 'PPP') : 'N/A'}</TableCell>
+                                  <TableCell>{isValidDate ? format(date, 'PPP') : 'N'A'}</TableCell>
                                   <TableCell>{lead.selectedModule || 'N/A'}</TableCell>
                                   <TableCell>{lead.company || 'N/A'}</TableCell>
                                   <TableCell>{lead.contactPerson || 'N/A'}</TableCell>
@@ -827,7 +824,6 @@ export default function LeadsUpdatePage() {
                                   <TableCell>{lead.district || 'N/A'}</TableCell>
                                   <TableCell>{lead.state || 'N/A'}</TableCell>
                                   <TableCell>{lead.reference || 'N/A'}</TableCell>
-                                  <TableCell>{lead.dealer || 'N/A'}</TableCell>
                                   <TableCell>{lead.manager || 'N/A'}</TableCell>
                                   <TableCell>{lastFollowUp ? lastFollowUp.date : 'N/A'}</TableCell>
                                   <TableCell>{lastFollowUp ? lastFollowUp.enteredBy : 'N/A'}</TableCell>
@@ -842,7 +838,7 @@ export default function LeadsUpdatePage() {
                           })
                           ) : (
                           <TableRow>
-                              <TableCell colSpan={23} className="text-center h-24">
+                              <TableCell colSpan={22} className="text-center h-24">
                               No results
                               </TableCell>
                           </TableRow>
