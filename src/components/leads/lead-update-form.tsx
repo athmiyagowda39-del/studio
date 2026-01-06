@@ -178,6 +178,7 @@ export default function LeadUpdateForm({ leadId, allLeads }: { leadId: string | 
 
 
     setRemarks('');
+    setNextFollowUpDate(undefined);
     
     toast({
         title: "Follow-up added",
