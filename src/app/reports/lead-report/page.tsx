@@ -368,7 +368,7 @@ export default function LeadReportPage() {
                 </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
               <div className="space-y-4">
                 <h2 className="text-xl font-semibold mb-4">
                   Lead Status Breakdown for {selectedState}
