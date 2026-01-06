@@ -12,7 +12,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Check, ChevronsUpDown, Download, UploadCloud } from 'lucide-react';
-import { Card, CardContent } from '../ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { useState, useRef, useEffect } from 'react';
 import * as XLSX from 'xlsx';
 import {
@@ -38,6 +38,7 @@ import {
   CommandList,
 } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
+import { Textarea } from '../ui/textarea';
 
 type ParsedData = (string | number)[][];
 
@@ -78,6 +79,24 @@ export type LeadFormData = {
 };
 
 const sectors = ['IT', 'Finance', 'Healthcare', 'Manufacturing', 'Education', 'Retail', 'Hospitality', 'Telecommunication', 'Construction', 'Real Estate', 'Media & Entertainment', 'Government', 'Non-profit', 'Other'];
+
+const leadStatusOptions = [
+    'Attended',
+    'Not viewed',
+    'Demo Given',
+    'Unattended',
+    'Pursuing to Purchase',
+    'Not interested',
+    'Order closed',
+    'Contacted',
+    'Qualified',
+    'Unqualified',
+    'Follow-up Required',
+    'Fake Lead',
+    'Existing Customer',
+    'Do Not Contact',
+    'Quote Sent',
+];
 
 const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId' | 'givenBy'> = {
     pincode: '',
@@ -558,6 +577,51 @@ export default function LeadUploadForm() {
             </Card>
         </div>
       )}
+
+      <Card>
+        <CardHeader className='bg-primary/10'>
+          <CardTitle className='text-primary text-base font-bold'>Lead Status</CardTitle>
+        </CardHeader>
+        <CardContent className='p-4 space-y-4'>
+            <div className='flex flex-col gap-4'>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+                    <div className="space-y-2">
+                        <Label htmlFor="lead-id-status" className="shrink-0">Initial Remarks:</Label>
+                         <Input 
+                            id="lead-id-status" 
+                            placeholder="Select Lead..."
+                            readOnly
+                            className="bg-muted"
+                          />
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <span className="font-semibold shrink-0">Current Status: N/A</span>
+                        <Select disabled>
+                        <SelectTrigger className="w-full min-w-[200px]">
+                            <SelectValue placeholder="-- Select --" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {leadStatusOptions.map((status) => (
+                                <SelectItem key={status} value={status}>{status}</SelectItem>
+                            ))}
+                        </SelectContent>
+                        </Select>
+                        <Button disabled>Update</Button>
+                    </div>
+                </div>
+                
+                <div className="space-y-2">
+                    <Textarea 
+                        id="initial-remarks"
+                        placeholder="Enter remarks..."
+                        className="min-h-[40px]"
+                        disabled
+                    />
+                </div>
+            </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
