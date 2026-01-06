@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,6 +23,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import { format } from 'date-fns';
+import AppContent from '@/app/app-content';
 
 const allStates = ["All", "Andaman and Nicobar Islands", "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chandigarh", "Chhattisgarh", "Dadra and Nagar Haveli and Daman and Diu", "Delhi", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jammu and Kashmir", "Jharkhand", "Karnataka", "Kerala", "Ladakh", "Lakshadweep", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Puducherry", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"];
 
@@ -173,207 +173,210 @@ export default function LeadReportPage() {
   const shouldShowDetails = selectedStatus && selectedStatus !== 'all-statuses';
 
   return (
-    <div className="flex flex-col gap-6">
-      <Card>
-        <CardHeader className="bg-primary/10">
-          <CardTitle className="text-center text-primary">Lead Report</CardTitle>
-        </CardHeader>
-        <CardContent className="p-6">
-          <div className="mb-6 flex items-center gap-4">
-            <div className="flex items-center gap-2">
-                <span className="font-medium">Select State:</span>
-                <Popover open={openState} onOpenChange={setOpenState}>
-                <PopoverTrigger asChild>
-                    <Button
-                    variant="outline"
-                    role="combobox"
-                    aria-expanded={openState}
-                    className="w-[200px] justify-between"
-                    >
-                    {selectedState}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-[200px] p-0">
-                    <Command>
-                    <CommandInput placeholder="Search state..." />
-                    <CommandList>
-                        <CommandEmpty>No state found.</CommandEmpty>
-                        <CommandGroup>
-                        {allStates.map((state) => (
-                            <CommandItem
-                            key={state}
-                            value={state.toLowerCase()}
-                            onSelect={handleStateSelect}
-                            >
-                            <Check
-                                className={cn(
-                                'mr-2 h-4 w-4',
-                                selectedState === state
-                                    ? 'opacity-100'
-                                    : 'opacity-0'
-                                )}
-                            />
-                            {state}
-                            </CommandItem>
-                        ))}
-                        </CommandGroup>
-                    </CommandList>
-                    </Command>
-                </PopoverContent>
-                </Popover>
-            </div>
-            <div className="flex items-center gap-2">
-                <span className="font-medium">Status:</span>
-                <Select value={selectedStatus} onValueChange={handleStatusChange}>
-                    <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Select a status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                         <SelectItem value="all-statuses">All Statuses</SelectItem>
-                        {leadStatusOptions.map(status => (
-                            <SelectItem key={status} value={status}>
-                                {status}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-            </div>
-            <div className="flex items-center gap-2">
-                <span className="font-medium">Sectors:</span>
-                <Select value={selectedSector} onValueChange={setSelectedSector}>
-                    <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Select a sector" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {sectors.map(sector => (
-                            <SelectItem key={sector} value={sector}>
-                                {sector}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-            </div>
-            <div className="flex items-center gap-2">
-                <span className="font-medium">Headcount:</span>
-                <Select value={selectedHeadcount} onValueChange={setSelectedHeadcount}>
-                    <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Select headcount" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {headcounts.map(count => (
-                            <SelectItem key={count} value={count}>
-                                {count}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-            </div>
-          </div>
-          
-          {shouldShowDetails ? (
-             <div>
-                <h2 className="text-xl font-semibold mb-4">
-                    Leads with status "{selectedStatus}" in {selectedState}: <span className="text-primary font-bold">{filteredLeads.length}</span>
-                </h2>
-                 <div className="overflow-x-auto border rounded-lg">
-                    <Table>
-                        <TableHeader>
-                        <TableRow>
-                            <TableHead>Sl No</TableHead>
-                            <TableHead>Lead Id</TableHead>
-                            <TableHead>Lead Date</TableHead>
-                            <TableHead>Module</TableHead>
-                            <TableHead>Company</TableHead>
-                            <TableHead>Contact</TableHead>
-                            <TableHead>Phone</TableHead>
-                            <TableHead>Emailid</TableHead>
-                            <TableHead>Address</TableHead>
-                            <TableHead>Place</TableHead>
-                            <TableHead>District</TableHead>
-                            <TableHead>State</TableHead>
-                            <TableHead>Reference</TableHead>
-                            <TableHead>Manager</TableHead>
-                            <TableHead>Last Followed Date</TableHead>
-                            <TableHead>Last Followed By</TableHead>
-                            <TableHead>Next followup Date</TableHead>
-                            <TableHead>Last Followup Remarks</TableHead>
-                            <TableHead>Lead Status</TableHead>
-                            <TableHead>Lead Sub Status</TableHead>
-                            <TableHead>Lead Status Remarks</TableHead>
-                            <TableHead>Given By</TableHead>
-                        </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                        {filteredLeads.length > 0 ? (
-                            filteredLeads.map((lead, index) => {
-                              const date = new Date(lead.creationDate);
-                              const isValidDate = !isNaN(date.getTime());
-                              const lastFollowUp = lead.followUps && lead.followUps.length > 0 ? lead.followUps[lead.followUps.length - 1] : null;
-                              const nextFollowupDate = lead.nextFollowUpDate && !isNaN(new Date(lead.nextFollowUpDate).getTime())
-                                ? format(new Date(lead.nextFollowUpDate), 'PPP')
-                                : (lastFollowUp ? lastFollowUp.nextFollowUp : 'N/A');
-
-                              return (
-                                <TableRow key={`${lead.leadId}-${index}`}>
-                                  <TableCell>{index + 1}</TableCell>
-                                  <TableCell>{lead.leadId || 'N/A'}</TableCell>
-                                  <TableCell>{isValidDate ? format(date, 'PPP') : 'N/A'}</TableCell>
-                                  <TableCell>{lead.selectedModule || 'N/A'}</TableCell>
-                                  <TableCell>{lead.company || 'N/A'}</TableCell>
-                                  <TableCell>{lead.contactPerson || 'N/A'}</TableCell>
-                                  <TableCell>{lead.contactNumber || 'N/A'}</TableCell>
-                                  <TableCell>{lead.email || 'N/A'}</TableCell>
-                                  <TableCell>{lead.address || 'N/A'}</TableCell>
-                                  <TableCell>{lead.district || 'N/A'}</TableCell>
-                                  <TableCell>{lead.district || 'N/A'}</TableCell>
-                                  <TableCell>{lead.state || 'N/A'}</TableCell>
-                                  <TableCell>{lead.reference || 'N/A'}</TableCell>
-                                  <TableCell>{lead.manager || 'N/A'}</TableCell>
-                                  <TableCell>{lastFollowUp ? lastFollowUp.date : 'N/A'}</TableCell>
-                                  <TableCell>{lastFollowUp ? lastFollowUp.enteredBy : 'N/A'}</TableCell>
-                                  <TableCell>{nextFollowupDate}</TableCell>
-                                  <TableCell>{lastFollowUp ? lastFollowUp.remarks : 'N/A'}</TableCell>
-                                  <TableCell>{lead.status || 'N/A'}</TableCell>
-                                  <TableCell>{lead.leadSubStatus || 'N/A'}</TableCell>
-                                  <TableCell>{lead.leadStatusRemarks || 'N/A'}</TableCell>
-                                  <TableCell>{lead.givenBy || 'N/A'}</TableCell>
-                                </TableRow>
-                              )
-                            })
-                        ) : (
-                             <TableRow>
-                                <TableCell colSpan={23} className="text-center h-24">
-                                    No leads found for the selected criteria.
-                                </TableCell>
-                            </TableRow>
-                        )}
-                        </TableBody>
-                    </Table>
+    <AppContent>
+        <div className="flex flex-col gap-6">
+        <Card>
+            <CardHeader className="bg-primary/10">
+            <CardTitle className="text-center text-primary">Lead Report</CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+            <div className="mb-6 flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                    <span className="font-medium">Select State:</span>
+                    <Popover open={openState} onOpenChange={setOpenState}>
+                    <PopoverTrigger asChild>
+                        <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={openState}
+                        className="w-[200px] justify-between"
+                        >
+                        {selectedState}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[200px] p-0">
+                        <Command>
+                        <CommandInput placeholder="Search state..." />
+                        <CommandList>
+                            <CommandEmpty>No state found.</CommandEmpty>
+                            <CommandGroup>
+                            {allStates.map((state) => (
+                                <CommandItem
+                                key={state}
+                                value={state.toLowerCase()}
+                                onSelect={handleStateSelect}
+                                >
+                                <Check
+                                    className={cn(
+                                    'mr-2 h-4 w-4',
+                                    selectedState === state
+                                        ? 'opacity-100'
+                                        : 'opacity-0'
+                                    )}
+                                />
+                                {state}
+                                </CommandItem>
+                            ))}
+                            </CommandGroup>
+                        </CommandList>
+                        </Command>
+                    </PopoverContent>
+                    </Popover>
+                </div>
+                <div className="flex items-center gap-2">
+                    <span className="font-medium">Status:</span>
+                    <Select value={selectedStatus} onValueChange={handleStatusChange}>
+                        <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Select a status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all-statuses">All Statuses</SelectItem>
+                            {leadStatusOptions.map(status => (
+                                <SelectItem key={status} value={status}>
+                                    {status}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div className="flex items-center gap-2">
+                    <span className="font-medium">Sectors:</span>
+                    <Select value={selectedSector} onValueChange={setSelectedSector}>
+                        <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Select a sector" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {sectors.map(sector => (
+                                <SelectItem key={sector} value={sector}>
+                                    {sector}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div className="flex items-center gap-2">
+                    <span className="font-medium">Headcount:</span>
+                    <Select value={selectedHeadcount} onValueChange={setSelectedHeadcount}>
+                        <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Select headcount" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {headcounts.map(count => (
+                                <SelectItem key={count} value={count}>
+                                    {count}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                 </div>
             </div>
-          ) : (
-            <>
-              <div className="space-y-4">
-                <h2 className="text-xl font-semibold mb-4">
-                  Lead Status Breakdown for {selectedState}
-                </h2>
-                {leadStatuses.map((item) => (
-                  <div
-                    key={item.status}
-                    className="flex justify-between items-center p-3 border rounded-lg"
-                  >
-                    <span className="font-medium">{item.status}:</span>
-                    <span className="font-bold text-primary">{item.value}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="flex justify-center mt-8">
-                <LeadStatusChart data={chartData} />
-              </div>
-            </>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+            
+            {shouldShowDetails ? (
+                <div>
+                    <h2 className="text-xl font-semibold mb-4">
+                        Leads with status "{selectedStatus}" in {selectedState}: <span className="text-primary font-bold">{filteredLeads.length}</span>
+                    </h2>
+                    <div className="overflow-x-auto border rounded-lg">
+                        <Table>
+                            <TableHeader>
+                            <TableRow>
+                                <TableHead>Sl No</TableHead>
+                                <TableHead>Lead Id</TableHead>
+                                <TableHead>Lead Date</TableHead>
+                                <TableHead>Module</TableHead>
+                                <TableHead>Company</TableHead>
+                                <TableHead>Contact</TableHead>
+                                <TableHead>Phone</TableHead>
+                                <TableHead>Emailid</TableHead>
+                                <TableHead>Address</TableHead>
+                                <TableHead>Place</TableHead>
+                                <TableHead>District</TableHead>
+                                <TableHead>State</TableHead>
+                                <TableHead>Reference</TableHead>
+                                <TableHead>Manager</TableHead>
+                                <TableHead>Last Followed Date</TableHead>
+                                <TableHead>Last Followed By</TableHead>
+                                <TableHead>Next followup Date</TableHead>
+                                <TableHead>Last Followup Remarks</TableHead>
+                                <TableHead>Lead Status</TableHead>
+                                <TableHead>Lead Sub Status</TableHead>
+                                <TableHead>Lead Status Remarks</TableHead>
+                                <TableHead>Given By</TableHead>
+                            </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                            {filteredLeads.length > 0 ? (
+                                filteredLeads.map((lead, index) => {
+                                const date = new Date(lead.creationDate);
+                                const isValidDate = !isNaN(date.getTime());
+                                const lastFollowUp = lead.followUps && lead.followUps.length > 0 ? lead.followUps[lead.followUps.length - 1] : null;
+                                const nextFollowupDate = lead.nextFollowUpDate && !isNaN(new Date(lead.nextFollowUpDate).getTime())
+                                    ? format(new Date(lead.nextFollowUpDate), 'PPP')
+                                    : (lastFollowUp ? lastFollowUp.nextFollowUp : 'N/A');
+
+                                return (
+                                    <TableRow key={`${lead.leadId}-${index}`}>
+                                    <TableCell>{index + 1}</TableCell>
+                                    <TableCell>{lead.leadId || 'N/A'}</TableCell>
+                                    <TableCell>{isValidDate ? format(date, 'PPP') : 'N/A'}</TableCell>
+                                    <TableCell>{lead.selectedModule || 'N/A'}</TableCell>
+                                    <TableCell>{lead.company || 'N/A'}</TableCell>
+                                    <TableCell>{lead.contactPerson || 'N/A'}</TableCell>
+                                    <TableCell>{lead.contactNumber || 'N/A'}</TableCell>
+                                    <TableCell>{lead.email || 'N/A'}</TableCell>
+                                    <TableCell>{lead.address || 'N/A'}</TableCell>
+                                    <TableCell>{lead.district || 'N/A'}</TableCell>
+                                    <TableCell>{lead.district || 'N/A'}</TableCell>
+                                    <TableCell>{lead.state || 'N/A'}</TableCell>
+                                    <TableCell>{lead.reference || 'N/A'}</TableCell>
+                                    <TableCell>{lead.manager || 'N/A'}</TableCell>
+                                    <TableCell>{lastFollowUp ? lastFollowUp.date : 'N/A'}</TableCell>
+                                    <TableCell>{lastFollowUp ? lastFollowUp.enteredBy : 'N/A'}</TableCell>
+                                    <TableCell>{nextFollowupDate}</TableCell>
+                                    <TableCell>{lastFollowUp ? lastFollowUp.remarks : 'N/A'}</TableCell>
+                                    <TableCell>{lead.status || 'N/A'}</TableCell>
+                                    <TableCell>{lead.leadSubStatus || 'N/A'}</TableCell>
+                                    <TableCell>{lead.leadStatusRemarks || 'N/A'}</TableCell>
+                                    <TableCell>{lead.givenBy || 'N/A'}</TableCell>
+                                    </TableRow>
+                                )
+                                })
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan={23} className="text-center h-24">
+                                        No leads found for the selected criteria.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                            </TableBody>
+                        </Table>
+                    </div>
+                </div>
+            ) : (
+                <>
+                <div className="space-y-4">
+                    <h2 className="text-xl font-semibold mb-4">
+                    Lead Status Breakdown for {selectedState}
+                    </h2>
+                    {leadStatuses.map((item) => (
+                    <div
+                        key={item.status}
+                        className="flex justify-between items-center p-3 border rounded-lg"
+                    >
+                        <span className="font-medium">{item.status}:</span>
+                        <span className="font-bold text-primary">{item.value}</span>
+                    </div>
+                    ))}
+                </div>
+                <div className="flex justify-center mt-8">
+                    <LeadStatusChart data={chartData} />
+                </div>
+                </>
+            )}
+            </CardContent>
+        </Card>
+        </div>
+    </AppContent>
   );
+}

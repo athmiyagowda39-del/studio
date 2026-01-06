@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import ConversionFunnelChart from '@/components/reports/conversion-funnel-chart';
 import { useMemo, useState, useEffect } from 'react';
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
+import AppContent from '@/app/app-content';
 
 const funnelStages = [
   'Total Leads',
@@ -74,17 +75,19 @@ export default function ConversionFunnelReportPage() {
   }, [allLeads]);
 
   return (
-    <div className="flex flex-col gap-6">
-      <Card>
-        <CardHeader className="bg-primary/10">
-          <CardTitle className="text-center text-primary">Conversion Funnel Report</CardTitle>
-        </CardHeader>
-        <CardContent className="p-6">
-          <div className="flex justify-center">
-            <ConversionFunnelChart data={funnelData} />
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+    <AppContent>
+      <div className="flex flex-col gap-6">
+        <Card>
+          <CardHeader className="bg-primary/10">
+            <CardTitle className="text-center text-primary">Conversion Funnel Report</CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="flex justify-center">
+              <ConversionFunnelChart data={funnelData} />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </AppContent>
   );
 }

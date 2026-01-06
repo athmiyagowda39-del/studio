@@ -37,6 +37,7 @@ import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import * as XLSX from 'xlsx';
 import LeadUpdateForm from '@/components/leads/lead-update-form';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import AppContent from '../app-content';
 
 const initialFilterState = {
   search: '',
@@ -365,530 +366,532 @@ export default function LeadsUpdatePage() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      <Card>
-        <CardHeader className="bg-primary/10">
-          <CardTitle className="text-center text-primary">UPDATE LEADS</CardTitle>
-        </CardHeader>
-        <CardContent className="p-6">
-           <div className="space-y-4">
-        
-             <Card>
-                <CardContent className="p-4">
-                  <div className="flex flex-wrap items-center justify-around gap-x-4 gap-y-2">
-                    {summaryDisplay.map(item => (
-                      <div key={item.title} className="flex items-center gap-2 text-sm">
-                        <span className="font-medium text-muted-foreground">{item.title}:</span>
-                        <span className="font-bold text-primary">{item.value}</span>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-            <LeadUpdateForm leadId={selectedLeadId} allLeads={allLeads} />
-
-        <Collapsible open={isFilterOpen} onOpenChange={setIsFilterOpen} className="pt-6">
-          <CollapsibleTrigger asChild>
-            <Button variant="outline" className="w-full justify-between">
-              <span>Filter [{isFilterOpen ? 'hide' : 'show'}]</span>
-              {isFilterOpen ? (
-                <ChevronUp className="h-4 w-4" />
-              ) : (
-                <ChevronDown className="h-4 w-4" />
-              )}
-            </Button>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <Card className="mt-2">
-              <CardContent className="p-4 space-y-4">
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-center">
-                      <div className="flex items-center gap-2">
-                        <Label htmlFor="search">Search</Label>
-                        <Input id="search" placeholder="Leave empty for all" value={filters.search} onChange={e => handleFilterChange('search', e.target.value)} />
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <Label>From:</Label>
-                        <RadioGroup value={filters.fromSource} onValueChange={v => handleFilterChange('fromSource', v)} className="flex gap-4">
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="web" id="web-update" />
-                            <Label htmlFor="web-update">Web Downloads</Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="manual" id="manual-update" />
-                            <Label htmlFor="manual-update">Manual Uploads</Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="both" id="both-update" />
-                            <Label htmlFor="both-update">Both</Label>
-                          </div>
-                        </RadioGroup>
-                      </div>
-                    </div>
-                    <div>
-                      <RadioGroup onValueChange={v => handleFilterChange('searchFor', v)} value={filters.searchFor} className="flex flex-wrap gap-4">
-                        <Label>Search for:</Label>
-                        {[
-                          {value: 'leadId', label: 'Lead ID'},
-                          {value: 'company', label: 'Company'},
-                          {value: 'contactPerson', label: 'Contact Person'},
-                          {value: 'contactNumber', label: 'Phone'},
-                          {value: 'district', label: 'District'},
-                          {value: 'state', label: 'State'},
-                          {value: 'email', label: 'Email'},
-                          {value: 'manager', label: 'Manager Name'},
-                        ].map((item) => (
-                          <div className="flex items-center space-x-2" key={item.value}>
-                            <RadioGroupItem
-                              value={item.value}
-                              id={`search-for-update-${item.value}`}
-                            />
-                            <Label htmlFor={`search-for-update-${item.value}`}>
-                              {item.label}
-                            </Label>
-                          </div>
-                        ))}
-                      </RadioGroup>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                      <div className="space-y-1">
-                        <Label htmlFor="from-date-update">From Date</Label>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant={'outline'}
-                              className={cn(
-                                'w-full justify-start text-left font-normal',
-                                !filters.fromDate && 'text-muted-foreground'
-                              )}
-                            >
-                              <CalendarIcon className="mr-2 h-4 w-4" />
-                              {filters.fromDate ? (
-                                format(filters.fromDate, 'PPP')
-                              ) : (
-                                <span>Pick a date</span>
-                              )}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0">
-                            <Calendar
-                              mode="single"
-                              selected={filters.fromDate}
-                              onSelect={(date) => handleFilterChange('fromDate', date)}
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
-                      </div>
-                      <div className="space-y-1">
-                        <Label htmlFor="to-date-update">To Date</Label>
-                         <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant={'outline'}
-                              className={cn(
-                                'w-full justify-start text-left font-normal',
-                                !filters.toDate && 'text-muted-foreground'
-                              )}
-                            >
-                              <CalendarIcon className="mr-2 h-4 w-4" />
-                              {filters.toDate ? (
-                                format(filters.toDate, 'PPP')
-                              ) : (
-                                <span>Pick a date</span>
-                              )}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0">
-                            <Calendar
-                              mode="single"
-                              selected={filters.toDate}
-                              onSelect={(date) => handleFilterChange('toDate', date)}
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
-                      </div>
-                      <div className="space-y-1">
-                        <Label htmlFor="product-name-update">Product Name</Label>
-                        <Select value={filters.productName} onValueChange={v => handleFilterChange('productName', v)}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="--All--" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">--All--</SelectItem>
-                            <SelectItem value="ar">AR</SelectItem>
-                            <SelectItem value="all-hrms">All HRMS</SelectItem>
-                            <SelectItem value="module1">Module 1</SelectItem>
-                            <SelectItem value="module2">Module 2</SelectItem>
-                            <SelectItem value="module3">Module 3</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-1">
-                        <Label htmlFor="executive-name-update">Executive Name</Label>
-                        <Select value={filters.executiveName} onValueChange={v => handleFilterChange('executiveName', v)}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="--All--" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">--All--</SelectItem>
-                            <SelectItem value="exec1">Executive 1</SelectItem>
-                            <SelectItem value="exec2">Executive 2</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-1">
-                        <Label htmlFor="given-by-update">Given by</Label>
-                        <Select value={filters.givenBy} onValueChange={v => handleFilterChange('givenBy', v)}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="--All--" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">--All--</SelectItem>
-                            <SelectItem value="given1">Given by 1</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-1">
-                        <Label htmlFor="status-of-lead-update">Status of Lead</Label>
-                        <Select value={filters.statusOfLead} onValueChange={v => handleFilterChange('statusOfLead', v)}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="--All--" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">--All--</SelectItem>
-                            {leadStatusOptions.map(status => (
-                              <SelectItem key={status} value={status}>
-                                {status}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-1">
-                        <Label htmlFor="sub-status-of-lead-update">Sub Status of Lead</Label>
-                        <Select value={filters.subStatusOfLead} onValueChange={v => handleFilterChange('subStatusOfLead', v)}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="--All--" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">--All--</SelectItem>
-                            <SelectItem value="substatus1">Sub-Status 1</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-1">
-                        <Label htmlFor="lead-source-update">Lead Source</Label>
-                        <Select value={filters.leadSource} onValueChange={v => handleFilterChange('leadSource', v)}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="--All--" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <ScrollArea className="h-48">
-                                <SelectItem value="all">--All--</SelectItem>
-                                {leadSourceOptions.map(source => (
-                                    <SelectItem key={source} value={source}>
-                                        {source}
-                                    </SelectItem>
-                                ))}
-                            </ScrollArea>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                       <div className="space-y-1">
-                        <Label htmlFor="pincode-filter">Pincode</Label>
-                        <Input id="pincode-filter" value={filters.pincode} onChange={e => handleFilterChange('pincode', e.target.value)} />
-                      </div>
-                      <div className="space-y-1">
-                        <Label htmlFor="email-filter">Email</Label>
-                        <Input id="email-filter" value={filters.email} onChange={e => handleFilterChange('email', e.target.value)} />
-                      </div>
-                      <div className="space-y-1">
-                        <Label htmlFor="headcount-filter">Company Headcount</Label>
-                        <Input id="headcount-filter" value={filters.headcount} onChange={e => handleFilterChange('headcount', e.target.value)} />
-                      </div>
-                      <div className="space-y-1">
-                        <Label htmlFor="sector-filter">Sector</Label>
-                        <Select value={filters.sector} onValueChange={v => handleFilterChange('sector', v)}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="--All--" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {sectors.map(sector => (
-                              <SelectItem key={sector} value={sector} className="capitalize">
-                                {sector === 'all' ? '--All--' : sector}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox id="do-not-consider-update" checked={filters.doNotConsider} onCheckedChange={c => handleFilterChange('doNotConsider', c as boolean)} />
-                      <Label htmlFor="do-not-consider-update">
-                        Do not consider Order Closed/Fake/Existing Users/Not Interested
-                      </Label>
-                    </div>
-                    <div className="border-t pt-4 mt-4">
-                      <div className="flex items-center space-x-2 mb-4">
-                          <Checkbox id="consider-follow-ups-update" checked={filters.considerFollowUps} onCheckedChange={c => handleFilterChange('considerFollowUps', c as boolean)} />
-                          <Label htmlFor="consider-follow-ups-update">consider Follow Ups</Label>
-                      </div>
-                      {filters.considerFollowUps && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                            <div className="flex items-center gap-4">
-                                <RadioGroup value={filters.followUpStatus} onValueChange={v => handleFilterChange('followUpStatus', v)} className="flex gap-4">
-                                    <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="pending" id="pending-update" />
-                                    <Label htmlFor="pending-update">Follow Up Pending</Label>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="made" id="made-update" />
-                                    <Label htmlFor="made-update">Follow Up Made</Label>
-                                    </div>
-                                </RadioGroup>
-                            </div>
-                            <div></div>
-                            <div></div>
-                            <div></div>
-
-                            <div className="space-y-1">
-                                <Label htmlFor="follow-up-from-date-update">From Date</Label>
-                                <Popover>
-                                  <PopoverTrigger asChild>
-                                    <Button
-                                      variant={'outline'}
-                                      className={cn(
-                                        'w-full justify-start text-left font-normal',
-                                        !filters.followUpFromDate && 'text-muted-foreground'
-                                      )}
-                                    >
-                                      <CalendarIcon className="mr-2 h-4 w-4" />
-                                      {filters.followUpFromDate ? (
-                                        format(filters.followUpFromDate, 'PPP')
-                                      ) : (
-                                        <span>Pick a date</span>
-                                      )}
-                                    </Button>
-                                  </PopoverTrigger>
-                                  <PopoverContent className="w-auto p-0">
-                                    <Calendar
-                                      mode="single"
-                                      selected={filters.followUpFromDate}
-                                      onSelect={(date) => handleFilterChange('followUpFromDate', date)}
-                                      initialFocus
-                                    />
-                                  </PopoverContent>
-                                </Popover>
-                            </div>
-                            <div className="space-y-1">
-                                <Label htmlFor="follow-up-to-date-update">To Date</Label>
-                                <Popover>
-                                  <PopoverTrigger asChild>
-                                    <Button
-                                      variant={'outline'}
-                                      className={cn(
-                                        'w-full justify-start text-left font-normal',
-                                        !filters.followUpToDate && 'text-muted-foreground'
-                                      )}
-                                    >
-                                      <CalendarIcon className="mr-2 h-4 w-4" />
-                                      {filters.followUpToDate ? (
-                                        format(filters.followUpToDate, 'PPP')
-                                      ) : (
-                                        <span>Pick a date</span>
-                                      )}
-                                    </Button>
-                                  </PopoverTrigger>
-                                  <PopoverContent className="w-auto p-0">
-                                    <Calendar
-                                      mode="single"
-                                      selected={filters.followUpToDate}
-                                      onSelect={(date) => handleFilterChange('followUpToDate', date)}
-                                      initialFocus
-                                    />
-                                  </PopoverContent>
-                                </Popover>
-                            </div>
-                            <div className="space-y-1">
-                                <Label htmlFor="enter-by-update">Enter by</Label>
-                                <Select value={filters.enterBy} onValueChange={v => handleFilterChange('enterBy', v)}>
-                                    <SelectTrigger>
-                                    <SelectValue placeholder="--All--" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="all">--All--</SelectItem>
-                                        <SelectItem value="user1">User 1</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div className="space-y-1">
-                                <Label htmlFor="remarks-update">Remarks</Label>
-                                <Input id="remarks-update" value={filters.remarksFilter} onChange={e => handleFilterChange('remarksFilter', e.target.value)} />
-                            </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                <div className="flex justify-end gap-2 p-4 border-t">
-                  <Button onClick={handleShowClick}>SHOW</Button>
-                  <Button variant="outline" onClick={handleToExcel}>TO EXCEL</Button>
-                  <Button variant="destructive" onClick={handleResetClick}>
-                    RESET
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </CollapsibleContent>
-        </Collapsible>
-        
-        {showResults && (
-          <Card className="mt-6">
-            <CardHeader>
-              <CardTitle className='text-base'>
-                List of Leads &gt;&gt; [ {activeQuickFilter} ({filteredLeads.length}{' '} Records) ]
-              </CardTitle>
+    <AppContent>
+        <div className="flex flex-col gap-6">
+        <Card>
+            <CardHeader className="bg-primary/10">
+            <CardTitle className="text-center text-primary">UPDATE LEADS</CardTitle>
             </CardHeader>
-            <CardContent className="p-4">
-              <div className="flex flex-wrap gap-2 mb-4">
-                {[
-                  'All Leads',
-                  'Recent Leads',
-                  'Leads not Viewed',
-                  'Follow Ups Due',
-                  'Zero Follow Ups!',
-                  'Search Result',
-                ].map(filterName => (
-                  <Button
-                    key={filterName}
-                    variant={
-                      activeQuickFilter === filterName
-                        ? 'secondary'
-                        : 'outline'
-                    }
-                    onClick={() => handleQuickFilter(filterName)}
-                    disabled={
-                      filterName === 'Search Result' &&
-                      activeQuickFilter !== 'Search Result'
-                    }
-                  >
-                    {filterName}
-                  </Button>
-                ))}
-              </div>
-              <Card>
-                <CardContent className="p-0">
-                <ScrollArea className="w-full whitespace-nowrap rounded-md border">
-                  <Table className="min-w-max">
-                      <TableHeader>
-                          <TableRow>
-                          <TableHead>Sl No</TableHead>
-                          <TableHead>Lead Id</TableHead>
-                          <TableHead>Lead Date</TableHead>
-                          <TableHead>Product</TableHead>
-                          <TableHead>Company</TableHead>
-                          <TableHead>Contact</TableHead>
-                          <TableHead>Phone</TableHead>
-                          <TableHead>Email</TableHead>
-                          <TableHead>Address</TableHead>
-                          <TableHead>Place</TableHead>
-                          <TableHead>District</TableHead>
-                          <TableHead>State</TableHead>
-                          <TableHead>Reference</TableHead>
-                          <TableHead>Manager</TableHead>
-                          <TableHead>Last Followed Date</TableHead>
-                          <TableHead>Last Followed By</TableHead>
-                          <TableHead>Next followup Date</TableHead>
-                          <TableHead>Last Followup Remarks</TableHead>
-                          <TableHead>Lead Status</TableHead>
-                          <TableHead>Lead Sub Status</TableHead>
-                          <TableHead>Lead Status Remarks</TableHead>
-                          <TableHead>Given By</TableHead>
-                          </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                          {paginatedLeads.length > 0 ? (
-                          paginatedLeads.map((lead, index) => {
-                              const date = new Date(lead.creationDate);
-                              const isValidDate = !isNaN(date.getTime());
-                              const lastFollowUp = lead.followUps && lead.followUps.length > 0 ? lead.followUps[lead.followUps.length - 1] : null;
-                              const nextFollowupDate = lead.nextFollowUpDate && !isNaN(new Date(lead.nextFollowUpDate).getTime())
-                              ? format(new Date(lead.nextFollowUpDate), 'PPP')
-                              : (lastFollowUp ? lastFollowUp.nextFollowUp : 'N/A');
-                              const absoluteIndex = (currentPage - 1) * LEADS_PER_PAGE + index + 1;
+            <CardContent className="p-6">
+            <div className="space-y-4">
+            
+                <Card>
+                    <CardContent className="p-4">
+                    <div className="flex flex-wrap items-center justify-around gap-x-4 gap-y-2">
+                        {summaryDisplay.map(item => (
+                        <div key={item.title} className="flex items-center gap-2 text-sm">
+                            <span className="font-medium text-muted-foreground">{item.title}:</span>
+                            <span className="font-bold text-primary">{item.value}</span>
+                        </div>
+                        ))}
+                    </div>
+                    </CardContent>
+                </Card>
 
-                              return (
-                              <TableRow key={`${lead.leadId}-${index}`} onClick={() => handleRowClick(lead.leadId)} className="cursor-pointer">
-                                  <TableCell>{absoluteIndex}</TableCell>
-                                  <TableCell>{lead.leadId || 'N/A'}</TableCell>
-                                  <TableCell>{isValidDate ? format(date, 'PPP') : 'N/A'}</TableCell>
-                                  <TableCell>{lead.selectedModule || 'N/A'}</TableCell>
-                                  <TableCell>{lead.company || 'N/A'}</TableCell>
-                                  <TableCell>{lead.contactPerson || 'N/A'}</TableCell>
-                                  <TableCell>{lead.contactNumber || 'N/A'}</TableCell>
-                                  <TableCell>{lead.email || 'N/A'}</TableCell>
-                                  <TableCell>{lead.address || 'N/A'}</TableCell>
-                                  <TableCell>{lead.district || 'N/A'}</TableCell>
-                                  <TableCell>{lead.district || 'N/A'}</TableCell>
-                                  <TableCell>{lead.state || 'N/A'}</TableCell>
-                                  <TableCell>{lead.reference || 'N/A'}</TableCell>
-                                  <TableCell>{lead.manager || 'N/A'}</TableCell>
-                                  <TableCell>{lastFollowUp ? lastFollowUp.date : 'N/A'}</TableCell>
-                                  <TableCell>{lastFollowUp ? lastFollowUp.enteredBy : 'N/A'}</TableCell>
-                                  <TableCell>{nextFollowupDate}</TableCell>
-                                  <TableCell>{lastFollowUp ? lastFollowUp.remarks : 'N/A'}</TableCell>
-                                  <TableCell>{lead.status || 'N/A'}</TableCell>
-                                  <TableCell>{lead.leadSubStatus || 'N/A'}</TableCell>
-                                  <TableCell>{lead.leadStatusRemarks || 'N/A'}</TableCell>
-                                  <TableCell>{lead.givenBy || 'N/A'}</TableCell>
-                              </TableRow>
-                              )
-                          })
-                          ) : (
-                          <TableRow>
-                              <TableCell colSpan={22} className="text-center h-24">
-                              No results
-                              </TableCell>
-                          </TableRow>
-                          )}
-                      </TableBody>
-                    </Table>
-                  </ScrollArea>
+                <LeadUpdateForm leadId={selectedLeadId} allLeads={allLeads} />
+
+            <Collapsible open={isFilterOpen} onOpenChange={setIsFilterOpen} className="pt-6">
+            <CollapsibleTrigger asChild>
+                <Button variant="outline" className="w-full justify-between">
+                <span>Filter [{isFilterOpen ? 'hide' : 'show'}]</span>
+                {isFilterOpen ? (
+                    <ChevronUp className="h-4 w-4" />
+                ) : (
+                    <ChevronDown className="h-4 w-4" />
+                )}
+                </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+                <Card className="mt-2">
+                <CardContent className="p-4 space-y-4">
+                    <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-center">
+                        <div className="flex items-center gap-2">
+                            <Label htmlFor="search">Search</Label>
+                            <Input id="search" placeholder="Leave empty for all" value={filters.search} onChange={e => handleFilterChange('search', e.target.value)} />
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <Label>From:</Label>
+                            <RadioGroup value={filters.fromSource} onValueChange={v => handleFilterChange('fromSource', v)} className="flex gap-4">
+                            <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="web" id="web-update" />
+                                <Label htmlFor="web-update">Web Downloads</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="manual" id="manual-update" />
+                                <Label htmlFor="manual-update">Manual Uploads</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="both" id="both-update" />
+                                <Label htmlFor="both-update">Both</Label>
+                            </div>
+                            </RadioGroup>
+                        </div>
+                        </div>
+                        <div>
+                        <RadioGroup onValueChange={v => handleFilterChange('searchFor', v)} value={filters.searchFor} className="flex flex-wrap gap-4">
+                            <Label>Search for:</Label>
+                            {[
+                            {value: 'leadId', label: 'Lead ID'},
+                            {value: 'company', label: 'Company'},
+                            {value: 'contactPerson', label: 'Contact Person'},
+                            {value: 'contactNumber', label: 'Phone'},
+                            {value: 'district', label: 'District'},
+                            {value: 'state', label: 'State'},
+                            {value: 'email', label: 'Email'},
+                            {value: 'manager', label: 'Manager Name'},
+                            ].map((item) => (
+                            <div className="flex items-center space-x-2" key={item.value}>
+                                <RadioGroupItem
+                                value={item.value}
+                                id={`search-for-update-${item.value}`}
+                                />
+                                <Label htmlFor={`search-for-update-${item.value}`}>
+                                {item.label}
+                                </Label>
+                            </div>
+                            ))}
+                        </RadioGroup>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div className="space-y-1">
+                            <Label htmlFor="from-date-update">From Date</Label>
+                            <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                variant={'outline'}
+                                className={cn(
+                                    'w-full justify-start text-left font-normal',
+                                    !filters.fromDate && 'text-muted-foreground'
+                                )}
+                                >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {filters.fromDate ? (
+                                    format(filters.fromDate, 'PPP')
+                                ) : (
+                                    <span>Pick a date</span>
+                                )}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0">
+                                <Calendar
+                                mode="single"
+                                selected={filters.fromDate}
+                                onSelect={(date) => handleFilterChange('fromDate', date)}
+                                initialFocus
+                                />
+                            </PopoverContent>
+                            </Popover>
+                        </div>
+                        <div className="space-y-1">
+                            <Label htmlFor="to-date-update">To Date</Label>
+                            <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                variant={'outline'}
+                                className={cn(
+                                    'w-full justify-start text-left font-normal',
+                                    !filters.toDate && 'text-muted-foreground'
+                                )}
+                                >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {filters.toDate ? (
+                                    format(filters.toDate, 'PPP')
+                                ) : (
+                                    <span>Pick a date</span>
+                                )}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0">
+                                <Calendar
+                                mode="single"
+                                selected={filters.toDate}
+                                onSelect={(date) => handleFilterChange('toDate', date)}
+                                initialFocus
+                                />
+                            </PopoverContent>
+                            </Popover>
+                        </div>
+                        <div className="space-y-1">
+                            <Label htmlFor="product-name-update">Product Name</Label>
+                            <Select value={filters.productName} onValueChange={v => handleFilterChange('productName', v)}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="--All--" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">--All--</SelectItem>
+                                <SelectItem value="ar">AR</SelectItem>
+                                <SelectItem value="all-hrms">All HRMS</SelectItem>
+                                <SelectItem value="module1">Module 1</SelectItem>
+                                <SelectItem value="module2">Module 2</SelectItem>
+                                <SelectItem value="module3">Module 3</SelectItem>
+                            </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-1">
+                            <Label htmlFor="executive-name-update">Executive Name</Label>
+                            <Select value={filters.executiveName} onValueChange={v => handleFilterChange('executiveName', v)}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="--All--" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">--All--</SelectItem>
+                                <SelectItem value="exec1">Executive 1</SelectItem>
+                                <SelectItem value="exec2">Executive 2</SelectItem>
+                            </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-1">
+                            <Label htmlFor="given-by-update">Given by</Label>
+                            <Select value={filters.givenBy} onValueChange={v => handleFilterChange('givenBy', v)}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="--All--" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">--All--</SelectItem>
+                                <SelectItem value="given1">Given by 1</SelectItem>
+                            </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-1">
+                            <Label htmlFor="status-of-lead-update">Status of Lead</Label>
+                            <Select value={filters.statusOfLead} onValueChange={v => handleFilterChange('statusOfLead', v)}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="--All--" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">--All--</SelectItem>
+                                {leadStatusOptions.map(status => (
+                                <SelectItem key={status} value={status}>
+                                    {status}
+                                </SelectItem>
+                                ))}
+                            </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-1">
+                            <Label htmlFor="sub-status-of-lead-update">Sub Status of Lead</Label>
+                            <Select value={filters.subStatusOfLead} onValueChange={v => handleFilterChange('subStatusOfLead', v)}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="--All--" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">--All--</SelectItem>
+                                <SelectItem value="substatus1">Sub-Status 1</SelectItem>
+                            </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-1">
+                            <Label htmlFor="lead-source-update">Lead Source</Label>
+                            <Select value={filters.leadSource} onValueChange={v => handleFilterChange('leadSource', v)}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="--All--" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <ScrollArea className="h-48">
+                                    <SelectItem value="all">--All--</SelectItem>
+                                    {leadSourceOptions.map(source => (
+                                        <SelectItem key={source} value={source}>
+                                            {source}
+                                        </SelectItem>
+                                    ))}
+                                </ScrollArea>
+                            </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-1">
+                            <Label htmlFor="pincode-filter">Pincode</Label>
+                            <Input id="pincode-filter" value={filters.pincode} onChange={e => handleFilterChange('pincode', e.target.value)} />
+                        </div>
+                        <div className="space-y-1">
+                            <Label htmlFor="email-filter">Email</Label>
+                            <Input id="email-filter" value={filters.email} onChange={e => handleFilterChange('email', e.target.value)} />
+                        </div>
+                        <div className="space-y-1">
+                            <Label htmlFor="headcount-filter">Company Headcount</Label>
+                            <Input id="headcount-filter" value={filters.headcount} onChange={e => handleFilterChange('headcount', e.target.value)} />
+                        </div>
+                        <div className="space-y-1">
+                            <Label htmlFor="sector-filter">Sector</Label>
+                            <Select value={filters.sector} onValueChange={v => handleFilterChange('sector', v)}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="--All--" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {sectors.map(sector => (
+                                <SelectItem key={sector} value={sector} className="capitalize">
+                                    {sector === 'all' ? '--All--' : sector}
+                                </SelectItem>
+                                ))}
+                            </SelectContent>
+                            </Select>
+                        </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                        <Checkbox id="do-not-consider-update" checked={filters.doNotConsider} onCheckedChange={c => handleFilterChange('doNotConsider', c as boolean)} />
+                        <Label htmlFor="do-not-consider-update">
+                            Do not consider Order Closed/Fake/Existing Users/Not Interested
+                        </Label>
+                        </div>
+                        <div className="border-t pt-4 mt-4">
+                        <div className="flex items-center space-x-2 mb-4">
+                            <Checkbox id="consider-follow-ups-update" checked={filters.considerFollowUps} onCheckedChange={c => handleFilterChange('considerFollowUps', c as boolean)} />
+                            <Label htmlFor="consider-follow-ups-update">consider Follow Ups</Label>
+                        </div>
+                        {filters.considerFollowUps && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <div className="flex items-center gap-4">
+                                    <RadioGroup value={filters.followUpStatus} onValueChange={v => handleFilterChange('followUpStatus', v)} className="flex gap-4">
+                                        <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="pending" id="pending-update" />
+                                        <Label htmlFor="pending-update">Follow Up Pending</Label>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="made" id="made-update" />
+                                        <Label htmlFor="made-update">Follow Up Made</Label>
+                                        </div>
+                                    </RadioGroup>
+                                </div>
+                                <div></div>
+                                <div></div>
+                                <div></div>
+
+                                <div className="space-y-1">
+                                    <Label htmlFor="follow-up-from-date-update">From Date</Label>
+                                    <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                        variant={'outline'}
+                                        className={cn(
+                                            'w-full justify-start text-left font-normal',
+                                            !filters.followUpFromDate && 'text-muted-foreground'
+                                        )}
+                                        >
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {filters.followUpFromDate ? (
+                                            format(filters.followUpFromDate, 'PPP')
+                                        ) : (
+                                            <span>Pick a date</span>
+                                        )}
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0">
+                                        <Calendar
+                                        mode="single"
+                                        selected={filters.followUpFromDate}
+                                        onSelect={(date) => handleFilterChange('followUpFromDate', date)}
+                                        initialFocus
+                                        />
+                                    </PopoverContent>
+                                    </Popover>
+                                </div>
+                                <div className="space-y-1">
+                                    <Label htmlFor="follow-up-to-date-update">To Date</Label>
+                                    <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                        variant={'outline'}
+                                        className={cn(
+                                            'w-full justify-start text-left font-normal',
+                                            !filters.followUpToDate && 'text-muted-foreground'
+                                        )}
+                                        >
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {filters.followUpToDate ? (
+                                            format(filters.followUpToDate, 'PPP')
+                                        ) : (
+                                            <span>Pick a date</span>
+                                        )}
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0">
+                                        <Calendar
+                                        mode="single"
+                                        selected={filters.followUpToDate}
+                                        onSelect={(date) => handleFilterChange('followUpToDate', date)}
+                                        initialFocus
+                                        />
+                                    </PopoverContent>
+                                    </Popover>
+                                </div>
+                                <div className="space-y-1">
+                                    <Label htmlFor="enter-by-update">Enter by</Label>
+                                    <Select value={filters.enterBy} onValueChange={v => handleFilterChange('enterBy', v)}>
+                                        <SelectTrigger>
+                                        <SelectValue placeholder="--All--" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">--All--</SelectItem>
+                                            <SelectItem value="user1">User 1</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-1">
+                                    <Label htmlFor="remarks-update">Remarks</Label>
+                                    <Input id="remarks-update" value={filters.remarksFilter} onChange={e => handleFilterChange('remarksFilter', e.target.value)} />
+                                </div>
+                            </div>
+                        )}
+                        </div>
+                    </div>
+                    <div className="flex justify-end gap-2 p-4 border-t">
+                    <Button onClick={handleShowClick}>SHOW</Button>
+                    <Button variant="outline" onClick={handleToExcel}>TO EXCEL</Button>
+                    <Button variant="destructive" onClick={handleResetClick}>
+                        RESET
+                    </Button>
+                    </div>
                 </CardContent>
-              </Card>
-              
-              {totalPages > 1 && (
-                <div className="flex items-center justify-end space-x-2 py-4">
-                  <span className="text-sm text-muted-foreground">
-                    Page {currentPage} of {totalPages}
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                    disabled={currentPage === 1}
-                  >
-                    Previous
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                    disabled={currentPage === totalPages}
-                  >
-                    Next
-                  </Button>
+                </Card>
+            </CollapsibleContent>
+            </Collapsible>
+            
+            {showResults && (
+            <Card className="mt-6">
+                <CardHeader>
+                <CardTitle className='text-base'>
+                    List of Leads &gt;&gt; [ {activeQuickFilter} ({filteredLeads.length}{' '} Records) ]
+                </CardTitle>
+                </CardHeader>
+                <CardContent className="p-4">
+                <div className="flex flex-wrap gap-2 mb-4">
+                    {[
+                    'All Leads',
+                    'Recent Leads',
+                    'Leads not Viewed',
+                    'Follow Ups Due',
+                    'Zero Follow Ups!',
+                    'Search Result',
+                    ].map(filterName => (
+                    <Button
+                        key={filterName}
+                        variant={
+                        activeQuickFilter === filterName
+                            ? 'secondary'
+                            : 'outline'
+                        }
+                        onClick={() => handleQuickFilter(filterName)}
+                        disabled={
+                        filterName === 'Search Result' &&
+                        activeQuickFilter !== 'Search Result'
+                        }
+                    >
+                        {filterName}
+                    </Button>
+                    ))}
                 </div>
-              )}
+                <Card>
+                    <CardContent className="p-0">
+                    <ScrollArea className="w-full whitespace-nowrap rounded-md border">
+                    <Table className="min-w-max">
+                        <TableHeader>
+                            <TableRow>
+                            <TableHead>Sl No</TableHead>
+                            <TableHead>Lead Id</TableHead>
+                            <TableHead>Lead Date</TableHead>
+                            <TableHead>Product</TableHead>
+                            <TableHead>Company</TableHead>
+                            <TableHead>Contact</TableHead>
+                            <TableHead>Phone</TableHead>
+                            <TableHead>Email</TableHead>
+                            <TableHead>Address</TableHead>
+                            <TableHead>Place</TableHead>
+                            <TableHead>District</TableHead>
+                            <TableHead>State</TableHead>
+                            <TableHead>Reference</TableHead>
+                            <TableHead>Manager</TableHead>
+                            <TableHead>Last Followed Date</TableHead>
+                            <TableHead>Last Followed By</TableHead>
+                            <TableHead>Next followup Date</TableHead>
+                            <TableHead>Last Followup Remarks</TableHead>
+                            <TableHead>Lead Status</TableHead>
+                            <TableHead>Lead Sub Status</TableHead>
+                            <TableHead>Lead Status Remarks</TableHead>
+                            <TableHead>Given By</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {paginatedLeads.length > 0 ? (
+                            paginatedLeads.map((lead, index) => {
+                                const date = new Date(lead.creationDate);
+                                const isValidDate = !isNaN(date.getTime());
+                                const lastFollowUp = lead.followUps && lead.followUps.length > 0 ? lead.followUps[lead.followUps.length - 1] : null;
+                                const nextFollowupDate = lead.nextFollowUpDate && !isNaN(new Date(lead.nextFollowUpDate).getTime())
+                                ? format(new Date(lead.nextFollowUpDate), 'PPP')
+                                : (lastFollowUp ? lastFollowUp.nextFollowUp : 'N/A');
+                                const absoluteIndex = (currentPage - 1) * LEADS_PER_PAGE + index + 1;
+
+                                return (
+                                <TableRow key={`${lead.leadId}-${index}`} onClick={() => handleRowClick(lead.leadId)} className="cursor-pointer">
+                                    <TableCell>{absoluteIndex}</TableCell>
+                                    <TableCell>{lead.leadId || 'N/A'}</TableCell>
+                                    <TableCell>{isValidDate ? format(date, 'PPP') : 'N/A'}</TableCell>
+                                    <TableCell>{lead.selectedModule || 'N/A'}</TableCell>
+                                    <TableCell>{lead.company || 'N/A'}</TableCell>
+                                    <TableCell>{lead.contactPerson || 'N/A'}</TableCell>
+                                    <TableCell>{lead.contactNumber || 'N/A'}</TableCell>
+                                    <TableCell>{lead.email || 'N/A'}</TableCell>
+                                    <TableCell>{lead.address || 'N/A'}</TableCell>
+                                    <TableCell>{lead.district || 'N/A'}</TableCell>
+                                    <TableCell>{lead.district || 'N/A'}</TableCell>
+                                    <TableCell>{lead.state || 'N/A'}</TableCell>
+                                    <TableCell>{lead.reference || 'N/A'}</TableCell>
+                                    <TableCell>{lead.manager || 'N/A'}</TableCell>
+                                    <TableCell>{lastFollowUp ? lastFollowUp.date : 'N/A'}</TableCell>
+                                    <TableCell>{lastFollowUp ? lastFollowUp.enteredBy : 'N/A'}</TableCell>
+                                    <TableCell>{nextFollowupDate}</TableCell>
+                                    <TableCell>{lastFollowUp ? lastFollowUp.remarks : 'N/A'}</TableCell>
+                                    <TableCell>{lead.status || 'N/A'}</TableCell>
+                                    <TableCell>{lead.leadSubStatus || 'N/A'}</TableCell>
+                                    <TableCell>{lead.leadStatusRemarks || 'N/A'}</TableCell>
+                                    <TableCell>{lead.givenBy || 'N/A'}</TableCell>
+                                </TableRow>
+                                )
+                            })
+                            ) : (
+                            <TableRow>
+                                <TableCell colSpan={22} className="text-center h-24">
+                                No results
+                                </TableCell>
+                            </TableRow>
+                            )}
+                        </TableBody>
+                        </Table>
+                    </ScrollArea>
+                    </CardContent>
+                </Card>
+                
+                {totalPages > 1 && (
+                    <div className="flex items-center justify-end space-x-2 py-4">
+                    <span className="text-sm text-muted-foreground">
+                        Page {currentPage} of {totalPages}
+                    </span>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1}
+                    >
+                        Previous
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                        disabled={currentPage === totalPages}
+                    >
+                        Next
+                    </Button>
+                    </div>
+                )}
+                </CardContent>
+            </Card>
+            )}
+        </div>
             </CardContent>
-          </Card>
-        )}
-      </div>
-        </CardContent>
-      </Card>
-    </div>
+        </Card>
+        </div>
+    </AppContent>
   );
 }

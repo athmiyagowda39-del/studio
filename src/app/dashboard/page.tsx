@@ -12,6 +12,9 @@ import LeadPerformanceChart from '@/components/dashboard/lead-performance-chart'
 import LeadPerformanceFilters from '@/components/dashboard/lead-performance-filters';
 import { useState, useMemo, useEffect } from 'react';
 import { startOfDay, endOfDay } from 'date-fns';
+import { useAuth } from '@/context/auth-context';
+import { useRouter } from 'next/navigation';
+import AppContent from '../app-content';
 
 const months = [
   'January', 'February', 'March', 'April', 'May', 'June', 'July',
@@ -27,14 +30,25 @@ const getLeadsFromLocalStorage = (): LeadFormData[] => {
 };
 
 export default function DashboardPage() {
+    const { isAuthenticated, isLoading } = useAuth();
+    const router = useRouter();
   const [allLeads, setAllLeads] = useState<LeadFormData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isDataLoading, setIsDataLoading] = useState(true);
+
+    useEffect(() => {
+        if (!isLoading && !isAuthenticated) {
+        router.replace('/login');
+        }
+    }, [isAuthenticated, isLoading, router]);
+
 
   useEffect(() => {
-    const leads = getLeadsFromLocalStorage();
-    setAllLeads(leads);
-    setIsLoading(false);
-  }, []);
+    if (isAuthenticated) {
+        const leads = getLeadsFromLocalStorage();
+        setAllLeads(leads);
+        setIsDataLoading(false);
+    }
+  }, [isAuthenticated]);
 
   const [period, setPeriod] = useState('November');
   const [city, setCity] = useState('All');
@@ -82,47 +96,49 @@ export default function DashboardPage() {
     return dailyLeads;
   }, [allLeads, period, city]);
 
-  if (isLoading) {
+  if (isLoading || isDataLoading || !isAuthenticated) {
     return null; // or a loading skeleton
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col">
-        <h1 className="text-2xl font-bold tracking-tight font-headline">
-          WELCOME!
-        </h1>
-        <p className="text-muted-foreground">
-          Here is your lead generation overview for today.
-        </p>
-      </div>
-      <div className="grid grid-cols-1 gap-6">
+    <AppContent>
+        <div className="flex flex-col gap-6">
+        <div className="flex flex-col">
+            <h1 className="text-2xl font-bold tracking-tight font-headline">
+            WELCOME!
+            </h1>
+            <p className="text-muted-foreground">
+            Here is your lead generation overview for today.
+            </p>
+        </div>
+        <div className="grid grid-cols-1 gap-6">
+            <Card>
+            <CardHeader>
+                <CardTitle>Total number of leads generated today!!</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <p className="text-4xl font-bold text-primary">{totalLeadsToday}</p>
+                <CardDescription>
+                Total number of Leads: {allLeads?.length || 0}
+                </CardDescription>
+            </CardContent>
+            </Card>
+        </div>
         <Card>
-          <CardHeader>
-            <CardTitle>Total number of leads generated today!!</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-4xl font-bold text-primary">{totalLeadsToday}</p>
-            <CardDescription>
-              Total number of Leads: {allLeads?.length || 0}
-            </CardDescription>
-          </CardContent>
+            <CardHeader>
+            <CardTitle className="text-center">Lead volume Analysis</CardTitle>
+            </CardHeader>
+            <CardContent>
+            <LeadPerformanceFilters
+                period={period}
+                setPeriod={setPeriod}
+                city={city}
+                setCity={setCity}
+            />
+            <LeadPerformanceChart performanceData={performanceData} />
+            </CardContent>
         </Card>
-      </div>
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-center">Lead volume Analysis</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <LeadPerformanceFilters
-            period={period}
-            setPeriod={setPeriod}
-            city={city}
-            setCity={setCity}
-          />
-          <LeadPerformanceChart performanceData={performanceData} />
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+    </AppContent>
   );
 }

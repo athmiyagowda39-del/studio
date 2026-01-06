@@ -10,6 +10,8 @@ import {
 import Header from '@/components/layout/header';
 import { Target } from 'lucide-react';
 import SidebarNav from '@/components/layout/sidebar-nav';
+import { useAuth } from '@/context/auth-context';
+import { usePathname } from 'next/navigation';
 
 const CustomLogo = () => <Target className="size-full" />;
 
@@ -18,6 +20,17 @@ export default function AppContent({
 }: {
   children: React.ReactNode;
 }) {
+    const { isAuthenticated } = useAuth();
+    const pathname = usePathname();
+
+    if (pathname === '/login') {
+        return <main>{children}</main>;
+    }
+
+    if (!isAuthenticated) {
+        return null;
+    }
+
   return (
     <SidebarProvider>
       <Sidebar>

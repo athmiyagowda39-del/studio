@@ -1,6 +1,6 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { SidebarTrigger } from '@/components/ui/sidebar';
@@ -20,6 +20,7 @@ import {
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { useAuth } from '@/context/auth-context';
 
 export default function Header() {
   const [userAvatar, setUserAvatar] = useState<ImagePlaceholder | undefined>();
@@ -28,6 +29,9 @@ export default function Header() {
   const { toast } = useToast();
   const [isClient, setIsClient] = useState(false);
   const [lastLoginDate, setLastLoginDate] = useState('N/A');
+  const { user, logout } = useAuth();
+  const router = useRouter();
+
 
   useEffect(() => {
     setIsClient(true);
@@ -44,17 +48,14 @@ export default function Header() {
   }, []);
 
   const handleLogout = () => {
-    // Placeholder for logout logic
+    logout();
     toast({
       title: 'Logged Out',
       description: 'You have been successfully logged out.',
     });
+    router.push('/login');
   };
 
-  const user = {
-    username: 'Demo User',
-    role: 'Admin',
-  }
 
   if (!isClient) {
     return (

@@ -1,17 +1,29 @@
-
 'use client';
 
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { useAuth } from '@/context/auth-context';
 import DashboardPage from './dashboard/page';
+import AppContent from './app-content';
 
 export default function Home() {
+  const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    router.replace('/dashboard');
-  }, [router]);
+    if (!isLoading && !isAuthenticated) {
+      router.replace('/login');
+    }
+  }, [isAuthenticated, isLoading, router]);
 
-  // Return a loading state or null while redirecting.
-  return null;
+  if (isLoading || !isAuthenticated) {
+    // You can show a loading spinner here
+    return null;
+  }
+
+  return (
+    <AppContent>
+      <DashboardPage />
+    </AppContent>
+  );
 }
