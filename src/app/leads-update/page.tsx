@@ -113,7 +113,7 @@ export default function LeadsUpdatePage() {
   const [allLeads, setAllLeads] = useState<LeadFormData[]>([]);
   
   const [filteredLeads, setFilteredLeads] = useState<LeadFormData[]>([]);
-  const [showResults, setShowResults] = useState(false);
+  const [showResults, setShowResults] = useState(true);
   const [activeQuickFilter, setActiveQuickFilter] = useState('All Leads');
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -234,7 +234,9 @@ export default function LeadsUpdatePage() {
   useEffect(() => {
     const leads = getLeadsFromLocalStorage();
     setAllLeads(leads);
-    setFilteredLeads(leads);
+
+    const initialFilteredLeads = applyQuickFilter('All Leads', leads);
+    setFilteredLeads(initialFilteredLeads);
 
     const handleStorageChange = () => {
       const updatedLeads = getLeadsFromLocalStorage();
@@ -245,14 +247,12 @@ export default function LeadsUpdatePage() {
     return () => {
       window.removeEventListener('storage', handleStorageChange);
     };
-  }, []);
+  }, [applyQuickFilter]);
 
   useEffect(() => {
-    if (showResults) {
-       const newFilteredLeads = applyQuickFilter(activeQuickFilter, allLeads);
-       setFilteredLeads(newFilteredLeads);
-    }
-  }, [allLeads, showResults, activeQuickFilter, applyQuickFilter]);
+    const newFilteredLeads = applyQuickFilter(activeQuickFilter, allLeads);
+    setFilteredLeads(newFilteredLeads);
+  }, [allLeads, activeQuickFilter, applyQuickFilter]);
   
   const handleFilterChange = (field: keyof typeof filters, value: any) => {
     setFilters(prev => ({...prev, [field]: value}));
@@ -271,6 +271,7 @@ export default function LeadsUpdatePage() {
     setFilters(initialFilterState);
     setShowResults(false);
     setActiveQuickFilter('All Leads');
+    setFilteredLeads(allLeads);
     setSelectedLeadId(null);
   };
 
@@ -813,7 +814,7 @@ export default function LeadsUpdatePage() {
                               <TableRow key={`${lead.leadId}-${index}`} onClick={() => handleRowClick(lead.leadId)} className="cursor-pointer">
                                   <TableCell>{absoluteIndex}</TableCell>
                                   <TableCell>{lead.leadId || 'N/A'}</TableCell>
-                                  <TableCell>{isValidDate ? format(date, 'PPP') : 'N'A'}</TableCell>
+                                  <TableCell>{isValidDate ? format(date, 'PPP') : 'N/A'}</TableCell>
                                   <TableCell>{lead.selectedModule || 'N/A'}</TableCell>
                                   <TableCell>{lead.company || 'N/A'}</TableCell>
                                   <TableCell>{lead.contactPerson || 'N/A'}</TableCell>
@@ -832,7 +833,7 @@ export default function LeadsUpdatePage() {
                                   <TableCell>{lead.status || 'N/A'}</TableCell>
                                   <TableCell>{lead.leadSubStatus || 'N/A'}</TableCell>
                                   <TableCell>{lead.leadStatusRemarks || 'N/A'}</TableCell>
-                                  <TableCell>{lead.givenBy || 'N_A'}</TableCell>
+                                  <TableCell>{lead.givenBy || 'N/A'}</TableCell>
                               </TableRow>
                               )
                           })
