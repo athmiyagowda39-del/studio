@@ -239,8 +239,8 @@ export default function LeadUpdateForm({ leadId, allLeads }: { leadId: string | 
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
-        <div className="xl:col-span-3 space-y-4">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <div className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle className="text-base">LEAD CONTACT CARD</CardTitle>
@@ -379,7 +379,7 @@ export default function LeadUpdateForm({ leadId, allLeads }: { leadId: string | 
           </Card>
         </div>
 
-        <div className="xl:col-span-2 space-y-4">
+        <div className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle className="text-base">LEAD TRACKER</CardTitle>
