@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/chart';
 
 type LeadStatusChartProps = {
-  data: { name: string; value: number; fill: string }[];
+  data: { name: string; value: number }[];
 };
 
 const chartConfig = {
@@ -37,7 +37,7 @@ const chartConfig = {
   },
   'Pursuing to Purchase': {
     label: 'Pursuing to Purchase',
-    color: 'hsl(142.1 76.2% 36.3%)',
+    color: 'hsl(120 100% 35%)',
   },
   'Not interested': {
     label: 'Not interested',
@@ -45,12 +45,17 @@ const chartConfig = {
   },
   'Order closed': {
     label: 'Order closed',
-    color: 'hsl(47.9 95.8% 53.1%)',
+    color: 'hsl(60 100% 50%)',
   },
 };
 
 
 export default function LeadStatusChart({ data }: LeadStatusChartProps) {
+  const chartData = data.map(item => ({
+    ...item,
+    fill: chartConfig[item.name as keyof typeof chartConfig]?.color || 'hsl(var(--muted-foreground))'
+  }));
+  
   return (
     <ChartContainer
       config={chartConfig}
@@ -62,13 +67,13 @@ export default function LeadStatusChart({ data }: LeadStatusChartProps) {
           content={<ChartTooltipContent hideLabel />}
         />
         <Pie
-          data={data}
+          data={chartData}
           dataKey="value"
           nameKey="name"
           innerRadius={100}
           strokeWidth={5}
         >
-           {data.map((entry, index) => (
+           {chartData.map((entry, index) => (
             <Cell key={`cell-${index}`} fill={entry.fill} />
           ))}
         </Pie>

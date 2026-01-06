@@ -152,24 +152,10 @@ export default function LeadReportPage() {
   const chartData = useMemo(() => {
     return leadStatuses
       .filter((s) => s.status !== 'Total Leads')
-      .map((item) => {
-          let color = '';
-          switch(item.status) {
-              case 'Attended': color = 'hsl(var(--chart-2))'; break;
-              case 'Not viewed': color = 'hsl(var(--chart-4))'; break;
-              case 'Demo Given': color = 'hsl(var(--chart-3))'; break;
-              case 'Unattended': color = 'hsl(var(--primary))'; break;
-              case 'Pursuing to Purchase': color = 'hsl(120 100% 35%)'; break;
-              case 'Not interested': color = 'hsl(var(--destructive))'; break;
-              case 'Order closed': color = 'hsl(60 100% 50%)'; break;
-              default: color = 'hsl(var(--muted-foreground))'; break;
-          }
-          return {
-              name: item.status,
-              value: item.value,
-              fill: color,
-          }
-      });
+      .map((item) => ({
+          name: item.status,
+          value: item.value,
+      }));
   }, [leadStatuses]);
     
   const handleStateSelect = (currentState: string) => {
@@ -383,7 +369,7 @@ export default function LeadReportPage() {
                 ))}
               </div>
               <div className="flex justify-center">
-                {chartData.length > 0 && <LeadStatusChart data={chartData} key={selectedState + selectedSector + selectedHeadcount} />}
+                {chartData.some(d => d.value > 0) ? <LeadStatusChart data={chartData} /> : <div className="flex items-center justify-center h-full text-muted-foreground">No data to display in chart</div>}
               </div>
             </div>
           )}
