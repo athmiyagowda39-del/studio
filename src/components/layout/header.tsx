@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
+import { format } from 'date-fns';
 
 export default function Header() {
   const [userAvatar, setUserAvatar] = useState<ImagePlaceholder | undefined>();
@@ -26,10 +27,20 @@ export default function Header() {
   const showLoginDetails = pathname !== '/leads-upload';
   const { toast } = useToast();
   const [isClient, setIsClient] = useState(false);
+  const [lastLoginDate, setLastLoginDate] = useState('N/A');
 
   useEffect(() => {
     setIsClient(true);
     setUserAvatar(PlaceHolderImages.find((img) => img.id === 'user-avatar'));
+
+    const storedLastLogin = localStorage.getItem('lastLoginDate');
+    if (storedLastLogin) {
+      setLastLoginDate(storedLastLogin);
+    }
+    
+    const currentLoginDate = format(new Date(), 'dd-MM-yyyy');
+    localStorage.setItem('lastLoginDate', currentLoginDate);
+
   }, []);
 
   const handleLogout = () => {
@@ -79,7 +90,7 @@ export default function Header() {
                   Type: {user.role}
                 </span>
                 <span className="text-sm text-muted-foreground">
-                  Last login: 30-12-2025
+                  Last login: {lastLoginDate}
                 </span>
               </div>
             </div>
