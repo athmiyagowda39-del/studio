@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Table,
   TableBody,
@@ -122,33 +122,9 @@ export default function LeadsUpdatePage() {
   const [filters, setFilters] = useState(initialFilterState);
 
   const { toast } = useToast();
-
-  useEffect(() => {
-    const leads = getLeadsFromLocalStorage();
-    setAllLeads(leads);
-    setFilteredLeads(leads);
-    // setShowResults(false) to hide on initial load
-    setShowResults(false);
-    setActiveQuickFilter('All Leads');
-
-    // Listen for storage changes to update leads in real-time
-    const handleStorageChange = () => {
-      const updatedLeads = getLeadsFromLocalStorage();
-      setAllLeads(updatedLeads);
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
-  }, []);
   
-  const handleFilterChange = (field: keyof typeof filters, value: any) => {
-    setFilters(prev => ({...prev, [field]: value}));
-  }
-
-  const handleShowClick = () => {
-    let leads = [...(allLeads || [])];
+  const applyFilters = useCallback((leadsToFilter: LeadFormData[]) => {
+    let leads = [...(leadsToFilter || [])];
 
     if (filters.search && filters.searchFor) {
         leads = leads.filter(lead => {
@@ -219,6 +195,71 @@ export default function LeadsUpdatePage() {
       }
     }
     
+    return leads;
+  }, [filters]);
+
+  const applyQuickFilter = useCallback((filterType: string, leadsToFilter: LeadFormData[]) => {
+    let leads: LeadFormData[] = leadsToFilter ? [...leadsToFilter] : [];
+    const today = startOfDay(new Date());
+
+    switch(filterType) {
+        case 'All Leads':
+            break;
+        case 'Recent Leads':
+            const twoDaysAgo = subDays(today, 2).getTime();
+            leads = leads.filter(lead => (lead.creationDate || 0) >= twoDaysAgo);
+            break;
+        case 'Leads not Viewed':
+            leads = leads.filter(lead => !lead.executiveViewDate);
+            break;
+        case 'Follow Ups Due':
+            const todayTimestamp = today.getTime();
+            leads = leads.filter(lead => {
+              const nextFollowUp = (lead as any).nextFollowUpDate;
+              return nextFollowUp && new Date(nextFollowUp).getTime() <= todayTimestamp;
+            });
+            break;
+        case 'Zero Follow Ups!':
+            leads = leads.filter(lead => !(lead as any).followUps || (lead as any).followUps.length === 0);
+            break;
+        case 'Search Result':
+            leads = applyFilters(leads);
+            break;
+        default:
+            leads = [];
+    }
+    return leads;
+  }, [applyFilters]);
+
+  useEffect(() => {
+    const leads = getLeadsFromLocalStorage();
+    setAllLeads(leads);
+    setShowResults(false);
+
+    const handleStorageChange = () => {
+      const updatedLeads = getLeadsFromLocalStorage();
+      setAllLeads(updatedLeads);
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (showResults) {
+       const newFilteredLeads = applyQuickFilter(activeQuickFilter, allLeads);
+       setFilteredLeads(newFilteredLeads);
+    }
+  }, [allLeads, showResults, activeQuickFilter, applyQuickFilter]);
+  
+  const handleFilterChange = (field: keyof typeof filters, value: any) => {
+    setFilters(prev => ({...prev, [field]: value}));
+  }
+
+  const handleShowClick = () => {
+    const leads = applyFilters(allLeads);
     setFilteredLeads(leads);
     setCurrentPage(1);
     setShowResults(true);
@@ -240,36 +281,7 @@ export default function LeadsUpdatePage() {
 
   const handleQuickFilter = (filterType: string) => {
     setActiveQuickFilter(filterType);
-    let leads: LeadFormData[] = allLeads ? [...allLeads] : [];
-    const today = startOfDay(new Date());
-
-    switch(filterType) {
-        case 'All Leads':
-            // No additional filtering needed
-            break;
-        case 'Recent Leads':
-            const twoDaysAgo = subDays(today, 2).getTime();
-            leads = leads.filter(lead => (lead.creationDate || 0) >= twoDaysAgo);
-            break;
-        case 'Leads not Viewed':
-            leads = leads.filter(lead => !lead.executiveViewDate);
-            break;
-        case 'Follow Ups Due':
-            const todayTimestamp = today.getTime();
-            leads = leads.filter(lead => {
-              const nextFollowUp = (lead as any).nextFollowUpDate;
-              return nextFollowUp && new Date(nextFollowUp).getTime() <= todayTimestamp;
-            });
-            break;
-        case 'Zero Follow Ups!':
-            leads = leads.filter(lead => !(lead as any).followUps || (lead as any).followUps.length === 0);
-            break;
-        case 'Search Result':
-            handleShowClick();
-            return;
-        default:
-            leads = [];
-    }
+    const leads = applyQuickFilter(filterType, allLeads);
     
     setFilteredLeads(leads);
     setCurrentPage(1);
