@@ -113,7 +113,7 @@ export default function LeadsUpdatePage() {
   const [allLeads, setAllLeads] = useState<LeadFormData[]>([]);
   
   const [filteredLeads, setFilteredLeads] = useState<LeadFormData[]>([]);
-  const [showResults, setShowResults] = useState(false);
+  const [showResults, setShowResults] = useState(true);
   const [activeQuickFilter, setActiveQuickFilter] = useState('All Leads');
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -234,7 +234,8 @@ export default function LeadsUpdatePage() {
   useEffect(() => {
     const leads = getLeadsFromLocalStorage();
     setAllLeads(leads);
-    setShowResults(false);
+    const initialFilteredLeads = applyQuickFilter('All Leads', leads);
+    setFilteredLeads(initialFilteredLeads);
 
     const handleStorageChange = () => {
       const updatedLeads = getLeadsFromLocalStorage();
@@ -245,6 +246,7 @@ export default function LeadsUpdatePage() {
     return () => {
       window.removeEventListener('storage', handleStorageChange);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -269,12 +271,9 @@ export default function LeadsUpdatePage() {
 
   const handleResetClick = () => {
     setFilters(initialFilterState);
-    if (allLeads) {
-      setFilteredLeads(allLeads);
-    } else {
-      setFilteredLeads([]);
-    }
-    setShowResults(false);
+    const allLeadsData = getLeadsFromLocalStorage();
+    setFilteredLeads(allLeadsData);
+    setShowResults(true);
     setActiveQuickFilter('All Leads');
     setSelectedLeadId(null);
   };
