@@ -330,6 +330,9 @@ export default function LeadsUpdatePage() {
         });
         return;
     }
+    
+    const executiveNames = Array.from(new Set(leadsToExport.map(lead => lead.executive).filter(Boolean)));
+    const exportData = executiveNames.map(name => ({ Executive: name }));
 
     let fileName = 'filtered_leads_report.xlsx';
     if (filters.executiveName !== 'all') {
@@ -342,7 +345,7 @@ export default function LeadsUpdatePage() {
         fileName = `${activeQuickFilter.replace(/\s+/g, '_').toLowerCase()}_report.xlsx`;
     }
 
-    const ws = XLSX.utils.json_to_sheet(leadsToExport);
+    const ws = XLSX.utils.json_to_sheet(exportData);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Filtered Leads");
     XLSX.writeFile(wb, fileName);
