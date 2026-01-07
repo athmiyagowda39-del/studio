@@ -40,7 +40,7 @@ export default function ProfileCard() {
   const { user, logout } = useAuth();
   const router = useRouter();
 
-  const userName = user?.username || 'User';
+  const userName = user?.username ? user.username.toUpperCase() : 'USER';
 
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
