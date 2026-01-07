@@ -129,21 +129,6 @@ const getLeadsFromLocalStorage = (): LeadFormData[] => {
   return [];
 };
 
-const getUploadIndex = (): number => {
-    if (typeof window !== 'undefined') {
-        const index = localStorage.getItem('uploadIndex');
-        return index ? parseInt(index, 10) : 0;
-    }
-    return 0;
-};
-
-const setUploadIndex = (index: number) => {
-    if (typeof window !== 'undefined') {
-        localStorage.setItem('uploadIndex', index.toString());
-    }
-};
-
-
 export default function LeadUploadForm() {
   const [formData, setFormData] = useState<Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId' | 'givenBy'>>(initialFormState);
   const [sectorOpen, setSectorOpen] = useState(false);
@@ -259,46 +244,6 @@ export default function LeadUploadForm() {
       setSelectedFile(file);
       setShowPreview(false);
       setParsedData(null);
-      processFile(file, (json) => {
-        if (json && json.length > 1) {
-            const uploadIndex = getUploadIndex();
-            const headers = json[0].map(h => String(h).toLowerCase() === 'pin code' ? 'pincode' : String(h));
-            
-            const dataRowIndex = (uploadIndex % (json.length - 1)) + 1;
-            const dataRow = json[dataRowIndex] as (string | number)[];
-            
-            const leadObject: any = {};
-            headers.forEach((header, index) => {
-                const headerStr = String(header);
-                leadObject[headerStr] = dataRow[index];
-            });
-            
-            setFormData({
-                pincode: leadObject.pincode ? String(leadObject.pincode) : '',
-                state: leadObject.state || '',
-                district: leadObject.district || '',
-                address: leadObject.address || '',
-                contactPerson: leadObject.contactPerson || '',
-                contactNumber: leadObject.contactNumber ? String(leadObject.contactNumber) : '',
-                reference: leadObject.reference || '',
-                email: leadObject.email || '',
-                company: leadObject.company || '',
-                headcount: leadObject.headcount ? String(leadObject.headcount) : '',
-                sector: leadObject.sector || '',
-                selectedModule: leadObject.selectedModule || '',
-                toDealer: false,
-            });
-
-            setUploadIndex(uploadIndex + 1);
-
-            toast({
-                title: "Form Populated",
-                description: `Lead details from row ${dataRowIndex} have been filled into the form.`,
-            });
-        }
-        setParsedData(json);
-        setShowPreview(true);
-      });
     }
   };
 
