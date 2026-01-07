@@ -12,7 +12,7 @@ export default function ReportsPage() {
     { name: 'Product-wise Performance Report' },
     { name: 'Sales Forecast Report' },
     { name: 'Cost Analysis Report (CPL & CPA)' },
-    { name: 'LEAD UPDATE STATUS REPORT' },
+    { name: 'LEAD UPDATE STATUS REPORT', href: '/reports/lead-update-status' },
     { name: 'LEAD UPLOAD STATUS REPORT' },
     { name: 'MAPPING INFORMATION REPORT' },
   ];
@@ -35,7 +35,7 @@ export default function ReportsPage() {
                     {report.name}
                 </Link>
                 ) : (
-                <div key={index} className="p-4 border rounded-md text-center">
+                <div key={index} className="p-4 border rounded-md text-center text-muted-foreground cursor-not-allowed">
                     {report.name}
                 </div>
                 )
