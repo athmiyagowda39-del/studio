@@ -2,21 +2,14 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppContent from '../app-content';
+import Link from 'next/link';
 
 export default function ReportsPage() {
-  const fields = [
-    'Pin code',
-    'Company',
-    'Contact person',
-    'Address',
-    'State',
-    'District',
-    'Contact Number',
-    'Email',
-    'Reference',
-    'Company headcount',
-    'Sector',
-    'Modules',
+  const reports = [
+    { name: 'LEAD REPORT', href: '/reports/lead-report' },
+    { name: 'CONVERSION FUNNEL REPORT', href: '/reports/conversion-funnel' },
+    { name: 'LEAD UPDATE STATUS REPORT', href: '/reports/lead-update-status' },
+    { name: 'LEAD UPLOAD STATUS REPORT', href: '/reports/lead-upload-status' },
   ];
 
   return (
@@ -24,16 +17,15 @@ export default function ReportsPage() {
       <div className="flex flex-col gap-6">
         <Card>
           <CardHeader className="bg-primary/10">
-            <CardTitle className="text-center text-primary">Lead Fields</CardTitle>
+            <CardTitle className="text-center text-primary">Reports</CardTitle>
           </CardHeader>
-          <CardContent className="p-6 space-y-4">
-            {fields.map((field, index) => (
-              <div
-                key={index}
-                className="p-4 border rounded-md text-center text-foreground"
-              >
-                {field}
-              </div>
+          <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+            {reports.map((report) => (
+              <Link key={report.name} href={report.href} passHref>
+                <div className="p-4 border rounded-md text-center text-foreground hover:bg-accent cursor-pointer">
+                  {report.name}
+                </div>
+              </Link>
             ))}
           </CardContent>
         </Card>
