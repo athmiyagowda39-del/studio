@@ -95,6 +95,7 @@ const leadStatusOptions = [
     'Follow-up Required',
     'Fake Lead',
     'Existing Customer',
+    'Existing Customer',
     'Do Not Contact',
     'Quote Sent',
 ];
@@ -214,11 +215,11 @@ export default function LeadUploadForm() {
   };
 
   const validateLead = (lead: Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId' | 'givenBy'>) => {
-    if (!lead.contactPerson || !lead.contactNumber || !lead.address) {
+    if (!lead.pincode || !lead.contactPerson || !lead.contactNumber || !lead.address) {
       toast({
         variant: 'destructive',
         title: 'Missing Information',
-        description: 'Please fill all mandatory fields (Contact Person, Contact Number, Address).',
+        description: 'Please fill all mandatory fields (Pincode, Contact Person, Contact Number, Address).',
       });
       return false;
     }
@@ -452,18 +453,6 @@ export default function LeadUploadForm() {
     XLSX.writeFile(wb, 'Leads Upload report.xlsx');
   };
 
-  const handleDownloadSample = () => {
-    const sampleData = [
-      ['Pin code', 'company', 'contactPerson', 'address', 'state', 'district', 'contactNumber', 'email', 'reference', 'headcount', 'sector', 'selectedModule'],
-      ['587101', 'Tech Solutions', 'John Doe', '123 MG Road, Bagalkote', 'Karnataka', 'Bagalkote', '9876543210', 'john.doe@example.com', 'Friend', '150', 'IT', 'ar'],
-      ['560001', 'Innovate Corp', 'Jane Smith', '456 Brigade Road, Bengaluru', 'Karnataka', 'Bengaluru Urban', '8765432109', 'jane.smith@example.com', 'Website', '250', 'Finance', 'all-hrms'],
-    ];
-    const ws = XLSX.utils.aoa_to_sheet(sampleData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Leads');
-    XLSX.writeFile(wb, 'sample_leads.xlsx');
-  };
-
   return (
     <div className="space-y-6">
       <div>
@@ -471,7 +460,7 @@ export default function LeadUploadForm() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 mt-4">
           <div className="space-y-2 md:col-span-2">
             <Label htmlFor="pincode">Pin code <span className="text-destructive">*</span></Label>
-            <Input id="pincode" value={formData.pincode} onChange={handleInputChange} maxLength={6} />
+            <Input id="pincode" value={formData.pincode} onChange={handleInputChange} maxLength={6} required />
           </div>
           <div className="space-y-2">
             <Label htmlFor="company">Company</Label>
@@ -592,7 +581,7 @@ export default function LeadUploadForm() {
                     <p className="text-sm text-muted-foreground">or</p>
                     <div className='flex gap-2'>
                         <Button variant="outline" size="sm" onClick={handleBrowseFileClick}>Browse File</Button>
-                         <Button variant="outline" size="sm" onClick={handleDownloadSample}>
+                         <Button variant="outline" size="sm" onClick={handleToExcel}>
                             <Download className="mr-2 h-4 w-4" />
                             Download Sample
                         </Button>
@@ -687,3 +676,5 @@ export default function LeadUploadForm() {
     </div>
   );
 }
+
+    
