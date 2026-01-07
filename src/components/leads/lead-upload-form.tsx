@@ -95,7 +95,6 @@ const leadStatusOptions = [
     'Follow-up Required',
     'Fake Lead',
     'Existing Customer',
-    'Existing Customer',
     'Do Not Contact',
     'Quote Sent',
 ];
