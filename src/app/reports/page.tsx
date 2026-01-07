@@ -23,7 +23,7 @@ export default function ReportsPage() {
           <CardHeader className="bg-primary/10">
             <CardTitle className="text-center text-primary">Reports</CardTitle>
           </CardHeader>
-          <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <CardContent className="p-6 grid grid-cols-1 gap-4">
             {reports.map((report) => (
               <Link key={report.name} href={report.href} passHref>
                 <div className="p-4 border rounded-md text-center text-foreground hover:bg-accent cursor-pointer">
