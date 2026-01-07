@@ -333,21 +333,18 @@ export default function LeadsUpdatePage() {
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Lead Sources");
         XLSX.writeFile(wb, fileName);
-
-    } else {
-        const allExecutiveNames = Array.from(new Set(allLeads.map(lead => lead.executive).filter(Boolean)));
-
-        if (allExecutiveNames.length === 0) {
+    } else if (filters.executiveName && filters.executiveName !== 'all') {
+        if (filteredLeads.length === 0) {
             toast({
                 variant: 'destructive',
                 title: 'No Executives Found',
-                description: 'There are no executives to export.'
+                description: 'There are no executives to export for the current filter.'
             });
             return;
         }
         
-        const exportData = allExecutiveNames.map(name => ({ Executive: name }));
-        const fileName = 'executive_report.xlsx';
+        const exportData = filteredLeads.map(name => ({ Executive: name }));
+        const fileName = `${filters.executiveName}_report.xlsx`;
 
         const ws = XLSX.utils.json_to_sheet(exportData);
         const colWidths = [{ wch: 30 }];
@@ -355,6 +352,27 @@ export default function LeadsUpdatePage() {
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Executives");
         XLSX.writeFile(wb, fileName);
+    } else {
+        const quickFilterNames = [
+            'All Leads',
+            'Recent Leads',
+            'Leads not Viewed',
+            'Follow Ups Due',
+            'Zero Follow Ups!',
+        ];
+
+        const reportData = quickFilterNames.map(filterName => {
+            const count = applyQuickFilter(filterName, allLeads).length;
+            return { 'Category': filterName, 'Count': count };
+        });
+
+        const ws = XLSX.utils.json_to_sheet(reportData);
+        const colWidths = [{ wch: 20 }, { wch: 10 }];
+        ws['!cols'] = colWidths;
+
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Lead Update Report');
+        XLSX.writeFile(wb, 'Lead Update Report.xlsx');
     }
   }
 
