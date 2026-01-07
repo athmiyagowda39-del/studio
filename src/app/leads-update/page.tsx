@@ -328,6 +328,8 @@ export default function LeadsUpdatePage() {
         const fileName = `lead_source_report.xlsx`;
 
         const ws = XLSX.utils.json_to_sheet(exportData);
+        const colWidths = [{ wch: 30 }];
+        ws['!cols'] = colWidths;
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Lead Sources");
         XLSX.writeFile(wb, fileName);
@@ -348,6 +350,8 @@ export default function LeadsUpdatePage() {
         const fileName = 'executive_report.xlsx';
 
         const ws = XLSX.utils.json_to_sheet(exportData);
+        const colWidths = [{ wch: 30 }];
+        ws['!cols'] = colWidths;
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Executives");
         XLSX.writeFile(wb, fileName);
