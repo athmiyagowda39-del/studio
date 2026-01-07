@@ -10,7 +10,7 @@ import {
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import LeadPerformanceChart from '@/components/dashboard/lead-performance-chart';
 import { useState, useMemo, useEffect } from 'react';
-import { startOfDay, endOfDay } from 'date-fns';
+import { startOfDay, endOfDay, subDays, format as formatDate } from 'date-fns';
 import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
 import AppContent from '../app-content';
@@ -56,28 +56,28 @@ export default function DashboardPage() {
   const performanceData = useMemo(() => {
     if (!allLeads) return [];
   
-    const todayStart = startOfDay(new Date());
-    const todayEnd = endOfDay(new Date());
+    // Initialize data for the last 30 days
+    const dailyLeads: { [key: string]: { day: string; leads: number } } = {};
+    for (let i = 29; i >= 0; i--) {
+      const date = subDays(new Date(), i);
+      const formattedDate = formatDate(date, 'MMM d');
+      dailyLeads[formattedDate] = { day: formattedDate, leads: 0 };
+    }
   
-    const todaysLeads = allLeads.filter((lead) => {
+    // Filter leads from the last 30 days
+    const thirtyDaysAgo = startOfDay(subDays(new Date(), 29)).getTime();
+    const recentLeads = allLeads.filter((lead) => lead.creationDate >= thirtyDaysAgo);
+  
+    // Aggregate leads by day
+    recentLeads.forEach((lead) => {
       const leadDate = new Date(lead.creationDate);
-      return leadDate >= todayStart && leadDate <= todayEnd;
-    });
-  
-    // Initialize hourly breakdown
-    const hourlyLeads = Array.from({ length: 24 }, (_, i) => ({
-      hour: `${i.toString().padStart(2, '0')}:00`,
-      leads: 0,
-    }));
-  
-    todaysLeads.forEach((lead) => {
-      const leadHour = new Date(lead.creationDate).getHours();
-      if (leadHour >= 0 && leadHour < 24) {
-        hourlyLeads[leadHour].leads += 1;
+      const formattedDate = formatDate(leadDate, 'MMM d');
+      if (dailyLeads[formattedDate]) {
+        dailyLeads[formattedDate].leads += 1;
       }
     });
   
-    return hourlyLeads;
+    return Object.values(dailyLeads);
   }, [allLeads]);
   
 
@@ -114,7 +114,7 @@ export default function DashboardPage() {
             <CardTitle className="text-center">Lead volume Analysis</CardTitle>
             </CardHeader>
             <CardContent>
-              <LeadPerformanceChart performanceData={performanceData} xAxisLabel="Hour of the Day" />
+              <LeadPerformanceChart performanceData={performanceData} xAxisLabel="Date" />
             </CardContent>
         </Card>
         </div>
