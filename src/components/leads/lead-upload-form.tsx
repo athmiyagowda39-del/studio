@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
-import { Check, ChevronsUpDown, Download, UploadCloud } from 'lucide-react';
+import { Check, ChevronsUpDown, UploadCloud } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { useState, useRef, useEffect } from 'react';
 import * as XLSX from 'xlsx';
@@ -242,8 +242,8 @@ export default function LeadUploadForm() {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setSelectedFile(file);
-      setShowPreview(false);
       setParsedData(null);
+      setShowPreview(false);
     }
   };
 
@@ -277,26 +277,24 @@ export default function LeadUploadForm() {
         });
       return;
     }
-    if (parsedData) {
-        setShowPreview(true);
-    } else {
-        processFile(selectedFile, (json) => {
-          setParsedData(json);
-          setShowPreview(true);
-        });
-    }
+    processFile(selectedFile, (json) => {
+      setParsedData(json);
+      setShowPreview(true);
+    });
   };
   
   const handleConfirmUpload = () => {
-    if (!parsedData) {
+    if (!selectedFile) {
       toast({
         variant: 'destructive',
-        title: 'No data to upload',
-        description: 'Please select a file and preview first.',
+        title: 'No file selected',
+        description: 'Please select a file to upload.',
       });
       return;
     }
-     if (parsedData.length < 2) {
+
+    processFile(selectedFile, (json) => {
+      if (json.length < 2) {
         toast({
           variant: 'destructive',
           title: 'Empty File',
@@ -306,9 +304,9 @@ export default function LeadUploadForm() {
       }
     
       const allLeads = getLeadsFromLocalStorage();
-      const headers = parsedData[0].map(h => String(h).toLowerCase() === 'pin code' ? 'pincode' : String(h));
+      const headers = json[0].map(h => String(h).toLowerCase() === 'pin code' ? 'pincode' : String(h));
 
-      const newLeads: LeadFormData[] = parsedData.slice(1).map(row => {
+      const newLeads: LeadFormData[] = json.slice(1).map(row => {
         const leadObject: any = {};
         headers.forEach((header, index) => {
             const headerStr = String(header);
@@ -344,6 +342,7 @@ export default function LeadUploadForm() {
         description: `${newLeads.length} leads have been uploaded and saved.`,
       });
       resetForm();
+    });
   };
 
 
@@ -616,4 +615,5 @@ export default function LeadUploadForm() {
   );
 }
 
+    
     
