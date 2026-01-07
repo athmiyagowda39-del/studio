@@ -123,6 +123,14 @@ export default function LeadsUpdatePage() {
   const [filters, setFilters] = useState(initialFilterState);
 
   const { toast } = useToast();
+
+  const executiveNames = useMemo(() => {
+    if (!allLeads) return [];
+    const names = allLeads
+      .map(lead => lead.executive)
+      .filter((name): name is string => !!name);
+    return ['all', ...Array.from(new Set(names))];
+  }, [allLeads]);
   
   const applyFilters = useCallback((leadsToFilter: LeadFormData[]) => {
     let leads = [...(leadsToFilter || [])];
@@ -139,6 +147,9 @@ export default function LeadsUpdatePage() {
     }
      if (filters.leadSource !== 'all') {
         leads = leads.filter(lead => lead.reference?.toLowerCase() === filters.leadSource.toLowerCase());
+    }
+     if (filters.executiveName !== 'all') {
+        leads = leads.filter(lead => lead.executive === filters.executiveName);
     }
 
     if (filters.fromDate) {
@@ -536,9 +547,11 @@ export default function LeadsUpdatePage() {
                                 <SelectValue placeholder="--All--" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="all">--All--</SelectItem>
-                                <SelectItem value="exec1">Executive 1</SelectItem>
-                                <SelectItem value="exec2">Executive 2</SelectItem>
+                                {executiveNames.map(name => (
+                                    <SelectItem key={name} value={name} className="capitalize">
+                                        {name === 'all' ? '--All--' : name}
+                                    </SelectItem>
+                                ))}
                             </SelectContent>
                             </Select>
                         </div>
