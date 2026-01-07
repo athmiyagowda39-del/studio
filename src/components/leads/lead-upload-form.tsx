@@ -39,6 +39,7 @@ import {
 } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
 import { Textarea } from '../ui/textarea';
+import { format } from 'date-fns';
 
 type ParsedData = (string | number)[][];
 
@@ -411,7 +412,47 @@ export default function LeadUploadForm() {
     }
   };
 
-   const handleDownloadSample = () => {
+   const handleToExcel = () => {
+    const allLeads = getLeadsFromLocalStorage();
+    if (allLeads.length === 0) {
+      toast({
+        variant: 'destructive',
+        title: 'No Leads to Export',
+        description: 'There are no leads saved in the application yet.',
+      });
+      return;
+    }
+
+    const headers = ['Lead ID', 'Creation Date', 'Pincode', 'Company', 'Contact Person', 'Address', 'State', 'District', 'Contact Number', 'Email', 'Reference', 'Headcount', 'Sector', 'Selected Module'];
+    
+    const data = allLeads.map(lead => ({
+      'Lead ID': lead.leadId,
+      'Creation Date': format(new Date(lead.creationDate), 'yyyy-MM-dd'),
+      'Pincode': lead.pincode,
+      'Company': lead.company,
+      'Contact Person': lead.contactPerson,
+      'Address': lead.address,
+      'State': lead.state,
+      'District': lead.district,
+      'Contact Number': lead.contactNumber,
+      'Email': lead.email,
+      'Reference': lead.reference,
+      'Headcount': lead.headcount,
+      'Sector': lead.sector,
+      'Selected Module': lead.selectedModule,
+    }));
+    
+    const ws = XLSX.utils.json_to_sheet(data, { header: headers });
+
+    const colWidths = headers.map(header => ({ wch: Math.max(header.length, 20) }));
+    ws['!cols'] = colWidths;
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Leads');
+    XLSX.writeFile(wb, 'Leads Upload report.xlsx');
+  };
+
+  const handleDownloadSample = () => {
     const sampleData = [
       ['Pin code', 'company', 'contactPerson', 'address', 'state', 'district', 'contactNumber', 'email', 'reference', 'headcount', 'sector', 'selectedModule'],
       ['587101', 'Tech Solutions', 'John Doe', '123 MG Road, Bagalkote', 'Karnataka', 'Bagalkote', '9876543210', 'john.doe@example.com', 'Friend', '150', 'IT', 'ar'],
@@ -537,8 +578,8 @@ export default function LeadUploadForm() {
       </div>
       <div className="flex justify-end gap-2 mt-6">
         <Button variant="outline" onClick={resetForm}>Reset</Button>
-        <Button variant="outline" onClick={handleDownloadSample}>TO EXCEL</Button>
         <Button onClick={handleSaveLead}>Save Lead</Button>
+        <Button variant="outline" onClick={handleToExcel}>TO EXCEL</Button>
       </div>
 
       <div className="space-y-4 pt-6 border-t">
