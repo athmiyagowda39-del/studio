@@ -9,17 +9,11 @@ import {
 } from '@/components/ui/card';
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import LeadPerformanceChart from '@/components/dashboard/lead-performance-chart';
-import LeadPerformanceFilters from '@/components/dashboard/lead-performance-filters';
 import { useState, useMemo, useEffect } from 'react';
 import { startOfDay, endOfDay } from 'date-fns';
 import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
 import AppContent from '../app-content';
-
-const months = [
-  'January', 'February', 'March', 'April', 'May', 'June', 'July',
-  'August', 'September', 'October', 'November', 'December',
-];
 
 const getLeadsFromLocalStorage = (): LeadFormData[] => {
   if (typeof window !== 'undefined') {
@@ -50,9 +44,6 @@ export default function DashboardPage() {
     }
   }, [isAuthenticated]);
 
-  const [period, setPeriod] = useState('November');
-  const [city, setCity] = useState('All');
-
   const totalLeadsToday = useMemo(() => {
     if (!allLeads) return 0;
     const todayStart = startOfDay(new Date()).getTime();
@@ -64,37 +55,31 @@ export default function DashboardPage() {
 
   const performanceData = useMemo(() => {
     if (!allLeads) return [];
-
-    const monthIndex = months.indexOf(period);
-    if (monthIndex === -1) return [];
-    
-    const year = new Date().getFullYear();
-
-    const filteredLeads = allLeads.filter((lead) => {
+  
+    const todayStart = startOfDay(new Date());
+    const todayEnd = endOfDay(new Date());
+  
+    const todaysLeads = allLeads.filter((lead) => {
       const leadDate = new Date(lead.creationDate);
-      const isMonthMatch = leadDate.getMonth() === monthIndex;
-      const isCityMatch = city === 'All' || lead.district === city;
-      return isMonthMatch && isCityMatch;
+      return leadDate >= todayStart && leadDate <= todayEnd;
     });
-
-    const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
-    const dailyLeads = Array.from({ length: daysInMonth }, (_, i) => ({
-      day: (i + 1).toString().padStart(2, '0'),
+  
+    // Initialize hourly breakdown
+    const hourlyLeads = Array.from({ length: 24 }, (_, i) => ({
+      hour: `${i.toString().padStart(2, '0')}:00`,
       leads: 0,
     }));
-
-    filteredLeads.forEach((lead) => {
-      const leadDate = new Date(lead.creationDate);
-      if (leadDate.getMonth() === monthIndex) {
-        const dayOfMonth = leadDate.getDate();
-        if (dayOfMonth > 0 && dayOfMonth <= daysInMonth) {
-          dailyLeads[dayOfMonth - 1].leads += 1;
-        }
+  
+    todaysLeads.forEach((lead) => {
+      const leadHour = new Date(lead.creationDate).getHours();
+      if (leadHour >= 0 && leadHour < 24) {
+        hourlyLeads[leadHour].leads += 1;
       }
     });
-
-    return dailyLeads;
-  }, [allLeads, period, city]);
+  
+    return hourlyLeads;
+  }, [allLeads]);
+  
 
   if (isLoading || isDataLoading || !isAuthenticated) {
     return null; // or a loading skeleton
@@ -129,13 +114,7 @@ export default function DashboardPage() {
             <CardTitle className="text-center">Lead volume Analysis</CardTitle>
             </CardHeader>
             <CardContent>
-            <LeadPerformanceFilters
-                period={period}
-                setPeriod={setPeriod}
-                city={city}
-                setCity={setCity}
-            />
-            <LeadPerformanceChart performanceData={performanceData} />
+              <LeadPerformanceChart performanceData={performanceData} xAxisLabel="Hour of the Day" />
             </CardContent>
         </Card>
         </div>

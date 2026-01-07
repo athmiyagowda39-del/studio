@@ -15,22 +15,25 @@ const chartConfig = {
 };
 
 type PerformanceDataPoint = {
-  day: string;
+  day?: string;
+  hour?: string;
   leads: number;
 };
 
 type LeadPerformanceChartProps = {
   performanceData: PerformanceDataPoint[];
+  xAxisLabel?: string;
 };
 
 export default function LeadPerformanceChart({
   performanceData,
+  xAxisLabel = 'Number of Days',
 }: LeadPerformanceChartProps) {
   const maxLeads = Math.max(...performanceData.map((d) => d.leads), 0);
-  const yAxisMax = Math.ceil((maxLeads * 1.2) / 50) * 50; // Add 20% padding and round to next 50
+  const yAxisMax = Math.ceil((maxLeads * 1.2) / 10) * 10 || 10;
 
   const yAxisTicks =
-    yAxisMax > 0 ? [0, yAxisMax / 3, (yAxisMax * 2) / 3, yAxisMax].map(Math.round) : [0, 50, 100, 150];
+    yAxisMax > 0 ? [0, Math.round(yAxisMax / 2), yAxisMax] : [0, 5, 10];
 
 
   return (
@@ -49,13 +52,13 @@ export default function LeadPerformanceChart({
             axisLine={false}
             interval={0}
           >
-            <Label value="Number of Days" position="insideBottom" offset={-15} />
+            <Label value={xAxisLabel} position="insideBottom" offset={-15} />
           </XAxis>
           <YAxis
             tickLine={false}
             axisLine={false}
             tickMargin={10}
-            domain={[0, yAxisMax > 0 ? yAxisMax : 150]}
+            domain={[0, yAxisMax]}
             ticks={yAxisTicks}
           >
             <Label
