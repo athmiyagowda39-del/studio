@@ -63,7 +63,6 @@ export default function LeadUploadStatusReportPage() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Sl No</TableHead>
-                        <TableHead>Lead Id</TableHead>
                         <TableHead>Lead Date</TableHead>
                         <TableHead>Product</TableHead>
                         <TableHead>Company</TableHead>
@@ -76,10 +75,6 @@ export default function LeadUploadStatusReportPage() {
                         <TableHead>State</TableHead>
                         <TableHead>Reference</TableHead>
                         <TableHead>Manager</TableHead>
-                        <TableHead>Last Followed Date</TableHead>
-                        <TableHead>Last Followed By</TableHead>
-                        <TableHead>Next followup Date</TableHead>
-                        <TableHead>Last Followup Remarks</TableHead>
                         <TableHead>Lead Status</TableHead>
                         <TableHead>Lead Sub Status</TableHead>
                         <TableHead>Lead Status Remarks</TableHead>
@@ -91,22 +86,10 @@ export default function LeadUploadStatusReportPage() {
                         uploadedLeads.map((lead, index) => {
                           const date = new Date(lead.creationDate);
                           const isValidDate = !isNaN(date.getTime());
-                          const lastFollowUp =
-                            lead.followUps && lead.followUps.length > 0
-                              ? lead.followUps[lead.followUps.length - 1]
-                              : null;
-                          const nextFollowupDate =
-                            lead.nextFollowUpDate &&
-                            !isNaN(new Date(lead.nextFollowUpDate).getTime())
-                              ? format(new Date(lead.nextFollowUpDate), 'PPP')
-                              : lastFollowUp
-                              ? lastFollowUp.nextFollowUp
-                              : 'N/A';
-
+                          
                           return (
                             <TableRow key={`${lead.leadId}-${index}`}>
                               <TableCell>{index + 1}</TableCell>
-                              <TableCell>{lead.leadId || 'N/A'}</TableCell>
                               <TableCell>
                                 {isValidDate ? format(date, 'PPP') : 'N/A'}
                               </TableCell>
@@ -127,16 +110,6 @@ export default function LeadUploadStatusReportPage() {
                               <TableCell>{lead.state || 'N/A'}</TableCell>
                               <TableCell>{lead.reference || 'N/A'}</TableCell>
                               <TableCell>{lead.manager || 'N/A'}</TableCell>
-                              <TableCell>
-                                {lastFollowUp ? lastFollowUp.date : 'N/A'}
-                              </TableCell>
-                              <TableCell>
-                                {lastFollowUp ? lastFollowUp.enteredBy : 'N/A'}
-                              </TableCell>
-                              <TableCell>{nextFollowupDate}</TableCell>
-                              <TableCell>
-                                {lastFollowUp ? lastFollowUp.remarks : 'N/A'}
-                              </TableCell>
                               <TableCell>{lead.status || 'N/A'}</TableCell>
                               <TableCell>
                                 {lead.leadSubStatus || 'N/A'}
@@ -151,7 +124,7 @@ export default function LeadUploadStatusReportPage() {
                       ) : (
                         <TableRow>
                           <TableCell
-                            colSpan={22}
+                            colSpan={17}
                             className="h-24 text-center"
                           >
                             No uploaded leads found.
