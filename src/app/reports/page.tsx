@@ -13,7 +13,7 @@ export default function ReportsPage() {
     { name: 'Sales Forecast Report' },
     { name: 'Cost Analysis Report (CPL & CPA)' },
     { name: 'LEAD UPDATE STATUS REPORT', href: '/reports/lead-update-status' },
-    { name: 'LEAD UPLOAD STATUS REPORT' },
+    { name: 'LEAD UPLOAD STATUS REPORT', href: '/reports/lead-upload-status' },
     { name: 'MAPPING INFORMATION REPORT' },
   ];
 
