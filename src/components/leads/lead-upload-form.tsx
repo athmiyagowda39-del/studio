@@ -217,7 +217,7 @@ export default function LeadUploadForm() {
       toast({
         variant: 'destructive',
         title: 'Missing Information',
-        description: 'Please fill all mandatory fields (Pincode, Contact Person, Contact Number, Address).',
+        description: 'Please fill the fields',
       });
       return false;
     }
