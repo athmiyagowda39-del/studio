@@ -359,6 +359,29 @@ export default function LeadsUpdatePage() {
   };
   
   const handleToExcel = () => {
+    if (filters.executiveName !== 'all') {
+      const executiveReportData = executiveNames
+        .filter(name => name !== 'all')
+        .map(name => ({ 'Executive Name': name }));
+
+      if (executiveReportData.length === 0) {
+        toast({
+          variant: 'destructive',
+          title: 'No Executives Found',
+          description: 'There are no executives to export.',
+        });
+        return;
+      }
+
+      const ws = XLSX.utils.json_to_sheet(executiveReportData);
+      ws['!cols'] = [{ wch: 30 }];
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Executive Report');
+      XLSX.writeFile(wb, 'Executive Report.xlsx');
+      return;
+    }
+
+
     if (filteredLeads.length === 0) {
       toast({
         variant: 'destructive',
@@ -367,14 +390,6 @@ export default function LeadsUpdatePage() {
       });
       return;
     }
-
-    const headers = [
-      'Sl No', 'Lead Id', 'Lead Date', 'Product', 'Company', 'Contact', 'Phone', 'Email',
-      'Address', 'Place', 'District', 'State', 'Reference', 'Manager',
-      'Last Followed Date', 'Last Followed By', 'Next followup Date',
-      'Last Followup Remarks', 'Lead Status', 'Lead Sub Status',
-      'Lead Status Remarks', 'Given By'
-    ];
 
     const reportData = filteredLeads.map((lead, index) => {
         const lastFollowUp = lead.followUps && lead.followUps.length > 0 ? lead.followUps[lead.followUps.length - 1] : null;
@@ -407,17 +422,17 @@ export default function LeadsUpdatePage() {
           'Given By': lead.givenBy || 'N/A',
         };
     });
-
-    const ws = XLSX.utils.json_to_sheet(reportData, { header: headers, skipHeader: false });
     
-    // Set column widths
-    const colWidths = headers.map(header => ({ wch: Math.max(header.length, 20) }));
+    const ws = XLSX.utils.json_to_sheet(reportData);
+    
+    const colWidths = Object.keys(reportData[0] || {}).map(header => ({ wch: Math.max(header.length, 20) }));
     ws['!cols'] = colWidths;
 
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Leads Update Report');
     XLSX.writeFile(wb, 'Leads Update Report.xlsx');
   };
+
 
   return (
     <AppContent>
