@@ -359,6 +359,7 @@ export default function LeadsUpdatePage() {
   };
   
   const handleToExcel = () => {
+    const currentLeads = allLeads;
     // Executive Name report
     if (filters.executiveName !== 'all') {
       const executiveReportData = executiveNames
@@ -402,7 +403,9 @@ export default function LeadsUpdatePage() {
     }
 
     // Default filtered leads export
-    if (filteredLeads.length === 0) {
+    const leadsToExport = applyFilters(currentLeads);
+
+    if (leadsToExport.length === 0) {
       toast({
         variant: 'destructive',
         title: 'No Leads to Export',
@@ -411,7 +414,7 @@ export default function LeadsUpdatePage() {
       return;
     }
 
-    const reportData = filteredLeads.map((lead, index) => {
+    const reportData = leadsToExport.map((lead, index) => {
         const lastFollowUp = lead.followUps && lead.followUps.length > 0 ? lead.followUps[lead.followUps.length - 1] : null;
         const nextFollowupDate = lead.nextFollowUpDate && !isNaN(new Date(lead.nextFollowUpDate).getTime())
                                 ? format(new Date(lead.nextFollowUpDate), 'PPP')
