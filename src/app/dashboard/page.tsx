@@ -10,7 +10,7 @@ import {
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import LeadPerformanceChart from '@/components/dashboard/lead-performance-chart';
 import { useState, useMemo, useEffect } from 'react';
-import { startOfDay, endOfDay, subDays, format as formatDate, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
+import { startOfDay, endOfDay, subDays, format as formatDate, eachDayOfInterval } from 'date-fns';
 import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
 import AppContent from '../app-content';
@@ -57,20 +57,19 @@ export default function DashboardPage() {
     if (!allLeads) return [];
 
     const now = new Date();
-    const monthStart = startOfMonth(now);
-    const monthEnd = endOfMonth(now);
-    const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
+    const thirtyDaysAgo = subDays(now, 30);
+    const days = eachDayOfInterval({ start: thirtyDaysAgo, end: now });
 
-    // Initialize data for each day of the current month
+    // Initialize data for each of the last 30 days
     const dailyLeads: { [key: string]: { day: string; leads: number } } = {};
-    daysInMonth.forEach(date => {
+    days.forEach(date => {
         const formattedDate = formatDate(date, 'MMM d');
         dailyLeads[formattedDate] = { day: formattedDate, leads: 0 };
     });
 
-    // Filter leads from the current month
+    // Filter leads from the last 30 days
     const recentLeads = allLeads.filter(
-      (lead) => lead.creationDate >= monthStart.getTime() && lead.creationDate <= monthEnd.getTime()
+      (lead) => lead.creationDate >= thirtyDaysAgo.getTime()
     );
 
     // Aggregate leads by day
