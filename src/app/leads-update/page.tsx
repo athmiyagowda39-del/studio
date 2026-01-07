@@ -37,6 +37,8 @@ import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import LeadUpdateForm from '@/components/leads/lead-update-form';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import AppContent from '../app-content';
+import * as XLSX from 'xlsx';
+
 
 const initialFilterState = {
   search: '',
@@ -354,6 +356,67 @@ export default function LeadsUpdatePage() {
 
   const handleRowClick = (leadId: string) => {
     setSelectedLeadId(leadId);
+  };
+  
+  const handleToExcel = () => {
+    if (filteredLeads.length === 0) {
+      toast({
+        variant: 'destructive',
+        title: 'No Leads to Export',
+        description: 'There are no leads matching the current filters.',
+      });
+      return;
+    }
+
+    const headers = [
+      'Sl No', 'Lead Id', 'Lead Date', 'Product', 'Company', 'Contact', 'Phone', 'Email',
+      'Address', 'Place', 'District', 'State', 'Reference', 'Manager',
+      'Last Followed Date', 'Last Followed By', 'Next followup Date',
+      'Last Followup Remarks', 'Lead Status', 'Lead Sub Status',
+      'Lead Status Remarks', 'Given By'
+    ];
+
+    const reportData = filteredLeads.map((lead, index) => {
+        const lastFollowUp = lead.followUps && lead.followUps.length > 0 ? lead.followUps[lead.followUps.length - 1] : null;
+        const nextFollowupDate = lead.nextFollowUpDate && !isNaN(new Date(lead.nextFollowUpDate).getTime())
+                                ? format(new Date(lead.nextFollowUpDate), 'PPP')
+                                : (lastFollowUp ? lastFollowUp.nextFollowUp : 'N/A');
+        
+        return {
+          'Sl No': index + 1,
+          'Lead Id': lead.leadId || 'N/A',
+          'Lead Date': lead.creationDate && !isNaN(new Date(lead.creationDate).getTime()) ? format(new Date(lead.creationDate), 'PPP') : 'N/A',
+          'Product': lead.selectedModule || 'N/A',
+          'Company': lead.company || 'N/A',
+          'Contact': lead.contactPerson || 'N/A',
+          'Phone': lead.contactNumber || 'N/A',
+          'Email': lead.email || 'N/A',
+          'Address': lead.address || 'N/A',
+          'Place': lead.district || 'N/A',
+          'District': lead.district || 'N/A',
+          'State': lead.state || 'N/A',
+          'Reference': lead.reference || 'N/A',
+          'Manager': lead.manager || 'N/A',
+          'Last Followed Date': lastFollowUp ? lastFollowUp.date : 'N/A',
+          'Last Followed By': lastFollowUp ? lastFollowUp.enteredBy : 'N/A',
+          'Next followup Date': nextFollowupDate,
+          'Last Followup Remarks': lastFollowUp ? lastFollowUp.remarks : 'N/A',
+          'Lead Status': lead.status || 'N/A',
+          'Lead Sub Status': lead.leadSubStatus || 'N/A',
+          'Lead Status Remarks': (lead as any).leadStatusRemarks || 'N/A',
+          'Given By': lead.givenBy || 'N/A',
+        };
+    });
+
+    const ws = XLSX.utils.json_to_sheet(reportData, { header: headers, skipHeader: false });
+    
+    // Set column widths
+    const colWidths = headers.map(header => ({ wch: Math.max(header.length, 20) }));
+    ws['!cols'] = colWidths;
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Leads Update Report');
+    XLSX.writeFile(wb, 'Leads Update Report.xlsx');
   };
 
   return (
@@ -728,10 +791,11 @@ export default function LeadsUpdatePage() {
                         </div>
                     </div>
                     <div className="flex justify-end gap-2 p-4 border-t">
-                    <Button onClick={handleShowClick}>SHOW</Button>
-                    <Button variant="destructive" onClick={handleResetClick}>
-                        RESET
-                    </Button>
+                        <Button onClick={handleShowClick}>SHOW</Button>
+                        <Button onClick={handleToExcel}>TO EXCEL</Button>
+                        <Button variant="destructive" onClick={handleResetClick}>
+                            RESET
+                        </Button>
                     </div>
                 </CardContent>
                 </Card>
