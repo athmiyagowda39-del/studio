@@ -360,7 +360,7 @@ export default function LeadsUpdatePage() {
   
   const handleToExcel = () => {
     const currentLeads = allLeads;
-    // Executive Name report
+    
     if (filters.executiveName !== 'all') {
       const executiveReportData = executiveNames
         .filter(name => name !== 'all')
@@ -383,7 +383,6 @@ export default function LeadsUpdatePage() {
       return;
     }
 
-    // Lead Source report
     if (filters.leadSource !== 'all') {
       const sourceReportData = leadSources
         .filter(source => source !== 'all')
@@ -402,7 +401,6 @@ export default function LeadsUpdatePage() {
       return;
     }
 
-    // Default filtered leads export
     const leadsToExport = applyFilters(currentLeads);
 
     if (leadsToExport.length === 0) {
@@ -452,8 +450,9 @@ export default function LeadsUpdatePage() {
     ws['!cols'] = colWidths;
 
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Leads Update Report');
-    XLSX.writeFile(wb, 'Leads Update Report.xlsx');
+    const fileName = filters.statusOfLead !== 'all' ? `${filters.statusOfLead} report.xlsx` : 'Leads Update Report.xlsx';
+    XLSX.utils.book_append_sheet(wb, ws, 'Leads');
+    XLSX.writeFile(wb, fileName);
   };
 
 
