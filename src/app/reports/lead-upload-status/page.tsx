@@ -41,10 +41,6 @@ export default function LeadUploadStatusReportPage() {
     };
   }, []);
 
-  const uploadedLeads = useMemo(() => {
-    return allLeads.filter(lead => lead.givenBy === 'File Upload');
-  }, [allLeads]);
-
   return (
     <AppContent>
       <div className="flex flex-col gap-6">
@@ -77,8 +73,8 @@ export default function LeadUploadStatusReportPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {uploadedLeads.length > 0 ? (
-                        uploadedLeads.map((lead, index) => {
+                      {allLeads.length > 0 ? (
+                        allLeads.map((lead, index) => {
                           return (
                             <TableRow key={`${lead.leadId}-${index}`}>
                               <TableCell>{index + 1}</TableCell>
