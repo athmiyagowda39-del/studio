@@ -320,34 +320,23 @@ export default function LeadsUpdatePage() {
   }
 
   const handleToExcel = () => {
-    const leadsToExport = applyFilters(allLeads);
+    const allExecutiveNames = Array.from(new Set(allLeads.map(lead => lead.executive).filter(Boolean)));
 
-    if (leadsToExport.length === 0) {
+    if (allExecutiveNames.length === 0) {
         toast({
             variant: 'destructive',
-            title: 'No data to export',
-            description: 'Please filter for some leads first.'
+            title: 'No Executives Found',
+            description: 'There are no executives to export.'
         });
         return;
     }
     
-    const executiveNames = Array.from(new Set(leadsToExport.map(lead => lead.executive).filter(Boolean)));
-    const exportData = executiveNames.map(name => ({ Executive: name }));
-
-    let fileName = 'filtered_leads_report.xlsx';
-    if (filters.executiveName !== 'all') {
-        fileName = `${filters.executiveName.replace(/\s+/g, '_').toLowerCase()}_report.xlsx`;
-    } else if (filters.leadSource !== 'all') {
-        fileName = `${filters.leadSource.replace(/\s+/g, '_').toLowerCase()}_report.xlsx`;
-    } else if (filters.statusOfLead !== 'all') {
-        fileName = `${filters.statusOfLead.replace(/\s+/g, '_').toLowerCase()}_report.xlsx`;
-    } else if (activeQuickFilter && activeQuickFilter !== 'Search Result' && activeQuickFilter !== 'All Leads') {
-        fileName = `${activeQuickFilter.replace(/\s+/g, '_').toLowerCase()}_report.xlsx`;
-    }
+    const exportData = allExecutiveNames.map(name => ({ Executive: name }));
+    const fileName = 'executive_report.xlsx';
 
     const ws = XLSX.utils.json_to_sheet(exportData);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Filtered Leads");
+    XLSX.utils.book_append_sheet(wb, ws, "Executives");
     XLSX.writeFile(wb, fileName);
   }
 
