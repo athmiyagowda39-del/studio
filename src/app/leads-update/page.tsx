@@ -252,7 +252,12 @@ export default function LeadsUpdatePage() {
       setAllLeads(updatedLeads);
       
       // Re-apply active filter to refresh the view
-      const newFilteredLeads = applyQuickFilter(activeQuickFilter, updatedLeads);
+      let newFilteredLeads;
+      if (activeQuickFilter === 'Search Result') {
+          newFilteredLeads = applyFilters(updatedLeads);
+      } else {
+          newFilteredLeads = applyQuickFilter(activeQuickFilter, updatedLeads);
+      }
       setFilteredLeads(newFilteredLeads);
     };
 
@@ -267,14 +272,19 @@ export default function LeadsUpdatePage() {
     return () => {
       window.removeEventListener('storage', handleStorageChange);
     };
-  }, [applyQuickFilter, activeQuickFilter, showResults]);
+  }, [applyQuickFilter, activeQuickFilter, showResults, applyFilters]);
 
   useEffect(() => {
     if (showResults) {
-        const newFilteredLeads = applyQuickFilter(activeQuickFilter, allLeads);
+        let newFilteredLeads;
+        if(activeQuickFilter === 'Search Result') {
+            newFilteredLeads = applyFilters(allLeads);
+        } else {
+            newFilteredLeads = applyQuickFilter(activeQuickFilter, allLeads);
+        }
         setFilteredLeads(newFilteredLeads);
     }
-  }, [allLeads, activeQuickFilter, showResults, applyQuickFilter]);
+  }, [allLeads, activeQuickFilter, showResults, applyQuickFilter, applyFilters]);
   
   const handleFilterChange = (field: keyof typeof filters, value: any) => {
     setFilters(prev => ({...prev, [field]: value}));
@@ -293,7 +303,9 @@ export default function LeadsUpdatePage() {
     setFilters(initialFilterState);
     setShowResults(false);
     setActiveQuickFilter('All Leads');
-    setFilteredLeads([]);
+    const allCurrentLeads = getLeadsFromLocalStorage();
+    const initialLeads = applyQuickFilter('All Leads', allCurrentLeads);
+    setFilteredLeads(initialLeads);
     setSelectedLeadId(null);
   };
 
@@ -308,7 +320,9 @@ export default function LeadsUpdatePage() {
   }
 
   const handleToExcel = () => {
-    if (filteredLeads.length === 0) {
+    const leadsToExport = applyFilters(allLeads);
+
+    if (leadsToExport.length === 0) {
         toast({
             variant: 'destructive',
             title: 'No data to export',
@@ -318,15 +332,17 @@ export default function LeadsUpdatePage() {
     }
 
     let fileName = 'filtered_leads_report.xlsx';
-    if (filters.leadSource !== 'all') {
+    if (filters.executiveName !== 'all') {
+        fileName = `${filters.executiveName.replace(/\s+/g, '_').toLowerCase()}_report.xlsx`;
+    } else if (filters.leadSource !== 'all') {
         fileName = `${filters.leadSource.replace(/\s+/g, '_').toLowerCase()}_report.xlsx`;
     } else if (filters.statusOfLead !== 'all') {
         fileName = `${filters.statusOfLead.replace(/\s+/g, '_').toLowerCase()}_report.xlsx`;
-    } else if (activeQuickFilter && activeQuickFilter !== 'Search Result') {
+    } else if (activeQuickFilter && activeQuickFilter !== 'Search Result' && activeQuickFilter !== 'All Leads') {
         fileName = `${activeQuickFilter.replace(/\s+/g, '_').toLowerCase()}_report.xlsx`;
     }
 
-    const ws = XLSX.utils.json_to_sheet(filteredLeads);
+    const ws = XLSX.utils.json_to_sheet(leadsToExport);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Filtered Leads");
     XLSX.writeFile(wb, fileName);
