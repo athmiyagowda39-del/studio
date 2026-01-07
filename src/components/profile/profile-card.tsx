@@ -31,11 +31,16 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import { useAuth } from '@/context/auth-context';
+import { useRouter } from 'next/navigation';
 
 export default function ProfileCard() {
   const { toast } = useToast();
   const [userAvatar, setUserAvatar] = useState<ImagePlaceholder | undefined>();
-  const userName = 'Demo User';
+  const { user, logout } = useAuth();
+  const router = useRouter();
+
+  const userName = user?.username || 'User';
 
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -49,10 +54,12 @@ export default function ProfileCard() {
   }, []);
 
   const handleLogout = () => {
+    logout();
     toast({
       title: 'Logged Out',
       description: 'You have been successfully logged out.',
     });
+    router.push('/login');
   };
 
   const handleChangePassword = async (e: React.FormEvent) => {
