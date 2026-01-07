@@ -298,50 +298,52 @@ export default function LeadUploadForm() {
         toast({
           variant: 'destructive',
           title: 'Empty File',
-          description: 'The selected file has no data rows.',
+          description: 'The selected file has no data to populate the form.',
         });
         return;
       }
     
-      const allLeads = getLeadsFromLocalStorage();
-      const headers = json[0].map(h => String(h).toLowerCase() === 'pin code' ? 'pincode' : String(h));
+      const headers: string[] = json[0].map(h => String(h).toLowerCase().replace(/\s+/g, '') === 'pincode' ? 'pincode' : String(h).replace(/\s+/g, ''));
+      const firstRow = json[1];
 
-      const newLeads: LeadFormData[] = json.slice(1).map(row => {
-        const leadObject: any = {};
-        headers.forEach((header, index) => {
-            const headerStr = String(header);
-            leadObject[headerStr] = row[index];
-        });
-        return {
-            pincode: leadObject.pincode ? String(leadObject.pincode) : '',
-            address: leadObject.address || '',
-            contactPerson: leadObject.contactPerson || '',
-            contactNumber: leadObject.contactNumber ? String(leadObject.contactNumber) : '',
-            reference: leadObject.reference || '',
-            email: leadObject.email || '',
-            company: leadObject.company || '',
-            headcount: leadObject.headcount ? String(leadObject.headcount) : '',
-            sector: leadObject.sector || '',
-            selectedModule: leadObject.selectedModule || '',
-            state: leadObject.state || '',
-            district: leadObject.district || '',
-            toDealer: false,
-            leadId: `LEAD-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-            creationDate: new Date().getTime(),
-            givenBy: 'File Upload',
-            status: 'Not viewed',
-            subAdminId: 'demo-user' // Placeholder
-        };
+      const leadObject: any = {};
+      headers.forEach((header, index) => {
+          const headerStr = String(header).toLowerCase().replace(/\s+/g, '');
+          // Map excel headers to form keys
+          const keyMap: {[key: string]: keyof LeadFormData} = {
+              'pin code': 'pincode',
+              pincode: 'pincode',
+              company: 'company',
+              contactperson: 'contactPerson',
+              address: 'address',
+              state: 'state',
+              district: 'district',
+              contactnumber: 'contactNumber',
+              email: 'email',
+              reference: 'reference',
+              companyheadcount: 'headcount',
+              sector: 'sector',
+              modules: 'selectedModule'
+          };
+          const formKey = keyMap[headerStr];
+          if(formKey) {
+             leadObject[formKey] = firstRow[index];
+          }
       });
-
-      const updatedLeads = [...allLeads, ...newLeads];
-      saveLeadsToLocalStorage(updatedLeads);
+      
+      setFormData(prev => ({
+        ...prev,
+        ...leadObject,
+        pincode: String(leadObject.pincode || ''),
+        contactNumber: String(leadObject.contactNumber || ''),
+        headcount: String(leadObject.headcount || ''),
+      }));
       
       toast({
-        title: 'Leads saved successfully',
-        description: `${newLeads.length} leads have been uploaded and saved.`,
+        title: 'Form Populated',
+        description: `The form has been filled with the first lead from ${selectedFile.name}.`,
       });
-      resetForm();
+      handleCancel(); // Reset file input after populating
     });
   };
 
