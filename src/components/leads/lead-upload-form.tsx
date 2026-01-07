@@ -458,7 +458,7 @@ export default function LeadUploadForm() {
         <p className="font-semibold mb-4 text-primary">Provide the new Lead detail</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 mt-4">
           <div className="space-y-2 md:col-span-2">
-            <Label htmlFor="pincode">Pin code <span className="text-destructive">*</span></Label>
+            <Label htmlFor="pincode">Pin code</Label>
             <Input id="pincode" value={formData.pincode} onChange={handleInputChange} maxLength={6} required />
           </div>
           <div className="space-y-2">
@@ -466,11 +466,11 @@ export default function LeadUploadForm() {
             <Input id="company" value={formData.company} onChange={handleInputChange} />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="contactPerson">Contact person <span className="text-destructive">*</span></Label>
+            <Label htmlFor="contactPerson">Contact person</Label>
             <Input id="contactPerson" value={formData.contactPerson} onChange={handleInputChange} required />
           </div>
            <div className="space-y-2 md:col-span-2">
-            <Label htmlFor="address">Address <span className="text-destructive">*</span></Label>
+            <Label htmlFor="address">Address</Label>
             <Input id="address" value={formData.address} onChange={handleInputChange} required />
           </div>
           <div className="space-y-2">
@@ -482,7 +482,7 @@ export default function LeadUploadForm() {
             <Input id="district" value={formData.district} onChange={(e) => handleSelectChange('district', e.target.value)} />
           </div>
           <div className="space-y-2">
-             <Label htmlFor="contactNumber">Contact Number <span className="text-destructive">*</span></Label>
+             <Label htmlFor="contactNumber">Contact Number</Label>
             <Input id="contactNumber" value={formData.contactNumber} onChange={handleInputChange} required />
           </div>
           <div className="space-y-2">
