@@ -94,7 +94,6 @@ const leadStatusOptions = [
     'Unqualified',
     'Follow-up Required',
     'Fake Lead',
-    'Existing Customer',
     'Do Not Contact',
     'Quote Sent',
 ];
@@ -459,7 +458,7 @@ export default function LeadUploadForm() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 mt-4">
           <div className="space-y-2 md:col-span-2">
             <Label htmlFor="pincode">Pin code</Label>
-            <Input id="pincode" value={formData.pincode} onChange={handleInputChange} maxLength={6} required />
+            <Input id="pincode" value={formData.pincode} onChange={handleInputChange} maxLength={6} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="company">Company</Label>
@@ -467,11 +466,11 @@ export default function LeadUploadForm() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="contactPerson">Contact person</Label>
-            <Input id="contactPerson" value={formData.contactPerson} onChange={handleInputChange} required />
+            <Input id="contactPerson" value={formData.contactPerson} onChange={handleInputChange} />
           </div>
            <div className="space-y-2 md:col-span-2">
             <Label htmlFor="address">Address</Label>
-            <Input id="address" value={formData.address} onChange={handleInputChange} required />
+            <Input id="address" value={formData.address} onChange={handleInputChange} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="state">State</Label>
@@ -483,7 +482,7 @@ export default function LeadUploadForm() {
           </div>
           <div className="space-y-2">
              <Label htmlFor="contactNumber">Contact Number</Label>
-            <Input id="contactNumber" value={formData.contactNumber} onChange={handleInputChange} required />
+            <Input id="contactNumber" value={formData.contactNumber} onChange={handleInputChange} />
           </div>
           <div className="space-y-2">
              <Label htmlFor="email">Email</Label>
@@ -580,10 +579,6 @@ export default function LeadUploadForm() {
                     <p className="text-sm text-muted-foreground">or</p>
                     <div className='flex gap-2'>
                         <Button variant="outline" size="sm" onClick={handleBrowseFileClick}>Browse File</Button>
-                         <Button variant="outline" size="sm" onClick={handleToExcel}>
-                            <Download className="mr-2 h-4 w-4" />
-                            Download Sample
-                        </Button>
                     </div>
                     <Input ref={fileInputRef} type="file" className="hidden" onChange={handleFileChange} accept=".xlsx, .xls, .csv" />
                 </div>
