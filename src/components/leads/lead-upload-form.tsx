@@ -129,6 +129,20 @@ const getLeadsFromLocalStorage = (): LeadFormData[] => {
   return [];
 };
 
+const getUploadIndex = (): number => {
+    if (typeof window !== 'undefined') {
+        const index = localStorage.getItem('uploadIndex');
+        return index ? parseInt(index, 10) : 0;
+    }
+    return 0;
+};
+
+const setUploadIndex = (index: number) => {
+    if (typeof window !== 'undefined') {
+        localStorage.setItem('uploadIndex', index.toString());
+    }
+};
+
 
 export default function LeadUploadForm() {
   const [formData, setFormData] = useState<Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId' | 'givenBy'>>(initialFormState);
@@ -247,12 +261,16 @@ export default function LeadUploadForm() {
       setParsedData(null);
       processFile(file, (json) => {
         if (json && json.length > 1) {
+            const uploadIndex = getUploadIndex();
             const headers = json[0].map(h => String(h).toLowerCase() === 'pin code' ? 'pincode' : String(h));
-            const firstDataRow = json[1] as (string | number)[];
+            
+            const dataRowIndex = (uploadIndex % (json.length - 1)) + 1;
+            const dataRow = json[dataRowIndex] as (string | number)[];
+            
             const leadObject: any = {};
             headers.forEach((header, index) => {
                 const headerStr = String(header);
-                leadObject[headerStr] = firstDataRow[index];
+                leadObject[headerStr] = dataRow[index];
             });
             
             setFormData({
@@ -271,9 +289,11 @@ export default function LeadUploadForm() {
                 toDealer: false,
             });
 
+            setUploadIndex(uploadIndex + 1);
+
             toast({
                 title: "Form Populated",
-                description: "Lead details from the first row have been filled into the form.",
+                description: `Lead details from row ${dataRowIndex} have been filled into the form.`,
             });
         }
         setParsedData(json);
