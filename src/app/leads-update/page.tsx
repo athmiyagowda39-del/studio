@@ -82,20 +82,6 @@ const leadStatusOptions = [
     'Quote Sent',
 ];
 
-const leadSourceOptions = [
-    'Website',
-    'Social Media',
-    'Referral',
-    'Direct Call',
-    'Email Campaign',
-    'Advertisement',
-    'Trade Show',
-    'Partner',
-    'Existing Customer',
-    'Cold Call',
-    'Other'
-];
-
 const sectors = ['all', 'IT', 'Finance', 'Healthcare', 'Manufacturing', 'Education', 'Retail', 'Hospitality', 'Telecommunication', 'Construction', 'Real Estate', 'Media & Entertainment', 'Government', 'Non-profit', 'Other'];
 
 
@@ -130,6 +116,14 @@ export default function LeadsUpdatePage() {
       .map(lead => lead.executive)
       .filter((name): name is string => !!name);
     return ['all', ...Array.from(new Set(names))];
+  }, [allLeads]);
+  
+  const leadSources = useMemo(() => {
+    if (!allLeads) return [];
+    const sources = allLeads
+      .map(lead => lead.reference)
+      .filter((source): source is string => !!source);
+    return ['all', ...Array.from(new Set(sources))];
   }, [allLeads]);
   
   const applyFilters = useCallback((leadsToFilter: LeadFormData[]) => {
@@ -631,10 +625,9 @@ export default function LeadsUpdatePage() {
                             </SelectTrigger>
                             <SelectContent>
                                 <ScrollArea className="h-48">
-                                    <SelectItem value="all">--All--</SelectItem>
-                                    {leadSourceOptions.map(source => (
-                                        <SelectItem key={source} value={source}>
-                                            {source}
+                                    {leadSources.map(source => (
+                                        <SelectItem key={source} value={source} className="capitalize">
+                                            {source === 'all' ? '--All--' : source}
                                         </SelectItem>
                                     ))}
                                 </ScrollArea>
