@@ -320,24 +320,44 @@ export default function LeadsUpdatePage() {
   }
 
   const handleToExcel = () => {
-    const allExecutiveNames = Array.from(new Set(allLeads.map(lead => lead.executive).filter(Boolean)));
+    if (filters.leadSource && filters.leadSource !== 'all') {
+        if (filteredLeads.length === 0) {
+            toast({
+                variant: 'destructive',
+                title: 'No Lead Sources Found',
+                description: 'There are no lead sources to export for the current filter.'
+            });
+            return;
+        }
 
-    if (allExecutiveNames.length === 0) {
-        toast({
-            variant: 'destructive',
-            title: 'No Executives Found',
-            description: 'There are no executives to export.'
-        });
-        return;
+        const exportData = filteredLeads.map(lead => ({ 'Lead source': lead.reference }));
+        const fileName = `lead_source_report.xlsx`;
+
+        const ws = XLSX.utils.json_to_sheet(exportData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Lead Sources");
+        XLSX.writeFile(wb, fileName);
+
+    } else {
+        const allExecutiveNames = Array.from(new Set(allLeads.map(lead => lead.executive).filter(Boolean)));
+
+        if (allExecutiveNames.length === 0) {
+            toast({
+                variant: 'destructive',
+                title: 'No Executives Found',
+                description: 'There are no executives to export.'
+            });
+            return;
+        }
+        
+        const exportData = allExecutiveNames.map(name => ({ Executive: name }));
+        const fileName = 'executive_report.xlsx';
+
+        const ws = XLSX.utils.json_to_sheet(exportData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Executives");
+        XLSX.writeFile(wb, fileName);
     }
-    
-    const exportData = allExecutiveNames.map(name => ({ Executive: name }));
-    const fileName = 'executive_report.xlsx';
-
-    const ws = XLSX.utils.json_to_sheet(exportData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Executives");
-    XLSX.writeFile(wb, fileName);
   }
 
   const summaryCards = useMemo(() => {
