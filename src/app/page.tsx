@@ -4,7 +4,6 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { useAuth } from '@/context/auth-context';
 import DashboardPage from './dashboard/page';
-import AppContent from './app-content';
 
 export default function Home() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -22,8 +21,6 @@ export default function Home() {
   }
 
   return (
-    <AppContent>
       <DashboardPage />
-    </AppContent>
   );
 }
