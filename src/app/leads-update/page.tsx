@@ -359,6 +359,7 @@ export default function LeadsUpdatePage() {
   };
   
   const handleToExcel = () => {
+    // Executive Name report
     if (filters.executiveName !== 'all') {
       const executiveReportData = executiveNames
         .filter(name => name !== 'all')
@@ -381,7 +382,56 @@ export default function LeadsUpdatePage() {
       return;
     }
 
+    // Lead Source report
+    if (filters.leadSource !== 'all') {
+        const sourceLeads = allLeads.filter(lead => lead.reference === filters.leadSource);
 
+        if (sourceLeads.length === 0) {
+            toast({ variant: 'destructive', title: 'No Leads Found', description: `No leads found for source: ${filters.leadSource}` });
+            return;
+        }
+
+        const reportData = sourceLeads.map((lead, index) => {
+            const lastFollowUp = lead.followUps && lead.followUps.length > 0 ? lead.followUps[lead.followUps.length - 1] : null;
+            const nextFollowupDate = lead.nextFollowUpDate && !isNaN(new Date(lead.nextFollowUpDate).getTime())
+                                    ? format(new Date(lead.nextFollowUpDate), 'PPP')
+                                    : (lastFollowUp ? lastFollowUp.nextFollowUp : 'N/A');
+            return {
+                'Sl No': index + 1,
+                'Lead Id': lead.leadId || 'N/A',
+                'Lead Date': lead.creationDate && !isNaN(new Date(lead.creationDate).getTime()) ? format(new Date(lead.creationDate), 'PPP') : 'N/A',
+                'Product': lead.selectedModule || 'N/A',
+                'Company': lead.company || 'N/A',
+                'Contact': lead.contactPerson || 'N/A',
+                'Phone': lead.contactNumber || 'N/A',
+                'Email': lead.email || 'N/A',
+                'Address': lead.address || 'N/A',
+                'Place': lead.district || 'N/A',
+                'District': lead.district || 'N/A',
+                'State': lead.state || 'N/A',
+                'Reference': lead.reference || 'N/A',
+                'Manager': lead.manager || 'N/A',
+                'Last Followed Date': lastFollowUp ? lastFollowUp.date : 'N/A',
+                'Last Followed By': lastFollowUp ? lastFollowUp.enteredBy : 'N/A',
+                'Next followup Date': nextFollowupDate,
+                'Last Followup Remarks': lastFollowUp ? lastFollowUp.remarks : 'N/A',
+                'Lead Status': lead.status || 'N/A',
+                'Lead Sub Status': lead.leadSubStatus || 'N/A',
+                'Lead Status Remarks': (lead as any).leadStatusRemarks || 'N/A',
+                'Given By': lead.givenBy || 'N/A',
+            };
+        });
+
+        const ws = XLSX.utils.json_to_sheet(reportData);
+        const colWidths = Object.keys(reportData[0] || {}).map(header => ({ wch: Math.max(header.length, 20) }));
+        ws['!cols'] = colWidths;
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Lead Source Report');
+        XLSX.writeFile(wb, 'Lead Source Report.xlsx');
+        return;
+    }
+
+    // Default filtered leads export
     if (filteredLeads.length === 0) {
       toast({
         variant: 'destructive',
