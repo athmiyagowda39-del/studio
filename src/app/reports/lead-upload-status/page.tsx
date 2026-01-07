@@ -11,7 +11,6 @@ import {
 } from '@/components/ui/table';
 import { useState, useEffect, useMemo } from 'react';
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
-import { format } from 'date-fns';
 import AppContent from '@/app/app-content';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -62,69 +61,50 @@ export default function LeadUploadStatusReportPage() {
                   <Table className="min-w-max">
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Sl No</TableHead>
-                        <TableHead>Lead Date</TableHead>
-                        <TableHead>Product</TableHead>
+                        <TableHead>Pincode</TableHead>
                         <TableHead>Company</TableHead>
-                        <TableHead>Contact</TableHead>
-                        <TableHead>Phone</TableHead>
-                        <TableHead>Email</TableHead>
+                        <TableHead>Contact person</TableHead>
                         <TableHead>Address</TableHead>
-                        <TableHead>Place</TableHead>
-                        <TableHead>District</TableHead>
                         <TableHead>State</TableHead>
+                        <TableHead>District</TableHead>
+                        <TableHead>Contact Number</TableHead>
+                        <TableHead>Email</TableHead>
                         <TableHead>Reference</TableHead>
-                        <TableHead>Manager</TableHead>
-                        <TableHead>Lead Status</TableHead>
-                        <TableHead>Lead Sub Status</TableHead>
-                        <TableHead>Lead Status Remarks</TableHead>
-                        <TableHead>Given By</TableHead>
+                        <TableHead>Company headcount</TableHead>
+                        <TableHead>Sector</TableHead>
+                        <TableHead>Modules</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {uploadedLeads.length > 0 ? (
                         uploadedLeads.map((lead, index) => {
-                          const date = new Date(lead.creationDate);
-                          const isValidDate = !isNaN(date.getTime());
-                          
                           return (
                             <TableRow key={`${lead.leadId}-${index}`}>
-                              <TableCell>{index + 1}</TableCell>
-                              <TableCell>
-                                {isValidDate ? format(date, 'PPP') : 'N/A'}
-                              </TableCell>
-                              <TableCell>
-                                {lead.selectedModule || 'N/A'}
-                              </TableCell>
+                              <TableCell>{lead.pincode || 'N/A'}</TableCell>
                               <TableCell>{lead.company || 'N/A'}</TableCell>
                               <TableCell>
                                 {lead.contactPerson || 'N/A'}
                               </TableCell>
+                              <TableCell>{lead.address || 'N/A'}</TableCell>
+                              <TableCell>{lead.state || 'N/A'}</TableCell>
+                              <TableCell>{lead.district || 'N/A'}</TableCell>
                               <TableCell>
                                 {lead.contactNumber || 'N/A'}
                               </TableCell>
                               <TableCell>{lead.email || 'N/A'}</TableCell>
-                              <TableCell>{lead.address || 'N/A'}</TableCell>
-                              <TableCell>{lead.district || 'N/A'}</TableCell>
-                              <TableCell>{lead.district || 'N/A'}</TableCell>
-                              <TableCell>{lead.state || 'N/A'}</TableCell>
                               <TableCell>{lead.reference || 'N/A'}</TableCell>
-                              <TableCell>{lead.manager || 'N/A'}</TableCell>
-                              <TableCell>{lead.status || 'N/A'}</TableCell>
+                              <TableCell>{lead.headcount || 'N/A'}</TableCell>
+                              <TableCell>{lead.sector || 'N/A'}</TableCell>
                               <TableCell>
-                                {lead.leadSubStatus || 'N/A'}
+                                {lead.selectedModule || 'N/A'}
                               </TableCell>
-                              <TableCell>
-                                {(lead as any).leadStatusRemarks || 'N/A'}
-                              </TableCell>
-                              <TableCell>{lead.givenBy || 'N/A'}</TableCell>
                             </TableRow>
                           );
                         })
                       ) : (
                         <TableRow>
                           <TableCell
-                            colSpan={17}
+                            colSpan={12}
                             className="h-24 text-center"
                           >
                             No uploaded leads found.
