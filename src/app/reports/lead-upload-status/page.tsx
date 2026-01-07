@@ -61,6 +61,7 @@ export default function LeadUploadStatusReportPage() {
                   <Table className="min-w-max">
                     <TableHeader>
                       <TableRow>
+                        <TableHead>Sl No</TableHead>
                         <TableHead>Pincode</TableHead>
                         <TableHead>Company</TableHead>
                         <TableHead>Contact person</TableHead>
@@ -80,6 +81,7 @@ export default function LeadUploadStatusReportPage() {
                         uploadedLeads.map((lead, index) => {
                           return (
                             <TableRow key={`${lead.leadId}-${index}`}>
+                              <TableCell>{index + 1}</TableCell>
                               <TableCell>{lead.pincode || 'N/A'}</TableCell>
                               <TableCell>{lead.company || 'N/A'}</TableCell>
                               <TableCell>
@@ -104,7 +106,7 @@ export default function LeadUploadStatusReportPage() {
                       ) : (
                         <TableRow>
                           <TableCell
-                            colSpan={12}
+                            colSpan={13}
                             className="h-24 text-center"
                           >
                             No uploaded leads found.
