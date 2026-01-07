@@ -150,6 +150,7 @@ export default function LeadReportPage() {
 
 
   const chartData = useMemo(() => {
+    if (!leadStatuses) return [];
     return leadStatuses
       .filter((s) => s.status !== 'Total Leads')
       .map((item) => ({
@@ -180,7 +181,7 @@ export default function LeadReportPage() {
             <CardTitle className="text-center text-primary">Lead Report</CardTitle>
             </CardHeader>
             <CardContent className="p-6">
-            <div className="mb-6 flex items-center gap-4">
+            <div className="mb-6 flex flex-wrap items-center gap-4">
                 <div className="flex items-center gap-2">
                     <span className="font-medium">Select State:</span>
                     <Popover open={openState} onOpenChange={setOpenState}>
@@ -355,22 +356,24 @@ export default function LeadReportPage() {
                 </div>
             ) : (
                 <>
-                <div className="space-y-4">
-                    <h2 className="text-xl font-semibold mb-4">
+                <h2 className="text-xl font-semibold mb-4">
                     Lead Status Breakdown for {selectedState}
-                    </h2>
-                    {leadStatuses.map((item) => (
-                    <div
-                        key={item.status}
-                        className="flex justify-between items-center p-3 border rounded-lg"
-                    >
-                        <span className="font-medium">{item.status}:</span>
-                        <span className="font-bold text-primary">{item.value}</span>
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                    <div className="space-y-2">
+                        {leadStatuses.map((item) => (
+                        <div
+                            key={item.status}
+                            className="flex justify-between items-center p-3 border rounded-lg"
+                        >
+                            <span className="font-medium">{item.status}:</span>
+                            <span className="font-bold text-primary">{item.value}</span>
+                        </div>
+                        ))}
                     </div>
-                    ))}
-                </div>
-                <div className="flex justify-center mt-8">
-                    <LeadStatusChart data={chartData} />
+                    <div className="flex justify-center items-center">
+                        {chartData && chartData.length > 0 && <LeadStatusChart data={chartData} />}
+                    </div>
                 </div>
                 </>
             )}
