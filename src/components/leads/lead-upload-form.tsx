@@ -537,6 +537,7 @@ export default function LeadUploadForm() {
       </div>
       <div className="flex justify-end gap-2 mt-6">
         <Button variant="outline" onClick={resetForm}>Reset</Button>
+        <Button variant="outline" onClick={handleDownloadSample}>TO EXCEL</Button>
         <Button onClick={handleSaveLead}>Save Lead</Button>
       </div>
 
