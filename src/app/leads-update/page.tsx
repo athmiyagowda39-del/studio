@@ -363,16 +363,6 @@ export default function LeadsUpdatePage() {
     const colWidths = Object.keys(reportData[0]).map(key => ({ wch: Math.max(key.length, 20) }));
     ws['!cols'] = colWidths;
 
-    // Right-align the "Sl No" column
-    const range = XLSX.utils.decode_range(ws['!ref'] || 'A1:A1');
-    for (let R = range.s.r + 1; R <= range.e.r; ++R) { // Start from row 1 (after header)
-      const cell_address = { c: 0, r: R }; // Column 0 is 'A' (Sl No)
-      const cell_ref = XLSX.utils.encode_cell(cell_address);
-      if (ws[cell_ref]) {
-        ws[cell_ref].s = { alignment: { horizontal: "right" } };
-      }
-    }
-
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Leads Update Report');
     XLSX.writeFile(wb, 'Leads Update Report.xlsx');
