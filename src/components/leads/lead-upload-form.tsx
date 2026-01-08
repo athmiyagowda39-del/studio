@@ -12,7 +12,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Check, ChevronsUpDown, UploadCloud } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Card, CardContent } from '../ui/card';
 import { useState, useRef, useEffect } from 'react';
 import * as XLSX from 'xlsx';
 import {
@@ -39,6 +39,7 @@ import {
 } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
 import { Textarea } from '../ui/textarea';
+import { ScrollArea } from '../ui/scroll-area';
 
 type ParsedData = (string | number)[][];
 
@@ -471,7 +472,7 @@ export default function LeadUploadForm() {
                             variant="link"
                             role="combobox"
                             aria-expanded={dealerOpen}
-                            className="w-[250px] justify-start font-normal"
+                            className="w-auto justify-start font-normal"
                         >
                             {formData.dealer || "As per mapping"}
                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -480,28 +481,30 @@ export default function LeadUploadForm() {
                     <PopoverContent className="w-[250px] p-0">
                          <Command>
                             <CommandList>
-                                <CommandEmpty>No executive found.</CommandEmpty>
-                                <CommandGroup>
-                                    {executiveNames.map((name) => (
-                                        <CommandItem
-                                            key={name}
-                                            value={name}
-                                            onSelect={(currentValue) => {
-                                                const selectedName = executiveNames.find(n => n.toLowerCase() === currentValue.toLowerCase());
-                                                handleSelectChange('dealer', selectedName === formData.dealer ? '' : selectedName || '');
-                                                setDealerOpen(false);
-                                            }}
-                                        >
-                                            <Check
-                                                className={cn(
-                                                    "mr-2 h-4 w-4",
-                                                    formData.dealer?.toLowerCase() === name.toLowerCase() ? "opacity-100" : "opacity-0"
-                                                )}
-                                            />
-                                            {name}
-                                        </CommandItem>
-                                    ))}
-                                </CommandGroup>
+                                <ScrollArea className="h-48">
+                                    <CommandEmpty>No executive found.</CommandEmpty>
+                                    <CommandGroup>
+                                        {executiveNames.map((name) => (
+                                            <CommandItem
+                                                key={name}
+                                                value={name}
+                                                onSelect={(currentValue) => {
+                                                    const selectedName = executiveNames.find(n => n.toLowerCase() === currentValue.toLowerCase());
+                                                    handleSelectChange('dealer', selectedName === formData.dealer ? '' : selectedName || '');
+                                                    setDealerOpen(false);
+                                                }}
+                                            >
+                                                <Check
+                                                    className={cn(
+                                                        "mr-2 h-4 w-4",
+                                                        formData.dealer?.toLowerCase() === name.toLowerCase() ? "opacity-100" : "opacity-0"
+                                                    )}
+                                                />
+                                                {name}
+                                            </CommandItem>
+                                        ))}
+                                    </CommandGroup>
+                                </ScrollArea>
                             </CommandList>
                         </Command>
                     </PopoverContent>
