@@ -120,6 +120,7 @@ const getLeadsFromLocalStorage = (): LeadFormData[] => {
 export default function LeadUploadForm() {
   const [formData, setFormData] = useState<Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId' | 'givenBy'>>(initialFormState);
   const [sectorOpen, setSectorOpen] = useState(false);
+  const [dealerOpen, setDealerOpen] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -464,16 +465,48 @@ export default function LeadUploadForm() {
             <Checkbox id="toDealer" checked={formData.toDealer} onCheckedChange={handleCheckboxChange} />
             <Label htmlFor="toDealer">To Dealer</Label>
             {formData.toDealer && (
-                <Select value={formData.dealer} onValueChange={(value) => handleSelectChange('dealer', value)}>
-                    <SelectTrigger className="w-[250px] ml-2">
-                        <SelectValue placeholder="Select Executive" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {executiveNames.map(name => (
-                            <SelectItem key={name} value={name}>{name}</SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
+                <Popover open={dealerOpen} onOpenChange={setDealerOpen}>
+                    <PopoverTrigger asChild>
+                        <Button
+                            variant="link"
+                            role="combobox"
+                            aria-expanded={dealerOpen}
+                            className="w-[250px] justify-start font-normal"
+                        >
+                            {formData.dealer || "As per mapping"}
+                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[250px] p-0">
+                         <Command>
+                            <CommandInput placeholder="Search executive..." />
+                            <CommandList>
+                                <CommandEmpty>No executive found.</CommandEmpty>
+                                <CommandGroup>
+                                    {executiveNames.map((name) => (
+                                        <CommandItem
+                                            key={name}
+                                            value={name.toLowerCase()}
+                                            onSelect={(currentValue) => {
+                                                const selectedName = executiveNames.find(n => n.toLowerCase() === currentValue);
+                                                handleSelectChange('dealer', selectedName === formData.dealer ? '' : selectedName || '');
+                                                setDealerOpen(false);
+                                            }}
+                                        >
+                                            <Check
+                                                className={cn(
+                                                    "mr-2 h-4 w-4",
+                                                    formData.dealer === name ? "opacity-100" : "opacity-0"
+                                                )}
+                                            />
+                                            {name}
+                                        </CommandItem>
+                                    ))}
+                                </CommandGroup>
+                            </CommandList>
+                        </Command>
+                    </PopoverContent>
+                </Popover>
             )}
           </div>
         </div>
