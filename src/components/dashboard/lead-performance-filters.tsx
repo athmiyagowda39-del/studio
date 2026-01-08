@@ -31,6 +31,62 @@ const months = [
 
 const allIndianStates = ["all", "Andaman and Nicobar Islands", "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chandigarh", "Chhattisgarh", "Dadra and Nagar Haveli and Daman and Diu", "Delhi", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jammu and Kashmir", "Jharkhand", "Karnataka", "Kerala", "Ladakh", "Lakshadweep", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Puducherry", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"];
 
+const stateCityMap: Record<string, string[]> = {
+    "Karnataka": [
+        "Bangalore GPO / MG Road",
+        "Shivajinagar",
+        "Malleshwaram",
+        "Rajajinagar",
+        "Jayanagar",
+        "Basavanagudi",
+        "BTM Layout",
+        "JP Nagar",
+        "Yelahanka",
+        "Hebbal",
+        "Whitefield",
+        "Marathahalli",
+        "Electronic City",
+        "KR Puram",
+        "Banashankari",
+        "HSR Layout"
+    ],
+    "Andhra Pradesh": ["Vijayawada"],
+    "Arunachal Pradesh": ["Itanagar"],
+    "Assam": ["Guwahati"],
+    "Bihar": ["Patna"],
+    "Chhattisgarh": ["Raipur"],
+    "Goa": ["Panaji"],
+    "Gujarat": ["Ahmedabad"],
+    "Haryana": ["Gurugram"],
+    "Himachal Pradesh": ["Shimla"],
+    "Jharkhand": ["Ranchi"],
+    "Kerala": ["Thiruvananthapuram"],
+    "Madhya Pradesh": ["Bhopal"],
+    "Maharashtra": ["Mumbai"],
+    "Manipur": ["Imphal"],
+    "Meghalaya": ["Shillong"],
+    "Mizoram": ["Aizawl"],
+    "Nagaland": ["Kohima"],
+    "Odisha": ["Bhubaneswar"],
+    "Punjab": ["Chandigarh"],
+    "Rajasthan": ["Jaipur"],
+    "Sikkim": ["Gangtok"],
+    "Tamil Nadu": ["Chennai"],
+    "Telangana": ["Hyderabad"],
+    "Tripura": ["Agartala"],
+    "Uttar Pradesh": ["Lucknow"],
+    "Uttarakhand": ["Dehradun"],
+    "West Bengal": ["Kolkata"],
+    "Andaman and Nicobar Islands": ["Port Blair"],
+    "Chandigarh": ["Chandigarh"],
+    "Dadra and Nagar Haveli and Daman and Diu": ["Daman"],
+    "Delhi": ["New Delhi"],
+    "Jammu and Kashmir": ["Srinagar"],
+    "Ladakh": ["Leh"],
+    "Lakshadweep": ["Kavaratti"],
+    "Puducherry": ["Puducherry"],
+};
+
 
 export default function LeadPerformanceFilters({
     allLeads,
@@ -44,12 +100,12 @@ export default function LeadPerformanceFilters({
     
     const cities = useMemo(() => {
         if (selectedState === 'all') {
-            const citySet = new Set(allLeads.map(lead => lead.district).filter(Boolean));
-            return ['all', ...Array.from(citySet)];
+            const allCities = Object.values(stateCityMap).flat();
+            const uniqueCities = Array.from(new Set(allCities));
+            return ['all', ...uniqueCities.sort()];
         }
-        const citySet = new Set(allLeads.filter(lead => lead.state === selectedState).map(lead => lead.district).filter(Boolean));
-        return ['all', ...Array.from(citySet)];
-    }, [allLeads, selectedState]);
+        return ['all', ...(stateCityMap[selectedState] || [])];
+    }, [selectedState]);
 
     const handleStateChange = (value: string) => {
         setSelectedState(value);
@@ -90,7 +146,7 @@ export default function LeadPerformanceFilters({
             </div>
             <div className="flex items-center gap-2">
                 <span className="text-sm font-medium">City:</span>
-                <Select value={selectedCity} onValueChange={setSelectedCity} disabled={selectedState === 'all' && cities.length <= 1}>
+                <Select value={selectedCity} onValueChange={setSelectedCity} disabled={cities.length <= 1}>
                     <SelectTrigger className="w-[180px]">
                         <SelectValue placeholder="Select City" />
                     </SelectTrigger>
