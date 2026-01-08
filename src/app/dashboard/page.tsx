@@ -10,11 +10,10 @@ import {
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import LeadPerformanceChart from '@/components/dashboard/lead-performance-chart';
 import { useState, useMemo, useEffect } from 'react';
-import { startOfDay, endOfDay, subDays, format as formatDate, eachDayOfInterval, getDaysInMonth, startOfMonth, endOfMonth, getDate } from 'date-fns';
+import { startOfDay, endOfDay, subDays, format as formatDate, eachDayOfInterval } from 'date-fns';
 import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
 import AppContent from '../app-content';
-import LeadPerformanceFilters from '@/components/dashboard/lead-performance-filters';
 
 const getLeadsFromLocalStorage = (): LeadFormData[] => {
   if (typeof window !== 'undefined') {
@@ -29,9 +28,6 @@ export default function DashboardPage() {
     const router = useRouter();
   const [allLeads, setAllLeads] = useState<LeadFormData[]>([]);
   const [isDataLoading, setIsDataLoading] = useState(true);
-
-  const [period, setPeriod] = useState('November');
-  const [city, setCity] = useState('All');
 
     useEffect(() => {
         if (!isLoading && !isAuthenticated) {
@@ -87,38 +83,7 @@ export default function DashboardPage() {
   
     return Object.values(dailyLeads);
   }, [allLeads]);
-
-  const monthlyPerformanceData = useMemo(() => {
-    if (!allLeads) return [];
   
-    const monthIndex = new Date(Date.parse(period +" 1, 2024")).getMonth();
-    const now = new Date();
-    now.setMonth(monthIndex);
-  
-    const startDate = startOfMonth(now);
-    const endDate = endOfMonth(now);
-    const numDays = getDaysInMonth(now);
-  
-    const monthlyLeads: { day: string; leads: number }[] = Array.from({ length: numDays }, (_, i) => ({
-      day: (i + 1).toString().padStart(2, '0'),
-      leads: 0,
-    }));
-  
-    const leadsInMonth = allLeads.filter(lead => {
-      const leadDate = new Date(lead.creationDate);
-      const cityMatch = city === 'All' || lead.district === city;
-      return leadDate >= startDate && leadDate <= endDate && cityMatch;
-    });
-  
-    leadsInMonth.forEach(lead => {
-      const dayOfMonth = getDate(new Date(lead.creationDate));
-      monthlyLeads[dayOfMonth - 1].leads += 1;
-    });
-  
-    return monthlyLeads;
-  }, [allLeads, period, city]);
-  
-
   if (isLoading || isDataLoading || !isAuthenticated) {
     return null; // or a loading skeleton
   }
@@ -153,15 +118,6 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <LeadPerformanceChart performanceData={performanceData} xAxisLabel="Date" />
-            </CardContent>
-        </Card>
-        <Card>
-            <CardHeader>
-                <CardTitle className="text-center">Lead volume Analysis</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <LeadPerformanceFilters period={period} setPeriod={setPeriod} city={city} setCity={setCity} />
-                <LeadPerformanceChart performanceData={monthlyPerformanceData} xAxisLabel="Date" />
             </CardContent>
         </Card>
         </div>
