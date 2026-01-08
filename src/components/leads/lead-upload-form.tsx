@@ -409,7 +409,6 @@ export default function LeadUploadForm() {
               </PopoverTrigger>
               <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
                 <Command>
-                  <CommandInput placeholder="Search sector..." />
                   <CommandList>
                     <CommandEmpty>No sector found.</CommandEmpty>
                     <CommandGroup>
