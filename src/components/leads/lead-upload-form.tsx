@@ -512,7 +512,6 @@ export default function LeadUploadForm() {
       <div className="flex justify-end gap-2 mt-6">
         <Button variant="outline" onClick={resetForm}>Reset</Button>
         <Button onClick={handleSaveLead}>Save Lead</Button>
-        <Button variant="outline" onClick={handleToExcel}>TO EXCEL</Button>
       </div>
 
       <div className="space-y-4 pt-6 border-t">
