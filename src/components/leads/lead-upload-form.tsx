@@ -33,7 +33,6 @@ import {
   Command,
   CommandEmpty,
   CommandGroup,
-  CommandInput,
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
@@ -479,7 +478,6 @@ export default function LeadUploadForm() {
                     </PopoverTrigger>
                     <PopoverContent className="w-[250px] p-0">
                          <Command>
-                            <CommandInput placeholder="Search executive..." />
                             <CommandList>
                                 <CommandEmpty>No executive found.</CommandEmpty>
                                 <CommandGroup>
@@ -572,5 +570,3 @@ export default function LeadUploadForm() {
     </div>
   );
 }
-
-    
