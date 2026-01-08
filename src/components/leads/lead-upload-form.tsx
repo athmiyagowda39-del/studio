@@ -39,7 +39,6 @@ import {
 } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
 import { Textarea } from '../ui/textarea';
-import { format } from 'date-fns';
 
 type ParsedData = (string | number)[][];
 
@@ -77,6 +76,8 @@ export type LeadFormData = {
   status?: string;
   leadSubStatus?: string;
   subAdminId: string;
+  leadStatusRemarks?: string;
+  initialRemarks?: string;
 };
 
 const sectors = ['IT', 'Finance', 'Healthcare', 'Manufacturing', 'Education', 'Retail', 'Hospitality', 'Telecommunication', 'Construction', 'Real Estate', 'Media & Entertainment', 'Government', 'Non-profit', 'Other'];
@@ -112,6 +113,7 @@ const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdmin
     sector: '',
     selectedModule: '',
     toDealer: false,
+    initialRemarks: '',
 };
 
 const saveLeadsToLocalStorage = (leads: LeadFormData[]) => {
@@ -179,7 +181,7 @@ export default function LeadUploadForm() {
     }
   }, [formData.pincode, toast]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
     setFormData(prev => ({ ...prev, [id]: value }));
   };
@@ -357,46 +359,6 @@ export default function LeadUploadForm() {
     }
   };
 
-   const handleToExcel = () => {
-    const allLeads = getLeadsFromLocalStorage();
-    if (allLeads.length === 0) {
-      toast({
-        variant: 'destructive',
-        title: 'No Leads to Export',
-        description: 'There are no leads saved in the application yet.',
-      });
-      return;
-    }
-
-    const headers = ['Lead ID', 'Creation Date', 'Pincode', 'Company', 'Contact Person', 'Address', 'State', 'District', 'Contact Number', 'Email', 'Reference', 'Headcount', 'Sector', 'Selected Module'];
-    
-    const data = allLeads.map(lead => ({
-      'Lead ID': lead.leadId,
-      'Creation Date': format(new Date(lead.creationDate), 'yyyy-MM-dd'),
-      'Pincode': lead.pincode,
-      'Company': lead.company,
-      'Contact Person': lead.contactPerson,
-      'Address': lead.address,
-      'State': lead.state,
-      'District': lead.district,
-      'Contact Number': lead.contactNumber,
-      'Email': lead.email,
-      'Reference': lead.reference,
-      'Headcount': lead.headcount,
-      'Sector': lead.sector,
-      'Selected Module': lead.selectedModule,
-    }));
-    
-    const ws = XLSX.utils.json_to_sheet(data, { header: headers });
-
-    const colWidths = headers.map(header => ({ wch: Math.max(header.length, 20) }));
-    ws['!cols'] = colWidths;
-
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Leads');
-    XLSX.writeFile(wb, 'Leads Upload report.xlsx');
-  };
-
   return (
     <div className="space-y-6">
       <div>
@@ -502,7 +464,16 @@ export default function LeadUploadForm() {
               </SelectContent>
             </Select>
           </div>
-          <div className="flex items-center space-x-2 pt-8 md:col-span-2">
+          <div className="space-y-2 md:col-span-2">
+            <Label htmlFor="initialRemarks">Initial Remark</Label>
+            <Textarea
+              id="initialRemarks"
+              value={formData.initialRemarks || ''}
+              onChange={handleInputChange}
+              placeholder="Enter initial remarks here..."
+            />
+          </div>
+          <div className="flex items-center space-x-2 pt-2 md:col-span-2">
             <Checkbox id="toDealer" checked={formData.toDealer} onCheckedChange={handleCheckboxChange} />
             <Label htmlFor="toDealer">To Dealer</Label>
             <span className="text-xs text-muted-foreground">As per Mapping</span>
@@ -615,6 +586,3 @@ export default function LeadUploadForm() {
     </div>
   );
 }
-
-    
-    
