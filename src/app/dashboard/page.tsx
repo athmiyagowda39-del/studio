@@ -10,7 +10,7 @@ import {
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import LeadPerformanceChart from '@/components/dashboard/lead-performance-chart';
 import { useState, useMemo, useEffect } from 'react';
-import { startOfDay, endOfDay, subDays, format as formatDate, eachDayOfInterval, getMonth, getYear, startOfMonth, endOfMonth } from 'date-fns';
+import { startOfDay, endOfDay, getDay, format as formatDate, eachDayOfInterval, getMonth, getYear, startOfMonth, endOfMonth } from 'date-fns';
 import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
 import AppContent from '../app-content';
@@ -77,8 +77,8 @@ export default function DashboardPage() {
 
       const dailyLeads: { [key: string]: { day: string; leads: number } } = {};
       days.forEach(date => {
-          const formattedDate = formatDate(date, 'MMM d');
-          dailyLeads[formattedDate] = { day: formattedDate, leads: 0 };
+          const dayOfMonth = formatDate(date, 'd');
+          dailyLeads[dayOfMonth] = { day: dayOfMonth, leads: 0 };
       });
       
       const monthlyLeads = leads.filter(lead => {
@@ -88,9 +88,9 @@ export default function DashboardPage() {
 
       monthlyLeads.forEach((lead) => {
         const leadDate = new Date(lead.creationDate);
-        const formattedDate = formatDate(leadDate, 'MMM d');
-        if (dailyLeads[formattedDate]) {
-          dailyLeads[formattedDate].leads += 1;
+        const dayOfMonth = formatDate(leadDate, 'd');
+        if (dailyLeads[dayOfMonth]) {
+          dailyLeads[dayOfMonth].leads += 1;
         }
       });
     
