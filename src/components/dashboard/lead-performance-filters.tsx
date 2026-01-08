@@ -29,6 +29,9 @@ const months = [
     { value: '12', label: 'December' },
 ];
 
+const allIndianStates = ["all", "Andaman and Nicobar Islands", "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chandigarh", "Chhattisgarh", "Dadra and Nagar Haveli and Daman and Diu", "Delhi", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jammu and Kashmir", "Jharkhand", "Karnataka", "Kerala", "Ladakh", "Lakshadweep", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Puducherry", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"];
+
+
 export default function LeadPerformanceFilters({
     allLeads,
     selectedPeriod,
@@ -39,11 +42,6 @@ export default function LeadPerformanceFilters({
     setSelectedCity,
 }: LeadPerformanceFiltersProps) {
     
-    const states = useMemo(() => {
-        const stateSet = new Set(allLeads.map(lead => lead.state).filter(Boolean));
-        return ['all', ...Array.from(stateSet)];
-    }, [allLeads]);
-
     const cities = useMemo(() => {
         if (selectedState === 'all') {
             const citySet = new Set(allLeads.map(lead => lead.district).filter(Boolean));
@@ -82,7 +80,7 @@ export default function LeadPerformanceFilters({
                         <SelectValue placeholder="Select State" />
                     </SelectTrigger>
                     <SelectContent>
-                        {states.map(state => (
+                        {allIndianStates.map(state => (
                             <SelectItem key={state} value={state} className="capitalize">
                                 {state === 'all' ? 'All States' : state}
                             </SelectItem>
