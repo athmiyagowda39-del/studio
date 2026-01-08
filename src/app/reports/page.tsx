@@ -8,10 +8,6 @@ export default function ReportsPage() {
   const reports = [
     { name: 'LEAD REPORT', href: '/reports/lead-report' },
     { name: 'Conversion Funnel Report', href: '/reports/conversion-funnel' },
-    { name: 'Geography-wise Performance Report', href: '/reports' },
-    { name: 'Product-wise Performance Report', href: '/reports' },
-    { name: 'Sales Forecast Report', href: '/reports' },
-    { name: 'Cost Analysis Report (CPL & CPA)', href: '/reports' },
     { name: 'LEAD UPDATE STATUS REPORT', href: '/reports/lead-update-status' },
     { name: 'LEAD UPLOAD STATUS REPORT', href: '/reports/lead-upload-status' },
   ];
