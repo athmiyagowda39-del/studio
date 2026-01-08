@@ -409,6 +409,7 @@ export default function LeadUploadForm() {
               </PopoverTrigger>
               <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
                 <Command>
+                  <CommandInput placeholder="Search sector..." />
                   <CommandList>
                     <CommandEmpty>No sector found.</CommandEmpty>
                     <CommandGroup>
@@ -465,49 +466,7 @@ export default function LeadUploadForm() {
             <Checkbox id="toDealer" checked={formData.toDealer} onCheckedChange={handleCheckboxChange} />
             <Label htmlFor="toDealer">To Dealer</Label>
             {formData.toDealer && (
-                <Popover open={dealerOpen} onOpenChange={setDealerOpen}>
-                    <PopoverTrigger asChild>
-                        <Button
-                            variant="link"
-                            role="combobox"
-                            aria-expanded={dealerOpen}
-                            className="w-auto justify-start font-normal"
-                        >
-                            {formData.dealer || "As per mapping"}
-                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-[250px] p-0">
-                         <Command>
-                            <CommandList>
-                                <ScrollArea className="h-48">
-                                    <CommandEmpty>No executive found.</CommandEmpty>
-                                    <CommandGroup>
-                                        {executiveNames.map((name) => (
-                                            <CommandItem
-                                                key={name}
-                                                value={name}
-                                                onSelect={(currentValue) => {
-                                                    const selectedName = executiveNames.find(n => n.toLowerCase() === currentValue.toLowerCase());
-                                                    handleSelectChange('dealer', selectedName === formData.dealer ? '' : selectedName || '');
-                                                    setDealerOpen(false);
-                                                }}
-                                            >
-                                                <Check
-                                                    className={cn(
-                                                        "mr-2 h-4 w-4",
-                                                        formData.dealer?.toLowerCase() === name.toLowerCase() ? "opacity-100" : "opacity-0"
-                                                    )}
-                                                />
-                                                {name}
-                                            </CommandItem>
-                                        ))}
-                                    </CommandGroup>
-                                </ScrollArea>
-                            </CommandList>
-                        </Command>
-                    </PopoverContent>
-                </Popover>
+                <span className="text-sm text-muted-foreground ml-2">As per mapping</span>
             )}
           </div>
         </div>
