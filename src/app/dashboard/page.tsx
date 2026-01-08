@@ -25,7 +25,7 @@ const getLeadsFromLocalStorage = (): LeadFormData[] => {
 };
 
 export default function DashboardPage() {
-    const { isAuthenticated, isLoading } = useAuth();
+    const { isAuthenticated, isLoading, user } = useAuth();
     const router = useRouter();
     const [allLeads, setAllLeads] = useState<LeadFormData[]>([]);
     const [isDataLoading, setIsDataLoading] = useState(true);
@@ -106,7 +106,7 @@ export default function DashboardPage() {
             <div className="flex flex-col gap-6">
                 <div className="flex flex-col">
                     <h1 className="text-2xl font-bold tracking-tight font-headline">
-                        WELCOME!
+                       WELCOME! {user?.username.toUpperCase()}
                     </h1>
                     <p className="text-muted-foreground">
                         Here is your lead generation overview for today.
