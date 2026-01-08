@@ -81,23 +81,8 @@ export type LeadFormData = {
 };
 
 const sectors = ['IT', 'Finance', 'Healthcare', 'Manufacturing', 'Education', 'Retail', 'Hospitality', 'Telecommunication', 'Construction', 'Real Estate', 'Media & Entertainment', 'Government', 'Non-profit', 'Other'];
+const executiveNames = ['Hukum chand kewat', 'Yathish G', 'Aishwarya Telkar', 'Mandanna N'];
 
-const leadStatusOptions = [
-    'Attended',
-    'Not viewed',
-    'Demo Given',
-    'Unattended',
-    'Pursuing to Purchase',
-    'Not interested',
-    'Order closed',
-    'Contacted',
-    'Qualified',
-    'Unqualified',
-    'Follow-up Required',
-    'Fake Lead',
-    'Do Not Contact',
-    'Quote Sent',
-];
 
 const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId' | 'givenBy'> = {
     pincode: '',
@@ -114,6 +99,7 @@ const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdmin
     selectedModule: '',
     toDealer: false,
     initialRemarks: '',
+    dealer: '',
 };
 
 const saveLeadsToLocalStorage = (leads: LeadFormData[]) => {
@@ -224,6 +210,7 @@ export default function LeadUploadForm() {
       givenBy: 'Manual',
       subAdminId: 'demo-user', // Placeholder
       status: 'Not viewed',
+      executive: formData.toDealer ? formData.dealer : undefined,
     };
 
     const updatedLeads = [...allLeads, newLead];
@@ -476,7 +463,18 @@ export default function LeadUploadForm() {
           <div className="flex items-center space-x-2 pt-2 md:col-span-2">
             <Checkbox id="toDealer" checked={formData.toDealer} onCheckedChange={handleCheckboxChange} />
             <Label htmlFor="toDealer">To Dealer</Label>
-            <span className="text-xs text-muted-foreground">As per Mapping</span>
+            {formData.toDealer && (
+                <Select value={formData.dealer} onValueChange={(value) => handleSelectChange('dealer', value)}>
+                    <SelectTrigger className="w-[250px] ml-2">
+                        <SelectValue placeholder="Select Executive" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {executiveNames.map(name => (
+                            <SelectItem key={name} value={name}>{name}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            )}
           </div>
         </div>
       </div>
@@ -541,3 +539,5 @@ export default function LeadUploadForm() {
     </div>
   );
 }
+
+    
