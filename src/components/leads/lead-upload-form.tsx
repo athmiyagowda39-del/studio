@@ -485,9 +485,9 @@ export default function LeadUploadForm() {
                                     {executiveNames.map((name) => (
                                         <CommandItem
                                             key={name}
-                                            value={name.toLowerCase()}
+                                            value={name}
                                             onSelect={(currentValue) => {
-                                                const selectedName = executiveNames.find(n => n.toLowerCase() === currentValue);
+                                                const selectedName = executiveNames.find(n => n.toLowerCase() === currentValue.toLowerCase());
                                                 handleSelectChange('dealer', selectedName === formData.dealer ? '' : selectedName || '');
                                                 setDealerOpen(false);
                                             }}
@@ -495,7 +495,7 @@ export default function LeadUploadForm() {
                                             <Check
                                                 className={cn(
                                                     "mr-2 h-4 w-4",
-                                                    formData.dealer === name ? "opacity-100" : "opacity-0"
+                                                    formData.dealer?.toLowerCase() === name.toLowerCase() ? "opacity-100" : "opacity-0"
                                                 )}
                                             />
                                             {name}
