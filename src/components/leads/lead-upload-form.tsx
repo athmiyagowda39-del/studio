@@ -124,6 +124,7 @@ export default function LeadUploadForm() {
   const [formData, setFormData] = useState<Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId' | 'givenBy'>>(initialFormState);
   const [sectorOpen, setSectorOpen] = useState(false);
   const [dealerOpen, setDealerOpen] = useState(false);
+  const [executiveOpen, setExecutiveOpen] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -405,7 +406,7 @@ export default function LeadUploadForm() {
                   variant="outline"
                   role="combobox"
                   aria-expanded={sectorOpen}
-                  className="w-full justify-between font-normal"
+                  className="w-full justify-between font-normal capitalize"
                 >
                   {formData.sector ? sectors.find(s => s.toLowerCase() === formData.sector.toLowerCase()) || "Select Sector..." : "Select Sector..."}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -444,16 +445,48 @@ export default function LeadUploadForm() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="executive">Executive</Label>
-            <Select value={formData.executive} onValueChange={(value) => handleSelectChange('executive', value)}>
-              <SelectTrigger id="executive">
-                <SelectValue placeholder="Select Executive..." />
-              </SelectTrigger>
-              <SelectContent>
-                {executiveNames.map((name) => (
-                    <SelectItem key={name} value={name} className="capitalize">{name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Popover open={executiveOpen} onOpenChange={setExecutiveOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={executiveOpen}
+                  className="w-full justify-between font-normal capitalize"
+                >
+                  {formData.executive || "Select Executive..."}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                <Command>
+                  <CommandInput placeholder="Search executive..." />
+                  <CommandList>
+                    <CommandEmpty>No executive found.</CommandEmpty>
+                    <CommandGroup>
+                      {executiveNames.map((name) => (
+                        <CommandItem
+                          key={name}
+                          value={name.toLowerCase()}
+                          onSelect={(currentValue) => {
+                            const selectedName = executiveNames.find(n => n.toLowerCase() === currentValue);
+                            handleSelectChange('executive', selectedName === formData.executive ? '' : selectedName || '');
+                            setExecutiveOpen(false);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              formData.executive === name ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          <span className="capitalize">{name}</span>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
           <div className="space-y-2">
             <Label htmlFor="selectedModule">Modules</Label>
@@ -498,7 +531,11 @@ export default function LeadUploadForm() {
                       aria-expanded={dealerOpen}
                       className="w-full justify-between font-normal"
                     >
-                      {formData.dealer || "As per mapping"}
+                      {formData.dealer ? (
+                        <span className="capitalize">{formData.dealer}</span>
+                      ) : (
+                        "As per mapping"
+                      )}
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                  </PopoverTrigger>
@@ -522,7 +559,7 @@ export default function LeadUploadForm() {
                                  formData.dealer === name ? "opacity-100" : "opacity-0"
                                )}
                              />
-                             {name}
+                             <span className="capitalize">{name}</span>
                            </CommandItem>
                          ))}
                        </CommandGroup>
