@@ -34,8 +34,6 @@ import {
   Command,
   CommandEmpty,
   CommandGroup,
-  CommandInput,
-  CommandItem,
   CommandList,
 } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
@@ -82,7 +80,7 @@ export type LeadFormData = {
 };
 
 const sectors = ['IT', 'Finance', 'Healthcare', 'Manufacturing', 'Education', 'Retail', 'Hospitality', 'Telecommunication', 'Construction', 'Real Estate', 'Media & Entertainment', 'Government', 'Non-profit', 'Other'];
-const executiveNames = ['aishwarya', 'hukum', 'mandanna', 'yathish'];
+const executiveNames = ['aishwarya', 'mandanna', 'hukum', 'yathish', 'Luke'];
 
 
 const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId' | 'givenBy'> = {
@@ -413,7 +411,6 @@ export default function LeadUploadForm() {
               </PopoverTrigger>
               <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
                 <Command>
-                  <CommandInput placeholder="Search sector..." />
                   <CommandList>
                     <CommandEmpty>No sector found.</CommandEmpty>
                     <CommandGroup>
@@ -443,6 +440,19 @@ export default function LeadUploadForm() {
             </Popover>
           </div>
           <div className="space-y-2">
+            <Label htmlFor="executive">Executive</Label>
+            <Select value={formData.executive} onValueChange={(value) => handleSelectChange('executive', value)}>
+              <SelectTrigger id="executive">
+                <SelectValue placeholder="Select Executive..." />
+              </SelectTrigger>
+              <SelectContent>
+                {executiveNames.map((name) => (
+                    <SelectItem key={name} value={name} className="capitalize">{name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
             <Label htmlFor="selectedModule">Modules</Label>
             <Select value={formData.selectedModule} onValueChange={(value) => handleSelectChange('selectedModule', value)}>
               <SelectTrigger id="selectedModule">
@@ -456,10 +466,6 @@ export default function LeadUploadForm() {
                 <SelectItem value="module3">Module 3</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="executive">Executive</Label>
-            <Input id="executive" value={formData.executive || ''} onChange={handleInputChange} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="manager">Manager Name</Label>
@@ -587,4 +593,5 @@ export default function LeadUploadForm() {
   );
 }
 
+    
     
