@@ -477,52 +477,48 @@ export default function LeadUploadForm() {
             <Checkbox id="toDealer" checked={formData.toDealer} onCheckedChange={handleCheckboxChange} />
             <Label htmlFor="toDealer">To Dealer</Label>
           </div>
-
            {formData.toDealer && (
-            <div className="space-y-2">
-                <Label htmlFor="dealer">Dealer</Label>
-                 <Popover open={dealerOpen} onOpenChange={setDealerOpen}>
-                    <PopoverTrigger asChild>
-                        <Button
-                        variant="outline"
-                        role="combobox"
-                        aria-expanded={dealerOpen}
-                        className="w-full justify-between font-normal"
-                        >
-                        {formData.dealer ? executiveNames.find(name => name === formData.dealer) : "As per mapping"}
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                        <Command>
-                        <CommandList>
-                            <CommandEmpty>No executives found.</CommandEmpty>
-                            <CommandGroup>
-                            {executiveNames.map((name) => (
-                                <CommandItem
-                                key={name}
-                                value={name}
-                                onSelect={(currentValue) => {
-                                    handleSelectChange('dealer', currentValue === formData.dealer ? '' : currentValue)
-                                    setDealerOpen(false)
-                                }}
-                                >
-                                <Check
-                                    className={cn(
-                                    "mr-2 h-4 w-4",
-                                    formData.dealer === name ? "opacity-100" : "opacity-0"
-                                    )}
-                                />
-                                {name}
-                                </CommandItem>
-                            ))}
-                            </CommandGroup>
-                        </CommandList>
-                        </Command>
-                    </PopoverContent>
-                </Popover>
-            </div>
-          )}
+             <div className="space-y-2">
+               <Label htmlFor="dealer">Dealer</Label>
+                <Popover open={dealerOpen} onOpenChange={setDealerOpen}>
+                 <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start font-normal"
+                    >
+                      {formData.dealer || "As per mapping"}
+                    </Button>
+                 </PopoverTrigger>
+                 <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                   <Command>
+                     <CommandList>
+                       <CommandEmpty>No executives found.</CommandEmpty>
+                       <CommandGroup>
+                         {executiveNames.map((name) => (
+                           <CommandItem
+                             key={name}
+                             value={name}
+                             onSelect={(currentValue) => {
+                               handleSelectChange('dealer', currentValue === formData.dealer ? '' : currentValue)
+                               setDealerOpen(false)
+                             }}
+                           >
+                             <Check
+                               className={cn(
+                                 "mr-2 h-4 w-4",
+                                 formData.dealer === name ? "opacity-100" : "opacity-0"
+                               )}
+                             />
+                             {name}
+                           </CommandItem>
+                         ))}
+                       </CommandGroup>
+                     </CommandList>
+                   </Command>
+                 </PopoverContent>
+               </Popover>
+             </div>
+           )}
         </div>
       </div>
       <div className="flex justify-end gap-2 mt-6">
