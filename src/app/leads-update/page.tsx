@@ -875,10 +875,9 @@ export default function LeadsUpdatePage() {
                 </div>
                 <Card>
                     <CardContent className="p-0">
-                    <div className="max-h-96 overflow-y-auto overflow-x-auto">
-                        
+                    <div className="max-h-[450px] overflow-y-auto overflow-x-auto">
                         <Table>
-                            <TableHeader>
+                            <TableHeader className="sticky top-0 bg-background z-10">
                                 <TableRow>
                                 <TableHead>Sl No</TableHead>
                                 <TableHead>Lead Id</TableHead>
@@ -951,7 +950,6 @@ export default function LeadsUpdatePage() {
                             </TableBody>
                             </Table>
                         </div>
-                        
                     </CardContent>
                 </Card>
                 
@@ -988,4 +986,3 @@ export default function LeadsUpdatePage() {
     </AppContent>
   );
 }
-```
