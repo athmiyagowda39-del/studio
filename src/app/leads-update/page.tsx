@@ -875,8 +875,8 @@ export default function LeadsUpdatePage() {
                 </div>
                 <Card>
                     <CardContent className="p-0">
-                    <div className="overflow-x-auto">
-                        <Table>
+                    <ScrollArea className="w-full whitespace-nowrap rounded-md border">
+                        <Table className="min-w-max">
                             <TableHeader>
                                 <TableRow>
                                 <TableHead>Sl No</TableHead>
@@ -950,7 +950,7 @@ export default function LeadsUpdatePage() {
                                 )}
                             </TableBody>
                             </Table>
-                        </div>
+                        </ScrollArea>
                     </CardContent>
                 </Card>
                 
