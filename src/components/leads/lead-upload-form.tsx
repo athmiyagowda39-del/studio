@@ -81,7 +81,7 @@ export type LeadFormData = {
 
 const sectors = ['IT', 'Finance', 'Healthcare', 'Manufacturing', 'Education', 'Retail', 'Hospitality', 'Telecommunication', 'Construction', 'Real Estate', 'Media & Entertainment', 'Government', 'Non-profit', 'Other'];
 const executiveNames = ['aishwarya', 'mandanna', 'hukum', 'yathish', 'Luke'];
-const references = ['Social Media', 'Google Search', 'Advertisement', 'Referral', 'Website', 'Email Marketing', 'Cold Call', 'Event/Trade Show', 'Other'];
+const references = ['Social Media', 'Google Search', 'Advertisement', 'Referral', 'Website', 'Email Marketing', 'Cold Call', 'Event/Trade Show', 'Webinar', 'Direct Mail', 'Partner', 'Word of Mouth', 'Other'];
 
 
 const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId' | 'givenBy'> = {
