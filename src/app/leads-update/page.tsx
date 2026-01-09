@@ -101,7 +101,7 @@ export default function LeadsUpdatePage() {
   const [allLeads, setAllLeads] = useState<LeadFormData[]>([]);
   
   const [filteredLeads, setFilteredLeads] = useState<LeadFormData[]>([]);
-  const [showResults, setShowResults] = useState(false);
+  const [showResults, setShowResults] = useState(true);
   const [activeQuickFilter, setActiveQuickFilter] = useState('All Leads');
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -259,7 +259,7 @@ export default function LeadsUpdatePage() {
     window.addEventListener('storage', handleStorageChange);
 
     // Initial load
-    if(!showResults) {
+    if(showResults) {
         const initialFilteredLeads = applyQuickFilter('All Leads', leads);
         setFilteredLeads(initialFilteredLeads);
     }
@@ -296,7 +296,7 @@ export default function LeadsUpdatePage() {
 
   const handleResetClick = () => {
     setFilters(initialFilterState);
-    setShowResults(false);
+    setShowResults(true);
     setActiveQuickFilter('All Leads');
     const allCurrentLeads = getLeadsFromLocalStorage();
     const initialLeads = applyQuickFilter('All Leads', allCurrentLeads);
