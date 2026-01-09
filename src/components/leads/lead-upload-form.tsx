@@ -541,6 +541,7 @@ export default function LeadUploadForm() {
                  </PopoverTrigger>
                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
                    <Command>
+                     <CommandInput placeholder="Search executive..." />
                      <CommandList>
                        <CommandEmpty>No executives found.</CommandEmpty>
                        <CommandGroup>
