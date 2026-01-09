@@ -874,84 +874,135 @@ export default function LeadsUpdatePage() {
                     ))}
                 </div>
                 <Card>
-                    <CardContent className="p-0">
-                    <div className="max-h-[450px] overflow-y-auto overflow-x-auto">
-                        <Table>
-                            <TableHeader className="sticky top-0 bg-background z-10">
-                                <TableRow>
-                                <TableHead>Sl No</TableHead>
-                                <TableHead>Lead Id</TableHead>
-                                <TableHead>Lead Date</TableHead>
-                                <TableHead>Product</TableHead>
-                                <TableHead>Company</TableHead>
-                                <TableHead>Contact</TableHead>
-                                <TableHead>Phone</TableHead>
-                                <TableHead>Email</TableHead>
-                                <TableHead>Address</TableHead>
-                                <TableHead>Place</TableHead>
-                                <TableHead>District</TableHead>
-                                <TableHead>State</TableHead>
-                                <TableHead>Reference</TableHead>
-                                <TableHead>Manager</TableHead>
-                                <TableHead>Last Followed Date</TableHead>
-                                <TableHead>Last Followed By</TableHead>
-                                <TableHead>Next followup Date</TableHead>
-                                <TableHead>Last Followup Remarks</TableHead>
-                                <TableHead>Lead Status</TableHead>
-                                <TableHead>Lead Sub Status</TableHead>
-                                <TableHead>Lead Status Remarks</TableHead>
-                                <TableHead>Given By</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {paginatedLeads.length > 0 ? (
-                                paginatedLeads.map((lead, index) => {
-                                    const date = new Date(lead.creationDate);
-                                    const isValidDate = !isNaN(date.getTime());
-                                    const lastFollowUp = lead.followUps && lead.followUps.length > 0 ? lead.followUps[lead.followUps.length - 1] : null;
-                                    const nextFollowupDate = lead.nextFollowUpDate && !isNaN(new Date(lead.nextFollowUpDate).getTime())
-                                    ? format(new Date(lead.nextFollowUpDate), 'PPP')
-                                    : (lastFollowUp ? lastFollowUp.nextFollowUp : 'N/A');
-                                    const absoluteIndex = (currentPage - 1) * LEADS_PER_PAGE + index + 1;
+  <CardContent className="p-0">
+    <div className="max-h-[450px] overflow-y-auto overflow-x-auto">
+      <Table className="min-w-max">
+        <TableHeader className="sticky top-0 bg-background z-10">
+          <TableRow>
+            <TableHead className="whitespace-nowrap">Sl No</TableHead>
+            <TableHead className="whitespace-nowrap">Lead Id</TableHead>
+            <TableHead className="whitespace-nowrap">Lead Date</TableHead>
+            <TableHead className="whitespace-nowrap">Product</TableHead>
+            <TableHead className="whitespace-nowrap">Company</TableHead>
+            <TableHead className="whitespace-nowrap">Contact</TableHead>
+            <TableHead className="whitespace-nowrap">Phone</TableHead>
+            <TableHead className="whitespace-nowrap">Email</TableHead>
+            <TableHead className="whitespace-nowrap">Address</TableHead>
+            <TableHead className="whitespace-nowrap">Place</TableHead>
+            <TableHead className="whitespace-nowrap">District</TableHead>
+            <TableHead className="whitespace-nowrap">State</TableHead>
+            <TableHead className="whitespace-nowrap">Reference</TableHead>
+            <TableHead className="whitespace-nowrap">Manager</TableHead>
+            <TableHead className="whitespace-nowrap">Last Followed Date</TableHead>
+            <TableHead className="whitespace-nowrap">Last Followed By</TableHead>
+            <TableHead className="whitespace-nowrap">Next followup Date</TableHead>
+            <TableHead className="whitespace-nowrap">Last Followup Remarks</TableHead>
+            <TableHead className="whitespace-nowrap">Lead Status</TableHead>
+            <TableHead className="whitespace-nowrap">Lead Sub Status</TableHead>
+            <TableHead className="whitespace-nowrap">Lead Status Remarks</TableHead>
+            <TableHead className="whitespace-nowrap">Given By</TableHead>
+          </TableRow>
+        </TableHeader>
 
-                                    return (
-                                    <TableRow key={`${lead.leadId}-${index}`} onClick={() => handleRowClick(lead.leadId)} className="cursor-pointer">
-                                        <TableCell>{absoluteIndex}</TableCell>
-                                        <TableCell>{lead.leadId || 'N/A'}</TableCell>
-                                        <TableCell>{isValidDate ? format(date, 'PPP') : 'N/A'}</TableCell>
-                                        <TableCell>{lead.selectedModule || 'N/A'}</TableCell>
-                                        <TableCell>{lead.company || 'N/A'}</TableCell>
-                                        <TableCell>{lead.contactPerson || 'N/A'}</TableCell>
-                                        <TableCell>{lead.contactNumber || 'N/A'}</TableCell>
-                                        <TableCell>{lead.email || 'N/A'}</TableCell>
-                                        <TableCell>{lead.address || 'N/A'}</TableCell>
-                                        <TableCell>{lead.district || 'N/A'}</TableCell>
-                                        <TableCell>{lead.state || 'N/A'}</TableCell>
-                                        <TableCell>{lead.reference || 'N/A'}</TableCell>
-                                        <TableCell>{lead.manager || 'N/A'}</TableCell>
-                                        <TableCell>{lastFollowUp ? lastFollowUp.date : 'N/A'}</TableCell>
-                                        <TableCell>{lastFollowUp ? lastFollowUp.enteredBy : 'N/A'}</TableCell>
-                                        <TableCell>{nextFollowupDate}</TableCell>
-                                        <TableCell>{lastFollowUp ? lastFollowUp.remarks : 'N/A'}</TableCell>
-                                        <TableCell>{lead.status || 'N/A'}</TableCell>
-                                        <TableCell>{lead.leadSubStatus || 'N/A'}</TableCell>
-                                        <TableCell>{(lead as any).leadStatusRemarks || 'N/A'}</TableCell>
-                                        <TableCell>{lead.givenBy || 'N/A'}</TableCell>
-                                    </TableRow>
-                                    )
-                                })
-                                ) : (
-                                <TableRow>
-                                    <TableCell colSpan={22} className="text-center h-24">
-                                    No results
-                                    </TableCell>
-                                </TableRow>
-                                )}
-                            </TableBody>
-                            </Table>
-                        </div>
-                    </CardContent>
-                </Card>
+        <TableBody>
+          {paginatedLeads.map((lead, index) => {
+            const date = new Date(lead.creationDate);
+            const isValidDate = !isNaN(date.getTime());
+            const lastFollowUp =
+              lead.followUps && lead.followUps.length > 0
+                ? lead.followUps[lead.followUps.length - 1]
+                : null;
+            const absoluteIndex =
+              (currentPage - 1) * LEADS_PER_PAGE + index + 1;
+            const nextFollowupDate =
+              lead.nextFollowUpDate &&
+              !isNaN(new Date(lead.nextFollowUpDate).getTime())
+                ? format(new Date(lead.nextFollowUpDate), 'PPP')
+                : lastFollowUp
+                ? lastFollowUp.nextFollowUp
+                : 'N/A';
+
+            return (
+              <TableRow
+                key={lead.leadId}
+                onClick={() => handleRowClick(lead.leadId)}
+                className="cursor-pointer"
+              >
+                <TableCell className="whitespace-nowrap">
+                  {absoluteIndex}
+                </TableCell>
+                <TableCell className="whitespace-nowrap">
+                  {lead.leadId || 'N/A'}
+                </TableCell>
+                <TableCell className="whitespace-nowrap">
+                  {isValidDate ? format(date, 'PPP') : 'N/A'}
+                </TableCell>
+                <TableCell className="whitespace-nowrap">
+                  {lead.selectedModule || 'N/A'}
+                </TableCell>
+                <TableCell className="whitespace-nowrap">
+                  {lead.company || 'N/A'}
+                </TableCell>
+                <TableCell className="whitespace-nowrap">
+                  {lead.contactPerson || 'N/A'}
+                </TableCell>
+                <TableCell className="whitespace-nowrap">
+                  {lead.contactNumber || 'N/A'}
+                </TableCell>
+                <TableCell className="whitespace-nowrap">
+                  {lead.email || 'N/A'}
+                </TableCell>
+                <TableCell className="whitespace-nowrap">
+                  {lead.address || 'N/A'}
+                </TableCell>
+                <TableCell className="whitespace-nowrap">
+                  {lead.district || 'N/A'}
+                </TableCell>
+                <TableCell className="whitespace-nowrap">
+                  {lead.district || 'N/A'}
+                </TableCell>
+                <TableCell className="whitespace-nowrap">
+                  {lead.state || 'N/A'}
+                </TableCell>
+                <TableCell className="whitespace-nowrap">
+                  {lead.reference || 'N/A'}
+                </TableCell>
+                <TableCell className="whitespace-nowrap">
+                  {lead.manager || 'N/A'}
+                </TableCell>
+                <TableCell className="whitespace-nowrap">
+                  {lastFollowUp ? lastFollowUp.date : 'N/A'}
+                </TableCell>
+                <TableCell className="whitespace-nowrap">
+                  {lastFollowUp ? lastFollowUp.enteredBy : 'N/A'}
+                </TableCell>
+                <TableCell className="whitespace-nowrap">
+                  {nextFollowupDate}
+                </TableCell>
+                <TableCell className="whitespace-nowrap">
+                  {lastFollowUp ? lastFollowUp.remarks : 'N/A'}
+                </TableCell>
+                <TableCell className="whitespace-nowrap">
+                  {lead.status || 'N/A'}
+                </TableCell>
+                <TableCell className="whitespace-nowrap">
+                  {lead.leadSubStatus || 'N/A'}
+                </TableCell>
+                <TableCell className="whitespace-nowrap">
+                  {(lead as any).leadStatusRemarks || 'N/A'}
+                </TableCell>
+                <TableCell className="whitespace-nowrap">
+                  {lead.givenBy || 'N/A'}
+                </TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
+    </div>
+  </CardContent>
+</Card>
+
                 
                 {totalPages > 1 && (
                     <div className="flex items-center justify-end space-x-2 py-4">
