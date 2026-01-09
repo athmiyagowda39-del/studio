@@ -258,6 +258,10 @@ export default function LeadUpdateForm({ leadId, allLeads }: { leadId: string | 
                         className="bg-muted"
                       />
                 </div>
+                <div className="space-y-2 col-span-2">
+                    <Label htmlFor="company">Company</Label>
+                    <Input id="company" value={leadDetails.company || ''} onChange={(e) => handleLeadDetailChange('company', e.target.value)} />
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="contactPerson">Contact person</Label>
                   <Input id="contactPerson" value={leadDetails.contactPerson || ''} onChange={(e) => handleLeadDetailChange('contactPerson', e.target.value)} />
