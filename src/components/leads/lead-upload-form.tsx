@@ -100,6 +100,8 @@ const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdmin
     toDealer: false,
     initialRemarks: '',
     dealer: '',
+    executive: '',
+    manager: '',
 };
 
 const saveLeadsToLocalStorage = (leads: LeadFormData[]) => {
@@ -211,7 +213,7 @@ export default function LeadUploadForm() {
       givenBy: 'Manual',
       subAdminId: 'demo-user', // Placeholder
       status: 'Not viewed',
-      executive: formData.toDealer ? formData.dealer : undefined,
+      executive: formData.toDealer ? formData.dealer : formData.executive,
     };
 
     const updatedLeads = [...allLeads, newLead];
@@ -313,7 +315,9 @@ export default function LeadUploadForm() {
               reference: 'reference',
               companyheadcount: 'headcount',
               sector: 'sector',
-              modules: 'selectedModule'
+              modules: 'selectedModule',
+              executive: 'executive',
+              manager: 'manager',
           };
           const formKey = keyMap[headerStr];
           if(formKey) {
@@ -438,6 +442,10 @@ export default function LeadUploadForm() {
             </Popover>
           </div>
           <div className="space-y-2">
+            <Label htmlFor="executive">Executive</Label>
+            <Input id="executive" value={formData.executive || ''} onChange={handleInputChange} />
+          </div>
+          <div className="space-y-2">
             <Label htmlFor="selectedModule">Modules</Label>
             <Select value={formData.selectedModule} onValueChange={(value) => handleSelectChange('selectedModule', value)}>
               <SelectTrigger id="selectedModule">
@@ -451,6 +459,10 @@ export default function LeadUploadForm() {
                 <SelectItem value="module3">Module 3</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="manager">Manager Name</Label>
+            <Input id="manager" value={formData.manager || ''} onChange={handleInputChange} />
           </div>
           <div className="space-y-2 md:col-span-2">
             <Label htmlFor="initialRemarks">Initial Remark</Label>
@@ -477,7 +489,7 @@ export default function LeadUploadForm() {
                         aria-expanded={dealerOpen}
                         className="w-full justify-between font-normal"
                         >
-                        {formData.dealer || "As per mapping"}
+                        {formData.dealer ? executiveNames.find(name => name === formData.dealer) : "As per mapping"}
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
                     </PopoverTrigger>
@@ -574,5 +586,3 @@ export default function LeadUploadForm() {
     </div>
   );
 }
-
-    
