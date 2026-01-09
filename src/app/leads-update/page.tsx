@@ -927,7 +927,6 @@ export default function LeadsUpdatePage() {
                                         <TableCell>{lead.email || 'N/A'}</TableCell>
                                         <TableCell>{lead.address || 'N/A'}</TableCell>
                                         <TableCell>{lead.district || 'N/A'}</TableCell>
-                                        <TableCell>{lead.district || 'N/A'}</TableCell>
                                         <TableCell>{lead.state || 'N/A'}</TableCell>
                                         <TableCell>{lead.reference || 'N/A'}</TableCell>
                                         <TableCell>{lead.manager || 'N/A'}</TableCell>
@@ -989,4 +988,4 @@ export default function LeadsUpdatePage() {
     </AppContent>
   );
 }
-in the leads update in that there is a district column so in that district and state column is showing two times so can you please make it as one time only
+```
