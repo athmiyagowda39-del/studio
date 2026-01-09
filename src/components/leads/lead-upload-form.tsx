@@ -34,6 +34,8 @@ import {
   Command,
   CommandEmpty,
   CommandGroup,
+  CommandInput,
+  CommandItem,
   CommandList,
 } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
@@ -411,6 +413,7 @@ export default function LeadUploadForm() {
               </PopoverTrigger>
               <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
                 <Command>
+                  <CommandInput placeholder="Search sector..." />
                   <CommandList>
                     <CommandEmpty>No sector found.</CommandEmpty>
                     <CommandGroup>
@@ -592,6 +595,3 @@ export default function LeadUploadForm() {
     </div>
   );
 }
-
-    
-    
