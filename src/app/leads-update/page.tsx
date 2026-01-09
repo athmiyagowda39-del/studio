@@ -875,7 +875,7 @@ export default function LeadsUpdatePage() {
                 </div>
                 <Card>
                     <CardContent className="p-0">
-                    <ScrollArea className="w-full whitespace-nowrap rounded-md border">
+                    <ScrollArea className="w-full whitespace-nowrap rounded-md border h-96">
                         <Table className="min-w-max">
                             <TableHeader>
                                 <TableRow>
