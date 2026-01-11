@@ -874,81 +874,83 @@ export default function LeadsUpdatePage() {
                     ))}
                 </div>
                 <Card>
-                    <CardContent className="p-0">
-                        <div className="max-h-96 overflow-y-auto">
-                            <Table>
-                                <TableHeader className="sticky top-0 bg-background z-10">
-                                    <TableRow>
-                                    <TableHead className="whitespace-nowrap">Sl No</TableHead>
-                                    <TableHead className="whitespace-nowrap">Lead Id</TableHead>
-                                    <TableHead className="whitespace-nowrap">Lead Date</TableHead>
-                                    <TableHead className="whitespace-nowrap">Product</TableHead>
-                                    <TableHead className="whitespace-nowrap">Company</TableHead>
-                                    <TableHead className="whitespace-nowrap">Contact</TableHead>
-                                    <TableHead className="whitespace-nowrap">Phone</TableHead>
-                                    <TableHead className="whitespace-nowrap">Email</TableHead>
-                                    <TableHead className="whitespace-nowrap">Address</TableHead>
-                                    <TableHead className="whitespace-nowrap">Place</TableHead>
-                                    <TableHead className="whitespace-nowrap">District</TableHead>
-                                    <TableHead className="whitespace-nowrap">State</TableHead>
-                                    <TableHead className="whitespace-nowrap">Reference</TableHead>
-                                    <TableHead className="whitespace-nowrap">Manager</TableHead>
-                                    <TableHead className="whitespace-nowrap">Last Followed Date</TableHead>
-                                    <TableHead className="whitespace-nowrap">Last Followed By</TableHead>
-                                    <TableHead className="whitespace-nowrap">Next followup Date</TableHead>
-                                    <TableHead className="whitespace-nowrap">Last Followup Remarks</TableHead>
-                                    <TableHead className="whitespace-nowrap">Lead Status</TableHead>
-                                    <TableHead className="whitespace-nowrap">Lead Sub Status</TableHead>
-                                    <TableHead className="whitespace-nowrap">Lead Status Remarks</TableHead>
-                                    <TableHead className="whitespace-nowrap">Given By</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {paginatedLeads.map((lead, index) => {
-                                        const date = new Date(lead.creationDate);
-                                        const isValidDate = !isNaN(date.getTime());
-                                        const lastFollowUp = lead.followUps && lead.followUps.length > 0 ? lead.followUps[lead.followUps.length - 1] : null;
-                                        const absoluteIndex = (currentPage - 1) * LEADS_PER_PAGE + index + 1;
-                                        const nextFollowupDate = lead.nextFollowUpDate && !isNaN(new Date(lead.nextFollowUpDate).getTime())
-                                            ? format(new Date(lead.nextFollowUpDate), 'PPP')
-                                            : (lastFollowUp ? lastFollowUp.nextFollowUp : 'N/A');
+                  <CardContent className="p-0">
+                    <div className="overflow-x-auto">
+                      <div className="max-h-[450px] overflow-y-auto">
+                        <Table>
+                            <TableHeader className="sticky top-0 bg-background z-10">
+                                <TableRow>
+                                <TableHead className="whitespace-nowrap">Sl No</TableHead>
+                                <TableHead className="whitespace-nowrap">Lead Id</TableHead>
+                                <TableHead className="whitespace-nowrap">Lead Date</TableHead>
+                                <TableHead className="whitespace-nowrap">Product</TableHead>
+                                <TableHead className="whitespace-nowrap">Company</TableHead>
+                                <TableHead className="whitespace-nowrap">Contact</TableHead>
+                                <TableHead className="whitespace-nowrap">Phone</TableHead>
+                                <TableHead className="whitespace-nowrap">Email</TableHead>
+                                <TableHead className="whitespace-nowrap">Address</TableHead>
+                                <TableHead className="whitespace-nowrap">Place</TableHead>
+                                <TableHead className="whitespace-nowrap">District</TableHead>
+                                <TableHead className="whitespace-nowrap">State</TableHead>
+                                <TableHead className="whitespace-nowrap">Reference</TableHead>
+                                <TableHead className="whitespace-nowrap">Manager</TableHead>
+                                <TableHead className="whitespace-nowrap">Last Followed Date</TableHead>
+                                <TableHead className="whitespace-nowrap">Last Followed By</TableHead>
+                                <TableHead className="whitespace-nowrap">Next followup Date</TableHead>
+                                <TableHead className="whitespace-nowrap">Last Followup Remarks</TableHead>
+                                <TableHead className="whitespace-nowrap">Lead Status</TableHead>
+                                <TableHead className="whitespace-nowrap">Lead Sub Status</TableHead>
+                                <TableHead className="whitespace-nowrap">Lead Status Remarks</TableHead>
+                                <TableHead className="whitespace-nowrap">Given By</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {paginatedLeads.map((lead, index) => {
+                                    const date = new Date(lead.creationDate);
+                                    const isValidDate = !isNaN(date.getTime());
+                                    const lastFollowUp = lead.followUps && lead.followUps.length > 0 ? lead.followUps[lead.followUps.length - 1] : null;
+                                    const absoluteIndex = (currentPage - 1) * LEADS_PER_PAGE + index + 1;
+                                    const nextFollowupDate = lead.nextFollowUpDate && !isNaN(new Date(lead.nextFollowUpDate).getTime())
+                                        ? format(new Date(lead.nextFollowUpDate), 'PPP')
+                                        : (lastFollowUp ? lastFollowUp.nextFollowUp : 'N/A');
 
-                                        return (
-                                            <TableRow key={lead.leadId} onClick={() => handleRowClick(lead.leadId)} className="cursor-pointer">
-                                                <TableCell className="whitespace-nowrap">{absoluteIndex}</TableCell>
-                                                <TableCell className="whitespace-nowrap">{lead.leadId || 'N/A'}</TableCell>
-                                                <TableCell className="whitespace-nowrap">{isValidDate ? format(date, 'PPP') : 'N/A'}</TableCell>
-                                                <TableCell className="whitespace-nowrap">{lead.selectedModule || 'N/A'}</TableCell>
-                                                <TableCell className="whitespace-nowrap">{lead.company || 'N/A'}</TableCell>
-                                                <TableCell className="whitespace-nowrap">{lead.contactPerson || 'N/A'}</TableCell>
-                                                <TableCell className="whitespace-nowrap">{lead.contactNumber || 'N/A'}</TableCell>
-                                                <TableCell className="whitespace-nowrap">{lead.email || 'N/A'}</TableCell>
-                                                <TableCell className="whitespace-nowrap">{lead.address || 'N/A'}</TableCell>
-                                                <TableCell className="whitespace-nowrap">{lead.district || 'N/A'}</TableCell>
-                                                <TableCell className="whitespace-nowrap">{lead.state || 'N/A'}</TableCell>
-                                                <TableCell className="whitespace-nowrap">{lead.reference || 'N/A'}</TableCell>
-                                                <TableCell className="whitespace-nowrap">{lead.manager || 'N/A'}</TableCell>
-                                                <TableCell className="whitespace-nowrap">{lastFollowUp ? lastFollowUp.date : 'N/A'}</TableCell>
-                                                <TableCell className="whitespace-nowrap">{lastFollowUp ? lastFollowUp.enteredBy : 'N/A'}</TableCell>
-                                                <TableCell className="whitespace-nowrap">{nextFollowupDate}</TableCell>
-                                                <TableCell className="whitespace-nowrap">{lastFollowUp ? lastFollowUp.remarks : 'N/A'}</TableCell>
-                                                <TableCell className="whitespace-nowrap">{lead.status || 'N/A'}</TableCell>
-                                                <TableCell className="whitespace-nowrap">{lead.leadSubStatus || 'N/A'}</TableCell>
-                                                <TableCell className="whitespace-nowrap">{(lead as any).leadStatusRemarks || 'N/A'}</TableCell>
-                                                <TableCell className="whitespace-nowrap">{lead.givenBy || 'N/A'}</TableCell>
-                                            </TableRow>
-                                        );
-                                    })}
-                                    {paginatedLeads.length === 0 && (
-                                        <TableRow>
-                                            <TableCell colSpan={22} className="text-center h-24">
-                                                No results
-                                            </TableCell>
+                                    return (
+                                        <TableRow key={lead.leadId} onClick={() => handleRowClick(lead.leadId)} className="cursor-pointer">
+                                            <TableCell className="whitespace-nowrap">{absoluteIndex}</TableCell>
+                                            <TableCell className="whitespace-nowrap">{lead.leadId || 'N/A'}</TableCell>
+                                            <TableCell className="whitespace-nowrap">{isValidDate ? format(date, 'PPP') : 'N/A'}</TableCell>
+                                            <TableCell className="whitespace-nowrap">{lead.selectedModule || 'N/A'}</TableCell>
+                                            <TableCell className="whitespace-nowrap">{lead.company || 'N/A'}</TableCell>
+                                            <TableCell className="whitespace-nowrap">{lead.contactPerson || 'N/A'}</TableCell>
+                                            <TableCell className="whitespace-nowrap">{lead.contactNumber || 'N/A'}</TableCell>
+                                            <TableCell className="whitespace-nowrap">{lead.email || 'N/A'}</TableCell>
+                                            <TableCell className="whitespace-nowrap">{lead.address || 'N/A'}</TableCell>
+                                            <TableCell className="whitespace-nowrap">{lead.district || 'N/A'}</TableCell>
+                                            <TableCell className="whitespace-nowrap">{lead.state || 'N/A'}</TableCell>
+                                            <TableCell className="whitespace-nowrap">{lead.reference || 'N/A'}</TableCell>
+                                            <TableCell className="whitespace-nowrap">{lead.manager || 'N/A'}</TableCell>
+                                            <TableCell className="whitespace-nowrap">{lastFollowUp ? lastFollowUp.date : 'N/A'}</TableCell>
+                                            <TableCell className="whitespace-nowrap">{lastFollowUp ? lastFollowUp.enteredBy : 'N/A'}</TableCell>
+                                            <TableCell className="whitespace-nowrap">{nextFollowupDate}</TableCell>
+                                            <TableCell className="whitespace-nowrap">{lastFollowUp ? lastFollowUp.remarks : 'N/A'}</TableCell>
+                                            <TableCell className="whitespace-nowrap">{lead.status || 'N/A'}</TableCell>
+                                            <TableCell className="whitespace-nowrap">{lead.leadSubStatus || 'N/A'}</TableCell>
+                                            <TableCell className="whitespace-nowrap">{(lead as any).leadStatusRemarks || 'N/A'}</TableCell>
+                                            <TableCell className="whitespace-nowrap">{lead.givenBy || 'N/A'}</TableCell>
                                         </TableRow>
-                                    )}
-                                </TableBody>
-                            </Table>
+                                    );
+                                })}
+                                {paginatedLeads.length === 0 && (
+                                    <TableRow>
+                                        <TableCell colSpan={22} className="text-center h-24">
+                                            No results
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
                         </div>
+                      </div>
                     </CardContent>
                 </Card>
                 
