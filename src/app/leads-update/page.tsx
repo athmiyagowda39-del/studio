@@ -130,6 +130,11 @@ export default function LeadsUpdatePage() {
   const applyFilters = useCallback((leadsToFilter: LeadFormData[]) => {
     let leads = [...(leadsToFilter || [])];
 
+    if (filters.doNotConsider) {
+        const excludedStatuses = ['Order closed', 'Fake Lead', 'Existing Customer', 'Not interested'];
+        leads = leads.filter(lead => !excludedStatuses.includes(lead.status || ''));
+    }
+
     if (filters.search && filters.searchFor) {
         leads = leads.filter(lead => {
             const leadValue = (lead as any)[filters.searchFor];
