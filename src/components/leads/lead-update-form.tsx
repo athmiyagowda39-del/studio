@@ -316,7 +316,7 @@ export default function LeadUpdateForm({ leadId, allLeads }: { leadId: string | 
                     </Popover>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="dealerViewDate">Dealer viewed date</Label>
+                  <Label htmlFor="dealerViewDate">Executive viewed date</Label>
                   <div className="flex h-10 w-full items-center rounded-md border border-input bg-muted px-3 py-2 text-sm">
                     {leadDetails.executiveViewDate ? (
                         format(new Date(leadDetails.executiveViewDate), 'PPP')
@@ -545,7 +545,7 @@ export default function LeadUpdateForm({ leadId, allLeads }: { leadId: string | 
                 <div className="space-y-2">
                     <Textarea 
                         id="initial-remarks"
-                        placeholder="Enter remarks..."
+                        placeholder="Enter remarks here..."
                         value={initialRemarks}
                         onChange={(e) => setInitialRemarks(e.target.value)}
                         className="min-h-[40px]"

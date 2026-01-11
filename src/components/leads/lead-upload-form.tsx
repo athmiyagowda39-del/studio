@@ -65,7 +65,7 @@ export type LeadFormData = {
   headcount: string;
   sector: string;
   selectedModule: string;
-  toDealer: boolean;
+  toExecutive: boolean;
   creationDate: number;
   executiveViewDate?: number;
   followUps?: FollowUp[];
@@ -97,7 +97,7 @@ const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdmin
     headcount: '',
     sector: '',
     selectedModule: '',
-    toDealer: false,
+    toExecutive: false,
     initialRemarks: '',
     dealer: '',
     executive: '',
@@ -122,7 +122,6 @@ const getLeadsFromLocalStorage = (): LeadFormData[] => {
 export default function LeadUploadForm() {
   const [formData, setFormData] = useState<Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId' | 'givenBy'>>(initialFormState);
   const [sectorOpen, setSectorOpen] = useState(false);
-  const [dealerOpen, setDealerOpen] = useState(false);
   const [executiveOpen, setExecutiveOpen] = useState(false);
   const [referenceOpen, setReferenceOpen] = useState(false);
 
@@ -182,7 +181,7 @@ export default function LeadUploadForm() {
   }
 
   const handleCheckboxChange = (checked: boolean) => {
-    setFormData(prev => ({...prev, toDealer: checked as boolean}));
+    setFormData(prev => ({...prev, toExecutive: checked as boolean}));
   }
 
   const resetForm = () => {
@@ -213,9 +212,8 @@ export default function LeadUploadForm() {
       leadId: `LEAD-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
       creationDate: new Date().getTime(),
       givenBy: 'Manual',
-      subAdminId: 'demo-user', // Placeholder
       status: 'Not viewed',
-      executive: formData.toDealer ? formData.dealer : formData.executive,
+      executive: formData.toExecutive ? formData.executive : '', // Simplified this line
     };
 
     const updatedLeads = [...allLeads, newLead];
@@ -304,7 +302,7 @@ export default function LeadUploadForm() {
       headers.forEach((header, index) => {
           const headerStr = String(header).toLowerCase().replace(/\s+/g, '');
           // Map excel headers to form keys
-          const keyMap: {[key: string]: keyof LeadFormData} = {
+          const keyMap: {[key: string]: keyof Omit<LeadFormData, 'leadId' | 'creationDate' | 'givenBy' | 'status'>} = {
               'pin code': 'pincode',
               pincode: 'pincode',
               company: 'company',
@@ -493,6 +491,7 @@ export default function LeadUploadForm() {
                   role="combobox"
                   aria-expanded={executiveOpen}
                   className="w-full justify-between font-normal capitalize"
+                  disabled={formData.toExecutive}
                 >
                   {formData.executive || "Select Executive..."}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -558,22 +557,22 @@ export default function LeadUploadForm() {
             />
           </div>
           <div className="flex items-center space-x-2 pt-2">
-            <Checkbox id="toDealer" checked={formData.toDealer} onCheckedChange={handleCheckboxChange} />
-            <Label htmlFor="toDealer">To Dealer</Label>
+            <Checkbox id="toExecutive" checked={formData.toExecutive} onCheckedChange={handleCheckboxChange} />
+            <Label htmlFor="toExecutive">To Executive</Label>
           </div>
-           {formData.toDealer && (
+           {formData.toExecutive && (
              <div className="space-y-2">
-               <Label htmlFor="dealer">Dealer</Label>
-                <Popover open={dealerOpen} onOpenChange={setDealerOpen}>
+               <Label htmlFor="executive">Executive</Label>
+                <Popover open={executiveOpen} onOpenChange={setExecutiveOpen}>
                  <PopoverTrigger asChild>
                     <Button
                       variant="outline"
                       role="combobox"
-                      aria-expanded={dealerOpen}
+                      aria-expanded={executiveOpen}
                       className="w-full justify-between font-normal"
                     >
-                      {formData.dealer ? (
-                        <span className="capitalize">{formData.dealer}</span>
+                      {formData.executive ? (
+                        <span className="capitalize">{formData.executive}</span>
                       ) : (
                         "As per mapping"
                       )}
@@ -590,14 +589,14 @@ export default function LeadUploadForm() {
                              key={name}
                              value={name}
                              onSelect={(currentValue) => {
-                               handleSelectChange('dealer', currentValue === formData.dealer ? '' : currentValue)
-                               setDealerOpen(false)
+                               handleSelectChange('executive', currentValue === formData.executive ? '' : currentValue)
+                               setExecutiveOpen(false)
                              }}
                            >
                              <Check
                                className={cn(
                                  "mr-2 h-4 w-4",
-                                 formData.dealer === name ? "opacity-100" : "opacity-0"
+                                 formData.executive === name ? "opacity-100" : "opacity-0"
                                )}
                              />
                              <span className="capitalize">{name}</span>
