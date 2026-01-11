@@ -926,6 +926,7 @@ export default function LeadsUpdatePage() {
                                             <TableCell className="whitespace-nowrap">{lead.email || 'N/A'}</TableCell>
                                             <TableCell className="whitespace-nowrap">{lead.address || 'N/A'}</TableCell>
                                             <TableCell className="whitespace-nowrap">{lead.district || 'N/A'}</TableCell>
+                                            <TableCell className="whitespace-nowrap">{lead.district || 'N/A'}</TableCell>
                                             <TableCell className="whitespace-nowrap">{lead.state || 'N/A'}</TableCell>
                                             <TableCell className="whitespace-nowrap">{lead.reference || 'N/A'}</TableCell>
                                             <TableCell className="whitespace-nowrap">{lead.manager || 'N/A'}</TableCell>
