@@ -875,8 +875,8 @@ export default function LeadsUpdatePage() {
                 </div>
                 <Card>
                     <CardContent className="p-0">
-                        <div className="max-h-96 overflow-y-auto overflow-x-auto">
-                            <Table className="min-w-max">
+                        <div className="max-h-96 overflow-y-auto">
+                            <Table>
                                 <TableHeader className="sticky top-0 bg-background z-10">
                                     <TableRow>
                                     <TableHead className="whitespace-nowrap">Sl No</TableHead>
@@ -985,3 +985,4 @@ export default function LeadsUpdatePage() {
     </AppContent>
   );
 }
+```
