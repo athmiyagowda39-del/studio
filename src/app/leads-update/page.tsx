@@ -20,6 +20,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 /* ---------------- CONSTANTS ---------------- */
 
@@ -301,13 +302,21 @@ export default function LeadsUpdatePage() {
 
             {/* ================= TABLE ================= */}
             <Card>
-              <CardHeader>
-                <CardTitle className="text-base">
-                  List of Leads &gt;&gt; [All Leads ({filteredLeads.length} Records)]
-                </CardTitle>
-              </CardHeader>
-
-              <CardContent className="p-0">
+              <CardContent className="p-4 space-y-4">
+                <Tabs defaultValue="recent">
+                  <TabsList>
+                    <TabsTrigger value="recent">Recent Leads</TabsTrigger>
+                    <TabsTrigger value="not-viewed">Leads not Viewed</TabsTrigger>
+                    <TabsTrigger value="follow-ups-due">Follow Ups Due</TabsTrigger>
+                    <TabsTrigger value="zero-follow-ups">Zero Follow Ups!</TabsTrigger>
+                    <TabsTrigger value="search-result">Search Result</TabsTrigger>
+                  </TabsList>
+                </Tabs>
+                <CardHeader className="p-0 pt-4">
+                  <CardTitle className="text-base">
+                    List of Leads &gt;&gt; [All Leads ({filteredLeads.length} Records)]
+                  </CardTitle>
+                </CardHeader>
                 <div className="w-full overflow-x-auto border rounded-md">
                   <Table className="min-w-[2800px]">
                     <TableHeader className="bg-muted">
