@@ -90,18 +90,32 @@ export default function LeadsUpdatePage() {
               setAllLeads={handleLeadsUpdate}
             />
 
-            {/* ================= FILTER TOGGLE ================= */}
-            <div className="flex items-center justify-between bg-muted px-4 py-2 rounded-md">
+            {/* ================= FILTER TOGGLE (CLICK ANYWHERE) ================= */}
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => setShowFilters(prev => !prev)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  setShowFilters(prev => !prev);
+                }
+              }}
+              className="
+                flex items-center justify-between
+                bg-muted px-4 py-3
+                rounded-md
+                cursor-pointer
+                select-none
+                hover:bg-muted/80
+                transition
+              "
+            >
               <span className="font-medium">
                 Filter [{showFilters ? 'hide' : 'show'}]
               </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowFilters(prev => !prev)}
-              >
+              <span className="text-sm">
                 {showFilters ? '▲' : '▼'}
-              </Button>
+              </span>
             </div>
 
             {/* ================= FILTER PANEL ================= */}
