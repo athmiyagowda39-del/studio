@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import AppContent from '../app-content';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -27,7 +27,7 @@ import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 
 export default function UsersPage() {
-  const { user: currentUser, isAuthenticated } = useAuth();
+  const { user: currentUser, isAuthenticated, isLoading } from useAuth();
   const router = useRouter();
   const { users, addUser } = useUsers();
   const { toast } = useToast();
@@ -35,9 +35,14 @@ export default function UsersPage() {
   const [newUsername, setNewUsername] = useState('');
   const [newRole, setNewRole] = useState<'Admin' | 'Executive'>('Executive');
 
-  if (!isAuthenticated || currentUser?.role !== 'Admin') {
-    if(typeof window !== 'undefined') router.replace('/dashboard');
-    return null;
+  useEffect(() => {
+    if (!isLoading && (!isAuthenticated || currentUser?.role !== 'Admin')) {
+      router.replace('/dashboard');
+    }
+  }, [isAuthenticated, currentUser, isLoading, router]);
+
+  if (isLoading || !isAuthenticated || currentUser?.role !== 'Admin') {
+    return null; // or a loading skeleton
   }
   
   const handleAddUser = () => {
