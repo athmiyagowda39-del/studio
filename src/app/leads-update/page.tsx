@@ -1,8 +1,7 @@
-
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Table,
   TableBody,
@@ -16,6 +15,8 @@ import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import LeadUpdateForm from '@/components/leads/lead-update-form';
 import AppContent from '../app-content';
 import { format } from 'date-fns';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import LeadFilter from '@/components/leads/lead-filter';
 
 /* ---------------- CONSTANTS ---------------- */
 
@@ -76,7 +77,11 @@ export default function LeadsUpdatePage() {
             <LeadUpdateForm
               leadId={selectedLeadId}
               allLeads={allLeads}
+              setAllLeads={setAllLeads}
             />
+
+            <LeadFilter allLeads={allLeads} setFilteredLeads={setFilteredLeads} />
+
 
             {/* ================= TABLE CARD ================= */}
             <Card className="max-w-full overflow-hidden">
@@ -87,11 +92,8 @@ export default function LeadsUpdatePage() {
               </CardHeader>
 
               <CardContent className="p-0 max-w-full overflow-hidden">
-
-                {/* ✅ ONLY THIS DIV SCROLLS HORIZONTALLY */}
-                <div className="w-full overflow-x-auto">
-                  <div className="max-h-[450px] overflow-y-auto">
-
+                <ScrollArea className="w-full whitespace-nowrap rounded-md border">
+                  <div className="max-h-[450px]">
                     <Table className="min-w-[1800px]">
                       <TableHeader className="sticky top-0 bg-background z-10">
                         <TableRow>
@@ -137,9 +139,9 @@ export default function LeadsUpdatePage() {
                         ))}
                       </TableBody>
                     </Table>
-
                   </div>
-                </div>
+                  <div className="h-[calc(100vh-200px)]"></div>
+                </ScrollArea>
 
                 {/* PAGINATION */}
                 {totalPages > 1 && (
@@ -167,7 +169,6 @@ export default function LeadsUpdatePage() {
                     </Button>
                   </div>
                 )}
-
               </CardContent>
             </Card>
             {/* ================= END TABLE ================= */}

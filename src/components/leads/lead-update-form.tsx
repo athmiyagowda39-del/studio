@@ -76,7 +76,7 @@ const saveLeadsToLocalStorage = (leads: LeadFormData[]) => {
 };
 
 
-export default function LeadUpdateForm({ leadId, allLeads }: { leadId: string | null, allLeads: LeadFormData[] }) {
+export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { leadId: string | null, allLeads: LeadFormData[], setAllLeads: (leads: LeadFormData[]) => void }) {
   const [leadDetails, setLeadDetails] = useState<Partial<LeadFormData>>({});
   
   const [remarks, setRemarks] = useState('');
@@ -115,6 +115,7 @@ export default function LeadUpdateForm({ leadId, allLeads }: { leadId: string | 
           
           const updatedLeads = allLeads.map(l => l.leadId === id ? { ...l, executiveViewDate: leadWithViewDate.executiveViewDate } : l);
           saveLeadsToLocalStorage(updatedLeads);
+          setAllLeads(updatedLeads);
 
           console.log("Setting executiveViewDate for lead:", id);
         }
@@ -175,6 +176,7 @@ export default function LeadUpdateForm({ leadId, allLeads }: { leadId: string | 
 
     const updatedLeads = allLeads.map(l => l.leadId === leadDetails.leadId ? updatedLeadDetails : l);
     saveLeadsToLocalStorage(updatedLeads as LeadFormData[]);
+    setAllLeads(updatedLeads as LeadFormData[]);
 
 
     setRemarks('');
@@ -204,6 +206,7 @@ export default function LeadUpdateForm({ leadId, allLeads }: { leadId: string | 
     
     const updatedLeads = allLeads.map(l => l.leadId === leadIdForStatus ? updatedLeadDetails : l);
     saveLeadsToLocalStorage(updatedLeads as LeadFormData[]);
+    setAllLeads(updatedLeads as LeadFormData[]);
     
     toast({ title: 'Status Updated', description: `Lead ${leadIdForStatus} status updated to ${selectedStatus}.` });
 
@@ -234,6 +237,7 @@ export default function LeadUpdateForm({ leadId, allLeads }: { leadId: string | 
 
     const updatedLeads = allLeads.map(l => l.leadId === leadDetails.leadId ? leadDetails : l);
     saveLeadsToLocalStorage(updatedLeads as LeadFormData[]);
+    setAllLeads(updatedLeads as LeadFormData[]);
     
     toast({ title: 'Lead Updated', description: `Lead ${leadDetails.leadId} has been successfully updated.` });
   };
