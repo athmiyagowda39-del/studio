@@ -393,9 +393,14 @@ export default function LeadsUpdatePage() {
                     <TableBody>
                       {paginatedLeads.map((lead, index) => {
                         const lastFollowUp = lead.followUps && lead.followUps.length > 0 ? lead.followUps[lead.followUps.length - 1] : null;
-                        const nextFollowupDate = lead.nextFollowUpDate && !isNaN(new Date(lead.nextFollowUpDate).getTime())
-                                    ? format(new Date(lead.nextFollowUpDate), 'PPP')
-                                    : (lastFollowUp ? lastFollowUp.nextFollowUp : 'N/A');
+                        const nextFollowupDate =
+                          lead.status === 'Order closed'
+                            ? 'N/A'
+                            : lead.nextFollowUpDate && !isNaN(new Date(lead.nextFollowUpDate).getTime())
+                            ? format(new Date(lead.nextFollowUpDate), 'PPP')
+                            : lastFollowUp
+                            ? lastFollowUp.nextFollowUp
+                            : 'N/A';
 
                         return (
                         <TableRow 
