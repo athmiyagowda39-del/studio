@@ -515,8 +515,8 @@ export default function LeadUploadForm() {
               placeholder="Enter initial remarks here..."
             />
           </div>
-          <div className="space-y-2">
-            <Label>To Dealer</Label>
+          <div className="md:col-span-2 flex items-center gap-4">
+            <Label className="shrink-0">To Dealer</Label>
             <Popover open={executiveOpen} onOpenChange={setExecutiveOpen}>
               <PopoverTrigger asChild>
                 <Button
