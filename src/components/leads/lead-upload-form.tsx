@@ -483,9 +483,55 @@ export default function LeadUploadForm() {
             </Popover>
           </div>
           <div className="space-y-2">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
               <Checkbox id="toExecutive" checked={formData.toExecutive} onCheckedChange={handleCheckboxChange} />
               <Label htmlFor="toExecutive">To Executive</Label>
+              {!formData.toExecutive ? (
+                 <span className="text-sm text-muted-foreground ml-2">As per Mapping</span>
+              ) : (
+                <Popover open={executiveOpen} onOpenChange={setExecutiveOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={executiveOpen}
+                      className="w-full justify-between font-normal"
+                    >
+                      {formData.executive ? executiveNames.find(name => name.toLowerCase() === formData.executive?.toLowerCase()) || "Select Executive..." : "Select Executive..."}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                    <Command>
+                      <CommandInput placeholder="Search executive..." />
+                      <CommandList>
+                        <CommandEmpty>No executive found.</CommandEmpty>
+                        <CommandGroup>
+                          {executiveNames.map((name) => (
+                            <CommandItem
+                              key={name}
+                              value={name.toLowerCase()}
+                              onSelect={(currentValue) => {
+                                const selectedName = executiveNames.find(n => n.toLowerCase() === currentValue);
+                                handleSelectChange('executive', selectedName === formData.executive ? '' : selectedName || '');
+                                setExecutiveOpen(false);
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  formData.executive === name ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {name}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              )}
             </div>
           </div>
           <div className="space-y-2">
@@ -579,5 +625,7 @@ export default function LeadUploadForm() {
     </div>
   );
 }
+
+    
 
     
