@@ -279,7 +279,7 @@ export default function LeadsUpdatePage() {
                         <TableHead>District</TableHead>
                         <TableHead>State</TableHead>
                         <TableHead>Reference</TableHead>
-                        <TableHead>Dealer</TableHead>
+                        <TableHead>Executive</TableHead>
                         <TableHead>Manager</TableHead>
                         <TableHead>Last Followed Date</TableHead>
                         <TableHead>Last Followed By</TableHead>
