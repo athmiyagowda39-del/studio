@@ -134,7 +134,8 @@ export default function LeadUploadForm() {
   const [sectorOpen, setSectorOpen] = useState(false);
   const [executiveOpen, setExecutiveOpen] = useState(false);
   const [referenceOpen, setReferenceOpen] = useState(false);
-  const [dealerOpen, setDealerOpen] = useState(false);
+  const [toExecutiveSelection, setToExecutiveSelection] = useState('');
+  const [toExecutiveOpen, setToExecutiveOpen] = useState(false);
   const [executiveNames, setExecutiveNames] = useState<string[]>([]);
 
 
@@ -214,22 +215,44 @@ export default function LeadUploadForm() {
 
   const handleCheckboxChange = (checked: boolean) => {
     setFormData(prev => ({...prev, toExecutive: checked as boolean}));
+     if (!checked) {
+      setToExecutiveSelection('');
+    }
   }
 
   const resetForm = () => {
     setFormData(initialFormState);
+    setToExecutiveSelection('');
     handleCancel();
   };
 
   const validateLead = (lead: Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId' | 'givenBy'>) => {
-    if (!lead.pincode || !lead.contactPerson || !lead.contactNumber || !lead.address) {
-      toast({
-        variant: 'destructive',
-        title: 'Missing Information',
-        description: 'Please fill the fields',
-      });
-      return false;
+    const requiredFields: (keyof typeof lead)[] = [
+      'pincode', 'company', 'contactPerson', 'address', 'state', 'district', 
+      'contactNumber', 'email', 'reference', 'headcount', 'sector', 
+      'selectedModule', 'manager', 'executive'
+    ];
+    
+    for (const field of requiredFields) {
+      if (!lead[field]) {
+        toast({
+          variant: 'destructive',
+          title: 'Missing Information',
+          description: 'Please fill all required fields before saving.',
+        });
+        return false;
+      }
     }
+    
+    if (lead.toExecutive && !toExecutiveSelection) {
+       toast({
+          variant: 'destructive',
+          title: 'Missing Information',
+          description: 'Please select an executive from the "To Executive" dropdown.',
+        });
+        return false;
+    }
+
     return true;
   }
 
@@ -245,7 +268,7 @@ export default function LeadUploadForm() {
       creationDate: new Date().getTime(),
       givenBy: 'Manual',
       status: 'Not viewed',
-      executive: formData.executive || '',
+      dealer: formData.toExecutive ? toExecutiveSelection : 'As per mapping',
     };
 
     const updatedLeads = [...allLeads, newLead];
@@ -588,22 +611,22 @@ export default function LeadUploadForm() {
             />
           </div>
             <div className="flex items-center gap-4 mt-4">
-                <Checkbox
+                 <Checkbox
                     id="to-executive-checkbox"
                     checked={formData.toExecutive}
                     onCheckedChange={handleCheckboxChange}
                 />
                 <Label htmlFor="to-executive-checkbox" className="shrink-0">To Executive</Label>
                 {formData.toExecutive && (
-                    <Popover open={dealerOpen} onOpenChange={setDealerOpen}>
+                    <Popover open={toExecutiveOpen} onOpenChange={setToExecutiveOpen}>
                         <PopoverTrigger asChild>
                             <Button
                                 variant="outline"
                                 role="combobox"
-                                aria-expanded={dealerOpen}
+                                aria-expanded={toExecutiveOpen}
                                 className="w-full justify-between font-normal"
                             >
-                                {formData.dealer || "As per mapping"}
+                                {toExecutiveSelection || "As per mapping"}
                                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                             </Button>
                         </PopoverTrigger>
@@ -617,14 +640,14 @@ export default function LeadUploadForm() {
                                             key="as-per-mapping"
                                             value=""
                                             onSelect={() => {
-                                                handleSelectChange('dealer', '');
-                                                setDealerOpen(false);
+                                                setToExecutiveSelection('');
+                                                setToExecutiveOpen(false);
                                             }}
                                         >
                                             <Check
                                                 className={cn(
                                                     "mr-2 h-4 w-4",
-                                                    !formData.dealer ? "opacity-100" : "opacity-0"
+                                                    !toExecutiveSelection ? "opacity-100" : "opacity-0"
                                                 )}
                                             />
                                             As per mapping
@@ -634,14 +657,14 @@ export default function LeadUploadForm() {
                                                 key={name}
                                                 value={name}
                                                 onSelect={(currentValue) => {
-                                                    handleSelectChange('dealer', currentValue.toLowerCase() === formData.dealer?.toLowerCase() ? '' : name);
-                                                    setDealerOpen(false);
+                                                    setToExecutiveSelection(currentValue.toLowerCase() === toExecutiveSelection.toLowerCase() ? '' : name);
+                                                    setToExecutiveOpen(false);
                                                 }}
                                             >
                                                 <Check
                                                     className={cn(
                                                         "mr-2 h-4 w-4",
-                                                        formData.dealer === name ? "opacity-100" : "opacity-0"
+                                                        toExecutiveSelection === name ? "opacity-100" : "opacity-0"
                                                     )}
                                                 />
                                                 {name}
