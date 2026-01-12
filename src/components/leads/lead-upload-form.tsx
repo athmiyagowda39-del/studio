@@ -485,7 +485,7 @@ export default function LeadUploadForm() {
           <div className="space-y-2">
             <Label htmlFor="executive-select">To Executive</Label>
             <Select
-              value={formData.executive}
+              value={formData.executive || 'as-per-mapping'}
               onValueChange={(value) => handleSelectChange('executive', value === 'as-per-mapping' ? '' : value)}
             >
               <SelectTrigger id="executive-select">
