@@ -558,7 +558,7 @@ export default function LeadUploadForm() {
                           key={name}
                           value={name}
                           onSelect={(currentValue) => {
-                            handleSelectChange('executive', currentValue === formData.executive?.toLowerCase() ? '' : name);
+                            handleSelectChange('executive', currentValue.toLowerCase() === formData.executive?.toLowerCase() ? '' : name);
                             setDealerOpen(false);
                           }}
                         >
@@ -644,6 +644,7 @@ export default function LeadUploadForm() {
     
 
     
+
 
 
 
