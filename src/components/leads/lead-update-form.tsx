@@ -16,7 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '../ui/textarea';
 import { Calendar } from '../ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
-import { CalendarIcon, Check, ChevronsUpDown, Image as ImageIcon } from 'lucide-react';
+import { CalendarIcon, Check, ChevronsUpDown, Eye } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
@@ -340,7 +340,7 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
                 <Label htmlFor="executive">Executive</Label>
                 <Input id="executive" value={leadDetails.executive || ''} onChange={(e) => handleLeadDetailChange('executive', e.target.value)} />
                  {leadDetails.leadId && (
-                  <ImageIcon className="absolute right-3 top-9 h-5 w-5 text-black" />
+                  <Eye className="absolute right-3 top-9 h-5 w-5 text-black" />
                 )}
               </div>
               <div className="space-y-2">
