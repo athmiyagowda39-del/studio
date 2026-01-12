@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { Input } from '@/components/ui/input';
@@ -517,62 +518,22 @@ export default function LeadUploadForm() {
           </div>
           <div className="md:col-span-2 flex items-center gap-4">
             <Label className="shrink-0">To Dealer</Label>
-            <Popover open={executiveOpen} onOpenChange={setExecutiveOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={executiveOpen}
-                  className="w-full justify-between font-normal"
-                >
-                  {formData.executive ? executiveNames.find(name => name.toLowerCase() === formData.executive?.toLowerCase()) || "As per mapping" : "As per mapping"}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                <Command>
-                  <CommandInput placeholder="Search executive..." />
-                  <CommandList>
-                    <CommandEmpty>No executive found.</CommandEmpty>
-                    <CommandGroup>
-                       <CommandItem
-                          onSelect={() => {
-                            handleSelectChange('executive', '');
-                            setExecutiveOpen(false);
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              !formData.executive ? "opacity-100" : "opacity-0"
-                            )}
-                          />
-                          As per mapping
-                        </CommandItem>
-                      {executiveNames.map((name) => (
-                        <CommandItem
-                          key={name}
-                          value={name.toLowerCase()}
-                          onSelect={(currentValue) => {
-                            const selectedName = executiveNames.find(n => n.toLowerCase() === currentValue);
-                            handleSelectChange('executive', selectedName === formData.executive ? '' : selectedName || '');
-                            setExecutiveOpen(false);
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              formData.executive === name ? "opacity-100" : "opacity-0"
-                            )}
-                          />
-                          {name}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
+            <Select 
+                value={formData.executive} 
+                onValueChange={(value) => handleSelectChange('executive', value === 'as-per-mapping' ? '' : value)}
+            >
+                <SelectTrigger className="w-full">
+                    <SelectValue placeholder="As per mapping" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="as-per-mapping">As per mapping</SelectItem>
+                    {executiveNames.map((name) => (
+                        <SelectItem key={name} value={name}>
+                            {name}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
           </div>
         </div>
       </div>
@@ -641,3 +602,4 @@ export default function LeadUploadForm() {
     
 
     
+
