@@ -262,7 +262,7 @@ export default function LeadsUpdatePage() {
 
               <CardContent className="p-0">
                 <div className="w-full overflow-x-auto border rounded-md">
-                  <Table className="min-w-[1800px]">
+                  <Table className="min-w-[2800px]">
                     <TableHeader className="bg-muted">
                       <TableRow>
                         <TableHead>Sl No</TableHead>
@@ -272,16 +272,33 @@ export default function LeadsUpdatePage() {
                         <TableHead>Company</TableHead>
                         <TableHead>Contact</TableHead>
                         <TableHead>Phone</TableHead>
-                        <TableHead>Email</TableHead>
+                        <TableHead>Cell</TableHead>
+                        <TableHead>Emailid</TableHead>
                         <TableHead>Address</TableHead>
+                        <TableHead>Place</TableHead>
                         <TableHead>District</TableHead>
                         <TableHead>State</TableHead>
-                        <TableHead>Status</TableHead>
+                        <TableHead>Reference</TableHead>
+                        <TableHead>Dealer</TableHead>
+                        <TableHead>Manager</TableHead>
+                        <TableHead>Last Followed Date</TableHead>
+                        <TableHead>Last Followed By</TableHead>
+                        <TableHead>Next followup Date</TableHead>
+                        <TableHead>Last Followup Remarks</TableHead>
+                        <TableHead>Lead Status</TableHead>
+                        <TableHead>Lead Sub Status</TableHead>
+                        <TableHead>Lead Status Remarks</TableHead>
                       </TableRow>
                     </TableHeader>
 
                     <TableBody>
-                      {paginatedLeads.map((lead, index) => (
+                      {paginatedLeads.map((lead, index) => {
+                        const lastFollowUp = lead.followUps && lead.followUps.length > 0 ? lead.followUps[lead.followUps.length - 1] : null;
+                        const nextFollowupDate = lead.nextFollowUpDate && !isNaN(new Date(lead.nextFollowUpDate).getTime())
+                                    ? format(new Date(lead.nextFollowUpDate), 'PPP')
+                                    : (lastFollowUp ? lastFollowUp.nextFollowUp : 'N/A');
+
+                        return (
                         <TableRow 
                           key={lead.leadId} 
                           onClick={() => setSelectedLeadId(lead.leadId)} 
@@ -294,13 +311,24 @@ export default function LeadsUpdatePage() {
                           <TableCell>{lead.company}</TableCell>
                           <TableCell>{lead.contactPerson}</TableCell>
                           <TableCell>{lead.contactNumber}</TableCell>
+                          <TableCell>{lead.contactNumber}</TableCell>
                           <TableCell>{lead.email}</TableCell>
                           <TableCell>{lead.address}</TableCell>
                           <TableCell>{lead.district}</TableCell>
+                          <TableCell>{lead.district}</TableCell>
                           <TableCell>{lead.state}</TableCell>
+                          <TableCell>{lead.reference}</TableCell>
+                          <TableCell>{lead.dealer}</TableCell>
+                          <TableCell>{lead.manager}</TableCell>
+                          <TableCell>{lastFollowUp ? lastFollowUp.date : 'N/A'}</TableCell>
+                          <TableCell>{lastFollowUp ? lastFollowUp.enteredBy : 'N/A'}</TableCell>
+                          <TableCell>{nextFollowupDate}</TableCell>
+                          <TableCell>{lastFollowUp ? lastFollowUp.remarks : 'N/A'}</TableCell>
                           <TableCell>{lead.status}</TableCell>
+                          <TableCell>{lead.leadSubStatus}</TableCell>
+                          <TableCell>{lead.initialRemarks}</TableCell>
                         </TableRow>
-                      ))}
+                      )})}
                     </TableBody>
                   </Table>
                 </div>
