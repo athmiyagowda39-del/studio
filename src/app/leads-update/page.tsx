@@ -161,28 +161,52 @@ export default function LeadsUpdatePage() {
 
                   {/* ROW 3 */}
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <Input type="date" />
-                    <Input type="date" />
-                    <Select>
-                      <SelectTrigger><SelectValue placeholder="Product Name" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Select>
-                      <SelectTrigger><SelectValue placeholder="Executive Name" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <div className="space-y-1">
+                      <Label>From Date</Label>
+                      <Input type="date" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label>To Date</Label>
+                      <Input type="date" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label>Product Name</Label>
+                      <Select>
+                        <SelectTrigger><SelectValue placeholder="--All--" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1">
+                      <Label>Executive Name</Label>
+                      <Select>
+                        <SelectTrigger><SelectValue placeholder="--All--" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
 
                   {/* ROW 4 */}
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <Select><SelectTrigger><SelectValue placeholder="Given By" /></SelectTrigger></Select>
-                    <Select><SelectTrigger><SelectValue placeholder="Status of Lead" /></SelectTrigger></Select>
-                    <Select><SelectTrigger><SelectValue placeholder="Sub Status of Lead" /></SelectTrigger></Select>
-                    <Select><SelectTrigger><SelectValue placeholder="Lead Source" /></SelectTrigger></Select>
+                    <div className="space-y-1">
+                      <Label>Given by</Label>
+                      <Select><SelectTrigger><SelectValue placeholder="--All--" /></SelectTrigger></Select>
+                    </div>
+                    <div className="space-y-1">
+                      <Label>Status of Lead</Label>
+                      <Select><SelectTrigger><SelectValue placeholder="--All--" /></SelectTrigger></Select>
+                    </div>
+                    <div className="space-y-1">
+                      <Label>Sub Status of Lead</Label>
+                      <Select><SelectTrigger><SelectValue placeholder="--All--" /></SelectTrigger></Select>
+                    </div>
+                    <div className="space-y-1">
+                      <Label>Lead Source</Label>
+                      <Select><SelectTrigger><SelectValue placeholder="--All--" /></SelectTrigger></Select>
+                    </div>
                   </div>
 
                   {/* ROW 5 */}
