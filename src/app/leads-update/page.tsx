@@ -148,13 +148,16 @@ export default function LeadsUpdatePage() {
                   </div>
 
                   {/* ROW 2 */}
-                  <RadioGroup defaultValue="company" className="flex flex-wrap gap-4">
-                    {['Lead ID', 'Company', 'Contact Person', 'Phone', 'District', 'State', 'Email', 'Manager Name'].map(v => (
-                      <div key={v} className="flex items-center gap-2">
-                        <RadioGroupItem value={v} /> {v}
-                      </div>
-                    ))}
-                  </RadioGroup>
+                  <div className="flex items-center gap-4">
+                    <Label className="font-medium shrink-0">Search for:</Label>
+                    <RadioGroup defaultValue="company" className="flex flex-wrap gap-4">
+                      {['Lead ID', 'Company', 'Contact Person', 'Phone', 'District', 'State', 'Email', 'Manager Name'].map(v => (
+                        <div key={v} className="flex items-center gap-2">
+                          <RadioGroupItem value={v} /> {v}
+                        </div>
+                      ))}
+                    </RadioGroup>
+                  </div>
 
                   {/* ROW 3 */}
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
