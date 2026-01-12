@@ -247,8 +247,8 @@ export default function LeadUpdateForm({ leadId, allLeads }: { leadId: string | 
               <CardTitle className="text-base">LEAD CONTACT CARD</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 p-4">
-               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3">
-                <div className="space-y-2 col-span-1 md:col-span-2">
+               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
+                <div className="space-y-2">
                   <Label htmlFor="searchLeadId">Lead(id)</Label>
                     <Input 
                         id="searchLeadId" 
@@ -258,7 +258,7 @@ export default function LeadUpdateForm({ leadId, allLeads }: { leadId: string | 
                         className="bg-muted"
                       />
                 </div>
-                <div className="space-y-2 col-span-1 md:col-span-2">
+                <div className="space-y-2">
                     <Label htmlFor="company">Company</Label>
                     <Input id="company" value={leadDetails.company || ''} onChange={(e) => handleLeadDetailChange('company', e.target.value)} />
                 </div>
