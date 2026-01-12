@@ -38,8 +38,8 @@ export default function LeadsUpdatePage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
 
-  // 🔹 FILTER TOGGLE STATE
-  const [showFilters, setShowFilters] = useState(true);
+  // ✅ FILTER TOGGLE STATE
+  const [showFilters, setShowFilters] = useState(false);
 
   /* ---------------- EFFECT ---------------- */
 
@@ -70,36 +70,50 @@ export default function LeadsUpdatePage() {
       <div className="flex flex-col gap-6 max-w-full">
 
         {/* PAGE CARD */}
-        <Card className="max-w-full">
+        <Card>
           <CardHeader className="bg-primary/10">
             <CardTitle className="text-center text-primary">
               UPDATE LEADS
             </CardTitle>
           </CardHeader>
 
-          <CardContent className="p-6 space-y-6 max-w-full">
+          <CardContent className="p-6 space-y-6">
 
-            {/* 🔽 FILTER TOGGLE */}
-            <div className="flex justify-end">
-              <button
-                onClick={() => setShowFilters(prev => !prev)}
-                className="text-sm font-medium text-primary hover:underline"
-              >
+            {/* LEAD STATUS / UPDATE FORM */}
+            <LeadUpdateForm
+              leadId={selectedLeadId}
+              allLeads={allLeads}
+              setAllLeads={handleLeadsUpdate}
+            />
+
+            {/* ================= FILTER TOGGLE ================= */}
+            <div className="flex items-center justify-between bg-muted px-4 py-2 rounded-md">
+              <span className="font-medium">
                 Filter [{showFilters ? 'hide' : 'show'}]
-              </button>
+              </span>
+
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setShowFilters(prev => !prev)}
+              >
+                {showFilters ? '▲' : '▼'}
+              </Button>
             </div>
 
-            {/* 🔽 FILTER SECTION */}
+            {/* ================= FILTER PANEL ================= */}
             {showFilters && (
-              <LeadUpdateForm
-                leadId={selectedLeadId}
-                allLeads={allLeads}
-                setAllLeads={handleLeadsUpdate}
-              />
+              <Card className="border">
+                <CardContent className="p-4">
+                  {/* ⬇️ PLACE YOUR EXISTING FILTER UI HERE ⬇️ */}
+                  {/* (Search, From Date, Product Name, Executive Name, etc.) */}
+                  {/* You already have this UI – just move it here */}
+                </CardContent>
+              </Card>
             )}
 
-            {/* ================= TABLE CARD ================= */}
-            <Card className="max-w-full">
+            {/* ================= TABLE ================= */}
+            <Card>
               <CardHeader>
                 <CardTitle className="text-base">
                   List of Leads &gt;&gt; [All Leads ({filteredLeads.length} Records)]
@@ -107,11 +121,10 @@ export default function LeadsUpdatePage() {
               </CardHeader>
 
               <CardContent className="p-0">
-
                 {/* ✅ HORIZONTAL SCROLL ONLY FOR TABLE */}
                 <div className="w-full overflow-x-auto border rounded-md">
                   <Table className="min-w-[1800px]">
-                    <TableHeader className="sticky top-0 bg-background z-10">
+                    <TableHeader className="bg-muted">
                       <TableRow>
                         <TableHead>Sl No</TableHead>
                         <TableHead>Lead Id</TableHead>
@@ -185,11 +198,9 @@ export default function LeadsUpdatePage() {
                 )}
               </CardContent>
             </Card>
-            {/* ================= END TABLE ================= */}
 
           </CardContent>
         </Card>
-
       </div>
     </AppContent>
   );
