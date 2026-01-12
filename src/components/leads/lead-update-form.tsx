@@ -240,14 +240,14 @@ export default function LeadUpdateForm({ leadId, allLeads }: { leadId: string | 
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">LEAD CONTACT CARD</CardTitle>
-            </CardHeader>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+        <Card className="flex flex-col h-full max-h-[80vh]">
+          <CardHeader>
+            <CardTitle className="text-base">LEAD CONTACT CARD</CardTitle>
+          </CardHeader>
+          <ScrollArea className="flex-grow">
             <CardContent className="space-y-4 p-4">
-               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
                 <div className="space-y-2">
                   <Label htmlFor="searchLeadId">Lead(id)</Label>
                     <Input 
@@ -360,30 +360,30 @@ export default function LeadUpdateForm({ leadId, allLeads }: { leadId: string | 
                   <Input id="manager" value={leadDetails.manager || ''} onChange={(e) => handleLeadDetailChange('manager', e.target.value)} />
                 </div>
               </div>
-              <div className="border-t pt-4 mt-2">
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <p>Manager: {leadDetails.manager || 'N/A'}</p>
-                        <div className="flex items-center space-x-2 mt-2">
-                            <Checkbox id="readyToUpdate" />
-                            <Label htmlFor="readyToUpdate">Yes, I am Ready to Update.</Label>
-                        </div>
-                    </div>
-                    <div className="flex items-center justify-end gap-2">
-                        <Button onClick={handleSaveLeadDetails}>Save</Button>
-                        <Button variant="outline" onClick={handleResetLeadDetails}>Reset</Button>
+            </CardContent>
+          </ScrollArea>
+          <div className="border-t p-4 mt-auto">
+            <div className="grid grid-cols-2 gap-4">
+                <div>
+                    <p>Manager: {leadDetails.manager || 'N/A'}</p>
+                    <div className="flex items-center space-x-2 mt-2">
+                        <Checkbox id="readyToUpdate" />
+                        <Label htmlFor="readyToUpdate">Yes, I am Ready to Update.</Label>
                     </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+                <div className="flex items-center justify-end gap-2">
+                    <Button onClick={handleSaveLeadDetails}>Save</Button>
+                    <Button variant="outline" onClick={handleResetLeadDetails}>Reset</Button>
+                </div>
+            </div>
+          </div>
+        </Card>
 
-        <div className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">LEAD TRACKER</CardTitle>
-            </CardHeader>
+        <Card className="flex flex-col h-full max-h-[80vh]">
+          <CardHeader>
+            <CardTitle className="text-base">LEAD TRACKER</CardTitle>
+          </CardHeader>
+          <ScrollArea className="flex-grow">
             <CardContent className="space-y-4 p-4">
               <div className="space-y-2">
                 <Label htmlFor="transferredLead">TRANSFERRED LEAD</Label>
@@ -472,7 +472,6 @@ export default function LeadUpdateForm({ leadId, allLeads }: { leadId: string | 
                 <Button onClick={handleAddFollowUp}>Add&gt;&gt;</Button>
               </div>
               <div className="space-y-4 pt-4">
-                <ScrollArea className="h-48 w-full rounded-md border">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -501,11 +500,10 @@ export default function LeadUpdateForm({ leadId, allLeads }: { leadId: string | 
                       )}
                     </TableBody>
                   </Table>
-                </ScrollArea>
               </div>
             </CardContent>
-          </Card>
-        </div>
+          </ScrollArea>
+        </Card>
       </div>
       
       <Card>
