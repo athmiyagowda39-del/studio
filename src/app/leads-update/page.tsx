@@ -239,8 +239,8 @@ export default function LeadsUpdatePage() {
 
                     <TableBody>
                       {paginatedLeads.map((lead, index) => (
-                        <TableRow key={lead.leadId}>
-                          <TableCell>{index + 1}</TableCell>
+                        <TableRow key={lead.leadId} onClick={() => setSelectedLeadId(lead.leadId)} className="cursor-pointer">
+                          <TableCell>{(currentPage - 1) * LEADS_PER_PAGE + index + 1}</TableCell>
                           <TableCell>{lead.leadId}</TableCell>
                           <TableCell>{format(new Date(lead.creationDate), 'PPP')}</TableCell>
                           <TableCell>{lead.selectedModule}</TableCell>
@@ -257,6 +257,32 @@ export default function LeadsUpdatePage() {
                     </TableBody>
                   </Table>
                 </div>
+                 {/* PAGINATION */}
+                {totalPages > 1 && (
+                  <div className="flex justify-end gap-2 p-4">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={currentPage === 1}
+                      onClick={() => setCurrentPage(p => p - 1)}
+                    >
+                      Previous
+                    </Button>
+
+                    <span className="self-center text-sm">
+                      Page {currentPage} of {totalPages}
+                    </span>
+
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={currentPage === totalPages}
+                      onClick={() => setCurrentPage(p => p + 1)}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
