@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/context/auth-context';
+import { UsersProvider } from '@/context/users-context';
 
 export const metadata: Metadata = {
   title: 'Sales Lead Tracking Dashboard',
@@ -29,7 +30,9 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased">
         <AuthProvider>
+          <UsersProvider>
             {children}
+          </UsersProvider>
         </AuthProvider>
         <Toaster />
       </body>

@@ -11,7 +11,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Check, ChevronsUpDown, UploadCloud } from 'lucide-react';
 import { Card, CardContent } from '../ui/card';
@@ -41,6 +40,7 @@ import {
 } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
 import { Textarea } from '../ui/textarea';
+import type { AppUser } from '@/context/users-context';
 
 type ParsedData = (string | number)[][];
 
@@ -81,7 +81,6 @@ export type LeadFormData = {
 };
 
 const sectors = ['IT', 'Finance', 'Healthcare', 'Manufacturing', 'Education', 'Retail', 'Hospitality', 'Telecommunication', 'Construction', 'Real Estate', 'Media & Entertainment', 'Government', 'Non-profit', 'Other'];
-const executiveNames = ['Luke Rajkumar', 'Hemanth', 'Hukum', 'Yathish G', 'Mandanna N'];
 const references = ['Social Media', 'Google Search', 'Advertisement', 'Referral', 'Website', 'Email Marketing', 'Cold Call', 'Event/Trade Show', 'Webinar', 'Direct Mail', 'Partner', 'Word of Mouth', 'Other'];
 
 
@@ -120,18 +119,48 @@ const getLeadsFromLocalStorage = (): LeadFormData[] => {
   return [];
 };
 
+const getUsersFromLocalStorage = (): AppUser[] => {
+  if (typeof window !== 'undefined') {
+    const usersJson = localStorage.getItem('appUsers');
+    return usersJson ? JSON.parse(usersJson) : [];
+  }
+  return [];
+};
+
+
 export default function LeadUploadForm() {
   const [formData, setFormData] = useState<Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId' | 'givenBy'>>(initialFormState);
   const [sectorOpen, setSectorOpen] = useState(false);
   const [executiveOpen, setExecutiveOpen] = useState(false);
   const [referenceOpen, setReferenceOpen] = useState(false);
   const [dealerOpen, setDealerOpen] = useState(false);
+  const [executiveNames, setExecutiveNames] = useState<string[]>([]);
+
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [parsedData, setParsedData] = useState<ParsedData | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const { toast } = useToast();
+  
+  useEffect(() => {
+    const users = getUsersFromLocalStorage();
+    const executives = users.filter(u => u.role === 'Executive').map(u => u.username);
+    setExecutiveNames(executives);
+
+    const handleStorageChange = (e: StorageEvent) => {
+        if (e.key === 'appUsers') {
+            const updatedUsers = getUsersFromLocalStorage();
+            const updatedExecutives = updatedUsers.filter(u => u.role === 'Executive').map(u => u.username);
+            setExecutiveNames(updatedExecutives);
+        }
+    };
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+        window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
 
   useEffect(() => {
     if (formData.pincode.length === 6) {
@@ -517,7 +546,9 @@ export default function LeadUploadForm() {
               placeholder="Enter initial remarks here..."
             />
           </div>
-          <div className="flex items-center gap-4">
+        </div>
+      </div>
+      <div className="mt-4 flex items-center gap-4">
              <Label className="shrink-0">To Dealer</Label>
              <Popover open={dealerOpen} onOpenChange={setDealerOpen}>
               <PopoverTrigger asChild>
@@ -577,8 +608,6 @@ export default function LeadUploadForm() {
               </PopoverContent>
             </Popover>
           </div>
-        </div>
-      </div>
       <div className="flex justify-end gap-2 mt-6">
         <Button variant="outline" onClick={resetForm}>Reset</Button>
         <Button onClick={handleSaveLead}>Save Lead</Button>
@@ -640,12 +669,3 @@ export default function LeadUploadForm() {
     </div>
   );
 }
-
-    
-
-    
-
-
-
-
-

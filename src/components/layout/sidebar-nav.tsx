@@ -10,9 +10,11 @@ import {
   FilePenLine,
   User,
   FileText,
+  Users,
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useAuth } from '@/context/auth-context';
 
 const links = [
   { href: '/dashboard', label: 'DASHBOARD', icon: LayoutDashboard },
@@ -22,19 +24,26 @@ const links = [
   { href: '/profile', label: 'PROFILE', icon: User },
 ];
 
+const adminLinks = [
+  { href: '/users', label: 'MANAGE USERS', icon: Users },
+];
+
 export default function SidebarNav() {
   const pathname = usePathname();
   const [isClient, setIsClient] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
   const isActive = (href: string) => pathname.startsWith(href) && (href !== '/' || pathname === '/');
+  
+  const allLinks = user?.role === 'Admin' ? [...links, ...adminLinks] : links;
 
   return (
     <SidebarMenu>
-      {isClient && links.map((link) => {
+      {isClient && allLinks.map((link) => {
         // Special handling for dashboard/home
         if (link.href === '/dashboard' && pathname === '/') {
              return (
