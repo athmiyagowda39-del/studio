@@ -36,6 +36,7 @@ const leadStatusOptions = [
     'Pursuing to Purchase',
     'Not interested',
     'Order closed',
+    'Proposal Sent',
 ];
 
 const sectors = ['All', 'IT', 'Finance', 'Healthcare', 'Manufacturing', 'Education', 'Retail', 'Hospitality', 'Telecommunication', 'Construction', 'Real Estate', 'Media & Entertainment', 'Government', 'Non-profit', 'Other'];

@@ -33,6 +33,7 @@ const getFunnelData = (leads: LeadFormData[]) => {
     'Demo Given': 2,
     'Pursuing to Purchase': 3,
     'Quote Sent': 3,
+    'Proposal Sent': 3,
     'Order closed': 4,
   };
 

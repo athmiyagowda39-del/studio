@@ -47,6 +47,10 @@ const chartConfig = {
     label: 'Order closed',
     color: 'hsl(60 100% 50%)',
   },
+  'Proposal Sent': {
+    label: 'Proposal Sent',
+    color: 'hsl(260 100% 70%)',
+  }
 };
 
 

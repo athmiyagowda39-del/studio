@@ -56,6 +56,7 @@ const leadStatusOptions = [
     'Existing Customer',
     'Do Not Contact',
     'Quote Sent',
+    'Proposal Sent',
 ];
 
 const executiveIds = [
