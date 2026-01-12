@@ -41,6 +41,7 @@ import {
 import { cn } from '@/lib/utils';
 import { Textarea } from '../ui/textarea';
 import type { AppUser } from '@/context/users-context';
+import { Checkbox } from '../ui/checkbox';
 
 type ParsedData = (string | number)[][];
 
@@ -586,66 +587,75 @@ export default function LeadUploadForm() {
               placeholder="Enter initial remarks here..."
             />
           </div>
-          <div className="flex items-center gap-4 mt-4">
-             <Label className="shrink-0">To Dealer</Label>
-             <Popover open={dealerOpen} onOpenChange={setDealerOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={dealerOpen}
-                  className="w-full justify-between font-normal"
-                >
-                  {formData.dealer || "As per mapping"}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                <Command>
-                  <CommandInput placeholder="Search executive..." />
-                  <CommandList>
-                    <CommandEmpty>No executive found.</CommandEmpty>
-                    <CommandGroup>
-                       <CommandItem
-                          key="as-per-mapping"
-                          value=""
-                          onSelect={() => {
-                            handleSelectChange('dealer', '');
-                            setDealerOpen(false);
-                          }}
+            <div className="flex items-center gap-4 mt-4">
+            <Checkbox
+                id="to-executive-checkbox"
+                checked={formData.toExecutive}
+                onCheckedChange={handleCheckboxChange}
+            />
+            <Label htmlFor="to-executive-checkbox" className="shrink-0">To Executive</Label>
+            {formData.toExecutive ? (
+                <Popover open={dealerOpen} onOpenChange={setDealerOpen}>
+                    <PopoverTrigger asChild>
+                        <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={dealerOpen}
+                            className="w-full justify-between font-normal"
                         >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              !formData.dealer ? "opacity-100" : "opacity-0"
-                            )}
-                          />
-                          As per mapping
-                        </CommandItem>
-                      {executiveNames.map((name) => (
-                        <CommandItem
-                          key={name}
-                          value={name}
-                          onSelect={(currentValue) => {
-                            handleSelectChange('dealer', currentValue.toLowerCase() === formData.dealer?.toLowerCase() ? '' : name);
-                            setDealerOpen(false);
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              formData.dealer === name ? "opacity-100" : "opacity-0"
-                            )}
-                          />
-                          {name}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
-          </div>
+                            {formData.dealer || "As per mapping"}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                        <Command>
+                            <CommandInput placeholder="Search executive..." />
+                            <CommandList>
+                                <CommandEmpty>No executive found.</CommandEmpty>
+                                <CommandGroup>
+                                    <CommandItem
+                                        key="as-per-mapping"
+                                        value=""
+                                        onSelect={() => {
+                                            handleSelectChange('dealer', '');
+                                            setDealerOpen(false);
+                                        }}
+                                    >
+                                        <Check
+                                            className={cn(
+                                                "mr-2 h-4 w-4",
+                                                !formData.dealer ? "opacity-100" : "opacity-0"
+                                            )}
+                                        />
+                                        As per mapping
+                                    </CommandItem>
+                                    {executiveNames.map((name) => (
+                                        <CommandItem
+                                            key={name}
+                                            value={name}
+                                            onSelect={(currentValue) => {
+                                                handleSelectChange('dealer', currentValue.toLowerCase() === formData.dealer?.toLowerCase() ? '' : name);
+                                                setDealerOpen(false);
+                                            }}
+                                        >
+                                            <Check
+                                                className={cn(
+                                                    "mr-2 h-4 w-4",
+                                                    formData.dealer === name ? "opacity-100" : "opacity-0"
+                                                )}
+                                            />
+                                            {name}
+                                        </CommandItem>
+                                    ))}
+                                </CommandGroup>
+                            </CommandList>
+                        </Command>
+                    </PopoverContent>
+                </Popover>
+            ) : (
+                <span className="text-sm text-muted-foreground italic">As per mapping</span>
+            )}
+        </div>
         </div>
       </div>
       
@@ -710,3 +720,5 @@ export default function LeadUploadForm() {
     </div>
   );
 }
+
+    
