@@ -557,8 +557,13 @@ export default function LeadUploadForm() {
             />
           </div>
           <div className="flex items-center space-x-2 pt-2">
-            <Checkbox id="toExecutive" checked={formData.toExecutive} onCheckedChange={handleCheckboxChange} />
-            <Label htmlFor="toExecutive">To Executive</Label>
+             <Checkbox id="toExecutive" checked={formData.toExecutive} onCheckedChange={handleCheckboxChange} />
+             <Label htmlFor="toExecutive" className="flex items-center gap-2">
+              To Executive
+              {!formData.toExecutive && (
+                <span className="text-sm text-muted-foreground">As per Mapping</span>
+              )}
+            </Label>
           </div>
            {formData.toExecutive && (
              <div className="space-y-2">
@@ -574,13 +579,14 @@ export default function LeadUploadForm() {
                       {formData.executive ? (
                         <span className="capitalize">{formData.executive}</span>
                       ) : (
-                        "As per mapping"
+                        "Select Executive..."
                       )}
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                  </PopoverTrigger>
                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
                    <Command>
+                    <CommandInput placeholder="Search executive..." />
                      <CommandList>
                        <CommandEmpty>No executives found.</CommandEmpty>
                        <CommandGroup>
@@ -589,14 +595,14 @@ export default function LeadUploadForm() {
                              key={name}
                              value={name}
                              onSelect={(currentValue) => {
-                               handleSelectChange('executive', currentValue === formData.executive ? '' : currentValue)
+                               handleSelectChange('executive', currentValue === formData.executive ? '' : currentValue.toLowerCase())
                                setExecutiveOpen(false)
                              }}
                            >
                              <Check
                                className={cn(
                                  "mr-2 h-4 w-4",
-                                 formData.executive === name ? "opacity-100" : "opacity-0"
+                                 formData.executive?.toLowerCase() === name.toLowerCase() ? "opacity-100" : "opacity-0"
                                )}
                              />
                              <span className="capitalize">{name}</span>
@@ -672,3 +678,5 @@ export default function LeadUploadForm() {
     </div>
   );
 }
+
+    
