@@ -483,23 +483,10 @@ export default function LeadUploadForm() {
             </Popover>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="executive-select">To Executive</Label>
-            <Select
-              value={formData.executive || 'as-per-mapping'}
-              onValueChange={(value) => handleSelectChange('executive', value === 'as-per-mapping' ? '' : value)}
-            >
-              <SelectTrigger id="executive-select">
-                <SelectValue placeholder="As per mapping" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="as-per-mapping">As per mapping</SelectItem>
-                {executiveNames.map((name) => (
-                  <SelectItem key={name} value={name} className="capitalize">
-                    {name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex items-center gap-4">
+              <Checkbox id="toExecutive" checked={formData.toExecutive} onCheckedChange={handleCheckboxChange} />
+              <Label htmlFor="toExecutive">To Executive</Label>
+            </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="selectedModule">Modules</Label>
@@ -592,3 +579,5 @@ export default function LeadUploadForm() {
     </div>
   );
 }
+
+    
