@@ -535,30 +535,15 @@ export default function LeadUploadForm() {
           </div>
            <div className="space-y-2">
             <Label htmlFor="executive">Executive</Label>
-            <Input id="executive" value={formData.executive || ''} onChange={handleInputChange} />
-          </div>
-          <div className="space-y-2 md:col-span-2">
-            <Label htmlFor="initialRemarks">Initial Remark</Label>
-            <Textarea
-              id="initialRemarks"
-              value={formData.initialRemarks || ''}
-              onChange={handleInputChange}
-              placeholder="Enter initial remarks here..."
-            />
-          </div>
-        </div>
-      </div>
-      <div className="mt-4 flex items-center gap-4">
-             <Label className="shrink-0">To Dealer</Label>
-             <Popover open={dealerOpen} onOpenChange={setDealerOpen}>
+             <Popover open={executiveOpen} onOpenChange={setExecutiveOpen}>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
                   role="combobox"
-                  aria-expanded={dealerOpen}
+                  aria-expanded={executiveOpen}
                   className="w-full justify-between font-normal"
                 >
-                  {formData.executive || "As per mapping"}
+                  {formData.executive || "Select Executive..."}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
@@ -568,29 +553,13 @@ export default function LeadUploadForm() {
                   <CommandList>
                     <CommandEmpty>No executive found.</CommandEmpty>
                     <CommandGroup>
-                       <CommandItem
-                          key="as-per-mapping"
-                          value=""
-                          onSelect={() => {
-                            handleSelectChange('executive', '');
-                            setDealerOpen(false);
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              !formData.executive ? "opacity-100" : "opacity-0"
-                            )}
-                          />
-                          As per mapping
-                        </CommandItem>
                       {executiveNames.map((name) => (
                         <CommandItem
                           key={name}
                           value={name}
                           onSelect={(currentValue) => {
                             handleSelectChange('executive', currentValue.toLowerCase() === formData.executive?.toLowerCase() ? '' : name);
-                            setDealerOpen(false);
+                            setExecutiveOpen(false);
                           }}
                         >
                           <Check
@@ -608,6 +577,78 @@ export default function LeadUploadForm() {
               </PopoverContent>
             </Popover>
           </div>
+          <div className="space-y-2 md:col-span-2">
+            <Label htmlFor="initialRemarks">Initial Remark</Label>
+            <Textarea
+              id="initialRemarks"
+              value={formData.initialRemarks || ''}
+              onChange={handleInputChange}
+              placeholder="Enter initial remarks here..."
+            />
+          </div>
+          <div className="flex items-center gap-4 mt-4">
+             <Label className="shrink-0">To Dealer</Label>
+             <Popover open={dealerOpen} onOpenChange={setDealerOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={dealerOpen}
+                  className="w-full justify-between font-normal"
+                >
+                  {formData.dealer || "As per mapping"}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                <Command>
+                  <CommandInput placeholder="Search executive..." />
+                  <CommandList>
+                    <CommandEmpty>No executive found.</CommandEmpty>
+                    <CommandGroup>
+                       <CommandItem
+                          key="as-per-mapping"
+                          value=""
+                          onSelect={() => {
+                            handleSelectChange('dealer', '');
+                            setDealerOpen(false);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              !formData.dealer ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          As per mapping
+                        </CommandItem>
+                      {executiveNames.map((name) => (
+                        <CommandItem
+                          key={name}
+                          value={name}
+                          onSelect={(currentValue) => {
+                            handleSelectChange('dealer', currentValue.toLowerCase() === formData.dealer?.toLowerCase() ? '' : name);
+                            setDealerOpen(false);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              formData.dealer === name ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          {name}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          </div>
+        </div>
+      </div>
+      
       <div className="flex justify-end gap-2 mt-6">
         <Button variant="outline" onClick={resetForm}>Reset</Button>
         <Button onClick={handleSaveLead}>Save Lead</Button>
