@@ -880,8 +880,8 @@ export default function LeadsUpdatePage() {
                 </div>
                 <Card>
                   <CardContent className="p-0">
-                    <div className="overflow-x-auto">
-                      <div className="max-h-[450px] overflow-y-auto">
+                    <ScrollArea className="w-full whitespace-nowrap rounded-md border">
+                        <div className="max-h-[450px] overflow-y-auto">
                         <Table>
                             <TableHeader className="sticky top-0 bg-background z-10">
                                 <TableRow>
@@ -956,8 +956,8 @@ export default function LeadsUpdatePage() {
                             </TableBody>
                         </Table>
                         </div>
-                      </div>
-                    </CardContent>
+                    </ScrollArea>
+                  </CardContent>
                 </Card>
                 
                 {totalPages > 1 && (
