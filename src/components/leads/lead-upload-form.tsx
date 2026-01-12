@@ -517,9 +517,9 @@ export default function LeadUploadForm() {
               placeholder="Enter initial remarks here..."
             />
           </div>
-          <div className="md:col-span-2 flex items-center gap-4">
-            <Label className="shrink-0">To Dealer</Label>
-            <Popover open={dealerOpen} onOpenChange={setDealerOpen}>
+          <div className="flex items-center gap-4">
+             <Label className="shrink-0">To Dealer</Label>
+             <Popover open={dealerOpen} onOpenChange={setDealerOpen}>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
@@ -538,7 +538,8 @@ export default function LeadUploadForm() {
                     <CommandEmpty>No executive found.</CommandEmpty>
                     <CommandGroup>
                        <CommandItem
-                          value="as-per-mapping"
+                          key="as-per-mapping"
+                          value=""
                           onSelect={() => {
                             handleSelectChange('executive', '');
                             setDealerOpen(false);
@@ -643,6 +644,7 @@ export default function LeadUploadForm() {
     
 
     
+
 
 
 
