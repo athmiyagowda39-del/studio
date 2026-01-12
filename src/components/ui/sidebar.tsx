@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -19,11 +18,12 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 
-const SIDEBAR_COOKIE_NAME = "sidebar_state"
-const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
+/* ================= CONSTANTS ================= */
+
 const SIDEBAR_WIDTH = "16rem"
-const SIDEBAR_WIDTH_MOBILE = "18rem"
 const SIDEBAR_WIDTH_ICON = "3rem"
+
+/* ================= CONTEXT ================= */
 
 type SidebarContext = {
   state: "expanded" | "collapsed"
@@ -82,6 +82,7 @@ const SidebarProvider = React.forwardRef<
             } as React.CSSProperties
           }
           className={cn(
+            // 🔴 prevents full-page horizontal scroll
             "flex min-h-svh w-full overflow-x-hidden",
             className
           )}
@@ -97,8 +98,8 @@ SidebarProvider.displayName = "SidebarProvider"
 
 /* ================= SIDEBAR ================= */
 
-const Sidebar = React.forwardRef<HTMLDivElement, React.ComponentProps<"div">>(
-  ({ children }, ref) => {
+const Sidebar = React.forwardRef<HTMLDivElement, React.ComponentProps<"aside">>(
+  ({ children, className, ...props }, ref) => {
     const { isMobile, openMobile, setOpenMobile } = useSidebar()
 
     if (isMobile) {
@@ -114,7 +115,11 @@ const Sidebar = React.forwardRef<HTMLDivElement, React.ComponentProps<"div">>(
     return (
       <aside
         ref={ref}
-        className="fixed inset-y-0 left-0 z-10 h-svh w-[--sidebar-width] bg-sidebar"
+        className={cn(
+          "fixed inset-y-0 left-0 z-10 h-svh w-[--sidebar-width] bg-sidebar",
+          className
+        )}
+        {...props}
       >
         {children}
       </aside>
@@ -132,7 +137,8 @@ const SidebarInset = React.forwardRef<
   <main
     ref={ref}
     className={cn(
-      "flex min-h-svh flex-1 flex-col bg-background",
+      // ✅ space for fixed sidebar + no page scroll
+      "flex min-h-svh flex-1 flex-col bg-background overflow-x-hidden md:ml-[16rem]",
       className
     )}
     {...props}
@@ -145,21 +151,16 @@ SidebarInset.displayName = "SidebarInset"
 const SidebarHeader = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"header">
->(({ className, ...props }, ref) => {
-  const { open, isMobile } = useSidebar()
-
-  return (
-    <header
-      ref={ref}
-      className={cn(
-        "flex h-16 items-center border-b border-sidebar-border px-4",
-        (isMobile || !open) && "justify-center",
-        className
-      )}
-      {...props}
-    />
-  )
-})
+>(({ className, ...props }, ref) => (
+  <header
+    ref={ref}
+    className={cn(
+      "flex h-16 items-center border-b border-sidebar-border px-4",
+      className
+    )}
+    {...props}
+  />
+))
 SidebarHeader.displayName = "SidebarHeader"
 
 /* ================= CONTENT ================= */
@@ -167,28 +168,16 @@ SidebarHeader.displayName = "SidebarHeader"
 const SidebarContent = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div">
->(({ className, ...props }, ref) => {
-  const { isMobile, open } = useSidebar()
-  if (isMobile || open) {
-    return (
-      <div
-        ref={ref}
-        className={cn(
-          "flex h-[calc(100svh-8rem)] flex-col gap-4 overflow-y-auto overflow-x-hidden p-4",
-          className
-        )}
-        {...props}
-      />
-    )
-  }
-  return (
-    <div
-      ref={ref}
-      className={cn("flex flex-col gap-4 overflow-y-auto overflow-x-hidden p-2")}
-      {...props}
-    />
-  )
-})
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn(
+      "flex flex-1 flex-col gap-4 overflow-y-auto overflow-x-hidden p-4",
+      className
+    )}
+    {...props}
+  />
+))
 SidebarContent.displayName = "SidebarContent"
 
 /* ================= FOOTER ================= */
@@ -196,15 +185,13 @@ SidebarContent.displayName = "SidebarContent"
 const SidebarFooter = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"footer">
->(({ className, ...props }, ref) => {
-  return (
-    <footer
-      ref={ref}
-      className={cn("sticky bottom-0 border-t border-sidebar-border", className)}
-      {...props}
-    />
-  )
-})
+>(({ className, ...props }, ref) => (
+  <footer
+    ref={ref}
+    className={cn("border-t border-sidebar-border p-4", className)}
+    {...props}
+  />
+))
 SidebarFooter.displayName = "SidebarFooter"
 
 /* ================= TRIGGER ================= */
@@ -212,15 +199,15 @@ SidebarFooter.displayName = "SidebarFooter"
 const SidebarTrigger = React.forwardRef<
   HTMLButtonElement,
   React.ComponentProps<typeof Button>
->(({ className, children, ...props }, ref) => {
-  const { isMobile, toggleSidebar } = useSidebar()
+>(({ className, ...props }, ref) => {
+  const { toggleSidebar } = useSidebar()
   return (
     <Button
       ref={ref}
       variant="ghost"
       size="icon"
-      className={cn(isMobile && "absolute left-4 top-2 z-50", className)}
       onClick={toggleSidebar}
+      className={className}
       {...props}
     >
       <PanelLeft />
@@ -230,181 +217,95 @@ const SidebarTrigger = React.forwardRef<
 })
 SidebarTrigger.displayName = "SidebarTrigger"
 
-/* ================= SEARCH ================= */
-
-const SidebarSearch = React.forwardRef<
-  HTMLInputElement,
-  React.ComponentProps<typeof Input> & {
-    onSearch?: (value: string) => void
-  }
->(({ className, onSearch, ...props }, ref) => {
-  const { open } = useSidebar()
-  return (
-    <div className="relative">
-      <Input
-        ref={ref}
-        className={cn(
-          "h-9 pl-8 placeholder:text-sidebar-foreground",
-          !open && "w-0 p-0",
-          className
-        )}
-        placeholder="Search..."
-        {...props}
-      />
-    </div>
-  )
-})
-SidebarSearch.displayName = "SidebarSearch"
-
 /* ================= MENU ================= */
 
-type MenuContext = {
-  depth: number
-}
-
-const MenuContext = React.createContext<MenuContext>({ depth: 0 })
-
 const SidebarMenu = React.forwardRef<
-  HTMLUListElement,
-  React.ComponentProps<"ul">
->((props, ref) => {
+  HTMLDivElement,
+  React.ComponentProps<"div">
+>(({ className, ...props }, ref) => {
+  const { state } = useSidebar()
   return (
-    <MenuContext.Provider value={{ depth: 0 }}>
-      <ul ref={ref} className="flex flex-col" {...props} />
-    </MenuContext.Provider>
+    <div
+      ref={ref}
+      data-state={state}
+      className={cn(
+        "flex flex-1 flex-col gap-1",
+        "data-[state=collapsed]:px-1",
+        className
+      )}
+      {...props}
+    />
   )
 })
 SidebarMenu.displayName = "SidebarMenu"
 
 const SidebarMenuItem = React.forwardRef<
-  HTMLLIElement,
-  React.ComponentProps<"li">
->((props, ref) => {
-  const { depth } = React.useContext(MenuContext)
-  return (
-    <li
-      ref={ref}
-      style={{
-        paddingLeft: `calc(${depth}rem * 0.5)`,
-      }}
-      {...props}
-    />
-  )
-})
-SidebarMenuItem.displayName = "SidebarMenuItem"
-
-const SidebarSubmenu = React.forwardRef<
   HTMLDivElement,
-  React.PropsWithChildren<{
-    label: string
-    defaultOpen?: boolean
-    icon?: React.ReactElement
-  }>
->(({ label, children, defaultOpen = false, icon }, ref) => {
-  const { depth } = React.useContext(MenuContext)
-  const { open } = useSidebar()
-  const [isOpen, setIsOpen] = React.useState(defaultOpen)
-
-  const handleToggle = () => {
-    setIsOpen(!isOpen)
-  }
-
-  if (open) {
-    return (
-      <div ref={ref}>
-        <SidebarMenuButton onClick={handleToggle} isActive={isOpen}>
-          {icon}
-          <span>{label}</span>
-          <div className="ml-auto transition-transform group-data-[state=open]:rotate-180">
-          </div>
-        </SidebarMenuButton>
-
-        {isOpen && (
-          <MenuContext.Provider value={{ depth: depth + 1 }}>
-            <ul className="flex flex-col py-2">{children}</ul>
-          </MenuContext.Provider>
-        )}
-      </div>
-    )
-  }
-
-  return (
-    <Tooltip>
-      <TooltipTrigger className="w-full">
-        <SidebarMenuButton isActive={isOpen}>{icon}</SidebarMenuButton>
-      </TooltipTrigger>
-      <TooltipContent side="right">
-        <MenuContext.Provider value={{ depth: 0 }}>
-          <ul className="flex flex-col gap-2 p-2">{children}</ul>
-        </MenuContext.Provider>
-      </TooltipContent>
-    </Tooltip>
-  )
-})
-SidebarSubmenu.displayName = "SidebarSubmenu"
+  React.ComponentProps<"div">
+>((props, ref) => <div ref={ref} {...props} />)
+SidebarMenuItem.displayName = "SidebarMenuItem"
 
 const SidebarMenuButton = React.forwardRef<
   HTMLButtonElement,
   React.ComponentProps<typeof Button> & {
-    isActive?: boolean
     asChild?: boolean
-    tooltip?: React.ReactNode
+    isActive?: boolean
+    tooltip?: string
   }
->(({ className, asChild = false, isActive, tooltip, ...props }, ref) => {
-  const { open } = useSidebar()
+>(({ asChild, isActive, tooltip, className, ...props }, ref) => {
+  const { state } = useSidebar()
 
-  const Comp = asChild ? Slot : "button"
-
-  if (open) {
+  if (state === "collapsed") {
     return (
-      <Button
-        ref={ref}
-        variant="ghost"
-        className={cn(
-          "group h-10 w-full justify-start gap-2",
-          isActive &&
-            "bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent",
-          className
-        )}
-        {...props}
-      />
-    )
-  }
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Comp>
+      <Tooltip>
+        <TooltipTrigger asChild>
           <Button
             ref={ref}
-            variant="ghost"
-            className={cn(
-              "group flex h-10 w-10 shrink-0 items-center justify-center gap-2",
-              isActive &&
-                "bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent",
-              className
-            )}
+            variant={isActive ? "primary" : "ghost"}
+            size="icon"
+            className={cn("size-10", className)}
             {...props}
           />
-        </Comp>
-      </TooltipTrigger>
-      {tooltip && <TooltipContent side="right">{tooltip}</TooltipContent>}
-    </Tooltip>
+        </TooltipTrigger>
+        <TooltipContent
+          side="right"
+          sideOffset={8}
+          className="bg-sidebar-primary text-sidebar-primary-foreground"
+        >
+          {tooltip}
+        </TooltipContent>
+      </Tooltip>
+    )
+  }
+
+  const Comp = asChild ? Slot : Button
+  return (
+    <Comp
+      ref={ref}
+      variant={isActive ? "primary" : "ghost"}
+      className={cn("h-10 w-full justify-start", className)}
+      {...props}
+    />
   )
 })
 SidebarMenuButton.displayName = "SidebarMenuButton"
 
-/* ================= HR ================= */
+/* ================= SEPARATOR ================= */
 
 const SidebarSeparator = React.forwardRef<
-  HTMLHRElement,
+  HTMLDivElement,
   React.ComponentProps<typeof Separator>
 >(({ className, ...props }, ref) => {
-  const { open } = useSidebar()
-
+  const { state } = useSidebar()
   return (
     <Separator
       ref={ref}
-      className={cn("my-2", !open && "mx-auto w-1/2", className)}
+      className={cn(
+        "my-2",
+        state === "collapsed" &&
+          "mx-auto h-6 w-px bg-sidebar-border/50",
+        className
+      )}
       {...props}
     />
   )
@@ -413,35 +314,30 @@ SidebarSeparator.displayName = "SidebarSeparator"
 
 /* ================= SKELETON ================= */
 
-const SidebarSkeleton = React.forwardRef<
-  HTMLDivElement,
-  React.ComponentProps<"div">
->(({ className, ...props }, ref) => {
-  const { open } = useSidebar()
-
+function SidebarSkeleton({
+  className,
+  ...props
+}: React.ComponentProps<typeof Skeleton>) {
+  const { state } = useSidebar()
+  if (state === "collapsed") {
+    return (
+      <div className="flex flex-col gap-2 p-1">
+        {Array.from({ length: 12 }).map((_, i) => (
+          <Skeleton key={i} className="size-10 rounded-md" />
+        ))}
+      </div>
+    )
+  }
   return (
-    <div ref={ref} className={cn("flex flex-col gap-4 p-4", className)}>
-      {/* Header */}
-      <div className="flex items-center gap-2">
-        <Skeleton className="size-9 rounded-lg" />
-        {open && <Skeleton className="h-6 w-32" />}
-      </div>
-      {/* Search */}
-      {open && <Skeleton className="h-9 w-full" />}
-      {/* Menu */}
-      <div className="flex flex-col gap-2">
-        <Skeleton className={cn("h-10 w-full", !open && "size-10")} />
-        <Skeleton className={cn("h-10 w-full", !open && "size-10")} />
-        <Skeleton className={cn("h-10 w-full", !open && "size-10")} />
-      </div>
-      {/* Footer */}
-      <div className="mt-auto flex flex-col gap-2">
-        <Skeleton className={cn("h-10 w-full", !open && "size-10")} />
-      </div>
+    <div className={cn("flex flex-col gap-2", className)} {...props}>
+      {Array.from({ length: 12 }).map((_, i) => (
+        <Skeleton key={i} className="h-10 w-full rounded-md" />
+      ))}
     </div>
   )
-})
-SidebarSkeleton.displayName = "SidebarSkeleton"
+}
+
+/* ================= EXPORTS ================= */
 
 export {
   Sidebar,
@@ -451,12 +347,10 @@ export {
   SidebarContent,
   SidebarFooter,
   SidebarTrigger,
-  SidebarSearch,
+  useSidebar,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarSubmenu,
   SidebarSeparator,
   SidebarSkeleton,
-  useSidebar,
 }
