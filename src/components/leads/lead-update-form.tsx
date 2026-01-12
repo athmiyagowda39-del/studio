@@ -340,7 +340,39 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
                 <Label htmlFor="executive">Executive</Label>
                 <Input id="executive" value={leadDetails.executive || ''} onChange={(e) => handleLeadDetailChange('executive', e.target.value)} />
                  {leadDetails.leadId && (
-                  <CircleDot className="absolute right-3 top-9 h-5 w-5 text-black" />
+                   <Popover>
+                    <PopoverTrigger asChild>
+                      <CircleDot className="absolute right-3 top-9 h-5 w-5 text-black cursor-pointer" />
+                    </PopoverTrigger>
+                    <PopoverContent className="w-80">
+                      <div className="grid gap-4">
+                        <div className="space-y-2">
+                          <h4 className="font-medium leading-none">Lead Details</h4>
+                          <p className="text-sm text-muted-foreground">
+                            Quick contact information for this lead.
+                          </p>
+                        </div>
+                        <div className="grid gap-2">
+                          <div className="grid grid-cols-3 items-center gap-4">
+                            <Label>Company</Label>
+                            <span className="col-span-2 h-8">{leadDetails.company}</span>
+                          </div>
+                           <div className="grid grid-cols-3 items-center gap-4">
+                            <Label>Contact</Label>
+                            <span className="col-span-2 h-8">{leadDetails.contactPerson}</span>
+                          </div>
+                          <div className="grid grid-cols-3 items-center gap-4">
+                            <Label>Phone</Label>
+                             <span className="col-span-2 h-8">{leadDetails.contactNumber}</span>
+                          </div>
+                          <div className="grid grid-cols-3 items-center gap-4">
+                            <Label>Email</Label>
+                             <span className="col-span-2 h-8 truncate">{leadDetails.email}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 )}
               </div>
               <div className="space-y-2">
