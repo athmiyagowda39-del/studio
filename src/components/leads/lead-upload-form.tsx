@@ -482,10 +482,43 @@ export default function LeadUploadForm() {
               </PopoverContent>
             </Popover>
           </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="selectedModule">Modules</Label>
+            <Select value={formData.selectedModule} onValueChange={(value) => handleSelectChange('selectedModule', value)}>
+              <SelectTrigger id="selectedModule">
+                <SelectValue placeholder="Select Modules..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ar">AR</SelectItem>
+                <SelectItem value="all-hrms">All HRMS</SelectItem>
+                <SelectItem value="module1">Module 1</SelectItem>
+                <SelectItem value="module2">Module 2</SelectItem>
+                <SelectItem value="module3">Module 3</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="manager">Manager Name</Label>
+            <Input id="manager" value={formData.manager || ''} onChange={handleInputChange} />
+          </div>
+           <div className="space-y-2">
+            <Label htmlFor="executive">Executive</Label>
+            <Input id="executive" value={formData.executive || ''} onChange={handleInputChange} />
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <Label htmlFor="initialRemarks">Initial Remark</Label>
+            <Textarea
+              id="initialRemarks"
+              value={formData.initialRemarks || ''}
+              onChange={handleInputChange}
+              placeholder="Enter initial remarks here..."
+            />
+          </div>
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <Checkbox id="toExecutive" checked={formData.toExecutive} onCheckedChange={handleCheckboxChange} />
-              <Label htmlFor="toExecutive">To Executive</Label>
+              <Label htmlFor="toExecutive">To Dealer</Label>
               {!formData.toExecutive ? (
                  <span className="text-sm text-muted-foreground ml-2">As per Mapping</span>
               ) : (
@@ -533,34 +566,6 @@ export default function LeadUploadForm() {
                 </Popover>
               )}
             </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="selectedModule">Modules</Label>
-            <Select value={formData.selectedModule} onValueChange={(value) => handleSelectChange('selectedModule', value)}>
-              <SelectTrigger id="selectedModule">
-                <SelectValue placeholder="Select Modules..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ar">AR</SelectItem>
-                <SelectItem value="all-hrms">All HRMS</SelectItem>
-                <SelectItem value="module1">Module 1</SelectItem>
-                <SelectItem value="module2">Module 2</SelectItem>
-                <SelectItem value="module3">Module 3</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="manager">Manager Name</Label>
-            <Input id="manager" value={formData.manager || ''} onChange={handleInputChange} />
-          </div>
-          <div className="space-y-2 md:col-span-2">
-            <Label htmlFor="initialRemarks">Initial Remark</Label>
-            <Textarea
-              id="initialRemarks"
-              value={formData.initialRemarks || ''}
-              onChange={handleInputChange}
-              placeholder="Enter initial remarks here..."
-            />
           </div>
         </div>
       </div>
