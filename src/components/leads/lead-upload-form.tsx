@@ -555,10 +555,9 @@ export default function LeadUploadForm() {
                       {executiveNames.map((name) => (
                         <CommandItem
                           key={name}
-                          value={name.toLowerCase()}
+                          value={name}
                           onSelect={(currentValue) => {
-                            const selectedName = executiveNames.find(n => n.toLowerCase() === currentValue);
-                            handleSelectChange('executive', selectedName || '');
+                            handleSelectChange('executive', currentValue === formData.executive?.toLowerCase() ? '' : name);
                             setDealerOpen(false);
                           }}
                         >
@@ -644,5 +643,6 @@ export default function LeadUploadForm() {
     
 
     
+
 
 
