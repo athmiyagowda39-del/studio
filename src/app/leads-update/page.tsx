@@ -44,6 +44,7 @@ export default function LeadsUpdatePage() {
 
   // ✅ FILTER TOGGLE
   const [showFilters, setShowFilters] = useState(false);
+  const [considerStatus, setConsiderStatus] = useState(false);
 
   /* ---------------- EFFECT ---------------- */
 
@@ -177,29 +178,38 @@ export default function LeadsUpdatePage() {
 
                   {/* ROW 5 */}
                   <div className="flex items-center gap-2">
-                    <Checkbox /> Do not consider Order Closed/Fake/Existing Users/Not Interested
+                    <Checkbox
+                      checked={considerStatus}
+                      onCheckedChange={(checked) => setConsiderStatus(checked as boolean)}
+                    /> Do not consider Order Closed/Fake/Existing Users/Not Interested
                   </div>
 
-                  {/* ROW 6 */}
-                  <RadioGroup defaultValue="pending" className="flex gap-4">
-                    <div className="flex items-center gap-2">
-                      <RadioGroupItem value="pending" /> Follow Up Pending
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <RadioGroupItem value="made" /> Follow Up Made
-                    </div>
-                  </RadioGroup>
+                  {/* CONDITIONAL ROWS */}
+                  {considerStatus && (
+                    <>
+                      {/* ROW 6 */}
+                      <RadioGroup defaultValue="pending" className="flex gap-4">
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem value="pending" /> Follow Up Pending
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem value="made" /> Follow Up Made
+                        </div>
+                      </RadioGroup>
 
-                  {/* ROW 7 */}
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <Input type="date" />
-                    <Input type="date" />
-                    <Select><SelectTrigger><SelectValue placeholder="Entered By" /></SelectTrigger></Select>
-                    <Input placeholder="Remarks" />
-                  </div>
+                      {/* ROW 7 */}
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <Input type="date" />
+                        <Input type="date" />
+                        <Select><SelectTrigger><SelectValue placeholder="Entered By" /></SelectTrigger></Select>
+                        <Input placeholder="Remarks" />
+                      </div>
+                    </>
+                  )}
+
 
                   {/* ACTION BUTTONS */}
-                  <div className="flex justify-end gap-3">
+                  <div className="flex justify-end gap-3 pt-4 border-t">
                     <Button>SHOW</Button>
                     <Button variant="secondary">TO EXCEL</Button>
                     <Button variant="destructive">RESET</Button>
@@ -239,7 +249,11 @@ export default function LeadsUpdatePage() {
 
                     <TableBody>
                       {paginatedLeads.map((lead, index) => (
-                        <TableRow key={lead.leadId} onClick={() => setSelectedLeadId(lead.leadId)} className="cursor-pointer">
+                        <TableRow 
+                          key={lead.leadId} 
+                          onClick={() => setSelectedLeadId(lead.leadId)} 
+                          className="cursor-pointer"
+                        >
                           <TableCell>{(currentPage - 1) * LEADS_PER_PAGE + index + 1}</TableCell>
                           <TableCell>{lead.leadId}</TableCell>
                           <TableCell>{format(new Date(lead.creationDate), 'PPP')}</TableCell>
