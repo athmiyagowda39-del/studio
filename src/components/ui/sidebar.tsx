@@ -460,5 +460,3 @@ export {
   SidebarSkeleton,
   useSidebar,
 }
-
-    
