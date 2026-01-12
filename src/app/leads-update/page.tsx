@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Table,
   TableBody,
@@ -15,7 +15,6 @@ import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import LeadUpdateForm from '@/components/leads/lead-update-form';
 import AppContent from '../app-content';
 import { format } from 'date-fns';
-import { ScrollArea } from '@/components/ui/scroll-area';
 
 /* ---------------- CONSTANTS ---------------- */
 
@@ -49,8 +48,6 @@ export default function LeadsUpdatePage() {
 
   const handleLeadsUpdate = (updatedLeads: LeadFormData[]) => {
     setAllLeads(updatedLeads);
-    // For now, let's assume we want to refilter/re-sort the leads.
-    // This could be more sophisticated later.
     setFilteredLeads(updatedLeads);
   };
 
@@ -70,82 +67,80 @@ export default function LeadsUpdatePage() {
       <div className="flex flex-col gap-6 max-w-full">
 
         {/* PAGE CARD */}
-        <Card className="max-w-full overflow-hidden">
+        <Card className="max-w-full">
           <CardHeader className="bg-primary/10">
             <CardTitle className="text-center text-primary">
               UPDATE LEADS
             </CardTitle>
           </CardHeader>
 
-          <CardContent className="p-6 space-y-6 max-w-full overflow-hidden">
+          <CardContent className="p-6 space-y-6 max-w-full">
 
-            {/* Lead Contact Card + Lead Tracker */}
+            {/* Lead Update Form */}
             <LeadUpdateForm
               leadId={selectedLeadId}
               allLeads={allLeads}
               setAllLeads={handleLeadsUpdate}
             />
 
-
             {/* ================= TABLE CARD ================= */}
-            <Card className="max-w-full overflow-hidden">
+            <Card className="max-w-full">
               <CardHeader>
                 <CardTitle className="text-base">
                   List of Leads &gt;&gt; [All Leads ({filteredLeads.length} Records)]
                 </CardTitle>
               </CardHeader>
 
-              <CardContent className="p-0 max-w-full overflow-hidden">
-                <ScrollArea className="w-full whitespace-nowrap rounded-md border">
-                  <div className="max-h-[450px]">
-                    <Table className="min-w-[1800px]">
-                      <TableHeader className="sticky top-0 bg-background z-10">
-                        <TableRow>
-                          <TableHead>Sl No</TableHead>
-                          <TableHead>Lead Id</TableHead>
-                          <TableHead>Lead Date</TableHead>
-                          <TableHead>Product</TableHead>
-                          <TableHead>Company</TableHead>
-                          <TableHead>Contact</TableHead>
-                          <TableHead>Phone</TableHead>
-                          <TableHead>Email</TableHead>
-                          <TableHead>Address</TableHead>
-                          <TableHead>District</TableHead>
-                          <TableHead>State</TableHead>
-                          <TableHead>Status</TableHead>
-                        </TableRow>
-                      </TableHeader>
+              <CardContent className="p-0">
 
-                      <TableBody>
-                        {paginatedLeads.map((lead, index) => (
-                          <TableRow
-                            key={lead.leadId}
-                            onClick={() => setSelectedLeadId(lead.leadId)}
-                            className="cursor-pointer"
-                          >
-                            <TableCell>
-                              {(currentPage - 1) * LEADS_PER_PAGE + index + 1}
-                            </TableCell>
-                            <TableCell>{lead.leadId}</TableCell>
-                            <TableCell>
-                              {format(new Date(lead.creationDate), 'PPP')}
-                            </TableCell>
-                            <TableCell>{lead.selectedModule}</TableCell>
-                            <TableCell>{lead.company}</TableCell>
-                            <TableCell>{lead.contactPerson}</TableCell>
-                            <TableCell>{lead.contactNumber}</TableCell>
-                            <TableCell>{lead.email}</TableCell>
-                            <TableCell>{lead.address}</TableCell>
-                            <TableCell>{lead.district}</TableCell>
-                            <TableCell>{lead.state}</TableCell>
-                            <TableCell>{lead.status}</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                  <div className="h-[calc(100vh-200px)]"></div>
-                </ScrollArea>
+                {/* ✅ HORIZONTAL SCROLL ONLY HERE */}
+                <div className="w-full overflow-x-auto border rounded-md">
+                  <Table className="min-w-[1800px]">
+                    <TableHeader className="sticky top-0 bg-background z-10">
+                      <TableRow>
+                        <TableHead>Sl No</TableHead>
+                        <TableHead>Lead Id</TableHead>
+                        <TableHead>Lead Date</TableHead>
+                        <TableHead>Product</TableHead>
+                        <TableHead>Company</TableHead>
+                        <TableHead>Contact</TableHead>
+                        <TableHead>Phone</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Address</TableHead>
+                        <TableHead>District</TableHead>
+                        <TableHead>State</TableHead>
+                        <TableHead>Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+
+                    <TableBody>
+                      {paginatedLeads.map((lead, index) => (
+                        <TableRow
+                          key={lead.leadId}
+                          onClick={() => setSelectedLeadId(lead.leadId)}
+                          className="cursor-pointer hover:bg-muted"
+                        >
+                          <TableCell>
+                            {(currentPage - 1) * LEADS_PER_PAGE + index + 1}
+                          </TableCell>
+                          <TableCell>{lead.leadId}</TableCell>
+                          <TableCell>
+                            {format(new Date(lead.creationDate), 'PPP')}
+                          </TableCell>
+                          <TableCell>{lead.selectedModule}</TableCell>
+                          <TableCell>{lead.company}</TableCell>
+                          <TableCell>{lead.contactPerson}</TableCell>
+                          <TableCell>{lead.contactNumber}</TableCell>
+                          <TableCell>{lead.email}</TableCell>
+                          <TableCell>{lead.address}</TableCell>
+                          <TableCell>{lead.district}</TableCell>
+                          <TableCell>{lead.state}</TableCell>
+                          <TableCell>{lead.status}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
 
                 {/* PAGINATION */}
                 {totalPages > 1 && (
