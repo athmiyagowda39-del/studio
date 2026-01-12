@@ -38,6 +38,9 @@ export default function LeadsUpdatePage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
 
+  // 🔹 FILTER TOGGLE STATE
+  const [showFilters, setShowFilters] = useState(true);
+
   /* ---------------- EFFECT ---------------- */
 
   useEffect(() => {
@@ -76,12 +79,24 @@ export default function LeadsUpdatePage() {
 
           <CardContent className="p-6 space-y-6 max-w-full">
 
-            {/* Lead Update Form */}
-            <LeadUpdateForm
-              leadId={selectedLeadId}
-              allLeads={allLeads}
-              setAllLeads={handleLeadsUpdate}
-            />
+            {/* 🔽 FILTER TOGGLE */}
+            <div className="flex justify-end">
+              <button
+                onClick={() => setShowFilters(prev => !prev)}
+                className="text-sm font-medium text-primary hover:underline"
+              >
+                Filter [{showFilters ? 'hide' : 'show'}]
+              </button>
+            </div>
+
+            {/* 🔽 FILTER SECTION */}
+            {showFilters && (
+              <LeadUpdateForm
+                leadId={selectedLeadId}
+                allLeads={allLeads}
+                setAllLeads={handleLeadsUpdate}
+              />
+            )}
 
             {/* ================= TABLE CARD ================= */}
             <Card className="max-w-full">
@@ -93,7 +108,7 @@ export default function LeadsUpdatePage() {
 
               <CardContent className="p-0">
 
-                {/* ✅ HORIZONTAL SCROLL ONLY HERE */}
+                {/* ✅ HORIZONTAL SCROLL ONLY FOR TABLE */}
                 <div className="w-full overflow-x-auto border rounded-md">
                   <Table className="min-w-[1800px]">
                     <TableHeader className="sticky top-0 bg-background z-10">
