@@ -80,7 +80,7 @@ export type LeadFormData = {
 };
 
 const sectors = ['IT', 'Finance', 'Healthcare', 'Manufacturing', 'Education', 'Retail', 'Hospitality', 'Telecommunication', 'Construction', 'Real Estate', 'Media & Entertainment', 'Government', 'Non-profit', 'Other'];
-const executiveNames = ['aishwarya', 'mandanna', 'hukum', 'yathish', 'Luke'];
+const executiveNames = ['Luke Rajkumar', 'Hemanth', 'Hukum', 'Yathish G', 'Mandanna N'];
 const references = ['Social Media', 'Google Search', 'Advertisement', 'Referral', 'Website', 'Email Marketing', 'Cold Call', 'Event/Trade Show', 'Webinar', 'Direct Mail', 'Partner', 'Word of Mouth', 'Other'];
 
 
@@ -213,7 +213,7 @@ export default function LeadUploadForm() {
       creationDate: new Date().getTime(),
       givenBy: 'Manual',
       status: 'Not viewed',
-      executive: formData.toExecutive ? formData.executive : '', // Simplified this line
+      executive: formData.executive || '',
     };
 
     const updatedLeads = [...allLeads, newLead];
@@ -483,50 +483,23 @@ export default function LeadUploadForm() {
             </Popover>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="executive">Executive</Label>
-            <Popover open={executiveOpen} onOpenChange={setExecutiveOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={executiveOpen}
-                  className="w-full justify-between font-normal capitalize"
-                  disabled={formData.toExecutive}
-                >
-                  {formData.executive || "Select Executive..."}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                <Command>
-                  <CommandInput placeholder="Search executive..." />
-                  <CommandList>
-                    <CommandEmpty>No executive found.</CommandEmpty>
-                    <CommandGroup>
-                      {executiveNames.map((name) => (
-                        <CommandItem
-                          key={name}
-                          value={name.toLowerCase()}
-                          onSelect={(currentValue) => {
-                            const selectedName = executiveNames.find(n => n.toLowerCase() === currentValue);
-                            handleSelectChange('executive', selectedName === formData.executive ? '' : selectedName || '');
-                            setExecutiveOpen(false);
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              formData.executive === name ? "opacity-100" : "opacity-0"
-                            )}
-                          />
-                          <span className="capitalize">{name}</span>
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
+            <Label htmlFor="executive-select">To Executive</Label>
+            <Select
+              value={formData.executive}
+              onValueChange={(value) => handleSelectChange('executive', value === 'as-per-mapping' ? '' : value)}
+            >
+              <SelectTrigger id="executive-select">
+                <SelectValue placeholder="As per mapping" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="as-per-mapping">As per mapping</SelectItem>
+                {executiveNames.map((name) => (
+                  <SelectItem key={name} value={name} className="capitalize">
+                    {name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
             <Label htmlFor="selectedModule">Modules</Label>
@@ -556,65 +529,6 @@ export default function LeadUploadForm() {
               placeholder="Enter initial remarks here..."
             />
           </div>
-          <div className="flex items-center space-x-2 pt-2">
-             <Checkbox id="toExecutive" checked={formData.toExecutive} onCheckedChange={handleCheckboxChange} />
-             <Label htmlFor="toExecutive" className="flex items-center gap-2">
-              To Executive
-              {!formData.toExecutive && (
-                <span className="text-sm text-muted-foreground">As per Mapping</span>
-              )}
-            </Label>
-          </div>
-           {formData.toExecutive && (
-             <div className="space-y-2">
-               <Label htmlFor="executive">Executive</Label>
-                <Popover open={executiveOpen} onOpenChange={setExecutiveOpen}>
-                 <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      aria-expanded={executiveOpen}
-                      className="w-full justify-between font-normal"
-                    >
-                      {formData.executive ? (
-                        <span className="capitalize">{formData.executive}</span>
-                      ) : (
-                        "Select Executive..."
-                      )}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                 </PopoverTrigger>
-                 <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                   <Command>
-                    <CommandInput placeholder="Search executive..." />
-                     <CommandList>
-                       <CommandEmpty>No executives found.</CommandEmpty>
-                       <CommandGroup>
-                         {executiveNames.map((name) => (
-                           <CommandItem
-                             key={name}
-                             value={name}
-                             onSelect={(currentValue) => {
-                               handleSelectChange('executive', currentValue === formData.executive ? '' : currentValue.toLowerCase())
-                               setExecutiveOpen(false)
-                             }}
-                           >
-                             <Check
-                               className={cn(
-                                 "mr-2 h-4 w-4",
-                                 formData.executive?.toLowerCase() === name.toLowerCase() ? "opacity-100" : "opacity-0"
-                               )}
-                             />
-                             <span className="capitalize">{name}</span>
-                           </CommandItem>
-                         ))}
-                       </CommandGroup>
-                     </CommandList>
-                   </Command>
-                 </PopoverContent>
-               </Popover>
-             </div>
-           )}
         </div>
       </div>
       <div className="flex justify-end gap-2 mt-6">
@@ -678,5 +592,3 @@ export default function LeadUploadForm() {
     </div>
   );
 }
-
-    
