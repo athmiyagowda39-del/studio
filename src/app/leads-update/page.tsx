@@ -19,6 +19,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 
 /* ---------------- CONSTANTS ---------------- */
 
@@ -125,20 +126,25 @@ export default function LeadsUpdatePage() {
                 <CardContent className="p-4 space-y-4">
 
                   {/* ROW 1 */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <Input placeholder="Search (leave empty for all)" />
-
-                    <RadioGroup defaultValue="both" className="flex gap-4">
-                      <div className="flex items-center gap-2">
-                        <RadioGroupItem value="web" /> Web Downloads
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <RadioGroupItem value="manual" /> Manual Uploads
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <RadioGroupItem value="both" /> Both
-                      </div>
-                    </RadioGroup>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex items-center gap-2">
+                        <Label htmlFor="search" className="font-medium">Search</Label>
+                        <Input id="search" placeholder="Leave empty for all" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Label className="font-medium">From:</Label>
+                        <RadioGroup defaultValue="both" className="flex gap-4">
+                          <div className="flex items-center gap-2">
+                            <RadioGroupItem value="web" /> Web Downloads
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <RadioGroupItem value="manual" /> Manual Uploads
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <RadioGroupItem value="both" /> Both
+                          </div>
+                        </RadioGroup>
+                    </div>
                   </div>
 
                   {/* ROW 2 */}
