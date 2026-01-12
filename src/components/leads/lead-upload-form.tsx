@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { Input } from '@/components/ui/input';
@@ -127,6 +125,18 @@ const getUsersFromLocalStorage = (): AppUser[] => {
   }
   return [];
 };
+
+const getNextLeadId = (): string => {
+  const leads = getLeadsFromLocalStorage();
+  if (leads.length === 0) {
+    return '100000';
+  }
+  const maxId = leads.reduce((max, lead) => {
+    const leadIdNum = parseInt(lead.leadId, 10);
+    return !isNaN(leadIdNum) && leadIdNum > max ? leadIdNum : max;
+  }, 99999);
+  return (maxId + 1).toString();
+}
 
 
 export default function LeadUploadForm() {
@@ -264,7 +274,7 @@ export default function LeadUploadForm() {
     const allLeads = getLeadsFromLocalStorage();
     const newLead: LeadFormData = {
       ...formData,
-      leadId: `LEAD-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      leadId: getNextLeadId(),
       creationDate: new Date().getTime(),
       givenBy: 'Manual',
       status: 'Not viewed',
@@ -741,5 +751,3 @@ export default function LeadUploadForm() {
     </div>
   );
 }
-
-    
