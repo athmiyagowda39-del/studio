@@ -37,6 +37,7 @@ import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import LeadUpdateForm from '@/components/leads/lead-update-form';
 import AppContent from '../app-content';
 import * as XLSX from 'xlsx';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 /* ---------------- CONSTANTS ---------------- */
 
@@ -135,8 +136,8 @@ export default function LeadsUpdatePage() {
                 </CardHeader>
 
                 <CardContent className="p-0">
-                  <div className="relative overflow-x-auto border rounded-md">
-                    <div className="max-h-[450px] overflow-y-auto">
+                  <ScrollArea className="w-full whitespace-nowrap rounded-md border">
+                    <div className="max-h-[450px] overflow-auto">
                       <Table className="min-w-[1800px]">
                         <TableHeader className="sticky top-0 bg-background z-10">
                           <TableRow>
@@ -179,7 +180,7 @@ export default function LeadsUpdatePage() {
                         </TableBody>
                       </Table>
                     </div>
-                  </div>
+                  </ScrollArea>
 
                   {/* Pagination */}
                   {totalPages > 1 && (
