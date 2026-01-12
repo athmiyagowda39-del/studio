@@ -82,7 +82,6 @@ const SidebarProvider = React.forwardRef<
             } as React.CSSProperties
           }
           className={cn(
-            // 🔴 prevents full-page horizontal scroll
             "flex min-h-svh w-full overflow-x-hidden",
             className
           )}
@@ -137,7 +136,6 @@ const SidebarInset = React.forwardRef<
   <main
     ref={ref}
     className={cn(
-      // ✅ space for fixed sidebar + no page scroll
       "flex min-h-svh flex-1 flex-col bg-background overflow-x-hidden md:ml-[16rem]",
       className
     )}
@@ -261,17 +259,13 @@ const SidebarMenuButton = React.forwardRef<
         <TooltipTrigger asChild>
           <Button
             ref={ref}
-            variant={isActive ? "primary" : "ghost"}
+            variant={isActive ? "default" : "ghost"}
             size="icon"
             className={cn("size-10", className)}
             {...props}
           />
         </TooltipTrigger>
-        <TooltipContent
-          side="right"
-          sideOffset={8}
-          className="bg-sidebar-primary text-sidebar-primary-foreground"
-        >
+        <TooltipContent side="right" sideOffset={8}>
           {tooltip}
         </TooltipContent>
       </Tooltip>
@@ -282,7 +276,7 @@ const SidebarMenuButton = React.forwardRef<
   return (
     <Comp
       ref={ref}
-      variant={isActive ? "primary" : "ghost"}
+      variant={isActive ? "default" : "ghost"}
       className={cn("h-10 w-full justify-start", className)}
       {...props}
     />
@@ -314,10 +308,7 @@ SidebarSeparator.displayName = "SidebarSeparator"
 
 /* ================= SKELETON ================= */
 
-function SidebarSkeleton({
-  className,
-  ...props
-}: React.ComponentProps<typeof Skeleton>) {
+function SidebarSkeleton() {
   const { state } = useSidebar()
   if (state === "collapsed") {
     return (
@@ -329,7 +320,7 @@ function SidebarSkeleton({
     )
   }
   return (
-    <div className={cn("flex flex-col gap-2", className)} {...props}>
+    <div className="flex flex-col gap-2 p-4">
       {Array.from({ length: 12 }).map((_, i) => (
         <Skeleton key={i} className="h-10 w-full rounded-md" />
       ))}
