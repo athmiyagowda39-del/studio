@@ -16,7 +16,6 @@ import LeadUpdateForm from '@/components/leads/lead-update-form';
 import AppContent from '../app-content';
 import { format } from 'date-fns';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import LeadFilter from '@/components/leads/lead-filter';
 
 /* ---------------- CONSTANTS ---------------- */
 
@@ -48,6 +47,13 @@ export default function LeadsUpdatePage() {
     setFilteredLeads(leads);
   }, []);
 
+  const handleLeadsUpdate = (updatedLeads: LeadFormData[]) => {
+    setAllLeads(updatedLeads);
+    // For now, let's assume we want to refilter/re-sort the leads.
+    // This could be more sophisticated later.
+    setFilteredLeads(updatedLeads);
+  };
+
   /* ---------------- PAGINATION ---------------- */
 
   const paginatedLeads = useMemo(() => {
@@ -77,10 +83,8 @@ export default function LeadsUpdatePage() {
             <LeadUpdateForm
               leadId={selectedLeadId}
               allLeads={allLeads}
-              setAllLeads={setAllLeads}
+              setAllLeads={handleLeadsUpdate}
             />
-
-            <LeadFilter allLeads={allLeads} setFilteredLeads={setFilteredLeads} />
 
 
             {/* ================= TABLE CARD ================= */}
