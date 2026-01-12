@@ -27,7 +27,7 @@ import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 
 export default function UsersPage() {
-  const { user: currentUser, isAuthenticated, isLoading } from useAuth();
+  const { user: currentUser, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const { users, addUser } = useUsers();
   const { toast } = useToast();
