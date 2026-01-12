@@ -125,7 +125,10 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
         setFollowUps((foundLead as any).followUps || []);
         setCurrentStatus((foundLead as any).status || 'Initial');
         setLeadIdForStatus(id);
-        if(foundLead.nextFollowUpDate) {
+
+        if (foundLead.status === 'Order closed') {
+            setNextFollowUpDate(undefined);
+        } else if (foundLead.nextFollowUpDate) {
           setNextFollowUpDate(new Date(foundLead.nextFollowUpDate));
         } else {
           setNextFollowUpDate(undefined);
