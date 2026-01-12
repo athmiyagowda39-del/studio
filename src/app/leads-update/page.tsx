@@ -14,17 +14,18 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import LeadUpdateForm from '@/components/leads/lead-update-form';
 import AppContent from '../app-content';
-import { format } from 'date-fns';
+import { format, startOfDay } from 'date-fns';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 /* ---------------- CONSTANTS ---------------- */
 
 const LEADS_PER_PAGE = 10;
+type TabValue = 'recent' | 'not-viewed' | 'follow-ups-due' | 'zero-follow-ups' | 'search-result';
 
 /* ---------------- HELPERS ---------------- */
 
@@ -51,6 +52,8 @@ export default function LeadsUpdatePage() {
   // ✅ FILTER STATE
   const [searchTerm, setSearchTerm] = useState('');
   const [searchCategory, setSearchCategory] = useState('leadId');
+  const [activeTab, setActiveTab] = useState<TabValue>('recent');
+
 
   /* ---------------- EFFECT ---------------- */
 
@@ -62,28 +65,68 @@ export default function LeadsUpdatePage() {
 
   const handleLeadsUpdate = (updatedLeads: LeadFormData[]) => {
     setAllLeads(updatedLeads);
-    setFilteredLeads(updatedLeads);
-    handleFilterLeads(updatedLeads); // Re-apply filters after update
+    // Re-apply filters and tabs after update
+    handleFilterAndTab(updatedLeads, activeTab, true);
   };
   
-  const handleFilterLeads = (leadsToFilter?: LeadFormData[]) => {
-    const sourceLeads = leadsToFilter || allLeads;
-    let tempLeads = sourceLeads;
+  const handleFilterAndTab = (
+    sourceLeads: LeadFormData[],
+    tab: TabValue,
+    isSearchResult: boolean = false
+  ) => {
+    let tempLeads = [...sourceLeads];
 
-    if (searchTerm.trim() !== '') {
-      tempLeads = tempLeads.filter(lead => {
-        const leadValue = (lead[searchCategory as keyof LeadFormData] as string)?.toString().toLowerCase() || '';
-        return leadValue.includes(searchTerm.toLowerCase());
-      });
+    if (isSearchResult) {
+      if (searchTerm.trim() !== '') {
+        tempLeads = tempLeads.filter(lead => {
+          const leadValue = (lead[searchCategory as keyof LeadFormData] as string)?.toString().toLowerCase() || '';
+          return leadValue.includes(searchTerm.toLowerCase());
+        });
+      }
+    }
+
+    switch (tab) {
+        case 'not-viewed':
+            tempLeads = tempLeads.filter(lead => !lead.executiveViewDate);
+            break;
+        case 'follow-ups-due':
+            const today = startOfDay(new Date());
+            tempLeads = tempLeads.filter(lead => {
+                if (!lead.nextFollowUpDate) return false;
+                const dueDate = startOfDay(new Date(lead.nextFollowUpDate));
+                return dueDate <= today;
+            });
+            break;
+        case 'zero-follow-ups':
+            tempLeads = tempLeads.filter(lead => !lead.followUps || lead.followUps.length === 0);
+            break;
+        case 'search-result':
+            // The search filter is already applied above
+            break;
+        case 'recent':
+        default:
+            // No extra filtering needed for 'recent'
+            break;
     }
 
     setFilteredLeads(tempLeads);
     setCurrentPage(1); // Reset to first page after filtering
   };
 
+  useEffect(() => {
+    handleFilterAndTab(allLeads, activeTab, activeTab === 'search-result');
+  }, [activeTab, allLeads]);
+
+  const handleShowButtonClick = () => {
+    setActiveTab('search-result');
+    handleFilterAndTab(allLeads, 'search-result', true);
+  };
+
+
   const handleResetFilters = () => {
     setSearchTerm('');
     setSearchCategory('leadId');
+    setActiveTab('recent');
     setFilteredLeads(allLeads);
     setCurrentPage(1);
   };
@@ -291,7 +334,7 @@ export default function LeadsUpdatePage() {
 
                   {/* ACTION BUTTONS */}
                   <div className="flex justify-end gap-3 pt-4 border-t">
-                    <Button onClick={() => handleFilterLeads()}>SHOW</Button>
+                    <Button onClick={handleShowButtonClick}>SHOW</Button>
                     <Button variant="secondary">TO EXCEL</Button>
                     <Button variant="destructive" onClick={handleResetFilters}>RESET</Button>
                   </div>
@@ -303,7 +346,7 @@ export default function LeadsUpdatePage() {
             {/* ================= TABLE ================= */}
             <Card>
               <CardContent className="p-4 space-y-4">
-                <Tabs defaultValue="recent">
+                <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as TabValue)}>
                   <TabsList>
                     <TabsTrigger value="recent">Recent Leads</TabsTrigger>
                     <TabsTrigger value="not-viewed">Leads not Viewed</TabsTrigger>
