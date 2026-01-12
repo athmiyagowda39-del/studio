@@ -241,268 +241,262 @@ export default function LeadUpdateForm({ leadId, allLeads }: { leadId: string | 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-        <Card className="flex flex-col h-full max-h-[80vh]">
+        <Card>
           <CardHeader>
             <CardTitle className="text-base">LEAD CONTACT CARD</CardTitle>
           </CardHeader>
-          <ScrollArea className="flex-grow">
-            <CardContent className="space-y-4 p-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
-                <div className="space-y-2">
-                  <Label htmlFor="searchLeadId">Lead(id)</Label>
-                    <Input 
-                        id="searchLeadId" 
-                        placeholder="Select a lead from the table below"
-                        value={leadDetails.leadId || ''}
-                        readOnly
-                        className="bg-muted"
+          <CardContent className="space-y-4 p-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
+              <div className="space-y-2">
+                <Label htmlFor="searchLeadId">Lead(id)</Label>
+                  <Input 
+                      id="searchLeadId" 
+                      placeholder="Select a lead from the table below"
+                      value={leadDetails.leadId || ''}
+                      readOnly
+                      className="bg-muted"
+                    />
+              </div>
+              <div className="space-y-2">
+                  <Label htmlFor="company">Company</Label>
+                  <Input id="company" value={leadDetails.company || ''} onChange={(e) => handleLeadDetailChange('company', e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="contactPerson">Contact person</Label>
+                <Input id="contactPerson" value={leadDetails.contactPerson || ''} onChange={(e) => handleLeadDetailChange('contactPerson', e.target.value)} />
+              </div>
+               <div className="space-y-2">
+                <Label htmlFor="contactNumber">Contact Number</Label>
+                <Input id="contactNumber" value={leadDetails.contactNumber || ''} onChange={(e) => handleLeadDetailChange('contactNumber', e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="address">Address</Label>
+                <Input id="address" value={leadDetails.address || ''} onChange={(e) => handleLeadDetailChange('address', e.target.value)} />
+              </div>
+               <div className="space-y-2">
+                <Label htmlFor="email">Email ID</Label>
+                <Input id="email" type="email" value={leadDetails.email || ''} onChange={(e) => handleLeadDetailChange('email', e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="district">District</Label>
+                <Input id="district" value={leadDetails.district || ''} readOnly className="bg-muted" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="state">State</Label>
+                <Input id="state" value={leadDetails.state || ''} readOnly className="bg-muted"/>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="dateOfLead">Date of lead</Label>
+                  <Popover>
+                      <PopoverTrigger asChild>
+                      <Button
+                          variant={'outline'}
+                          className={cn(
+                          'w-full justify-start text-left font-normal',
+                          !leadDetails.creationDate && 'text-muted-foreground'
+                          )}
+                      >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {leadDetails.creationDate ? (
+                          format(new Date(leadDetails.creationDate), 'PPP')
+                          ) : (
+                          <span>Pick a date</span>
+                          )}
+                      </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                      <Calendar
+                          mode="single"
+                          selected={leadDetails.creationDate ? new Date(leadDetails.creationDate) : undefined}
+                          onSelect={(date) => handleLeadDetailChange('creationDate', date?.getTime())}
+                          initialFocus
                       />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="company">Company</Label>
-                    <Input id="company" value={leadDetails.company || ''} onChange={(e) => handleLeadDetailChange('company', e.target.value)} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="contactPerson">Contact person</Label>
-                  <Input id="contactPerson" value={leadDetails.contactPerson || ''} onChange={(e) => handleLeadDetailChange('contactPerson', e.target.value)} />
-                </div>
-                 <div className="space-y-2">
-                  <Label htmlFor="contactNumber">Contact Number</Label>
-                  <Input id="contactNumber" value={leadDetails.contactNumber || ''} onChange={(e) => handleLeadDetailChange('contactNumber', e.target.value)} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="address">Address</Label>
-                  <Input id="address" value={leadDetails.address || ''} onChange={(e) => handleLeadDetailChange('address', e.target.value)} />
-                </div>
-                 <div className="space-y-2">
-                  <Label htmlFor="email">Email ID</Label>
-                  <Input id="email" type="email" value={leadDetails.email || ''} onChange={(e) => handleLeadDetailChange('email', e.target.value)} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="district">District</Label>
-                  <Input id="district" value={leadDetails.district || ''} readOnly className="bg-muted" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="state">State</Label>
-                  <Input id="state" value={leadDetails.state || ''} readOnly className="bg-muted"/>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="dateOfLead">Date of lead</Label>
-                    <Popover>
-                        <PopoverTrigger asChild>
-                        <Button
-                            variant={'outline'}
-                            className={cn(
-                            'w-full justify-start text-left font-normal',
-                            !leadDetails.creationDate && 'text-muted-foreground'
-                            )}
-                        >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {leadDetails.creationDate ? (
-                            format(new Date(leadDetails.creationDate), 'PPP')
-                            ) : (
-                            <span>Pick a date</span>
-                            )}
-                        </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                        <Calendar
-                            mode="single"
-                            selected={leadDetails.creationDate ? new Date(leadDetails.creationDate) : undefined}
-                            onSelect={(date) => handleLeadDetailChange('creationDate', date?.getTime())}
-                            initialFocus
-                        />
-                        </PopoverContent>
-                    </Popover>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="dealerViewDate">Executive viewed date</Label>
-                  <div className="flex h-10 w-full items-center rounded-md border border-input bg-muted px-3 py-2 text-sm">
-                    {leadDetails.executiveViewDate ? (
-                        format(new Date(leadDetails.executiveViewDate), 'PPP')
-                    ) : (
-                        <span className="text-muted-foreground">Not yet seen</span>
-                    )}
-                  </div>
-                </div>
-                 <div className="space-y-2">
-                  <Label htmlFor="reference">Reference</Label>
-                  <Input id="reference" value={leadDetails.reference || ''} onChange={(e) => handleLeadDetailChange('reference', e.target.value)} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="givenBy">Given By</Label>
-                  <Input id="givenBy" value={leadDetails.givenBy || ''} onChange={(e) => handleLeadDetailChange('givenBy', e.target.value)} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="executive">Executive</Label>
-                  <Input id="executive" value={leadDetails.executive || ''} onChange={(e) => handleLeadDetailChange('executive', e.target.value)} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="module">Module</Label>
-                  <Select 
-                    value={leadDetails.selectedModule || ''} 
-                    onValueChange={(value) => handleLeadDetailChange('selectedModule', value)}
-                  >
-                    <SelectTrigger id="module">
-                      <SelectValue placeholder="Select Module" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ar">AR</SelectItem>
-                      <SelectItem value="all-hrms">All HRMS</SelectItem>
-                      <SelectItem value="module1">Module 1</SelectItem>
-                      <SelectItem value="module2">Module 2</SelectItem>
-                      <SelectItem value="module3">Module 3</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="manager">Manager</Label>
-                  <Input id="manager" value={leadDetails.manager || ''} onChange={(e) => handleLeadDetailChange('manager', e.target.value)} />
+                      </PopoverContent>
+                  </Popover>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="dealerViewDate">Executive viewed date</Label>
+                <div className="flex h-10 w-full items-center rounded-md border border-input bg-muted px-3 py-2 text-sm">
+                  {leadDetails.executiveViewDate ? (
+                      format(new Date(leadDetails.executiveViewDate), 'PPP')
+                  ) : (
+                      <span className="text-muted-foreground">Not yet seen</span>
+                  )}
                 </div>
               </div>
-            </CardContent>
-          </ScrollArea>
-          <div className="border-t p-4 mt-auto">
-            <div className="grid grid-cols-2 gap-4">
-                <div>
-                    <p>Manager: {leadDetails.manager || 'N/A'}</p>
-                    <div className="flex items-center space-x-2 mt-2">
-                        <Checkbox id="readyToUpdate" />
-                        <Label htmlFor="readyToUpdate">Yes, I am Ready to Update.</Label>
-                    </div>
-                </div>
-                <div className="flex items-center justify-end gap-2">
-                    <Button onClick={handleSaveLeadDetails}>Save</Button>
-                    <Button variant="outline" onClick={handleResetLeadDetails}>Reset</Button>
-                </div>
+               <div className="space-y-2">
+                <Label htmlFor="reference">Reference</Label>
+                <Input id="reference" value={leadDetails.reference || ''} onChange={(e) => handleLeadDetailChange('reference', e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="givenBy">Given By</Label>
+                <Input id="givenBy" value={leadDetails.givenBy || ''} onChange={(e) => handleLeadDetailChange('givenBy', e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="executive">Executive</Label>
+                <Input id="executive" value={leadDetails.executive || ''} onChange={(e) => handleLeadDetailChange('executive', e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="module">Module</Label>
+                <Select 
+                  value={leadDetails.selectedModule || ''} 
+                  onValueChange={(value) => handleLeadDetailChange('selectedModule', value)}
+                >
+                  <SelectTrigger id="module">
+                    <SelectValue placeholder="Select Module" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ar">AR</SelectItem>
+                    <SelectItem value="all-hrms">All HRMS</SelectItem>
+                    <SelectItem value="module1">Module 1</SelectItem>
+                    <SelectItem value="module2">Module 2</SelectItem>
+                    <SelectItem value="module3">Module 3</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="manager">Manager</Label>
+                <Input id="manager" value={leadDetails.manager || ''} onChange={(e) => handleLeadDetailChange('manager', e.target.value)} />
+              </div>
             </div>
-          </div>
+            <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+              <div>
+                  <p>Manager: {leadDetails.manager || 'N/A'}</p>
+                  <div className="flex items-center space-x-2 mt-2">
+                      <Checkbox id="readyToUpdate" />
+                      <Label htmlFor="readyToUpdate">Yes, I am Ready to Update.</Label>
+                  </div>
+              </div>
+              <div className="flex items-center justify-end gap-2">
+                  <Button onClick={handleSaveLeadDetails}>Save</Button>
+                  <Button variant="outline" onClick={handleResetLeadDetails}>Reset</Button>
+              </div>
+            </div>
+          </CardContent>
         </Card>
 
-        <Card className="flex flex-col h-full max-h-[80vh]">
+        <Card>
           <CardHeader>
             <CardTitle className="text-base">LEAD TRACKER</CardTitle>
           </CardHeader>
-          <ScrollArea className="flex-grow">
-            <CardContent className="space-y-4 p-4">
-              <div className="space-y-2">
-                <Label htmlFor="transferredLead">TRANSFERRED LEAD</Label>
-                <Popover open={transferredToOpen} onOpenChange={setTransferredToOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      aria-expanded={transferredToOpen}
-                      className="w-full justify-between font-normal"
-                    >
-                      {transferredTo || "Select Executive ID..."}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                    <Command>
-                      <CommandInput placeholder="Search executive ID..." />
-                      <CommandList>
-                        <CommandEmpty>No executives found.</CommandEmpty>
-                        <CommandGroup>
-                          {executiveIds.map((execId) => (
-                            <CommandItem
-                              key={execId}
-                              value={execId}
-                              onSelect={(currentValue) => {
-                                setTransferredTo(currentValue === transferredTo ? "" : currentValue.toUpperCase());
-                                setTransferredToOpen(false);
-                              }}
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  transferredTo === execId ? "opacity-100" : "opacity-0"
-                                )}
-                              />
-                              {execId}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-              </div>
-              <p className="font-semibold">Follow Up</p>
-              <div className="space-y-2">
-                <Label htmlFor="remarks">Remarks</Label>
-                <Textarea
-                  id="remarks"
-                  value={remarks}
-                  onChange={(e) => setRemarks(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Next Follow-up Date</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant={'outline'}
-                      className={cn(
-                        'w-full justify-start text-left font-normal',
-                        !nextFollowUpDate && 'text-muted-foreground'
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {nextFollowUpDate ? (
-                        format(nextFollowUpDate, 'PPP')
-                      ) : (
-                        <span>Pick a date</span>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={nextFollowUpDate}
-                      onSelect={setNextFollowUpDate}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button variant="outline">New</Button>
-                <Button onClick={handleAddFollowUp}>Add&gt;&gt;</Button>
-              </div>
-              <div className="space-y-4 pt-4">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Sl No</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Remarks</TableHead>
-                        <TableHead>Next Follow-up</TableHead>
-                        <TableHead>Entered by</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {followUps.length > 0 ? (
-                        followUps.map((followUp) => (
-                          <TableRow key={followUp.id}>
-                            <TableCell>{followUp.id}</TableCell>
-                            <TableCell>{followUp.date}</TableCell>
-                            <TableCell>{followUp.remarks}</TableCell>
-                            <TableCell>{followUp.nextFollowUp}</TableCell>
-                            <TableCell>{followUp.enteredBy}</TableCell>
-                          </TableRow>
-                        ))
-                      ) : (
-                          <TableRow>
-                              <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">No follow-ups added yet.</TableCell>
-                          </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-              </div>
-            </CardContent>
-          </ScrollArea>
+          <CardContent className="space-y-4 p-4">
+            <div className="space-y-2">
+              <Label htmlFor="transferredLead">TRANSFERRED LEAD</Label>
+              <Popover open={transferredToOpen} onOpenChange={setTransferredToOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={transferredToOpen}
+                    className="w-full justify-between font-normal"
+                  >
+                    {transferredTo || "Select Executive ID..."}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                  <Command>
+                    <CommandInput placeholder="Search executive ID..." />
+                    <CommandList>
+                      <CommandEmpty>No executives found.</CommandEmpty>
+                      <CommandGroup>
+                        {executiveIds.map((execId) => (
+                          <CommandItem
+                            key={execId}
+                            value={execId}
+                            onSelect={(currentValue) => {
+                              setTransferredTo(currentValue === transferredTo ? "" : currentValue.toUpperCase());
+                              setTransferredToOpen(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                transferredTo === execId ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {execId}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
+            <p className="font-semibold">Follow Up</p>
+            <div className="space-y-2">
+              <Label htmlFor="remarks">Remarks</Label>
+              <Textarea
+                id="remarks"
+                value={remarks}
+                onChange={(e) => setRemarks(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Next Follow-up Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={'outline'}
+                    className={cn(
+                      'w-full justify-start text-left font-normal',
+                      !nextFollowUpDate && 'text-muted-foreground'
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {nextFollowUpDate ? (
+                      format(nextFollowUpDate, 'PPP')
+                    ) : (
+                      <span>Pick a date</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={nextFollowUpDate}
+                    onSelect={setNextFollowUpDate}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline">New</Button>
+              <Button onClick={handleAddFollowUp}>Add&gt;&gt;</Button>
+            </div>
+            <div className="space-y-4 pt-4">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Sl No</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Remarks</TableHead>
+                      <TableHead>Next Follow-up</TableHead>
+                      <TableHead>Entered by</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {followUps.length > 0 ? (
+                      followUps.map((followUp) => (
+                        <TableRow key={followUp.id}>
+                          <TableCell>{followUp.id}</TableCell>
+                          <TableCell>{followUp.date}</TableCell>
+                          <TableCell>{followUp.remarks}</TableCell>
+                          <TableCell>{followUp.nextFollowUp}</TableCell>
+                          <TableCell>{followUp.enteredBy}</TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                        <TableRow>
+                            <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">No follow-ups added yet.</TableCell>
+                        </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+            </div>
+          </CardContent>
         </Card>
       </div>
       
