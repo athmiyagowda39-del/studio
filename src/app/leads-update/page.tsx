@@ -47,6 +47,10 @@ export default function LeadsUpdatePage() {
   const [showFilters, setShowFilters] = useState(false);
   const [considerStatus, setConsiderStatus] = useState(false);
 
+  // ✅ FILTER STATE
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchCategory, setSearchCategory] = useState('leadId');
+
   /* ---------------- EFFECT ---------------- */
 
   useEffect(() => {
@@ -58,7 +62,31 @@ export default function LeadsUpdatePage() {
   const handleLeadsUpdate = (updatedLeads: LeadFormData[]) => {
     setAllLeads(updatedLeads);
     setFilteredLeads(updatedLeads);
+    handleFilterLeads(updatedLeads); // Re-apply filters after update
   };
+  
+  const handleFilterLeads = (leadsToFilter?: LeadFormData[]) => {
+    const sourceLeads = leadsToFilter || allLeads;
+    let tempLeads = sourceLeads;
+
+    if (searchTerm.trim() !== '') {
+      tempLeads = tempLeads.filter(lead => {
+        const leadValue = (lead[searchCategory as keyof LeadFormData] as string)?.toString().toLowerCase() || '';
+        return leadValue.includes(searchTerm.toLowerCase());
+      });
+    }
+
+    setFilteredLeads(tempLeads);
+    setCurrentPage(1); // Reset to first page after filtering
+  };
+
+  const handleResetFilters = () => {
+    setSearchTerm('');
+    setSearchCategory('leadId');
+    setFilteredLeads(allLeads);
+    setCurrentPage(1);
+  };
+
 
   /* ---------------- PAGINATION ---------------- */
 
@@ -129,7 +157,12 @@ export default function LeadsUpdatePage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="flex items-center gap-2">
                         <Label htmlFor="search" className="font-medium">Search</Label>
-                        <Input id="search" placeholder="Leave empty for all" />
+                        <Input 
+                          id="search" 
+                          placeholder="Leave empty for all" 
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                        />
                     </div>
                     <div className="flex items-center gap-2">
                         <Label className="font-medium">From:</Label>
@@ -150,10 +183,24 @@ export default function LeadsUpdatePage() {
                   {/* ROW 2 */}
                   <div className="flex items-center gap-4">
                     <Label className="font-medium shrink-0">Search for:</Label>
-                    <RadioGroup defaultValue="company" className="flex flex-wrap gap-4">
-                      {['Lead ID', 'Company', 'Contact Person', 'Phone', 'District', 'State', 'Email', 'Manager Name'].map(v => (
-                        <div key={v} className="flex items-center gap-2">
-                          <RadioGroupItem value={v} /> {v}
+                    <RadioGroup 
+                        value={searchCategory}
+                        onValueChange={setSearchCategory}
+                        className="flex flex-wrap gap-4"
+                    >
+                      {[
+                        {label: 'Lead ID', value: 'leadId'}, 
+                        {label: 'Company', value: 'company'}, 
+                        {label: 'Contact Person', value: 'contactPerson'}, 
+                        {label: 'Phone', value: 'contactNumber'}, 
+                        {label: 'District', value: 'district'}, 
+                        {label: 'State', value: 'state'}, 
+                        {label: 'Email', value: 'email'}, 
+                        {label: 'Manager Name', value: 'manager'}
+                      ].map(item => (
+                        <div key={item.value} className="flex items-center gap-2">
+                          <RadioGroupItem value={item.value} id={item.value} /> 
+                          <Label htmlFor={item.value}>{item.label}</Label>
                         </div>
                       ))}
                     </RadioGroup>
@@ -243,9 +290,9 @@ export default function LeadsUpdatePage() {
 
                   {/* ACTION BUTTONS */}
                   <div className="flex justify-end gap-3 pt-4 border-t">
-                    <Button>SHOW</Button>
+                    <Button onClick={() => handleFilterLeads()}>SHOW</Button>
                     <Button variant="secondary">TO EXCEL</Button>
-                    <Button variant="destructive">RESET</Button>
+                    <Button variant="destructive" onClick={handleResetFilters}>RESET</Button>
                   </div>
 
                 </CardContent>
@@ -318,7 +365,7 @@ export default function LeadsUpdatePage() {
                           <TableCell>{lead.district}</TableCell>
                           <TableCell>{lead.state}</TableCell>
                           <TableCell>{lead.reference}</TableCell>
-                          <TableCell>{lead.dealer}</TableCell>
+                          <TableCell>{lead.executive}</TableCell>
                           <TableCell>{lead.manager}</TableCell>
                           <TableCell>{lastFollowUp ? lastFollowUp.date : 'N/A'}</TableCell>
                           <TableCell>{lastFollowUp ? lastFollowUp.enteredBy : 'N/A'}</TableCell>
