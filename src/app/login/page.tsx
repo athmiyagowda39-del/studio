@@ -28,7 +28,7 @@ export default function LoginPage() {
     e.preventDefault();
     
     const foundUser = users.find(
-      (user) => user.email.toLowerCase() === email.toLowerCase() && user.password === password
+      (user) => user && user.email && user.email.toLowerCase() === email.toLowerCase() && user.password === password
     );
 
     if (foundUser) {

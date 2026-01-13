@@ -36,13 +36,18 @@ export function UsersProvider({ children }: { children: ReactNode }) {
     try {
       const storedUsers = localStorage.getItem('appUsers');
       if (storedUsers) {
-        const parsedUsers = JSON.parse(storedUsers);
-        // Basic migration if old user structure is detected
-        if (parsedUsers.length > 0 && !parsedUsers[0].password) {
-            setUsers(defaultUsers);
-            localStorage.setItem('appUsers', JSON.stringify(defaultUsers));
+        let parsedUsers: AppUser[] = JSON.parse(storedUsers);
+        
+        // Check if migration is needed (missing email or password)
+        const needsMigration = parsedUsers.some(u => !u.email || !u.password);
+        
+        if (needsMigration) {
+          // If any user needs migration, reset all to default for consistency
+          console.log("User data is outdated. Resetting to default users.");
+          setUsers(defaultUsers);
+          localStorage.setItem('appUsers', JSON.stringify(defaultUsers));
         } else {
-            setUsers(parsedUsers);
+          setUsers(parsedUsers);
         }
 
       } else {
@@ -51,8 +56,9 @@ export function UsersProvider({ children }: { children: ReactNode }) {
         localStorage.setItem('appUsers', JSON.stringify(defaultUsers));
       }
     } catch (error) {
-      console.error('Failed to parse users from localStorage', error);
+      console.error('Failed to parse users from localStorage, resetting to default.', error);
       setUsers(defaultUsers);
+      localStorage.setItem('appUsers', JSON.stringify(defaultUsers));
     }
   }, []);
 
