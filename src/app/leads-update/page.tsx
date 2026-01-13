@@ -21,6 +21,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { useUsers } from '@/context/users-context';
 
 /* ---------------- CONSTANTS ---------------- */
 
@@ -53,9 +54,19 @@ export default function LeadsUpdatePage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchCategory, setSearchCategory] = useState('leadId');
   const [activeTab, setActiveTab] = useState<TabValue>('recent');
+  const [selectedExecutive, setSelectedExecutive] = useState('all');
 
 
   /* ---------------- EFFECT ---------------- */
+  const { users } = useUsers();
+  const [executives, setExecutives] = useState<string[]>([]);
+
+  useEffect(() => {
+    const executiveUsers = users
+      .filter(user => user.role === 'Executive')
+      .map(user => user.username);
+    setExecutives(executiveUsers);
+  }, [users]);
 
   useEffect(() => {
     const leads = getLeadsFromLocalStorage();
@@ -83,6 +94,10 @@ export default function LeadsUpdatePage() {
           return leadValue.startsWith(searchTerm.toLowerCase());
         });
       }
+    }
+
+    if (selectedExecutive !== 'all') {
+        tempLeads = tempLeads.filter(lead => lead.executive === selectedExecutive);
     }
 
     switch (tab) {
@@ -115,7 +130,7 @@ export default function LeadsUpdatePage() {
 
   useEffect(() => {
     handleFilterAndTab(allLeads, activeTab, activeTab === 'search-result');
-  }, [activeTab, allLeads]);
+  }, [activeTab, allLeads, selectedExecutive]);
 
   const handleShowButtonClick = () => {
     setActiveTab('search-result');
@@ -127,6 +142,7 @@ export default function LeadsUpdatePage() {
     setSearchTerm('');
     setSearchCategory('leadId');
     setActiveTab('recent');
+    setSelectedExecutive('all');
     setFilteredLeads(allLeads);
     setCurrentPage(1);
   };
@@ -271,10 +287,15 @@ export default function LeadsUpdatePage() {
                     </div>
                     <div className="space-y-1">
                       <Label>Executive Name</Label>
-                      <Select>
+                      <Select value={selectedExecutive} onValueChange={setSelectedExecutive}>
                         <SelectTrigger><SelectValue placeholder="--All--" /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="all">All</SelectItem>
+                           {executives.map(exec => (
+                            <SelectItem key={exec} value={exec}>
+                              {exec}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
