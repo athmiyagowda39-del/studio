@@ -390,6 +390,7 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
                     <SelectValue placeholder="Select Module" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
                     <SelectItem value="ar">AR</SelectItem>
                     <SelectItem value="all-hrms">All HRMS</SelectItem>
                     <SelectItem value="module1">Module 1</SelectItem>
