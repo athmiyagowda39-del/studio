@@ -22,6 +22,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useUsers } from '@/context/users-context';
+import { useAuth } from '@/context/auth-context';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
@@ -133,6 +134,7 @@ export default function LeadsUpdatePage() {
 
   /* ---------------- EFFECT ---------------- */
   const { users } = useUsers();
+  const { user } = useAuth();
   const [executives, setExecutives] = useState<string[]>([]);
 
   useEffect(() => {
@@ -143,15 +145,22 @@ export default function LeadsUpdatePage() {
   }, [users]);
 
   useEffect(() => {
-    const leads = getLeadsFromLocalStorage();
+    let leads = getLeadsFromLocalStorage();
+    if (user?.role === 'Executive') {
+      leads = leads.filter(lead => lead.executive === user.username);
+    }
     setAllLeads(leads);
     setFilteredLeads(leads);
-  }, []);
+  }, [user]);
 
   const handleLeadsUpdate = (updatedLeads: LeadFormData[]) => {
-    setAllLeads(updatedLeads);
+    let leadsToUpdate = updatedLeads;
+    if (user?.role === 'Executive') {
+        leadsToUpdate = leadsToUpdate.filter(lead => lead.executive === user.username);
+    }
+    setAllLeads(leadsToUpdate);
     // Re-apply filters and tabs after update
-    handleFilterAndTab(updatedLeads, activeTab, true);
+    handleFilterAndTab(leadsToUpdate, activeTab, true);
   };
   
   const handleFilterAndTab = (

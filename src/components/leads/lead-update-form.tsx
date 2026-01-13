@@ -33,6 +33,7 @@ import type { LeadFormData } from './lead-upload-form';
 import { ScrollArea } from '../ui/scroll-area';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '../ui/table';
 import { useUsers } from '@/context/users-context';
+import { useAuth } from '@/context/auth-context';
 
 type FollowUp = {
   id: number;
@@ -87,6 +88,7 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
   
   const { toast } = useToast();
   const { users } = useUsers();
+  const { user } = useAuth();
   const [executives, setExecutives] = useState<string[]>([]);
 
    useEffect(() => {
@@ -167,7 +169,7 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
       date: new Date().toLocaleDateString(),
       remarks: remarks,
       nextFollowUp: format(nextFollowUpDate, 'PPP'),
-      enteredBy: 'Demo User',
+      enteredBy: user?.username || 'Demo User',
     };
     
     const updatedFollowups = [...followUps, newFollowUp];

@@ -6,6 +6,7 @@ export type AppUser = {
   id: string;
   username: string;
   role: 'Admin' | 'Executive';
+  password?: string;
 };
 
 type UsersContextType = {
@@ -17,13 +18,15 @@ type UsersContextType = {
 const UsersContext = createContext<UsersContextType | undefined>(undefined);
 
 const defaultUsers: AppUser[] = [
-    { id: 'user-1', username: 'athmiya', role: 'Admin' },
-    { id: 'user-2', username: 'Luke Rajkumar', role: 'Executive' },
-    { id: 'user-3', username: 'Hemanth', role: 'Executive' },
-    { id: 'user-4', username: 'Hukum', role: 'Executive' },
-    { id: 'user-5', username: 'Yathish G', role: 'Executive' },
-    { id: 'user-6', username: 'Mandanna N', role: 'Executive' },
+    { id: 'user-1', username: 'Athmiya.ag', role: 'Admin', password: 'password123' },
+    { id: 'user-2', username: 'Luke.rajkumar', role: 'Admin', password: 'password123' },
+    { id: 'user-3', username: 'Varghese', role: 'Admin', password: 'password123' },
+    { id: 'user-4', username: 'sam.devasia', role: 'Admin', password: 'password123' },
+    { id: 'user-5', username: 'yathish.g', role: 'Executive', password: 'password123' },
+    { id: 'user-6', username: 'Mandanna.n', role: 'Executive', password: 'password123' },
+    { id: 'user-7', username: 'hukum', role: 'Executive', password: 'password123' },
 ];
+
 
 export function UsersProvider({ children }: { children: ReactNode }) {
   const [users, setUsers] = useState<AppUser[]>([]);
@@ -32,7 +35,15 @@ export function UsersProvider({ children }: { children: ReactNode }) {
     try {
       const storedUsers = localStorage.getItem('appUsers');
       if (storedUsers) {
-        setUsers(JSON.parse(storedUsers));
+        const parsedUsers = JSON.parse(storedUsers);
+        // Basic migration if old user structure is detected
+        if (parsedUsers.length > 0 && !parsedUsers[0].password) {
+            setUsers(defaultUsers);
+            localStorage.setItem('appUsers', JSON.stringify(defaultUsers));
+        } else {
+            setUsers(parsedUsers);
+        }
+
       } else {
         // Initialize with default users if none are in storage
         setUsers(defaultUsers);
@@ -48,6 +59,7 @@ export function UsersProvider({ children }: { children: ReactNode }) {
     const newUser: AppUser = {
       ...userData,
       id: `user-${Date.now()}`,
+      password: userData.password || `password${Date.now()}` // Assign a default password
     };
     const updatedUsers = [...users, newUser];
     setUsers(updatedUsers);

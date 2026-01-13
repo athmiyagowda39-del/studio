@@ -12,20 +12,27 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/context/auth-context';
+import { useUsers } from '@/context/users-context';
 import { Eye, EyeOff, Target } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function LoginPage() {
-  const [username, setUsername] = useState('athmiya');
-  const [password, setPassword] = useState('password123');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuth();
+  const { users } = useUsers();
   const { toast } = useToast();
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (username === 'athmiya' && password === 'password123') {
-      login({ username: 'athmiya', role: 'Admin' });
+    
+    const foundUser = users.find(
+      (user) => user.username.toLowerCase() === username.toLowerCase() && user.password === password
+    );
+
+    if (foundUser) {
+      login({ username: foundUser.username, role: foundUser.role });
       toast({
         title: 'Login Successful',
         description: 'Welcome back!',
@@ -59,7 +66,7 @@ export default function LoginPage() {
               <Input
                 id="username"
                 type="text"
-                placeholder="athmiya"
+                placeholder="Enter your username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
@@ -71,6 +78,7 @@ export default function LoginPage() {
                 <Input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
+                  placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required

@@ -33,6 +33,7 @@ export default function UsersPage() {
   const { toast } = useToast();
 
   const [newUsername, setNewUsername] = useState('');
+  const [newPassword, setNewPassword] = useState('');
   const [newRole, setNewRole] = useState<'Admin' | 'Executive'>('Executive');
 
   useEffect(() => {
@@ -46,11 +47,11 @@ export default function UsersPage() {
   }
   
   const handleAddUser = () => {
-    if (!newUsername.trim()) {
+    if (!newUsername.trim() || !newPassword.trim()) {
       toast({
         variant: 'destructive',
         title: 'Validation Error',
-        description: 'Username cannot be empty.',
+        description: 'Username and password cannot be empty.',
       });
       return;
     }
@@ -63,12 +64,13 @@ export default function UsersPage() {
         return;
     }
 
-    addUser({ username: newUsername, role: newRole });
+    addUser({ username: newUsername, role: newRole, password: newPassword });
     toast({
       title: 'User Added',
       description: `User "${newUsername}" has been added with the role "${newRole}".`,
     });
     setNewUsername('');
+    setNewPassword('');
     setNewRole('Executive');
   };
 
@@ -83,7 +85,7 @@ export default function UsersPage() {
             {/* Add User Form */}
             <div className="space-y-4">
               <h2 className="text-lg font-semibold">Add New User</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                 <div className="space-y-2">
                   <Label htmlFor="username">Username</Label>
                   <Input
@@ -91,6 +93,16 @@ export default function UsersPage() {
                     value={newUsername}
                     onChange={(e) => setNewUsername(e.target.value)}
                     placeholder="Enter new username"
+                  />
+                </div>
+                 <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Enter password"
                   />
                 </div>
                 <div className="space-y-2">

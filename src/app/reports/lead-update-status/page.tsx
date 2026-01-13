@@ -13,6 +13,7 @@ import { useState, useEffect } from 'react';
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import { format } from 'date-fns';
 import AppContent from '@/app/app-content';
+import { useAuth } from '@/context/auth-context';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 const getLeadsFromLocalStorage = (): LeadFormData[] => {
@@ -25,13 +26,21 @@ const getLeadsFromLocalStorage = (): LeadFormData[] => {
 
 export default function LeadUpdateStatusReportPage() {
   const [allLeads, setAllLeads] = useState<LeadFormData[]>([]);
+  const { user } = useAuth();
 
   useEffect(() => {
     const leads = getLeadsFromLocalStorage();
-    setAllLeads(leads);
+    let userLeads = leads;
+    if(user?.role === 'Executive') {
+      userLeads = leads.filter(lead => lead.executive === user.username);
+    }
+    setAllLeads(userLeads);
 
      const handleStorageChange = () => {
-      const updatedLeads = getLeadsFromLocalStorage();
+      let updatedLeads = getLeadsFromLocalStorage();
+       if(user?.role === 'Executive') {
+        updatedLeads = updatedLeads.filter(lead => lead.executive === user.username);
+      }
       setAllLeads(updatedLeads);
     };
 
@@ -40,7 +49,7 @@ export default function LeadUpdateStatusReportPage() {
     return () => {
       window.removeEventListener('storage', handleStorageChange);
     };
-  }, []);
+  }, [user]);
 
   return (
     <AppContent>

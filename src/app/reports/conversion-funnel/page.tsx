@@ -5,6 +5,7 @@ import ConversionFunnelChart from '@/components/reports/conversion-funnel-chart'
 import { useMemo, useState, useEffect } from 'react';
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import AppContent from '@/app/app-content';
+import { useAuth } from '@/context/auth-context';
 
 const funnelStages = [
   'Total Leads',
@@ -63,11 +64,15 @@ const getFunnelData = (leads: LeadFormData[]) => {
 
 export default function ConversionFunnelReportPage() {
   const [allLeads, setAllLeads] = useState<LeadFormData[]>([]);
+  const { user } = useAuth();
 
   useEffect(() => {
-    const leads = getLeadsFromLocalStorage();
+    let leads = getLeadsFromLocalStorage();
+    if(user?.role === 'Executive') {
+      leads = leads.filter(lead => lead.executive === user.username);
+    }
     setAllLeads(leads);
-  }, []);
+  }, [user]);
 
 
   const funnelData = useMemo(() => {

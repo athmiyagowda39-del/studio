@@ -24,6 +24,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import { format } from 'date-fns';
 import AppContent from '@/app/app-content';
+import { useAuth } from '@/context/auth-context';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 const allStates = ["All", "Andaman and Nicobar Islands", "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chandigarh", "Chhattisgarh", "Dadra and Nagar Haveli and Daman and Diu", "Delhi", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jammu and Kashmir", "Jharkhand", "Karnataka", "Kerala", "Ladakh", "Lakshadweep", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Puducherry", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"];
@@ -101,10 +102,15 @@ const getLeadStatusesForFilters = (
 
 export default function LeadReportPage() {
   const [allLeads, setAllLeads] = useState<LeadFormData[]>([]);
+  const { user } = useAuth();
+  
   useEffect(() => {
-    const leads = getLeadsFromLocalStorage();
+    let leads = getLeadsFromLocalStorage();
+    if (user?.role === 'Executive') {
+      leads = leads.filter(lead => lead.executive === user.username);
+    }
     setAllLeads(leads);
-  }, []);
+  }, [user]);
 
   const [selectedState, setSelectedState] = useState('Karnataka');
   const [openState, setOpenState] = useState(false);

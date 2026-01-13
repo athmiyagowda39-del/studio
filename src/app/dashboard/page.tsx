@@ -43,11 +43,14 @@ export default function DashboardPage() {
 
     useEffect(() => {
         if (isAuthenticated) {
-            const leads = getLeadsFromLocalStorage();
+            let leads = getLeadsFromLocalStorage();
+            if (user?.role === 'Executive') {
+                leads = leads.filter(lead => lead.executive === user.username);
+            }
             setAllLeads(leads);
             setIsDataLoading(false);
         }
-    }, [isAuthenticated]);
+    }, [isAuthenticated, user]);
 
     const totalLeadsToday = useMemo(() => {
         if (!allLeads) return 0;
