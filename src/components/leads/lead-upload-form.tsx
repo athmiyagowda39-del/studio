@@ -516,47 +516,19 @@ export default function LeadUploadForm() {
           </div>
            <div className="space-y-2">
             <Label htmlFor="executive">Executive</Label>
-             <Popover open={executiveOpen} onOpenChange={setExecutiveOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={executiveOpen}
-                  className="w-full justify-between font-normal"
-                >
-                  {formData.executive || "Select Executive..."}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                <Command>
-                  <CommandInput placeholder="Search executive..." />
-                  <CommandList>
-                    <CommandEmpty>No executive found.</CommandEmpty>
-                    <CommandGroup>
-                      {executiveNames.map((name) => (
-                        <CommandItem
-                          key={name}
-                          value={name}
-                          onSelect={(currentValue) => {
-                            handleSelectChange('executive', currentValue.toLowerCase() === formData.executive?.toLowerCase() ? '' : name);
-                            setExecutiveOpen(false);
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              formData.executive === name ? "opacity-100" : "opacity-0"
-                            )}
-                          />
-                          {name}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
+            <Select value={formData.executive} onValueChange={(value) => handleSelectChange('executive', value)}>
+              <SelectTrigger id="executive">
+                <SelectValue placeholder="Select Executive..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                {executiveNames.map((name) => (
+                  <SelectItem key={name} value={name}>
+                    {name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2 md:col-span-2">
             <Label htmlFor="initialRemarks">Initial Remark</Label>
