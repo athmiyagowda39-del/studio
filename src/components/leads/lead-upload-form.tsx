@@ -461,48 +461,18 @@ export default function LeadUploadForm() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="reference">Reference</Label>
-             <Popover open={referenceOpen} onOpenChange={setReferenceOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={referenceOpen}
-                  className="w-full justify-between font-normal capitalize"
-                >
-                  {formData.reference ? references.find(s => s.toLowerCase() === formData.reference.toLowerCase()) || "Select Reference..." : "Select Reference..."}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                <Command>
-                  <CommandInput placeholder="Search reference..." />
-                  <CommandList>
-                    <CommandEmpty>No reference found.</CommandEmpty>
-                    <CommandGroup>
-                      {references.map((reference) => (
-                        <CommandItem
-                          key={reference}
-                          value={reference.toLowerCase()}
-                          onSelect={(currentValue) => {
-                            const selectedReference = references.find(s => s.toLowerCase() === currentValue);
-                            handleSelectChange('reference', selectedReference === formData.reference ? '' : selectedReference || '')
-                            setReferenceOpen(false)
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              formData.reference === reference ? "opacity-100" : "opacity-0"
-                            )}
-                          />
-                          {reference}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
+            <Select value={formData.reference} onValueChange={(value) => handleSelectChange('reference', value)}>
+              <SelectTrigger id="reference">
+                <SelectValue placeholder="Select Reference..." />
+              </SelectTrigger>
+              <SelectContent>
+                {references.map((reference) => (
+                    <SelectItem key={reference} value={reference}>
+                        {reference}
+                    </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
             <Label htmlFor="headcount">Company headcount</Label>
