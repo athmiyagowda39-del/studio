@@ -18,13 +18,13 @@ type UsersContextType = {
 const UsersContext = createContext<UsersContextType | undefined>(undefined);
 
 const defaultUsers: AppUser[] = [
-    { id: 'user-1', username: 'Athmiya.ag', role: 'Admin', password: 'password123' },
-    { id: 'user-2', username: 'Luke.rajkumar', role: 'Admin', password: 'password123' },
-    { id: 'user-3', username: 'Varghese', role: 'Admin', password: 'password123' },
-    { id: 'user-4', username: 'sam.devasia', role: 'Admin', password: 'password123' },
-    { id: 'user-5', username: 'yathish.g', role: 'Executive', password: 'password123' },
-    { id: 'user-6', username: 'Mandanna.n', role: 'Executive', password: 'password123' },
-    { id: 'user-7', username: 'hukum', role: 'Executive', password: 'password123' },
+    { id: 'user-1', username: 'Athmiya.ag', role: 'Admin', password: 'password_athmiya' },
+    { id: 'user-2', username: 'Luke.rajkumar', role: 'Admin', password: 'password_luke' },
+    { id: 'user-3', username: 'Varghese', role: 'Admin', password: 'password_varghese' },
+    { id: 'user-4', username: 'sam.devasia', role: 'Admin', password: 'password_sam' },
+    { id: 'user-5', username: 'yathish.g', role: 'Executive', password: 'password_yathish' },
+    { id: 'user-6', username: 'Mandanna.n', role: 'Executive', password: 'password_mandanna' },
+    { id: 'user-7', username: 'hukum', role: 'Executive', password: 'password_hukum' },
 ];
 
 

@@ -25,6 +25,7 @@ import { useUsers, type AppUser } from '@/context/users-context';
 import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
+import { Eye, EyeOff } from 'lucide-react';
 
 export default function UsersPage() {
   const { user: currentUser, isAuthenticated, isLoading } = useAuth();
@@ -35,6 +36,7 @@ export default function UsersPage() {
   const [newUsername, setNewUsername] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newRole, setNewRole] = useState<'Admin' | 'Executive'>('Executive');
+  const [passwordVisibility, setPasswordVisibility] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (!isLoading && (!isAuthenticated || currentUser?.role !== 'Admin')) {
@@ -72,6 +74,10 @@ export default function UsersPage() {
     setNewUsername('');
     setNewPassword('');
     setNewRole('Executive');
+  };
+
+  const togglePasswordVisibility = (userId: string) => {
+    setPasswordVisibility(prev => ({ ...prev, [userId]: !prev[userId] }));
   };
 
   return (
@@ -131,6 +137,7 @@ export default function UsersPage() {
                         <TableRow>
                         <TableHead>Username</TableHead>
                         <TableHead>Role</TableHead>
+                        <TableHead>Password</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -138,6 +145,25 @@ export default function UsersPage() {
                         <TableRow key={user.id}>
                             <TableCell>{user.username}</TableCell>
                             <TableCell>{user.role}</TableCell>
+                            <TableCell>
+                                <div className="flex items-center gap-2">
+                                     <span>
+                                        {passwordVisibility[user.id] ? user.password : '••••••••'}
+                                     </span>
+                                     <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-7 w-7 text-muted-foreground"
+                                        onClick={() => togglePasswordVisibility(user.id)}
+                                     >
+                                        {passwordVisibility[user.id] ? (
+                                            <EyeOff className="h-4 w-4" />
+                                        ) : (
+                                            <Eye className="h-4 w-4" />
+                                        )}
+                                     </Button>
+                                </div>
+                            </TableCell>
                         </TableRow>
                         ))}
                     </TableBody>
