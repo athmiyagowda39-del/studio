@@ -50,8 +50,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     setUser(null);
     setIsAuthenticated(false);
-    localStorage.removeItem('user');
-    localStorage.removeItem('appUsers'); // Also clear appUsers on logout
+    // By clearing the entire local storage on logout, we ensure no stale data persists.
+    localStorage.clear(); 
     router.push('/login');
   };
 
