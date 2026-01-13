@@ -431,7 +431,6 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
                   <SelectValue placeholder="Select Executive ID..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Select Executive ID...</SelectItem>
                   {executiveIds.map((execId) => (
                     <SelectItem key={execId} value={execId}>
                       {execId}
@@ -567,3 +566,5 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
     </div>
   );
 }
+
+    
