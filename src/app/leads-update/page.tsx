@@ -72,6 +72,7 @@ export default function LeadsUpdatePage() {
   const [selectedLeadSource, setSelectedLeadSource] = useState('');
   const [leadSourceOpen, setLeadSourceOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState('all');
+  const [givenBy, setGivenBy] = useState('');
 
 
   /* ---------------- EFFECT ---------------- */
@@ -124,6 +125,12 @@ export default function LeadsUpdatePage() {
     if (selectedProduct !== 'all') {
         tempLeads = tempLeads.filter(lead => lead.selectedModule === selectedProduct);
     }
+    
+    if (givenBy.trim() !== '') {
+        tempLeads = tempLeads.filter(lead => 
+            lead.givenBy?.toLowerCase().includes(givenBy.toLowerCase())
+        );
+    }
 
     switch (tab) {
         case 'not-viewed':
@@ -155,7 +162,7 @@ export default function LeadsUpdatePage() {
 
   useEffect(() => {
     handleFilterAndTab(allLeads, activeTab, activeTab === 'search-result');
-  }, [activeTab, allLeads, selectedExecutive, selectedLeadSource, selectedProduct]);
+  }, [activeTab, allLeads, selectedExecutive, selectedLeadSource, selectedProduct, givenBy]);
 
   const handleShowButtonClick = () => {
     setActiveTab('search-result');
@@ -170,6 +177,7 @@ export default function LeadsUpdatePage() {
     setSelectedExecutive('all');
     setSelectedLeadSource('');
     setSelectedProduct('all');
+    setGivenBy('');
     setFilteredLeads(allLeads);
     setCurrentPage(1);
   };
@@ -335,8 +343,13 @@ export default function LeadsUpdatePage() {
                   {/* ROW 4 */}
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="space-y-1">
-                      <Label>Given by</Label>
-                      <Select><SelectTrigger><SelectValue placeholder="--All--" /></SelectTrigger></Select>
+                      <Label htmlFor="givenBy">Given by</Label>
+                      <Input 
+                        id="givenBy"
+                        placeholder="--All--"
+                        value={givenBy}
+                        onChange={(e) => setGivenBy(e.target.value)}
+                      />
                     </div>
                     <div className="space-y-1">
                       <Label>Status of Lead</Label>
