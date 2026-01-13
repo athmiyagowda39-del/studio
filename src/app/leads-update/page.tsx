@@ -42,6 +42,25 @@ const leadSources = [
     "TV / Radio Ads", "Direct Sales", "Field Sales", "Franchise", "Customer Support", "Demo Request", "Trial Signup", "Job Portal"
 ];
 
+const leadStatusOptions = [
+    'Attended',
+    'Not viewed',
+    'Demo Given',
+    'Unattended',
+    'Pursuing to Purchase',
+    'Not interested',
+    'Order closed',
+    'Contacted',
+    'Qualified',
+    'Unqualified',
+    'Follow-up Required',
+    'Fake Lead',
+    'Existing Customer',
+    'Do Not Contact',
+    'Quote Sent',
+    'Proposal Sent',
+];
+
 /* ---------------- HELPERS ---------------- */
 
 const getLeadsFromLocalStorage = (): LeadFormData[] => {
@@ -357,6 +376,11 @@ export default function LeadsUpdatePage() {
                         <SelectTrigger><SelectValue placeholder="--All--" /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="all">All</SelectItem>
+                           {leadStatusOptions.map(status => (
+                            <SelectItem key={status} value={status}>
+                              {status}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
@@ -366,6 +390,11 @@ export default function LeadsUpdatePage() {
                         <SelectTrigger><SelectValue placeholder="--All--" /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="all">All</SelectItem>
+                           {leadStatusOptions.map(status => (
+                            <SelectItem key={status} value={status}>
+                              {status}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>

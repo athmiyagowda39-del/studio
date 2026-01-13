@@ -41,7 +41,6 @@ type FollowUp = {
 };
 
 const leadStatusOptions = [
-    'All',
     'Attended',
     'Not viewed',
     'Demo Given',
@@ -570,6 +569,7 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
                             <SelectValue placeholder="-- Select --" />
                         </SelectTrigger>
                         <SelectContent>
+                             <SelectItem value="all">All</SelectItem>
                             {leadStatusOptions.map((status) => (
                                 <SelectItem key={status} value={status}>{status}</SelectItem>
                             ))}
