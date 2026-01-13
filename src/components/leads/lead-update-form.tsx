@@ -426,47 +426,19 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
           <CardContent className="space-y-4 p-4">
             <div className="space-y-2">
               <Label htmlFor="transferredLead">TRANSFERRED LEAD</Label>
-              <Popover open={transferredToOpen} onOpenChange={setTransferredToOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    aria-expanded={transferredToOpen}
-                    className="w-full justify-between font-normal"
-                  >
-                    {transferredTo || "Select Executive ID..."}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                  <Command>
-                    <CommandInput placeholder="Search executive ID..." />
-                    <CommandList>
-                      <CommandEmpty>No executives found.</CommandEmpty>
-                      <CommandGroup>
-                        {executiveIds.map((execId) => (
-                          <CommandItem
-                            key={execId}
-                            value={execId}
-                            onSelect={(currentValue) => {
-                              setTransferredTo(currentValue === transferredTo ? "" : currentValue.toUpperCase());
-                              setTransferredToOpen(false);
-                            }}
-                          >
-                            <Check
-                              className={cn(
-                                "mr-2 h-4 w-4",
-                                transferredTo === execId ? "opacity-100" : "opacity-0"
-                              )}
-                            />
-                            {execId}
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+              <Select value={transferredTo} onValueChange={setTransferredTo}>
+                <SelectTrigger id="transferredLead">
+                  <SelectValue placeholder="Select Executive ID..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Select Executive ID...</SelectItem>
+                  {executiveIds.map((execId) => (
+                    <SelectItem key={execId} value={execId}>
+                      {execId}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <p className="font-semibold">Follow Up</p>
             <div className="space-y-2">
