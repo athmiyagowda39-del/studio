@@ -27,8 +27,9 @@ export default function LoginPage() {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     
+    const username = email.split('@')[0];
     const foundUser = users.find(
-      (user) => user.username.toLowerCase() === email.toLowerCase() && user.password === password
+      (user) => user.username.toLowerCase() === username.toLowerCase() && user.password === password
     );
 
     if (foundUser) {
