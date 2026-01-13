@@ -353,11 +353,19 @@ export default function LeadsUpdatePage() {
                     </div>
                     <div className="space-y-1">
                       <Label>Status of Lead</Label>
-                      <Select><SelectTrigger><SelectValue placeholder="--All--" /></SelectTrigger></Select>
+                      <Select><SelectTrigger><SelectValue placeholder="--All--" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">--All--</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div className="space-y-1">
                       <Label>Sub Status of Lead</Label>
-                      <Select><SelectTrigger><SelectValue placeholder="--All--" /></SelectTrigger></Select>
+                      <Select><SelectTrigger><SelectValue placeholder="--All--" /></SelectTrigger>
+                         <SelectContent>
+                          <SelectItem value="all">--All--</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div className="space-y-1">
                       <Label>Lead Source</Label>
