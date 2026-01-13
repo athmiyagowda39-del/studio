@@ -36,6 +36,7 @@ export default function UsersPage() {
   const [newUsername, setNewUsername] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newRole, setNewRole] = useState<'Admin' | 'Executive'>('Executive');
+  const [showNewPassword, setShowNewPassword] = useState(false);
   const [passwordVisibility, setPasswordVisibility] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
@@ -74,6 +75,7 @@ export default function UsersPage() {
     setNewUsername('');
     setNewPassword('');
     setNewRole('Executive');
+    setShowNewPassword(false);
   };
 
   const togglePasswordVisibility = (userId: string) => {
@@ -101,15 +103,28 @@ export default function UsersPage() {
                     placeholder="Enter new username"
                   />
                 </div>
-                 <div className="space-y-2">
+                 <div className="space-y-2 relative">
                   <Label htmlFor="password">Password</Label>
                   <Input
                     id="password"
-                    type="password"
+                    type={showNewPassword ? 'text' : 'password'}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="Enter password"
                   />
+                   <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-1 bottom-1 h-7 w-7 text-muted-foreground"
+                      onClick={() => setShowNewPassword(prev => !prev)}
+                    >
+                      {showNewPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </Button>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="role">Role</Label>
