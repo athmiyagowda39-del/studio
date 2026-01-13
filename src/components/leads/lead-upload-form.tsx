@@ -80,7 +80,13 @@ export type LeadFormData = {
 };
 
 const sectors = ['All', 'IT', 'Finance', 'Healthcare', 'Manufacturing', 'Education', 'Retail', 'Hospitality', 'Telecommunication', 'Construction', 'Real Estate', 'Media & Entertainment', 'Government', 'Non-profit', 'Other'];
-const references = ['All', 'Social Media', 'Google Search', 'Advertisement', 'Referral', 'Website', 'Email Marketing', 'Cold Call', 'Event/Trade Show', 'Webinar', 'Direct Mail', 'Partner', 'Word of Mouth', 'Other'];
+const references = [
+    "All", "Website", "Social Media", "Google Ads", "Facebook Ads", "LinkedIn", "Referral", "Cold Call",
+    "Email Campaign", "WhatsApp Campaign", "Walk-in", "Telecalling", "Events / Trade Shows", "Webinars",
+    "Channel Partner", "Reseller", "Distributor", "Existing Customer", "Upselling", "Cross-selling",
+    "Marketplace (Justdial / IndiaMART)", "Third-party Data", "Outdoor Marketing", "Newspaper Ads",
+    "TV / Radio Ads", "Direct Sales", "Field Sales", "Franchise", "Customer Support", "Demo Request", "Trial Signup", "Job Portal"
+];
 
 
 const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId' | 'givenBy'> = {
