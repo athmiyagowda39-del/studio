@@ -523,10 +523,10 @@ export default function LeadUploadForm() {
                     onValueChange={setToExecutiveSelection}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="As per mapping" />
+                      <SelectValue placeholder="All" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="as-per-mapping">As per mapping</SelectItem>
+                      <SelectItem value="all">All</SelectItem>
                       {executiveNames.map((name) => (
                         <SelectItem key={name} value={name}>
                           {name}
