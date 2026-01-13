@@ -547,63 +547,22 @@ export default function LeadUploadForm() {
                 />
                 <Label htmlFor="to-executive-checkbox" className="shrink-0">To Executive</Label>
                 {formData.toExecutive && (
-                    <Popover open={toExecutiveOpen} onOpenChange={setToExecutiveOpen}>
-                        <PopoverTrigger asChild>
-                            <Button
-                                variant="outline"
-                                role="combobox"
-                                aria-expanded={toExecutiveOpen}
-                                className="w-full justify-between font-normal"
-                            >
-                                {toExecutiveSelection || "As per mapping"}
-                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                            <Command>
-                                <CommandInput placeholder="Search executive..." />
-                                <CommandList>
-                                    <CommandEmpty>No executive found.</CommandEmpty>
-                                    <CommandGroup>
-                                        <CommandItem
-                                            key="as-per-mapping"
-                                            value=""
-                                            onSelect={() => {
-                                                setToExecutiveSelection('');
-                                                setToExecutiveOpen(false);
-                                            }}
-                                        >
-                                            <Check
-                                                className={cn(
-                                                    "mr-2 h-4 w-4",
-                                                    !toExecutiveSelection ? "opacity-100" : "opacity-0"
-                                                )}
-                                            />
-                                            As per mapping
-                                        </CommandItem>
-                                        {executiveNames.map((name) => (
-                                            <CommandItem
-                                                key={name}
-                                                value={name}
-                                                onSelect={(currentValue) => {
-                                                    setToExecutiveSelection(currentValue.toLowerCase() === toExecutiveSelection.toLowerCase() ? '' : name);
-                                                    setToExecutiveOpen(false);
-                                                }}
-                                            >
-                                                <Check
-                                                    className={cn(
-                                                        "mr-2 h-4 w-4",
-                                                        toExecutiveSelection === name ? "opacity-100" : "opacity-0"
-                                                    )}
-                                                />
-                                                {name}
-                                            </CommandItem>
-                                        ))}
-                                    </CommandGroup>
-                                </CommandList>
-                            </Command>
-                        </PopoverContent>
-                    </Popover>
+                  <Select
+                    value={toExecutiveSelection}
+                    onValueChange={setToExecutiveSelection}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="As per mapping" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">As per mapping</SelectItem>
+                      {executiveNames.map((name) => (
+                        <SelectItem key={name} value={name}>
+                          {name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 )}
             </div>
         </div>
