@@ -71,6 +71,7 @@ export default function LeadsUpdatePage() {
   const [selectedExecutive, setSelectedExecutive] = useState('all');
   const [selectedLeadSource, setSelectedLeadSource] = useState('');
   const [leadSourceOpen, setLeadSourceOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState('all');
 
 
   /* ---------------- EFFECT ---------------- */
@@ -120,6 +121,10 @@ export default function LeadsUpdatePage() {
         tempLeads = tempLeads.filter(lead => lead.reference === selectedLeadSource);
     }
 
+    if (selectedProduct !== 'all') {
+        tempLeads = tempLeads.filter(lead => lead.selectedModule === selectedProduct);
+    }
+
     switch (tab) {
         case 'not-viewed':
             tempLeads = tempLeads.filter(lead => !lead.executiveViewDate);
@@ -150,7 +155,7 @@ export default function LeadsUpdatePage() {
 
   useEffect(() => {
     handleFilterAndTab(allLeads, activeTab, activeTab === 'search-result');
-  }, [activeTab, allLeads, selectedExecutive, selectedLeadSource]);
+  }, [activeTab, allLeads, selectedExecutive, selectedLeadSource, selectedProduct]);
 
   const handleShowButtonClick = () => {
     setActiveTab('search-result');
@@ -164,6 +169,7 @@ export default function LeadsUpdatePage() {
     setActiveTab('recent');
     setSelectedExecutive('all');
     setSelectedLeadSource('');
+    setSelectedProduct('all');
     setFilteredLeads(allLeads);
     setCurrentPage(1);
   };
@@ -299,10 +305,14 @@ export default function LeadsUpdatePage() {
                     </div>
                     <div className="space-y-1">
                       <Label>Product Name</Label>
-                      <Select>
+                      <Select value={selectedProduct} onValueChange={setSelectedProduct}>
                         <SelectTrigger><SelectValue placeholder="--All--" /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="all">All</SelectItem>
+                          <SelectItem value="all-hrms">All HRMS</SelectItem>
+                          <SelectItem value="module1">Module 1</SelectItem>
+                          <SelectItem value="module2">Module 2</SelectItem>
+                          <SelectItem value="module3">Module 3</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
