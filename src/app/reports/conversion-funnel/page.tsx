@@ -1,11 +1,16 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import ConversionFunnelChart from '@/components/reports/conversion-funnel-chart';
 import { useMemo, useState, useEffect } from 'react';
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import AppContent from '@/app/app-content';
 import { useAuth } from '@/context/auth-context';
+import dynamic from 'next/dynamic';
+
+const ConversionFunnelChart = dynamic(
+  () => import('@/components/reports/conversion-funnel-chart'),
+  { ssr: false, loading: () => <div className="h-[400px] w-full flex items-center justify-center"><p>Loading Chart...</p></div> }
+);
 
 const funnelStages = [
   'Total Leads',

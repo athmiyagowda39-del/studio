@@ -8,13 +8,18 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
-import LeadPerformanceChart from '@/components/dashboard/lead-performance-chart';
 import { useState, useMemo, useEffect } from 'react';
 import { startOfDay, endOfDay, getDay, format as formatDate, eachDayOfInterval, getMonth, getYear, startOfMonth, endOfMonth } from 'date-fns';
 import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
 import AppContent from '../app-content';
 import LeadPerformanceFilters from '@/components/dashboard/lead-performance-filters';
+import dynamic from 'next/dynamic';
+
+const LeadPerformanceChart = dynamic(
+  () => import('@/components/dashboard/lead-performance-chart'),
+  { ssr: false, loading: () => <div className="h-[300px] w-full flex items-center justify-center"><p>Loading Chart...</p></div> }
+);
 
 const getLeadsFromLocalStorage = (): LeadFormData[] => {
   if (typeof window !== 'undefined') {
