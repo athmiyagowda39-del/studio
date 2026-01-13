@@ -79,8 +79,8 @@ export type LeadFormData = {
   initialRemarks?: string;
 };
 
-const sectors = ['IT', 'Finance', 'Healthcare', 'Manufacturing', 'Education', 'Retail', 'Hospitality', 'Telecommunication', 'Construction', 'Real Estate', 'Media & Entertainment', 'Government', 'Non-profit', 'Other'];
-const references = ['Social Media', 'Google Search', 'Advertisement', 'Referral', 'Website', 'Email Marketing', 'Cold Call', 'Event/Trade Show', 'Webinar', 'Direct Mail', 'Partner', 'Word of Mouth', 'Other'];
+const sectors = ['All', 'IT', 'Finance', 'Healthcare', 'Manufacturing', 'Education', 'Retail', 'Hospitality', 'Telecommunication', 'Construction', 'Real Estate', 'Media & Entertainment', 'Government', 'Non-profit', 'Other'];
+const references = ['All', 'Social Media', 'Google Search', 'Advertisement', 'Referral', 'Website', 'Email Marketing', 'Cold Call', 'Event/Trade Show', 'Webinar', 'Direct Mail', 'Partner', 'Word of Mouth', 'Other'];
 
 
 const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId' | 'givenBy'> = {
@@ -473,21 +473,6 @@ export default function LeadUploadForm() {
                   <CommandList>
                     <CommandEmpty>No reference found.</CommandEmpty>
                     <CommandGroup>
-                        <CommandItem
-                            value="all"
-                            onSelect={() => {
-                                handleSelectChange('reference', 'All');
-                                setReferenceOpen(false);
-                            }}
-                            >
-                            <Check
-                                className={cn(
-                                "mr-2 h-4 w-4",
-                                formData.reference === 'All' ? "opacity-100" : "opacity-0"
-                                )}
-                            />
-                            All
-                        </CommandItem>
                       {references.map((ref) => (
                         <CommandItem
                           key={ref}
@@ -537,21 +522,6 @@ export default function LeadUploadForm() {
                   <CommandList>
                     <CommandEmpty>No sector found.</CommandEmpty>
                     <CommandGroup>
-                        <CommandItem
-                            value="all"
-                            onSelect={() => {
-                                handleSelectChange('sector', 'All');
-                                setSectorOpen(false);
-                            }}
-                            >
-                            <Check
-                                className={cn(
-                                "mr-2 h-4 w-4",
-                                formData.sector === 'All' ? "opacity-100" : "opacity-0"
-                                )}
-                            />
-                            All
-                        </CommandItem>
                       {sectors.map((sector) => (
                         <CommandItem
                           key={sector}
@@ -617,21 +587,6 @@ export default function LeadUploadForm() {
                   <CommandList>
                     <CommandEmpty>No executive found.</CommandEmpty>
                     <CommandGroup>
-                        <CommandItem
-                            value="all"
-                            onSelect={() => {
-                                handleSelectChange('executive', 'All');
-                                setExecutiveOpen(false);
-                            }}
-                            >
-                            <Check
-                                className={cn(
-                                "mr-2 h-4 w-4",
-                                formData.executive === 'All' ? "opacity-100" : "opacity-0"
-                                )}
-                            />
-                            All
-                        </CommandItem>
                       {executiveNames.map((name) => (
                         <CommandItem
                           key={name}
