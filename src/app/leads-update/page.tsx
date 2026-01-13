@@ -426,12 +426,14 @@ export default function LeadsUpdatePage() {
                       <Select>
                         <SelectTrigger><SelectValue placeholder="--All--" /></SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="all">All</SelectItem>
-                           {leadSubStatusOptions.map(status => (
-                            <SelectItem key={status} value={status}>
-                              {status}
-                            </SelectItem>
-                          ))}
+                            <ScrollArea className="h-48">
+                                <SelectItem value="all">All</SelectItem>
+                                {leadSubStatusOptions.map(status => (
+                                <SelectItem key={status} value={status}>
+                                    {status}
+                                </SelectItem>
+                                ))}
+                            </ScrollArea>
                         </SelectContent>
                       </Select>
                     </div>
