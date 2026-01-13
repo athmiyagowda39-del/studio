@@ -33,11 +33,13 @@ import {
 } from '@/components/ui/collapsible';
 import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
+import { useUsers } from '@/context/users-context';
 
 export default function ProfileCard() {
   const { toast } = useToast();
   const [userAvatar, setUserAvatar] = useState<ImagePlaceholder | undefined>();
   const { user, logout } = useAuth();
+  const { users, updateUser } = useUsers();
   const router = useRouter();
 
   const userName = user?.username ? user.username.toUpperCase() : 'USER';
@@ -64,6 +66,21 @@ export default function ProfileCard() {
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!user) return;
+
+    const currentUserData = users.find(u => u.username.toLowerCase() === user.username.toLowerCase());
+
+    if (!currentUserData) {
+       toast({ variant: 'destructive', title: 'Error', description: 'Could not find current user data.' });
+       return;
+    }
+
+    if (currentUserData.password !== currentPassword) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Current password does not match.' });
+      return;
+    }
+
     if (newPassword !== confirmPassword) {
       toast({
         variant: 'destructive',
@@ -73,10 +90,13 @@ export default function ProfileCard() {
       return;
     }
     
+    updateUser(currentUserData.id, { password: newPassword });
+    
     toast({
       title: 'Password Changed',
       description: 'Your password has been successfully updated.',
     });
+
     setCurrentPassword('');
     setNewPassword('');
     setConfirmPassword('');
@@ -119,7 +139,10 @@ export default function ProfileCard() {
             </CollapsibleTrigger>
             <CollapsibleContent>
               <div className="p-4 text-center text-sm text-muted-foreground">
-                Username: {userName}
+                Username: {user?.username}
+              </div>
+               <div className="p-4 text-center text-sm text-muted-foreground">
+                Role: {user?.role}
               </div>
             </CollapsibleContent>
           </Collapsible>
