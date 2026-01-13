@@ -25,12 +25,21 @@ import { useUsers, type AppUser } from '@/context/users-context';
 import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Pencil } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+  DialogClose,
+} from '@/components/ui/dialog';
 
 export default function UsersPage() {
   const { user: currentUser, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
-  const { users, addUser } = useUsers();
+  const { users, addUser, updateUser } = useUsers();
   const { toast } = useToast();
 
   const [newUsername, setNewUsername] = useState('');
@@ -38,6 +47,13 @@ export default function UsersPage() {
   const [newRole, setNewRole] = useState<'Admin' | 'Executive'>('Executive');
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [passwordVisibility, setPasswordVisibility] = useState<Record<string, boolean>>({});
+
+  const [editingUser, setEditingUser] = useState<AppUser | null>(null);
+  const [editUsername, setEditUsername] = useState('');
+  const [editPassword, setEditPassword] = useState('');
+  const [editRole, setEditRole] = useState<'Admin' | 'Executive'>('Executive');
+  const [showEditPassword, setShowEditPassword] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   useEffect(() => {
     if (!isLoading && (!isAuthenticated || currentUser?.role !== 'Admin')) {
@@ -77,6 +93,52 @@ export default function UsersPage() {
     setNewRole('Executive');
     setShowNewPassword(false);
   };
+
+  const handleEditUserClick = (user: AppUser) => {
+    setEditingUser(user);
+    setEditUsername(user.username);
+    setEditPassword(user.password || '');
+    setEditRole(user.role);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateUser = () => {
+    if (!editingUser) return;
+
+    if (!editUsername.trim() || !editPassword.trim()) {
+      toast({
+        variant: 'destructive',
+        title: 'Validation Error',
+        description: 'Username and password cannot be empty.',
+      });
+      return;
+    }
+
+    // Check if username is being changed to one that already exists (and is not the current user)
+    if (users.some(u => u.username.toLowerCase() === editUsername.toLowerCase() && u.id !== editingUser.id)) {
+        toast({
+            variant: 'destructive',
+            title: 'Validation Error',
+            description: 'Username already exists.',
+        });
+        return;
+    }
+    
+    updateUser(editingUser.id, {
+      username: editUsername,
+      role: editRole,
+      password: editPassword,
+    });
+    
+    toast({
+      title: 'User Updated',
+      description: `User "${editUsername}" has been successfully updated.`,
+    });
+    
+    setIsEditDialogOpen(false);
+    setEditingUser(null);
+  };
+
 
   const togglePasswordVisibility = (userId: string) => {
     setPasswordVisibility(prev => ({ ...prev, [userId]: !prev[userId] }));
@@ -153,6 +215,7 @@ export default function UsersPage() {
                         <TableHead>Username</TableHead>
                         <TableHead>Role</TableHead>
                         <TableHead>Password</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -179,6 +242,12 @@ export default function UsersPage() {
                                      </Button>
                                 </div>
                             </TableCell>
+                            <TableCell className="text-right">
+                                <Button variant="ghost" size="icon" onClick={() => handleEditUserClick(user)}>
+                                    <Pencil className="h-4 w-4" />
+                                    <span className="sr-only">Edit User</span>
+                                </Button>
+                            </TableCell>
                         </TableRow>
                         ))}
                     </TableBody>
@@ -189,6 +258,74 @@ export default function UsersPage() {
           </CardContent>
         </Card>
       </div>
+
+       {/* Edit User Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit User</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-username" className="text-right">
+                Username
+              </Label>
+              <Input
+                id="edit-username"
+                value={editUsername}
+                onChange={(e) => setEditUsername(e.target.value)}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-password" className="text-right">
+                Password
+              </Label>
+               <div className="col-span-3 relative">
+                <Input
+                    id="edit-password"
+                    type={showEditPassword ? 'text' : 'password'}
+                    value={editPassword}
+                    onChange={(e) => setEditPassword(e.target.value)}
+                />
+                 <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground"
+                    onClick={() => setShowEditPassword(p => !p)}
+                >
+                    {showEditPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                    ) : (
+                    <Eye className="h-4 w-4" />
+                    )}
+                </Button>
+               </div>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-role" className="text-right">
+                Role
+              </Label>
+              <Select value={editRole} onValueChange={(value: 'Admin' | 'Executive') => setEditRole(value)}>
+                <SelectTrigger id="edit-role" className="col-span-3">
+                  <SelectValue placeholder="Select a role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Executive">Executive</SelectItem>
+                  <SelectItem value="Admin">Admin</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+                <Button type="button" variant="secondary">Cancel</Button>
+            </DialogClose>
+            <Button onClick={handleUpdateUser}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AppContent>
   );
 }

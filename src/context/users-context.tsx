@@ -12,7 +12,7 @@ export type AppUser = {
 type UsersContextType = {
   users: AppUser[];
   addUser: (user: Omit<AppUser, 'id'>) => void;
-  // In the future, we can add updateUser and deleteUser
+  updateUser: (id: string, updates: Partial<Omit<AppUser, 'id'>>) => void;
 };
 
 const UsersContext = createContext<UsersContextType | undefined>(undefined);
@@ -68,9 +68,20 @@ export function UsersProvider({ children }: { children: ReactNode }) {
     window.dispatchEvent(new StorageEvent('storage', { key: 'appUsers' }));
   };
 
+  const updateUser = (id: string, updates: Partial<Omit<AppUser, 'id'>>) => {
+    const updatedUsers = users.map(user => 
+      user.id === id ? { ...user, ...updates } : user
+    );
+    setUsers(updatedUsers);
+    localStorage.setItem('appUsers', JSON.stringify(updatedUsers));
+    window.dispatchEvent(new StorageEvent('storage', { key: 'appUsers' }));
+  };
+
+
   const value = {
     users,
     addUser,
+    updateUser,
   };
 
   return <UsersContext.Provider value={value}>{children}</UsersContext.Provider>;
