@@ -39,7 +39,7 @@ const leadSources = [
     "Email Campaign", "WhatsApp Campaign", "Walk-in", "Telecalling", "Events / Trade Shows", "Webinars",
     "Channel Partner", "Reseller", "Distributor", "Existing Customer", "Upselling", "Cross-selling",
     "Marketplace (Justdial / IndiaMART)", "Third-party Data", "Outdoor Marketing", "Newspaper Ads",
-    "TV / Radio Ads", "Direct Sales", "Field Sales", "Franchise", "Customer Support", "Demo Request", "Trial Signup"
+    "TV / Radio Ads", "Direct Sales", "Field Sales", "Franchise", "Customer Support", "Demo Request", "Trial Signup", "Job Portal"
 ];
 
 /* ---------------- HELPERS ---------------- */
@@ -358,7 +358,7 @@ export default function LeadsUpdatePage() {
                                 <CommandGroup>
                                     <ScrollArea className="h-48">
                                     <CommandItem
-                                        value="all"
+                                        value=""
                                         onSelect={() => {
                                             setSelectedLeadSource('');
                                             setLeadSourceOpen(false);
@@ -372,7 +372,8 @@ export default function LeadsUpdatePage() {
                                         key={source}
                                         value={source}
                                         onSelect={(currentValue) => {
-                                            setSelectedLeadSource(currentValue === selectedLeadSource ? "" : source);
+                                            const sourceValue = leadSources.find(s => s.toLowerCase() === currentValue);
+                                            setSelectedLeadSource(sourceValue === selectedLeadSource ? "" : sourceValue || "");
                                             setLeadSourceOpen(false);
                                         }}
                                     >
