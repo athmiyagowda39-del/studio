@@ -17,7 +17,7 @@ import { Eye, EyeOff, Target } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function LoginPage() {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuth();
@@ -28,7 +28,7 @@ export default function LoginPage() {
     e.preventDefault();
     
     const foundUser = users.find(
-      (user) => user.username.toLowerCase() === username.toLowerCase() && user.password === password
+      (user) => user.username.toLowerCase() === email.toLowerCase() && user.password === password
     );
 
     if (foundUser) {
@@ -41,7 +41,7 @@ export default function LoginPage() {
       toast({
         variant: 'destructive',
         title: 'Login Failed',
-        description: 'Invalid username or password.',
+        description: 'Invalid email or password.',
       });
     }
   };
@@ -62,13 +62,13 @@ export default function LoginPage() {
         <CardContent>
           <form onSubmit={handleLogin} className="grid gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
-                id="username"
+                id="email"
                 type="text"
-                placeholder="Enter your username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
