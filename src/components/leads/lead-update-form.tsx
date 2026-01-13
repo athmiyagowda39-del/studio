@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Input } from '@/components/ui/input';
@@ -31,6 +32,7 @@ import {
 import type { LeadFormData } from './lead-upload-form';
 import { ScrollArea } from '../ui/scroll-area';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '../ui/table';
+import { useUsers } from '@/context/users-context';
 
 type FollowUp = {
   id: number;
@@ -59,15 +61,6 @@ const leadStatusOptions = [
     'Proposal Sent',
 ];
 
-const executiveIds = [
-    'EXEC-001',
-    'EXEC-002',
-    'EXEC-003',
-    'EXEC-004',
-    'EXEC-005',
-    'EXEC-006'
-];
-
 const saveLeadsToLocalStorage = (leads: LeadFormData[]) => {
   if (typeof window !== 'undefined') {
     localStorage.setItem('allLeads', JSON.stringify(leads));
@@ -93,6 +86,15 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
   const [initialRemarks, setInitialRemarks] = useState('');
   
   const { toast } = useToast();
+  const { users } = useUsers();
+  const [executives, setExecutives] = useState<string[]>([]);
+
+   useEffect(() => {
+    const executiveUsers = users
+      .filter(user => user.role === 'Executive')
+      .map(user => user.username);
+    setExecutives(executiveUsers);
+  }, [users]);
 
    useEffect(() => {
     if (leadId) {
@@ -431,7 +433,8 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
                   <SelectValue placeholder="Select Executive ID..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {executiveIds.map((execId) => (
+                  <SelectItem value="all">All</SelectItem>
+                  {executives.map((execId) => (
                     <SelectItem key={execId} value={execId}>
                       {execId}
                     </SelectItem>
@@ -566,5 +569,7 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
     </div>
   );
 }
+
+    
 
     
