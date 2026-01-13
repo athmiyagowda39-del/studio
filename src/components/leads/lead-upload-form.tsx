@@ -473,6 +473,21 @@ export default function LeadUploadForm() {
                   <CommandList>
                     <CommandEmpty>No reference found.</CommandEmpty>
                     <CommandGroup>
+                        <CommandItem
+                            value="all"
+                            onSelect={() => {
+                                handleSelectChange('reference', 'All');
+                                setReferenceOpen(false);
+                            }}
+                            >
+                            <Check
+                                className={cn(
+                                "mr-2 h-4 w-4",
+                                formData.reference === 'All' ? "opacity-100" : "opacity-0"
+                                )}
+                            />
+                            All
+                        </CommandItem>
                       {references.map((ref) => (
                         <CommandItem
                           key={ref}
@@ -522,6 +537,21 @@ export default function LeadUploadForm() {
                   <CommandList>
                     <CommandEmpty>No sector found.</CommandEmpty>
                     <CommandGroup>
+                        <CommandItem
+                            value="all"
+                            onSelect={() => {
+                                handleSelectChange('sector', 'All');
+                                setSectorOpen(false);
+                            }}
+                            >
+                            <Check
+                                className={cn(
+                                "mr-2 h-4 w-4",
+                                formData.sector === 'All' ? "opacity-100" : "opacity-0"
+                                )}
+                            />
+                            All
+                        </CommandItem>
                       {sectors.map((sector) => (
                         <CommandItem
                           key={sector}
@@ -587,6 +617,21 @@ export default function LeadUploadForm() {
                   <CommandList>
                     <CommandEmpty>No executive found.</CommandEmpty>
                     <CommandGroup>
+                        <CommandItem
+                            value="all"
+                            onSelect={() => {
+                                handleSelectChange('executive', 'All');
+                                setExecutiveOpen(false);
+                            }}
+                            >
+                            <Check
+                                className={cn(
+                                "mr-2 h-4 w-4",
+                                formData.executive === 'All' ? "opacity-100" : "opacity-0"
+                                )}
+                            />
+                            All
+                        </CommandItem>
                       {executiveNames.map((name) => (
                         <CommandItem
                           key={name}
