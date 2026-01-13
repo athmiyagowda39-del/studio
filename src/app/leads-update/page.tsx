@@ -61,6 +61,43 @@ const leadStatusOptions = [
     'Proposal Sent',
 ];
 
+const leadSubStatusOptions = [
+    'pricing issue',
+    'other',
+    'requirement doesnot match',
+    'Budget not available',
+    'Price too high',
+    'Not the right time',
+    'No current requirement',
+    'Already using another product',
+    'Satisfied with existing vendor',
+    'Requirement already fulfilled',
+    'Features not matching',
+    'Product not relevant',
+    'Need management approval',
+    'Not the decision maker',
+    'Project postponed',
+    'Just exploring',
+    'Only for information',
+    'Not convinced',
+    'Competitor offering better deal',
+    'Contract already signed',
+    'Support concerns',
+    'Quality concerns',
+    'Integration issues',
+    'Customization not available',
+    'Service not available in location',
+    'Delivery issues',
+    'Not reachable',
+    'Not responding',
+    'Call back later',
+    'Wrong contact details',
+    'Busy now',
+    'Language barrier',
+    'Business closed',
+];
+
+
 /* ---------------- HELPERS ---------------- */
 
 const getLeadsFromLocalStorage = (): LeadFormData[] => {
@@ -390,7 +427,7 @@ export default function LeadsUpdatePage() {
                         <SelectTrigger><SelectValue placeholder="--All--" /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="all">All</SelectItem>
-                           {leadStatusOptions.map(status => (
+                           {leadSubStatusOptions.map(status => (
                             <SelectItem key={status} value={status}>
                               {status}
                             </SelectItem>
