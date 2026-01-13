@@ -480,48 +480,18 @@ export default function LeadUploadForm() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="sector">Sector</Label>
-            <Popover open={sectorOpen} onOpenChange={setSectorOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={sectorOpen}
-                  className="w-full justify-between font-normal capitalize"
-                >
-                  {formData.sector ? sectors.find(s => s.toLowerCase() === formData.sector.toLowerCase()) || "Select Sector..." : "Select Sector..."}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                <Command>
-                  <CommandInput placeholder="Search sector..." />
-                  <CommandList>
-                    <CommandEmpty>No sector found.</CommandEmpty>
-                    <CommandGroup>
-                      {sectors.map((sector) => (
-                        <CommandItem
-                          key={sector}
-                          value={sector.toLowerCase()}
-                          onSelect={(currentValue) => {
-                            const selectedSector = sectors.find(s => s.toLowerCase() === currentValue);
-                            handleSelectChange('sector', selectedSector === formData.sector ? '' : selectedSector || '')
-                            setSectorOpen(false)
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              formData.sector === sector ? "opacity-100" : "opacity-0"
-                            )}
-                          />
-                          {sector}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
+            <Select value={formData.sector} onValueChange={(value) => handleSelectChange('sector', value)}>
+                <SelectTrigger id="sector">
+                    <SelectValue placeholder="Select Sector..."/>
+                </SelectTrigger>
+                <SelectContent>
+                    {sectors.map((sector) => (
+                        <SelectItem key={sector} value={sector.toLowerCase()}>
+                            {sector}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
           </div>
           
           <div className="space-y-2">
