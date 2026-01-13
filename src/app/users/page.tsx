@@ -43,6 +43,7 @@ export default function UsersPage() {
   const { toast } = useToast();
 
   const [newUsername, setNewUsername] = useState('');
+  const [newEmail, setNewEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newRole, setNewRole] = useState<'Admin' | 'Executive'>('Executive');
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -50,6 +51,7 @@ export default function UsersPage() {
 
   const [editingUser, setEditingUser] = useState<AppUser | null>(null);
   const [editUsername, setEditUsername] = useState('');
+  const [editEmail, setEditEmail] = useState('');
   const [editPassword, setEditPassword] = useState('');
   const [editRole, setEditRole] = useState<'Admin' | 'Executive'>('Executive');
   const [showEditPassword, setShowEditPassword] = useState(false);
@@ -66,29 +68,30 @@ export default function UsersPage() {
   }
   
   const handleAddUser = () => {
-    if (!newUsername.trim() || !newPassword.trim()) {
+    if (!newUsername.trim() || !newPassword.trim() || !newEmail.trim()) {
       toast({
         variant: 'destructive',
         title: 'Validation Error',
-        description: 'Username and password cannot be empty.',
+        description: 'Username, Email, and password cannot be empty.',
       });
       return;
     }
-    if(users.some(u => u.username.toLowerCase() === newUsername.toLowerCase())) {
+    if(users.some(u => u.username.toLowerCase() === newUsername.toLowerCase() || u.email.toLowerCase() === newEmail.toLowerCase())) {
         toast({
             variant: 'destructive',
             title: 'Validation Error',
-            description: 'Username already exists.',
+            description: 'Username or Email already exists.',
         });
         return;
     }
 
-    addUser({ username: newUsername, role: newRole, password: newPassword });
+    addUser({ username: newUsername, email: newEmail, role: newRole, password: newPassword });
     toast({
       title: 'User Added',
       description: `User "${newUsername}" has been added with the role "${newRole}".`,
     });
     setNewUsername('');
+    setNewEmail('');
     setNewPassword('');
     setNewRole('Executive');
     setShowNewPassword(false);
@@ -97,6 +100,7 @@ export default function UsersPage() {
   const handleEditUserClick = (user: AppUser) => {
     setEditingUser(user);
     setEditUsername(user.username);
+    setEditEmail(user.email);
     setEditPassword(user.password || '');
     setEditRole(user.role);
     setIsEditDialogOpen(true);
@@ -105,27 +109,28 @@ export default function UsersPage() {
   const handleUpdateUser = () => {
     if (!editingUser) return;
 
-    if (!editUsername.trim() || !editPassword.trim()) {
+    if (!editUsername.trim() || !editPassword.trim() || !editEmail.trim()) {
       toast({
         variant: 'destructive',
         title: 'Validation Error',
-        description: 'Username and password cannot be empty.',
+        description: 'Username, Email, and password cannot be empty.',
       });
       return;
     }
 
     // Check if username is being changed to one that already exists (and is not the current user)
-    if (users.some(u => u.username.toLowerCase() === editUsername.toLowerCase() && u.id !== editingUser.id)) {
+    if (users.some(u => (u.username.toLowerCase() === editUsername.toLowerCase() || u.email.toLowerCase() === editEmail.toLowerCase()) && u.id !== editingUser.id)) {
         toast({
             variant: 'destructive',
             title: 'Validation Error',
-            description: 'Username already exists.',
+            description: 'Username or email already exists.',
         });
         return;
     }
     
     updateUser(editingUser.id, {
       username: editUsername,
+      email: editEmail,
       role: editRole,
       password: editPassword,
     });
@@ -155,14 +160,24 @@ export default function UsersPage() {
             {/* Add User Form */}
             <div className="space-y-4">
               <h2 className="text-lg font-semibold">Add New User</h2>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
                 <div className="space-y-2">
                   <Label htmlFor="username">Username</Label>
                   <Input
                     id="username"
                     value={newUsername}
                     onChange={(e) => setNewUsername(e.target.value)}
-                    placeholder="Enter new username"
+                    placeholder="Enter username"
+                  />
+                </div>
+                 <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={newEmail}
+                    onChange={(e) => setNewEmail(e.target.value)}
+                    placeholder="Enter email"
                   />
                 </div>
                  <div className="space-y-2 relative">
@@ -213,6 +228,7 @@ export default function UsersPage() {
                     <TableHeader>
                         <TableRow>
                         <TableHead>Username</TableHead>
+                        <TableHead>Email</TableHead>
                         <TableHead>Role</TableHead>
                         <TableHead>Password</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
@@ -222,6 +238,7 @@ export default function UsersPage() {
                         {users.map((user) => (
                         <TableRow key={user.id}>
                             <TableCell>{user.username}</TableCell>
+                            <TableCell>{user.email}</TableCell>
                             <TableCell>{user.role}</TableCell>
                             <TableCell>
                                 <div className="flex items-center gap-2">
@@ -274,6 +291,17 @@ export default function UsersPage() {
                 id="edit-username"
                 value={editUsername}
                 onChange={(e) => setEditUsername(e.target.value)}
+                className="col-span-3"
+              />
+            </div>
+             <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-email" className="text-right">
+                Email
+              </Label>
+              <Input
+                id="edit-email"
+                value={editEmail}
+                onChange={(e) => setEditEmail(e.target.value)}
                 className="col-span-3"
               />
             </div>

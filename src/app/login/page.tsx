@@ -27,13 +27,12 @@ export default function LoginPage() {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     
-    const username = email.split('@')[0];
     const foundUser = users.find(
-      (user) => user.username.toLowerCase() === username.toLowerCase() && user.password === password
+      (user) => user.email.toLowerCase() === email.toLowerCase() && user.password === password
     );
 
     if (foundUser) {
-      login({ username: foundUser.username, role: foundUser.role });
+      login({ username: foundUser.username, role: foundUser.role, email: foundUser.email });
       toast({
         title: 'Login Successful',
         description: 'Welcome back!',

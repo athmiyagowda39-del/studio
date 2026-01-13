@@ -5,6 +5,7 @@ import React, { createContext, useContext, useState, ReactNode, useEffect } from
 export type AppUser = {
   id: string;
   username: string;
+  email: string;
   role: 'Admin' | 'Executive';
   password?: string;
 };
@@ -18,13 +19,13 @@ type UsersContextType = {
 const UsersContext = createContext<UsersContextType | undefined>(undefined);
 
 const defaultUsers: AppUser[] = [
-    { id: 'user-1', username: 'Athmiya.ag', role: 'Admin', password: 'Athmiya@123' },
-    { id: 'user-2', username: 'Luke.rajkumar', role: 'Admin', password: 'Luke@123' },
-    { id: 'user-3', username: 'Varghese', role: 'Admin', password: 'Varghese@123' },
-    { id: 'user-4', username: 'sam.devasia', role: 'Admin', password: 'SamDev@456' },
-    { id: 'user-5', username: 'yathish.g', role: 'Executive', password: 'Yathish@789' },
-    { id: 'user-6', username: 'Mandanna.n', role: 'Executive', password: 'Mandanna@101' },
-    { id: 'user-7', username: 'hukum', role: 'Executive', password: 'Hukum@112' },
+    { id: 'user-1', username: 'Athmiya.ag', email: 'Athmiya.ag@peopleworks.in', role: 'Admin', password: 'Athmiya@123' },
+    { id: 'user-2', username: 'Luke.rajkumar', email: 'Luke.rajkumar@peopleworks.in', role: 'Admin', password: 'Luke@123' },
+    { id: 'user-3', username: 'Varghese', email: 'Varghese@peopleworks.in', role: 'Admin', password: 'Varghese@123' },
+    { id: 'user-4', username: 'sam.devasia', email: 'sam.devasia@peopleworks.in', role: 'Admin', password: 'SamDev@456' },
+    { id: 'user-5', username: 'yathish.g', email: 'yathish.g@peopleworks.in', role: 'Executive', password: 'Yathish@789' },
+    { id: 'user-6', username: 'Mandanna.n', email: 'Mandanna.n@peopleworks.in', role: 'Executive', password: 'Mandanna@101' },
+    { id: 'user-7', username: 'hukum', email: 'hukum@peopleworks.in', role: 'Executive', password: 'Hukum@112' },
 ];
 
 

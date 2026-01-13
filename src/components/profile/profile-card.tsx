@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Lock, LogOut, User as UserIcon } from 'lucide-react';
+import { Lock, LogOut, User as UserIcon, Mail } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -26,11 +26,6 @@ import Image from 'next/image';
 import type { ImagePlaceholder } from '@/lib/placeholder-images.d';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Separator } from '@/components/ui/separator';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
 import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
 import { useUsers } from '@/context/users-context';
@@ -43,6 +38,7 @@ export default function ProfileCard() {
   const router = useRouter();
 
   const userName = user?.username ? user.username.toUpperCase() : 'USER';
+  const userEmail = user?.email || 'N/A';
 
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -124,29 +120,26 @@ export default function ProfileCard() {
             )}
           </Avatar>
           <CardTitle className="text-2xl">{userName}</CardTitle>
+          <p className="text-sm text-muted-foreground">{userEmail}</p>
         </CardHeader>
-        <CardContent className="p-6 space-y-4">
+        <CardContent className="p-6 space-y-2">
           <Separator />
-          <Collapsible>
-            <CollapsibleTrigger asChild>
-              <Button
-                variant="ghost"
-                className="w-full justify-start text-base"
-              >
-                <UserIcon className="mr-3 h-5 w-5" />
-                Profile
-              </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <div className="p-4 text-center text-sm text-muted-foreground">
-                Username: {user?.username}
-              </div>
-               <div className="p-4 text-center text-sm text-muted-foreground">
-                Role: {user?.role}
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
+          
+          <div className="py-2">
+            <div className="flex items-center text-sm">
+                <UserIcon className="mr-3 h-5 w-5 text-muted-foreground" />
+                <span className="font-medium">Username:</span>
+                <span className="ml-2">{user?.username}</span>
+            </div>
+            <div className="flex items-center mt-2 text-sm">
+                <Mail className="mr-3 h-5 w-5 text-muted-foreground" />
+                <span className="font-medium">Role:</span>
+                <span className="ml-2">{user?.role}</span>
+            </div>
+          </div>
+          
           <Separator />
+          
           <Dialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>
             <DialogTrigger asChild>
               <Button
