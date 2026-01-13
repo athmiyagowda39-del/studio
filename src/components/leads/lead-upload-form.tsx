@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Check, ChevronsUpDown, UploadCloud } from 'lucide-react';
+import { UploadCloud } from 'lucide-react';
 import { Card, CardContent } from '../ui/card';
 import { useState, useRef, useEffect } from 'react';
 import * as XLSX from 'xlsx';
@@ -23,20 +23,6 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command';
-import { cn } from '@/lib/utils';
 import { Textarea } from '../ui/textarea';
 import type { AppUser } from '@/context/users-context';
 import { Checkbox } from '../ui/checkbox';
@@ -147,11 +133,7 @@ const getNextLeadId = (): string => {
 
 export default function LeadUploadForm() {
   const [formData, setFormData] = useState<Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId' | 'givenBy'>>(initialFormState);
-  const [sectorOpen, setSectorOpen] = useState(false);
-  const [executiveOpen, setExecutiveOpen] = useState(false);
-  const [referenceOpen, setReferenceOpen] = useState(false);
   const [toExecutiveSelection, setToExecutiveSelection] = useState('');
-  const [toExecutiveOpen, setToExecutiveOpen] = useState(false);
   const [executiveNames, setExecutiveNames] = useState<string[]>([]);
 
 
@@ -461,18 +443,7 @@ export default function LeadUploadForm() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="reference">Reference</Label>
-            <Select value={formData.reference} onValueChange={(value) => handleSelectChange('reference', value)}>
-              <SelectTrigger id="reference">
-                <SelectValue placeholder="Select Reference..." />
-              </SelectTrigger>
-              <SelectContent>
-                {references.map((reference) => (
-                    <SelectItem key={reference} value={reference}>
-                        {reference}
-                    </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+             <Input id="reference" value={formData.reference} onChange={handleInputChange} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="headcount">Company headcount</Label>
@@ -555,7 +526,7 @@ export default function LeadUploadForm() {
                       <SelectValue placeholder="As per mapping" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">As per mapping</SelectItem>
+                      <SelectItem value="as-per-mapping">As per mapping</SelectItem>
                       {executiveNames.map((name) => (
                         <SelectItem key={name} value={name}>
                           {name}
