@@ -52,7 +52,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsAuthenticated(false);
     // By clearing the entire local storage on logout, we ensure no stale data persists.
     localStorage.clear(); 
-    router.push('/login');
+    // Force a full page reload to clear all component state
+    window.location.href = '/login';
   };
 
   const value = {
