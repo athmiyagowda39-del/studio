@@ -80,7 +80,7 @@ export default function LeadsUpdatePage() {
       if (searchTerm.trim() !== '') {
         tempLeads = tempLeads.filter(lead => {
           const leadValue = (lead[searchCategory as keyof LeadFormData] as string)?.toString().toLowerCase() || '';
-          return leadValue.includes(searchTerm.toLowerCase());
+          return leadValue.startsWith(searchTerm.toLowerCase());
         });
       }
     }
