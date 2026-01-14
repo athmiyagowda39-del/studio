@@ -1,10 +1,9 @@
+
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { onAuthStateChanged, signInWithEmailAndPassword, signOut, User as FirebaseUser } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
-import { useUsers, AppUser } from './users-context';
+import { useUsers } from './users-context';
 
 type User = {
   username: string;
@@ -15,7 +14,6 @@ type User = {
 type AuthContextType = {
   isAuthenticated: boolean;
   user: User | null;
-  firebaseUser: FirebaseUser | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
@@ -25,61 +23,66 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
-  const { users } = useUsers(); 
+  const { users } = useUsers();
 
+  // Restore session from localStorage
   useEffect(() => {
-    const localUserJson = typeof window !== 'undefined' ? localStorage.getItem('loggedInUser') : null;
-    if (localUserJson) {
-      const localUser = JSON.parse(localUserJson);
-      setUser(localUser);
+    const storedUser = localStorage.getItem('loggedInUser');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
     }
     setIsLoading(false);
   }, []);
 
-
+  // LOCAL LOGIN
   const login = async (email: string, password: string) => {
-    const foundUser = users.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
-    if (foundUser) {
-        const userToSave = {
-            username: foundUser.username,
-            role: foundUser.role,
-            email: foundUser.email,
-        };
-        localStorage.setItem('loggedInUser', JSON.stringify(userToSave));
-        setUser(userToSave);
-        router.push('/dashboard');
-    } else {
-        throw new Error("Invalid email or password");
+    const foundUser = users.find(
+      u =>
+        u.email.toLowerCase() === email.toLowerCase() &&
+        u.password === password
+    );
+
+    if (!foundUser) {
+      throw new Error('Invalid email or password');
     }
+
+    const loggedInUser: User = {
+      username: foundUser.username,
+      role: foundUser.role,
+      email: foundUser.email,
+    };
+
+    localStorage.setItem('loggedInUser', JSON.stringify(loggedInUser));
+    setUser(loggedInUser);
+    router.push('/dashboard');
   };
 
-  const logout = async () => {
+  const logout = () => {
     localStorage.removeItem('loggedInUser');
-    localStorage.removeItem('lastLoginDate');
     setUser(null);
-    setFirebaseUser(null);
-    // A full reload can also help ensure clean state.
-    window.location.href = '/login';
+    router.push('/login');
   };
 
-  const value = {
-    isAuthenticated: !!user,
-    user,
-    firebaseUser,
-    isLoading,
-    login,
-    logout,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider
+      value={{
+        isAuthenticated: !!user,
+        user,
+        isLoading,
+        login,
+        logout,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
