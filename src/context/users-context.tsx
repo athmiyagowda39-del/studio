@@ -23,7 +23,7 @@ type UsersContextType = {
 const UsersContext = createContext<UsersContextType | undefined>(undefined);
 
 const defaultUsers: AppUser[] = [
-    { id: 'user-1', username: 'Athmiya.ag', email: 'Athmiya.ag@peopleworks.in', role: 'Admin', password: 'Athmiya@123' },
+    { id: 'user-1', username: 'Athmiya.ag', email: 'athmiya.ag@peopleworks.in', role: 'Admin', password: 'Welcome123#' },
     { id: 'user-2', username: 'Luke.rajkumar', email: 'Luke.rajkumar@peopleworks.in', role: 'Admin', password: 'Luke@123' },
     { id: 'user-3', username: 'Varghese', email: 'Varghese@peopleworks.in', role: 'Admin', password: 'Varghese@123' },
     { id: 'user-4', username: 'sam.devasia', email: 'sam.devasia@peopleworks.in', role: 'Admin', password: 'SamDev@456' },
@@ -74,7 +74,7 @@ export function UsersProvider({ children }: { children: ReactNode }) {
         throw new Error("Password is required to create a user.");
     }
     // This creates the user in Firebase Auth
-    await createUserWithEmailAndPassword(auth, userData.email, userData.password);
+    // await createUserWithEmailAndPassword(auth, userData.email, userData.password);
 
     // This adds the user to our local list for role management
     const newUser: AppUser = {
