@@ -40,37 +40,26 @@ export function UsersProvider({ children }: { children: ReactNode }) {
     const initializeUsers = async () => {
       try {
         const storedUsers = localStorage.getItem('appUsers');
-        const isSeeded = localStorage.getItem('firebaseUsersSeeded') === 'true';
-
         let currentUsers: AppUser[] = [];
         if (storedUsers) {
           currentUsers = JSON.parse(storedUsers);
         } else {
           currentUsers = defaultUsers;
-          localStorage.setItem('appUsers', JSON.stringify(defaultUsers));
         }
-        setUsers(currentUsers);
 
-        if (!isSeeded) {
-          console.log("Seeding default users into Firebase Authentication...");
-          for (const user of defaultUsers) {
-            if (user.email && user.password) {
-              try {
-                // We try to create a user. If it fails because the user already exists, we ignore the error.
-                await createUserWithEmailAndPassword(auth, user.email, user.password);
-                console.log(`User ${user.email} created in Firebase Auth.`);
-              } catch (error: any) {
-                if (error.code === 'auth/email-already-in-use') {
-                  console.log(`User ${user.email} already exists in Firebase Auth.`);
-                } else {
-                  console.error(`Failed to create user ${user.email}:`, error);
-                }
-              }
-            }
-          }
-          localStorage.setItem('firebaseUsersSeeded', 'true');
-          console.log("Firebase user seeding complete.");
-        }
+        // Ensure all users have email and password for local dev
+        const usersWithCredentials = currentUsers.map(user => {
+          const defaultUser = defaultUsers.find(du => du.id === user.id);
+          return {
+            ...user,
+            email: user.email || defaultUser?.email || '',
+            password: user.password || defaultUser?.password || ''
+          };
+        });
+
+        setUsers(usersWithCredentials);
+        localStorage.setItem('appUsers', JSON.stringify(usersWithCredentials));
+        
       } catch (error) {
         console.error('Failed to initialize users:', error);
         setUsers(defaultUsers);
@@ -99,12 +88,16 @@ export function UsersProvider({ children }: { children: ReactNode }) {
   };
 
   const updateUser = (id: string, updates: Partial<Omit<AppUser, 'id'>>) => {
-    // Note: We are not updating the user in Firebase Auth here for simplicity.
-    // Password changes are handled separately in the profile page.
-    // Role/username changes here will only affect the app's UI, not Firebase.
-    const updatedUsers = users.map(user => 
-      user.id === id ? { ...user, ...updates } : user
-    );
+    const updatedUsers = users.map(user => {
+      if (user.id === id) {
+        // Find the original default user to ensure we don't lose the password if it's not in the update
+        const defaultUser = defaultUsers.find(du => du.id === id);
+        const newPassword = updates.password || user.password || defaultUser?.password;
+        return { ...user, ...updates, password: newPassword };
+      }
+      return user;
+    });
+
     setUsers(updatedUsers);
     localStorage.setItem('appUsers', JSON.stringify(updatedUsers));
     window.dispatchEvent(new StorageEvent('storage', { key: 'appUsers' }));
