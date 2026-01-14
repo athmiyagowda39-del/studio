@@ -46,19 +46,8 @@ export function UsersProvider({ children }: { children: ReactNode }) {
         } else {
           currentUsers = defaultUsers;
         }
-
-        // Ensure all users have email and password for local dev
-        const usersWithCredentials = currentUsers.map(user => {
-          const defaultUser = defaultUsers.find(du => du.id === user.id);
-          return {
-            ...user,
-            email: user.email || defaultUser?.email || '',
-            password: user.password || defaultUser?.password || ''
-          };
-        });
-
-        setUsers(usersWithCredentials);
-        localStorage.setItem('appUsers', JSON.stringify(usersWithCredentials));
+        setUsers(currentUsers);
+        localStorage.setItem('appUsers', JSON.stringify(currentUsers));
         
       } catch (error) {
         console.error('Failed to initialize users:', error);
@@ -70,13 +59,6 @@ export function UsersProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const addUser = async (userData: Omit<AppUser, 'id'>) => {
-    if (!userData.password) {
-        throw new Error("Password is required to create a user.");
-    }
-    // This creates the user in Firebase Auth
-    // await createUserWithEmailAndPassword(auth, userData.email, userData.password);
-
-    // This adds the user to our local list for role management
     const newUser: AppUser = {
       ...userData,
       id: `user-${Date.now()}`,
@@ -90,10 +72,7 @@ export function UsersProvider({ children }: { children: ReactNode }) {
   const updateUser = (id: string, updates: Partial<Omit<AppUser, 'id'>>) => {
     const updatedUsers = users.map(user => {
       if (user.id === id) {
-        // Find the original default user to ensure we don't lose the password if it's not in the update
-        const defaultUser = defaultUsers.find(du => du.id === id);
-        const newPassword = updates.password || user.password || defaultUser?.password;
-        return { ...user, ...updates, password: newPassword };
+        return { ...user, ...updates };
       }
       return user;
     });

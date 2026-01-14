@@ -28,53 +28,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
-  const { users } = useUsers(); // We still need this to get role info
+  const { users } = useUsers(); 
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (fbUser) => {
-      if (fbUser) {
-        setFirebaseUser(fbUser);
-        // Find the matching user in our user data to get role and username
-        const appUser = users.find(u => u.email.toLowerCase() === fbUser.email?.toLowerCase());
-        if (appUser) {
-          setUser({
-            username: appUser.username,
-            role: appUser.role,
-            email: appUser.email
-          });
-        } else {
-          // If user exists in Firebase Auth but not in our user list,
-          // it's an inconsistent state. For now, log them out.
-          setUser(null);
-        }
-      } else {
-        setFirebaseUser(null);
-        setUser(null);
-      }
-      setIsLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, [users]);
+    const localUserJson = typeof window !== 'undefined' ? localStorage.getItem('loggedInUser') : null;
+    if (localUserJson) {
+      const localUser = JSON.parse(localUserJson);
+      setUser(localUser);
+    }
+    setIsLoading(false);
+  }, []);
 
 
   const login = async (email: string, password: string) => {
-    await signInWithEmailAndPassword(auth, email, password);
-    router.push('/dashboard');
+    const foundUser = users.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
+    if (foundUser) {
+        const userToSave = {
+            username: foundUser.username,
+            role: foundUser.role,
+            email: foundUser.email,
+        };
+        localStorage.setItem('loggedInUser', JSON.stringify(userToSave));
+        setUser(userToSave);
+        router.push('/dashboard');
+    } else {
+        throw new Error("Invalid email or password");
+    }
   };
 
   const logout = async () => {
-    await signOut(auth);
-    // Clearing local storage is still a good practice to remove any other app data.
-    localStorage.clear(); 
-    // This redirect should be enough, Firebase state change will handle the rest.
-    router.push('/login');
+    localStorage.removeItem('loggedInUser');
+    localStorage.removeItem('lastLoginDate');
+    setUser(null);
+    setFirebaseUser(null);
     // A full reload can also help ensure clean state.
     window.location.href = '/login';
   };
 
   const value = {
-    isAuthenticated: !!firebaseUser,
+    isAuthenticated: !!user,
     user,
     firebaseUser,
     isLoading,
