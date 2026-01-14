@@ -37,20 +37,47 @@ export function UsersProvider({ children }: { children: ReactNode }) {
   const [users, setUsers] = useState<AppUser[]>([]);
 
   useEffect(() => {
-    try {
-      const storedUsers = localStorage.getItem('appUsers');
-      if (storedUsers) {
-        let parsedUsers: AppUser[] = JSON.parse(storedUsers);
-        setUsers(parsedUsers);
-      } else {
+    const initializeUsers = async () => {
+      try {
+        const storedUsers = localStorage.getItem('appUsers');
+        const isSeeded = localStorage.getItem('firebaseUsersSeeded') === 'true';
+
+        let currentUsers: AppUser[] = [];
+        if (storedUsers) {
+          currentUsers = JSON.parse(storedUsers);
+        } else {
+          currentUsers = defaultUsers;
+          localStorage.setItem('appUsers', JSON.stringify(defaultUsers));
+        }
+        setUsers(currentUsers);
+
+        if (!isSeeded) {
+          console.log("Seeding default users into Firebase Authentication...");
+          for (const user of defaultUsers) {
+            if (user.email && user.password) {
+              try {
+                // We try to create a user. If it fails because the user already exists, we ignore the error.
+                await createUserWithEmailAndPassword(auth, user.email, user.password);
+                console.log(`User ${user.email} created in Firebase Auth.`);
+              } catch (error: any) {
+                if (error.code === 'auth/email-already-in-use') {
+                  console.log(`User ${user.email} already exists in Firebase Auth.`);
+                } else {
+                  console.error(`Failed to create user ${user.email}:`, error);
+                }
+              }
+            }
+          }
+          localStorage.setItem('firebaseUsersSeeded', 'true');
+          console.log("Firebase user seeding complete.");
+        }
+      } catch (error) {
+        console.error('Failed to initialize users:', error);
         setUsers(defaultUsers);
         localStorage.setItem('appUsers', JSON.stringify(defaultUsers));
       }
-    } catch (error) {
-      console.error('Failed to parse users from localStorage, resetting to default.', error);
-      setUsers(defaultUsers);
-      localStorage.setItem('appUsers', JSON.stringify(defaultUsers));
-    }
+    };
+    initializeUsers();
   }, []);
 
   const addUser = async (userData: Omit<AppUser, 'id'>) => {
@@ -58,9 +85,6 @@ export function UsersProvider({ children }: { children: ReactNode }) {
         throw new Error("Password is required to create a user.");
     }
     // This creates the user in Firebase Auth
-    // NOTE: This can only be done while another user is logged in. 
-    // For a real app, this should be a backend (Admin SDK) operation.
-    // For this prototype, we are creating a limitation that an Admin must be logged in to create a user.
     await createUserWithEmailAndPassword(auth, userData.email, userData.password);
 
     // This adds the user to our local list for role management
