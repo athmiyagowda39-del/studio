@@ -1,7 +1,10 @@
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+import { onAuthStateChanged, signInWithEmailAndPassword, signOut, User as FirebaseUser } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
+import { useUsers, AppUser } from './users-context';
 
 type User = {
   username: string;
@@ -12,8 +15,9 @@ type User = {
 type AuthContextType = {
   isAuthenticated: boolean;
   user: User | null;
+  firebaseUser: FirebaseUser | null;
   isLoading: boolean;
-  login: (userData: User) => void;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => void;
 };
 
@@ -21,44 +25,58 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
-  const pathname = usePathname();
+  const { users } = useUsers(); // We still need this to get role info
 
   useEffect(() => {
-    try {
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
-        setIsAuthenticated(true);
+    const unsubscribe = onAuthStateChanged(auth, (fbUser) => {
+      if (fbUser) {
+        setFirebaseUser(fbUser);
+        // Find the matching user in our user data to get role and username
+        const appUser = users.find(u => u.email.toLowerCase() === fbUser.email?.toLowerCase());
+        if (appUser) {
+          setUser({
+            username: appUser.username,
+            role: appUser.role,
+            email: appUser.email
+          });
+        } else {
+          // If user exists in Firebase Auth but not in our user list,
+          // it's an inconsistent state. For now, log them out.
+          setUser(null);
+        }
+      } else {
+        setFirebaseUser(null);
+        setUser(null);
       }
-    } catch (error) {
-      console.error('Failed to parse user from localStorage', error);
-    } finally {
       setIsLoading(false);
-    }
-  }, []);
+    });
 
-  const login = (userData: User) => {
-    setUser(userData);
-    setIsAuthenticated(true);
-    localStorage.setItem('user', JSON.stringify(userData));
+    return () => unsubscribe();
+  }, [users]);
+
+
+  const login = async (email: string, password: string) => {
+    await signInWithEmailAndPassword(auth, email, password);
     router.push('/dashboard');
   };
 
-  const logout = () => {
-    setUser(null);
-    setIsAuthenticated(false);
-    // By clearing the entire local storage on logout, we ensure no stale data persists.
+  const logout = async () => {
+    await signOut(auth);
+    // Clearing local storage is still a good practice to remove any other app data.
     localStorage.clear(); 
-    // Force a full page reload to clear all component state
+    // This redirect should be enough, Firebase state change will handle the rest.
+    router.push('/login');
+    // A full reload can also help ensure clean state.
     window.location.href = '/login';
   };
 
   const value = {
-    isAuthenticated,
+    isAuthenticated: !!firebaseUser,
     user,
+    firebaseUser,
     isLoading,
     login,
     logout,

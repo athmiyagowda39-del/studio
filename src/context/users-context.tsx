@@ -1,6 +1,10 @@
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { createUserWithEmailAndPassword, updatePassword } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
+import { useAuth } from './auth-context';
+
 
 export type AppUser = {
   id: string;
@@ -12,7 +16,7 @@ export type AppUser = {
 
 type UsersContextType = {
   users: AppUser[];
-  addUser: (user: Omit<AppUser, 'id'>) => void;
+  addUser: (user: Omit<AppUser, 'id'>) => Promise<void>;
   updateUser: (id: string, updates: Partial<Omit<AppUser, 'id'>>) => void;
 };
 
@@ -37,21 +41,8 @@ export function UsersProvider({ children }: { children: ReactNode }) {
       const storedUsers = localStorage.getItem('appUsers');
       if (storedUsers) {
         let parsedUsers: AppUser[] = JSON.parse(storedUsers);
-        
-        // Check if migration is needed (missing email or password)
-        const needsMigration = parsedUsers.some(u => !u.email || !u.password);
-        
-        if (needsMigration) {
-          // If any user needs migration, reset all to default for consistency
-          console.log("User data is outdated. Resetting to default users.");
-          setUsers(defaultUsers);
-          localStorage.setItem('appUsers', JSON.stringify(defaultUsers));
-        } else {
-          setUsers(parsedUsers);
-        }
-
+        setUsers(parsedUsers);
       } else {
-        // Initialize with default users if none are in storage
         setUsers(defaultUsers);
         localStorage.setItem('appUsers', JSON.stringify(defaultUsers));
       }
@@ -62,20 +53,31 @@ export function UsersProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const addUser = (userData: Omit<AppUser, 'id'>) => {
+  const addUser = async (userData: Omit<AppUser, 'id'>) => {
+    if (!userData.password) {
+        throw new Error("Password is required to create a user.");
+    }
+    // This creates the user in Firebase Auth
+    // NOTE: This can only be done while another user is logged in. 
+    // For a real app, this should be a backend (Admin SDK) operation.
+    // For this prototype, we are creating a limitation that an Admin must be logged in to create a user.
+    await createUserWithEmailAndPassword(auth, userData.email, userData.password);
+
+    // This adds the user to our local list for role management
     const newUser: AppUser = {
       ...userData,
       id: `user-${Date.now()}`,
-      password: userData.password || `password${Date.now()}` // Assign a default password
     };
     const updatedUsers = [...users, newUser];
     setUsers(updatedUsers);
     localStorage.setItem('appUsers', JSON.stringify(updatedUsers));
-     // Dispatch a storage event to notify other tabs/windows
     window.dispatchEvent(new StorageEvent('storage', { key: 'appUsers' }));
   };
 
   const updateUser = (id: string, updates: Partial<Omit<AppUser, 'id'>>) => {
+    // Note: We are not updating the user in Firebase Auth here for simplicity.
+    // Password changes are handled separately in the profile page.
+    // Role/username changes here will only affect the app's UI, not Firebase.
     const updatedUsers = users.map(user => 
       user.id === id ? { ...user, ...updates } : user
     );

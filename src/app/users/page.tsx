@@ -67,7 +67,7 @@ export default function UsersPage() {
     return null; // or a loading skeleton
   }
   
-  const handleAddUser = () => {
+  const handleAddUser = async () => {
     if (!newUsername.trim() || !newPassword.trim() || !newEmail.trim()) {
       toast({
         variant: 'destructive',
@@ -84,24 +84,38 @@ export default function UsersPage() {
         });
         return;
     }
-
-    addUser({ username: newUsername, email: newEmail, role: newRole, password: newPassword });
-    toast({
-      title: 'User Added',
-      description: `User "${newUsername}" has been added with the role "${newRole}".`,
-    });
-    setNewUsername('');
-    setNewEmail('');
-    setNewPassword('');
-    setNewRole('Executive');
-    setShowNewPassword(false);
+    
+    try {
+      await addUser({ username: newUsername, email: newEmail, role: newRole, password: newPassword });
+      toast({
+        title: 'User Added',
+        description: `User "${newUsername}" has been created in Firebase and added to the list.`,
+      });
+      setNewUsername('');
+      setNewEmail('');
+      setNewPassword('');
+      setNewRole('Executive');
+      setShowNewPassword(false);
+    } catch(error: any) {
+        let description = 'Could not create user.';
+        if (error.code === 'auth/email-already-in-use') {
+            description = 'This email address is already in use by another account.';
+        } else if (error.code === 'auth/weak-password') {
+            description = 'The password is too weak. It must be at least 6 characters long.';
+        }
+         toast({
+            variant: 'destructive',
+            title: 'Error creating user',
+            description: description,
+        });
+    }
   };
 
   const handleEditUserClick = (user: AppUser) => {
     setEditingUser(user);
     setEditUsername(user.username);
     setEditEmail(user.email);
-    setEditPassword(user.password || '');
+    setEditPassword(user.password || ''); // Password may not be available from our list
     setEditRole(user.role);
     setIsEditDialogOpen(true);
   };
@@ -109,16 +123,15 @@ export default function UsersPage() {
   const handleUpdateUser = () => {
     if (!editingUser) return;
 
-    if (!editUsername.trim() || !editPassword.trim() || !editEmail.trim()) {
+    if (!editUsername.trim() || !editEmail.trim()) {
       toast({
         variant: 'destructive',
         title: 'Validation Error',
-        description: 'Username, Email, and password cannot be empty.',
+        description: 'Username and Email cannot be empty.',
       });
       return;
     }
 
-    // Check if username is being changed to one that already exists (and is not the current user)
     if (users.some(u => (u.username.toLowerCase() === editUsername.toLowerCase() || u.email.toLowerCase() === editEmail.toLowerCase()) && u.id !== editingUser.id)) {
         toast({
             variant: 'destructive',
@@ -128,16 +141,19 @@ export default function UsersPage() {
         return;
     }
     
+    // Note: This only updates the local user list (for roles, etc). 
+    // It does not update the user's email or password in Firebase Auth from this dialog
+    // to keep the logic simple for this prototype. Password changes are done on the profile page.
     updateUser(editingUser.id, {
       username: editUsername,
       email: editEmail,
       role: editRole,
-      password: editPassword,
+      password: editPassword, // This might be stale, but we save it for local display
     });
     
     toast({
       title: 'User Updated',
-      description: `User "${editUsername}" has been successfully updated.`,
+      description: `User "${editUsername}"'s local details have been updated.`,
     });
     
     setIsEditDialogOpen(false);
@@ -222,6 +238,9 @@ export default function UsersPage() {
             {/* Users Table */}
             <div className="space-y-4">
               <h2 className="text-lg font-semibold">Existing Users</h2>
+               <p className="text-sm text-muted-foreground">
+                This table shows users stored in the application for role management. Passwords shown here might not be the user's current Firebase password if they changed it on their profile page.
+              </p>
               <Card>
                 <CardContent className="p-0">
                     <Table>
@@ -230,7 +249,7 @@ export default function UsersPage() {
                         <TableHead>Username</TableHead>
                         <TableHead>Email</TableHead>
                         <TableHead>Role</TableHead>
-                        <TableHead>Password</TableHead>
+                        <TableHead>Password (Last Known)</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -280,7 +299,7 @@ export default function UsersPage() {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit User</DialogTitle>
+            <DialogTitle>Edit User Details</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
@@ -303,33 +322,8 @@ export default function UsersPage() {
                 value={editEmail}
                 onChange={(e) => setEditEmail(e.target.value)}
                 className="col-span-3"
+                disabled
               />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-password" className="text-right">
-                Password
-              </Label>
-               <div className="col-span-3 relative">
-                <Input
-                    id="edit-password"
-                    type={showEditPassword ? 'text' : 'password'}
-                    value={editPassword}
-                    onChange={(e) => setEditPassword(e.target.value)}
-                />
-                 <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground"
-                    onClick={() => setShowEditPassword(p => !p)}
-                >
-                    {showEditPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                    ) : (
-                    <Eye className="h-4 w-4" />
-                    )}
-                </Button>
-               </div>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="edit-role" className="text-right">

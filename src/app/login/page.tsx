@@ -5,14 +5,12 @@ import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/context/auth-context';
-import { useUsers } from '@/context/users-context';
 import { Eye, EyeOff, Target } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -21,24 +19,18 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuth();
-  const { users } = useUsers();
   const { toast } = useToast();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const foundUser = users.find(
-      (user) => user && user.email && user.email.toLowerCase() === email.toLowerCase() && user.password === password
-    );
-
-    if (foundUser) {
-      login({ username: foundUser.username, role: foundUser.role, email: foundUser.email });
+    try {
+      await login(email, password);
       toast({
         title: 'Login Successful',
         description: 'Welcome back!',
       });
-    } else {
-      toast({
+    } catch (error: any) {
+       toast({
         variant: 'destructive',
         title: 'Login Failed',
         description: 'Invalid email or password.',
