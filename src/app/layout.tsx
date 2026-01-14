@@ -31,12 +31,12 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        <AuthProvider>
-          <UsersProvider>
-             <LeadIdMigrator />
+        <UsersProvider>
+          <AuthProvider>
+            <LeadIdMigrator />
             {children}
-          </UsersProvider>
-        </AuthProvider>
+          </AuthProvider>
+        </UsersProvider>
         <Toaster />
       </body>
     </html>
