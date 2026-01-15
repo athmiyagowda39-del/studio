@@ -4,8 +4,24 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppContent from '@/components/layout/app-content';
 import LeadUploadForm from '@/components/leads/lead-upload-form';
+import { useAuth } from '@/context/auth-context';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 export default function LeadsUploadPage() {
+  const { isAuthenticated, isLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.replace('/login');
+    }
+  }, [isAuthenticated, isLoading, router]);
+
+  if (isLoading || !isAuthenticated) {
+    return null; // or a loading skeleton
+  }
+  
   return (
     <AppContent>
         <div className="flex flex-col gap-6">
