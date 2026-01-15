@@ -1,0 +1,61 @@
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:hsl(222, 47%, 11%); stop-opacity:1" />
+      <stop offset="100%" style="stop-color:hsl(210, 40%, 9.8%); stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#grad1)" />
+  
+  <g opacity="0.6">
+    <!-- Grid lines -->
+    <g stroke="hsl(215, 28%, 15%)" stroke-width="1">
+      <path d="M400 0 V1080 M800 0 V1080 M1200 0 V1080 M1600 0 V1080" />
+      <path d="M0 270 H1920 M0 540 H1920 M0 810 H1920" />
+    </g>
+
+    <!-- Chart data -->
+    <g transform="translate(150, 150)">
+      <polyline 
+        fill="none" 
+        stroke="hsl(217, 91%, 60%)" 
+        stroke-width="4"
+        filter="url(#glow)"
+        points="100,700 250,600 400,650 550,550 700,500 850,400 1000,300 1150,250 1300,150 1450,100 1600,50" />
+      
+      <!-- Data points -->
+      <g fill="hsl(217, 91%, 70%)" stroke="hsl(222, 47%, 11%)" stroke-width="3">
+        <circle cx="100" cy="700" r="8"/>
+        <circle cx="250" cy="600" r="8"/>
+        <circle cx="400" cy="650" r="8"/>
+        <circle cx="550" cy="550" r="8"/>
+        <circle cx="700" cy="500" r="8"/>
+        <circle cx="850" cy="400" r="8"/>
+        <circle cx="1000" cy="300" r="8"/>
+        <circle cx="1150" cy="250" r="8"/>
+        <circle cx="1300" cy="150" r="8"/>
+        <circle cx="1450" cy="100" r="8"/>
+        <circle cx="1600" cy="50" r="8"/>
+      </g>
+    </g>
+    
+    <!-- Abstract shapes -->
+    <g opacity="0.1">
+      <path d="M1800 200 Q 1700 400, 1800 600 T 1800 1000" fill="none" stroke="hsl(173, 58%, 39%)" stroke-width="50" />
+      <circle cx="200" cy="200" r="100" fill="hsl(12, 76%, 61%)" />
+       <path d="M100 900 H 500 L 300 1000 Z" fill="hsl(197, 37%, 24%)"/>
+    </g>
+  </g>
+
+  <!-- Overlay text -->
+  <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Inter, sans-serif" font-size="96" font-weight="bold" fill="white" opacity="0.05" style="pointer-events: none;">
+    LEAD GROWTH
+  </text>
+</svg>
