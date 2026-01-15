@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -21,7 +20,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useUsers } from '@/context/users-context';
 import { useAuth } from '@/context/auth-context';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -136,8 +135,14 @@ export default function LeadsUpdatePage() {
   /* ---------------- EFFECT ---------------- */
   const { users } = useUsers();
   const { user } = useAuth();
-  const executives = ["Yathis G", "Mandanna N", "Hukum Chand Kewat"];
+  const [executives, setExecutives] = useState<string[]>([]);
 
+  useEffect(() => {
+    const executiveUsers = users
+      .filter(user => user.role === 'Executive')
+      .map(user => user.username);
+    setExecutives(executiveUsers);
+  }, [users]);
 
   useEffect(() => {
     let leads = getLeadsFromLocalStorage();
@@ -665,5 +670,4 @@ export default function LeadsUpdatePage() {
       </div>
     </AppContent>
   );
-
-    
+}
