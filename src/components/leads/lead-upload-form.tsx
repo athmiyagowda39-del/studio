@@ -67,7 +67,7 @@ export type LeadFormData = {
 
 const sectors = ['All', 'IT', 'Finance', 'Healthcare', 'Manufacturing', 'Education', 'Retail', 'Hospitality', 'Telecommunication', 'Construction', 'Real Estate', 'Media & Entertainment', 'Government', 'Non-profit', 'Other'];
 const references = [
-    "All", "Website", "Google Ads", "Facebook Ads", "LinkedIn", "Social Media", "Referral", "Cold Call",
+    "All", "Website", "Social Media", "Google Ads", "Facebook Ads", "LinkedIn", "Referral", "Cold Call",
     "Telecalling", "Walk-in", "Email Campaign", "WhatsApp Campaign", "IndiaMART", "Justdial", "Channel Partner",
     "Existing Customer", "Upselling", "Cross-selling", "Events / Trade Shows", "Demo Request", "Trial Signup", "Other"
 ];
@@ -235,8 +235,8 @@ export default function LeadUploadForm() {
       creationDate: new Date().getTime(),
       givenBy: 'Manual',
       status: 'Not viewed',
-      dealer: formData.toExecutive ? toExecutiveSelection : 'As per mapping',
       executive: formData.toExecutive ? toExecutiveSelection : undefined,
+      dealer: formData.toExecutive ? toExecutiveSelection : 'As per mapping',
     };
 
     const updatedLeads = [...allLeads, newLead];
