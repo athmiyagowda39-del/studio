@@ -1,9 +1,10 @@
+
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useMemo, useState, useEffect } from 'react';
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
-import AppContent from '@/app/app-content';
+import AppContent from '@/components/layout/app-content';
 import { useAuth } from '@/context/auth-context';
 import dynamic from 'next/dynamic';
 

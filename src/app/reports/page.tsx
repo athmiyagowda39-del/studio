@@ -1,7 +1,8 @@
+
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import AppContent from '../app-content';
+import AppContent from '@/components/layout/app-content';
 import Link from 'next/link';
 
 export default function ReportsPage() {

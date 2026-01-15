@@ -1,6 +1,7 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import LeadUploadForm from '@/components/leads/lead-upload-form';
-import AppContent from '../app-content';
+import AppContent from '@/components/layout/app-content';
 
 export default function LeadsUploadPage() {
   return (

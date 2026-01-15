@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -13,7 +14,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import LeadUpdateForm from '@/components/leads/lead-update-form';
-import AppContent from '../app-content';
+import AppContent from '@/components/layout/app-content';
 import { format, startOfDay } from 'date-fns';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';

@@ -1,5 +1,6 @@
+
 import ProfileCard from '@/components/profile/profile-card';
-import AppContent from '../app-content';
+import AppContent from '@/components/layout/app-content';
 
 export default function ProfilePage() {
   return (

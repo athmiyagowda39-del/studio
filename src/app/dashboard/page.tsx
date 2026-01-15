@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -12,7 +13,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { startOfDay, endOfDay, getDay, format as formatDate, eachDayOfInterval, getMonth, getYear, startOfMonth, endOfMonth } from 'date-fns';
 import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
-import AppContent from '../app-content';
+import AppContent from '@/components/layout/app-content';
 import LeadPerformanceFilters from '@/components/dashboard/lead-performance-filters';
 import dynamic from 'next/dynamic';
 
