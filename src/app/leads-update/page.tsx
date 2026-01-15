@@ -136,14 +136,8 @@ export default function LeadsUpdatePage() {
   /* ---------------- EFFECT ---------------- */
   const { users } = useUsers();
   const { user } = useAuth();
-  const [executives, setExecutives] = useState<string[]>([]);
+  const executives = ["Yathis G", "Mandanna N", "Hukum Chand Kewat"];
 
-  useEffect(() => {
-    const executiveUsers = users
-      .filter(user => user.role === 'Executive')
-      .map(user => user.username);
-    setExecutives(executiveUsers);
-  }, [users]);
 
   useEffect(() => {
     let leads = getLeadsFromLocalStorage();
@@ -671,4 +665,5 @@ export default function LeadsUpdatePage() {
       </div>
     </AppContent>
   );
-}
+
+    
