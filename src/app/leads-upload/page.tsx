@@ -1,7 +1,17 @@
 
+'use client';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import LeadUploadForm from '@/components/leads/lead-upload-form';
 import AppContent from '@/components/layout/app-content';
+import dynamic from 'next/dynamic';
+
+const LeadUploadForm = dynamic(
+  () => import('@/components/leads/lead-upload-form'),
+  { 
+    ssr: false,
+    loading: () => <p>Loading form...</p>
+  }
+);
 
 export default function LeadsUploadPage() {
   return (
