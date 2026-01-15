@@ -16,6 +16,9 @@ import { useRouter } from 'next/navigation';
 import AppContent from '@/components/layout/app-content';
 import LeadPerformanceFilters from '@/components/dashboard/lead-performance-filters';
 import dynamic from 'next/dynamic';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useUsers } from '@/context/users-context';
+import { Label } from '@/components/ui/label';
 
 const LeadPerformanceChart = dynamic(
   () => import('@/components/dashboard/lead-performance-chart'),
@@ -32,6 +35,7 @@ const getLeadsFromLocalStorage = (): LeadFormData[] => {
 
 export default function DashboardPage() {
     const { isAuthenticated, isLoading, user } = useAuth();
+    const { users } = useUsers();
     const router = useRouter();
     const [allLeads, setAllLeads] = useState<LeadFormData[]>([]);
     const [isDataLoading, setIsDataLoading] = useState(true);
@@ -39,6 +43,8 @@ export default function DashboardPage() {
     const [selectedPeriod, setSelectedPeriod] = useState<string>((new Date().getMonth() + 1).toString());
     const [selectedState, setSelectedState] = useState<string>('all');
     const [selectedCity, setSelectedCity] = useState<string>('all');
+    const [selectedExecutive, setSelectedExecutive] = useState<string>('all');
+    const [executives, setExecutives] = useState<string[]>([]);
     
     useEffect(() => {
         if (!isLoading && !isAuthenticated) {
@@ -46,23 +52,42 @@ export default function DashboardPage() {
         }
     }, [isAuthenticated, isLoading, router]);
 
+    useEffect(() => {
+        const executiveUsers = users
+          .filter(user => user.role === 'Executive')
+          .map(user => user.username);
+        setExecutives(executiveUsers);
+    
+        if (user?.role === 'Executive') {
+          setSelectedExecutive(user.username);
+        } else {
+          setSelectedExecutive('all');
+        }
+    }, [users, user]);
+
 
     useEffect(() => {
         if (isAuthenticated) {
-            let leads = getLeadsFromLocalStorage();
-            // If user is an executive, only show their leads.
-            if (user?.role === 'Executive') {
-                leads = leads.filter(lead => lead.executive === user.username);
-            }
+            const leads = getLeadsFromLocalStorage();
             setAllLeads(leads);
             setIsDataLoading(false);
         }
-    }, [isAuthenticated, user]);
+    }, [isAuthenticated]);
 
     const filteredLeads = useMemo(() => {
         if (!allLeads) return [];
-        return allLeads;
-    }, [allLeads]);
+        let leads = allLeads;
+
+        if (user?.role === 'Executive') {
+            return leads.filter(lead => lead.executive === user.username);
+        }
+
+        if (user?.role === 'Admin' && selectedExecutive !== 'all') {
+            return leads.filter(lead => lead.executive === selectedExecutive);
+        }
+        
+        return leads;
+    }, [allLeads, user, selectedExecutive]);
 
 
     const totalLeadsToday = useMemo(() => {
@@ -120,14 +145,36 @@ export default function DashboardPage() {
     return (
         <AppContent>
             <div className="flex flex-col gap-6">
-                <div className="flex flex-col">
-                    <h1 className="text-2xl font-bold tracking-tight font-headline">
-                       WELCOME! {user?.username.toUpperCase()}
-                    </h1>
-                    <p className="text-muted-foreground">
-                        Here is your lead generation overview for today.
-                    </p>
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div className="flex flex-col">
+                        <h1 className="text-2xl font-bold tracking-tight font-headline">
+                           WELCOME! {user?.username.toUpperCase()}
+                        </h1>
+                        <p className="text-muted-foreground">
+                            Here is your lead generation overview for today.
+                        </p>
+                    </div>
+
+                    {user?.role === 'Admin' && (
+                        <div className="flex items-center gap-2">
+                            <Label htmlFor="executive-filter" className="font-medium">View as:</Label>
+                            <Select value={selectedExecutive} onValueChange={setSelectedExecutive}>
+                                <SelectTrigger id="executive-filter" className="w-full md:w-[180px]">
+                                    <SelectValue placeholder="Select Executive" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Executives</SelectItem>
+                                    {executives.map(exec => (
+                                        <SelectItem key={exec} value={exec}>
+                                            {exec}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    )}
                 </div>
+
 
                 <div className="grid grid-cols-1 gap-6">
                     <Card>
