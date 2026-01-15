@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
@@ -39,13 +40,9 @@ export function UsersProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const initializeUsers = async () => {
       try {
-        const storedUsers = localStorage.getItem('appUsers');
-        let currentUsers: AppUser[] = [];
-        if (storedUsers) {
-          currentUsers = JSON.parse(storedUsers);
-        } else {
-          currentUsers = defaultUsers;
-        }
+        // Always start with default users to ensure the list is correct on load.
+        // This will overwrite any stale data in localStorage.
+        const currentUsers = defaultUsers;
         setUsers(currentUsers);
         localStorage.setItem('appUsers', JSON.stringify(currentUsers));
         
