@@ -10,8 +10,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { UploadCloud, Download } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Download, UploadCloud } from 'lucide-react';
+import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
 import { useState, useRef, useEffect } from 'react';
 import * as XLSX from 'xlsx';
 import {
@@ -110,14 +110,6 @@ const getLeadsFromLocalStorage = (): LeadFormData[] => {
   return [];
 };
 
-const getUsersFromLocalStorage = (): AppUser[] => {
-  if (typeof window !== 'undefined') {
-    const usersJson = localStorage.getItem('appUsers');
-    return usersJson ? JSON.parse(usersJson) : [];
-  }
-  return [];
-};
-
 const getNextLeadId = (): string => {
   const leads = getLeadsFromLocalStorage();
   if (leads.length === 0) {
@@ -139,7 +131,7 @@ export default function LeadUploadForm() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { toast } = useToast();
   
-  const hardcodedExecutives = ["Yathis G", "Mandanna N", "Hukum Chand Kewat"];
+  const hardcodedExecutives = ["Yathish G", "Mandanna N", "Hukum Chand Kewat"];
 
   useEffect(() => {
     if (formData.pincode.length === 6) {
@@ -352,7 +344,7 @@ export default function LeadUploadForm() {
   const handleDownloadSample = () => {
     const sampleData = [
       ['pincode', 'company', 'contactPerson', 'address', 'state', 'district', 'contactNumber', 'email', 'reference', 'headcount', 'sector', 'selectedModule', 'manager', 'executive'],
-      ['560001', 'Sample Corp', 'John Doe', '123 Main St', 'Karnataka', 'Bengaluru', '9876543210', 'john.doe@example.com', 'Website', '150', 'IT', 'all-hrms', 'Jane Smith', 'Yathis G']
+      ['560001', 'Sample Corp', 'John Doe', '123 Main St', 'Karnataka', 'Bengaluru', '9876543210', 'john.doe@example.com', 'Website', '150', 'IT', 'all-hrms', 'Jane Smith', 'Yathish G']
     ];
     const worksheet = XLSX.utils.aoa_to_sheet(sampleData);
     const workbook = XLSX.utils.book_new();
