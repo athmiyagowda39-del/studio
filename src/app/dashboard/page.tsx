@@ -154,25 +154,6 @@ export default function DashboardPage() {
                             Here is your lead generation overview for today.
                         </p>
                     </div>
-
-                    {user?.role === 'Admin' && (
-                        <div className="flex items-center gap-2">
-                            <Label htmlFor="executive-filter" className="font-medium">View as:</Label>
-                            <Select value={selectedExecutive} onValueChange={setSelectedExecutive}>
-                                <SelectTrigger id="executive-filter" className="w-full md:w-[180px]">
-                                    <SelectValue placeholder="Select Executive" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">All Executives</SelectItem>
-                                    {executives.map(exec => (
-                                        <SelectItem key={exec} value={exec}>
-                                            {exec}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    )}
                 </div>
 
 
