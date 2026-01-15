@@ -429,20 +429,7 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
           </CardHeader>
           <CardContent className="space-y-4 p-4">
             <div className="space-y-2">
-              <Label htmlFor="transferredLead">TRANSFERRED LEAD</Label>
-              <Select value={transferredTo} onValueChange={setTransferredTo}>
-                <SelectTrigger id="transferredLead">
-                  <SelectValue placeholder="Select Executive ID..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All</SelectItem>
-                  {executives.map((execId) => (
-                    <SelectItem key={execId} value={execId}>
-                      {execId}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                <Button>TRANSFERRED LEAD</Button>
             </div>
             <p className="font-semibold">Follow Up</p>
             <div className="space-y-2">
@@ -575,3 +562,4 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
     
 
     
+
