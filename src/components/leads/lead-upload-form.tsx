@@ -478,48 +478,115 @@ export default function LeadUploadForm() {
                 <SelectItem value="all-hrms">All HRMS</SelectItem>
                 <SelectItem value="module1">Module 1</SelectItem>
                 <SelectItem value="module2">Module 2</SelectItem>
-                <SelectItem value="module3">Module 3</_page.tsx is trying to import and use a component named `AppContent` that no longer exists. This `AppContent` component was likely removed during a previous code change, but the import statement and its usage were not cleaned up.
+                <SelectItem value="module3">Module 3</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+           <div className="space-y-2">
+              <Label htmlFor="manager">Manager</Label>
+              <Input id="manager" value={formData.manager || ''} onChange={handleInputChange} />
+          </div>
+          
+          <div className="space-y-2 md:col-span-2">
+            <Label htmlFor="initialRemarks">Initial Remarks</Label>
+            <Textarea id="initialRemarks" value={formData.initialRemarks || ''} onChange={handleInputChange} />
+          </div>
 
-To fix this, I will:
+        </div>
+      </div>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mt-6 pt-6 border-t">
+        <div className="flex items-center gap-2">
+          <Checkbox 
+            id="toExecutive"
+            checked={formData.toExecutive}
+            onCheckedChange={handleCheckboxChange}
+          />
+          <Label htmlFor="toExecutive">To Executive</Label>
+        </div>
+        {formData.toExecutive && (
+            <div className="w-full md:w-auto">
+              <Select value={toExecutiveSelection} onValueChange={setToExecutiveSelection}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Executive..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {executiveNames.map((name) => (
+                    <SelectItem key={name} value={name}>{name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+        )}
+        <div className="flex gap-2">
+          <Button onClick={handleSaveLead}>SAVE</Button>
+          <Button variant="outline" onClick={resetForm}>RESET</Button>
+        </div>
+      </div>
 
-1.  **Create a new `AppContent` component**: I'll create a new, simple layout component at `src/components/layout/app-content.tsx`. This component will provide a consistent structure for your main content pages.
-2.  **Update `app-content.tsx`**: The file at `src/app/app-content.tsx` is causing confusion. I will rename it to `src/context/app-context.tsx` to more accurately reflect that it provides application-wide data context, not a UI component. I will also update the exports to be clearer.
-3.  **Update Imports**: I'll go through all the files that were trying to use the old `AppContent` and update them to use the new layout component from `src/components/layout/app-content.tsx`.
 
-This will not only fix the build error but also improve the overall structure and clarity of your application's code. Here are the changes.
+      <Card className="mt-8">
+        <CardContent className="p-6">
+          <p className="font-semibold text-primary">BULK UPLOAD</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Choose a .xls or .xlsx file to upload multiple leads at once.
+          </p>
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-4 mt-4">
+            <div
+              className="flex items-center justify-center border-2 border-dashed rounded-lg p-6 w-full md:w-auto cursor-pointer hover:bg-muted"
+              onClick={handleBrowseFileClick}
+            >
+              <div className="text-center">
+                <UploadCloud className="mx-auto h-12 w-12 text-muted-foreground" />
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {selectedFile ? selectedFile.name : 'Click or drag file to this area to upload'}
+                </p>
+              </div>
+            </div>
+            <input
+              type="file"
+              ref={fileInputRef}
+              className="hidden"
+              onChange={handleFileChange}
+              accept=".xlsx, .xls"
+            />
+            <div className="flex gap-2 self-center">
+              <Button onClick={handlePreviewData} disabled={!selectedFile}>Preview Data</Button>
+              <Button onClick={handleConfirmUpload} disabled={!selectedFile}>Populate Form</Button>
+              <Button variant="destructive" onClick={handleCancel} disabled={!selectedFile}>Cancel</Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      
+       {showPreview && parsedData && (
+        <Card className="mt-8">
+          <CardContent className="p-6">
+            <h3 className="font-semibold text-lg mb-4">File Preview</h3>
+            <div className="overflow-x-auto border rounded-lg">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    {parsedData[0].map((header, index) => (
+                      <TableHead key={index}>{String(header)}</TableHead>
+                    ))}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {parsedData.slice(1).map((row, rowIndex) => (
+                    <TableRow key={rowIndex}>
+                      {row.map((cell, cellIndex) => (
+                        <TableCell key={cellIndex}>{String(cell)}</TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-<changes>
-  <description>Re-introduced AppContent component and fixed import errors related to it. The previous app-content.tsx was renamed to app-context.tsx to avoid confusion.</description>
-  <change>
-    <file>src/components/layout/app-content.tsx</file>
-    <content><![CDATA[
-'use client';
-
-import Header from '@/components/layout/header';
-import SidebarNav from '@/components/layout/sidebar-nav';
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarInset,
-  SidebarProvider,
-} from '@/components/ui/sidebar';
-
-export default function AppContent({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  return (
-    <SidebarProvider>
-      <Sidebar>
-        <SidebarContent>
-          <SidebarNav />
-        </SidebarContent>
-      </Sidebar>
-      <SidebarInset>
-        <Header />
-        <main className="p-4 md:p-6">{children}</main>
-      </SidebarInset>
-    </SidebarProvider>
+    </div>
   );
 }
