@@ -139,7 +139,7 @@ export default function LeadUploadForm() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { toast } = useToast();
   
-  const hardcodedExecutives = ["Ythish G", "Mandanna N", "Hukum Chand Kewath"];
+  const hardcodedExecutives = ["Yathis G", "Mandanna N", "Hukum Chand Kewat"];
 
   useEffect(() => {
     if (formData.pincode.length === 6) {
