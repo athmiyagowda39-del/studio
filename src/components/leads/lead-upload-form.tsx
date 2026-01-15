@@ -134,33 +134,12 @@ const getNextLeadId = (): string => {
 export default function LeadUploadForm() {
   const [formData, setFormData] = useState<Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId' | 'givenBy'>>(initialFormState);
   const [toExecutiveSelection, setToExecutiveSelection] = useState('');
-  const [executiveNames, setExecutiveNames] = useState<string[]>([]);
-
-
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [parsedData, setParsedData] = useState<ParsedData | null>(null);
-  const [showPreview, setShowPreview] = useState(false);
   const { toast } = useToast();
   
-  useEffect(() => {
-    const users = getUsersFromLocalStorage();
-    const executives = users.filter(u => u.role === 'Executive').map(u => u.username);
-    setExecutiveNames(executives);
-
-    const handleStorageChange = (e: StorageEvent) => {
-        if (e.key === 'appUsers') {
-            const updatedUsers = getUsersFromLocalStorage();
-            const updatedExecutives = updatedUsers.filter(u => u.role === 'Executive').map(u => u.username);
-            setExecutiveNames(updatedExecutives);
-        }
-    };
-    window.addEventListener('storage', handleStorageChange);
-
-    return () => {
-        window.removeEventListener('storage', handleStorageChange);
-    };
-  }, []);
+  const hardcodedExecutives = ["Ythish G", "Mandanna N", "Hukum Chand Kewath"];
 
   useEffect(() => {
     if (formData.pincode.length === 6) {
@@ -267,6 +246,7 @@ export default function LeadUploadForm() {
       givenBy: 'Manual',
       status: 'Not viewed',
       dealer: formData.toExecutive ? toExecutiveSelection : 'As per mapping',
+      executive: formData.toExecutive ? toExecutiveSelection : undefined,
     };
 
     const updatedLeads = [...allLeads, newLead];
@@ -364,8 +344,6 @@ export default function LeadUploadForm() {
 
   const handleCancel = () => {
     setSelectedFile(null);
-    setParsedData(null);
-    setShowPreview(false);
     if (fileInputRef.current) {
         fileInputRef.current.value = '';
     }
@@ -472,29 +450,33 @@ export default function LeadUploadForm() {
 
         </div>
       </div>
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mt-6 pt-6 border-t">
-        <div className="flex items-center gap-2">
-          <Checkbox 
-            id="toExecutive"
-            checked={formData.toExecutive}
-            onCheckedChange={handleCheckboxChange}
-          />
-          <Label htmlFor="toExecutive">To Executive</Label>
+      <div className="flex justify-between items-center gap-4 mt-6 pt-6 border-t">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Checkbox 
+              id="toExecutive"
+              checked={formData.toExecutive}
+              onCheckedChange={handleCheckboxChange}
+            />
+            <Label htmlFor="toExecutive">To Executive</Label>
+          </div>
+          {formData.toExecutive && (
+              <div className="w-full md:w-auto">
+                <Select value={toExecutiveSelection} onValueChange={setToExecutiveSelection}>
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Select Executive..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="All">All</SelectItem>
+                    {hardcodedExecutives.map((name) => (
+                      <SelectItem key={name} value={name}>{name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+          )}
         </div>
-        {formData.toExecutive && (
-            <div className="w-full md:w-auto">
-              <Select value={toExecutiveSelection} onValueChange={setToExecutiveSelection}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Executive..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {executiveNames.map((name) => (
-                    <SelectItem key={name} value={name}>{name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-        )}
+        
         <div className="flex gap-2">
           <Button onClick={handleSaveLead}>SAVE</Button>
           <Button variant="outline" onClick={resetForm}>RESET</Button>
@@ -528,41 +510,6 @@ export default function LeadUploadForm() {
             />
         </CardContent>
       </Card>
-      
-       {showPreview && parsedData && (
-        <Card className="mt-8">
-          <CardContent className="p-6">
-            <h3 className="font-semibold text-lg mb-4">File Preview</h3>
-            <div className="overflow-x-auto border rounded-lg">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    {parsedData[0].map((header, index) => (
-                      <TableHead key={index}>{String(header)}</TableHead>
-                    ))}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {parsedData.slice(1).map((row, rowIndex) => (
-                    <TableRow key={rowIndex}>
-                      {row.map((cell, cellIndex) => (
-                        <TableCell key={cellIndex}>{String(cell)}</TableCell>
-                      ))}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-             <div className="flex justify-end gap-2 mt-4">
-                <Button onClick={() => {}}>Confirm Upload</Button>
-                <Button variant="destructive" onClick={handleCancel}>Cancel</Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
     </div>
   );
 }
-
-    
