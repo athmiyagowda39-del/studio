@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -28,6 +29,7 @@ import { Check, ChevronsUpDown } from 'lucide-react';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useRouter } from 'next/navigation';
 
 
 /* ---------------- CONSTANTS ---------------- */
@@ -112,6 +114,9 @@ const getLeadsFromLocalStorage = (): LeadFormData[] => {
 /* ---------------- COMPONENT ---------------- */
 
 export default function LeadsUpdatePage() {
+  const { user, isAuthenticated, isLoading } = useAuth();
+  const router = useRouter();
+
   const [allLeads, setAllLeads] = useState<LeadFormData[]>([]);
   const [filteredLeads, setFilteredLeads] = useState<LeadFormData[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -134,8 +139,13 @@ export default function LeadsUpdatePage() {
 
   /* ---------------- EFFECT ---------------- */
   const { users } = useUsers();
-  const { user } = useAuth();
   const [executives, setExecutives] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.replace('/login');
+    }
+  }, [isAuthenticated, isLoading, router]);
 
   useEffect(() => {
     const executiveUsers = users
@@ -145,13 +155,15 @@ export default function LeadsUpdatePage() {
   }, [users]);
 
   useEffect(() => {
-    let leads = getLeadsFromLocalStorage();
-    if (user?.role === 'Executive') {
-      leads = leads.filter(lead => lead.executive === user.username);
+    if (isAuthenticated) {
+      let leads = getLeadsFromLocalStorage();
+      if (user?.role === 'Executive') {
+        leads = leads.filter(lead => lead.executive === user.username);
+      }
+      setAllLeads(leads);
+      setFilteredLeads(leads);
     }
-    setAllLeads(leads);
-    setFilteredLeads(leads);
-  }, [user]);
+  }, [user, isAuthenticated]);
 
   const handleLeadsUpdate = (updatedLeads: LeadFormData[]) => {
     let leadsToUpdate = updatedLeads;
@@ -258,6 +270,9 @@ export default function LeadsUpdatePage() {
   const totalPages = Math.ceil(filteredLeads.length / LEADS_PER_PAGE);
 
   /* ---------------- UI ---------------- */
+  if (isLoading || !isAuthenticated) {
+    return null; // or a loading skeleton
+  }
 
   return (
     <AppContent>
