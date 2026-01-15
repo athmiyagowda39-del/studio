@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Input } from '@/components/ui/input';
@@ -11,7 +10,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { UploadCloud } from 'lucide-react';
+import { UploadCloud, Download } from 'lucide-react';
 import { Card, CardContent } from '../ui/card';
 import { useState, useRef, useEffect } from 'react';
 import * as XLSX from 'xlsx';
@@ -237,7 +236,7 @@ export default function LeadUploadForm() {
         toast({
           variant: 'destructive',
           title: 'Missing Information',
-          description: 'Please fill all required fields before saving.',
+          description: `Please fill all required fields before saving. Missing: ${field}`,
         });
         return false;
       }
@@ -288,12 +287,11 @@ export default function LeadUploadForm() {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setSelectedFile(file);
-      setParsedData(null);
-      setShowPreview(false);
+      processFileAndUpload(file);
     }
   };
 
-  const processFile = (file: File, callback: (data: ParsedData) => void) => {
+  const processFileAndUpload = (file: File) => {
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
@@ -302,7 +300,57 @@ export default function LeadUploadForm() {
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
         const json: ParsedData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-        callback(json);
+        
+        if (json.length < 2) {
+          toast({ variant: "destructive", title: "Empty File", description: "The file has no data rows." });
+          return;
+        }
+
+        const headers: string[] = json[0].map(h => String(h).toLowerCase().replace(/\s+/g, ''));
+        const leadsToCreate = json.slice(1).map(row => {
+          const leadObject: any = {};
+           headers.forEach((header, index) => {
+              const keyMap: {[key: string]: keyof Omit<LeadFormData, 'leadId' | 'creationDate' | 'givenBy' | 'status'>} = {
+                  'pincode': 'pincode', 'company': 'company', 'contactperson': 'contactPerson',
+                  'address': 'address', 'state': 'state', 'district': 'district',
+                  'contactnumber': 'contactNumber', 'email': 'email', 'reference': 'reference',
+                  'companyheadcount': 'headcount', 'sector': 'sector', 'modules': 'selectedModule',
+                  'executive': 'executive', 'manager': 'manager',
+              };
+              const formKey = keyMap[header];
+              if(formKey) leadObject[formKey] = row[index];
+          });
+          return leadObject;
+        });
+
+        const allLeads = getLeadsFromLocalStorage();
+        let nextId = parseInt(getNextLeadId(), 10);
+        
+        const newLeads: LeadFormData[] = leadsToCreate.map(ld => {
+          const lead: LeadFormData = {
+            ...initialFormState,
+            ...ld,
+            pincode: String(ld.pincode || ''),
+            contactNumber: String(ld.contactNumber || ''),
+            headcount: String(ld.headcount || ''),
+            leadId: (nextId++).toString(),
+            creationDate: Date.now(),
+            givenBy: 'Bulk Upload',
+            status: 'Not viewed',
+          };
+          return lead;
+        });
+
+        const updatedLeads = [...allLeads, ...newLeads];
+        saveLeadsToLocalStorage(updatedLeads);
+
+        toast({
+          title: "Bulk Upload Successful",
+          description: `${newLeads.length} leads have been successfully uploaded.`,
+        });
+
+        handleCancel();
+
       } catch (error) {
         toast({
             variant: "destructive",
@@ -314,88 +362,6 @@ export default function LeadUploadForm() {
     reader.readAsBinaryString(file);
   }
 
-  const handlePreviewData = () => {
-    if (!selectedFile) {
-        toast({
-            variant: "destructive",
-            title: "No file selected",
-            description: "Please select a file to preview.",
-        });
-      return;
-    }
-    processFile(selectedFile, (json) => {
-      setParsedData(json);
-      setShowPreview(true);
-    });
-  };
-  
-  const handleConfirmUpload = () => {
-    if (!selectedFile) {
-      toast({
-        variant: 'destructive',
-        title: 'No file selected',
-        description: 'Please select a file to upload.',
-      });
-      return;
-    }
-
-    processFile(selectedFile, (json) => {
-      if (json.length < 2) {
-        toast({
-          variant: 'destructive',
-          title: 'Empty File',
-          description: 'The selected file has no data to populate the form.',
-        });
-        return;
-      }
-    
-      const headers: string[] = json[0].map(h => String(h).toLowerCase().replace(/\s+/g, '') === 'pincode' ? 'pincode' : String(h).replace(/\s+/g, ''));
-      const firstRow = json[1];
-
-      const leadObject: any = {};
-      headers.forEach((header, index) => {
-          const headerStr = String(header).toLowerCase().replace(/\s+/g, '');
-          // Map excel headers to form keys
-          const keyMap: {[key: string]: keyof Omit<LeadFormData, 'leadId' | 'creationDate' | 'givenBy' | 'status'>} = {
-              'pin code': 'pincode',
-              pincode: 'pincode',
-              company: 'company',
-              contactperson: 'contactPerson',
-              address: 'address',
-              state: 'state',
-              district: 'district',
-              contactnumber: 'contactNumber',
-              email: 'email',
-              reference: 'reference',
-              companyheadcount: 'headcount',
-              sector: 'sector',
-              modules: 'selectedModule',
-              executive: 'executive',
-              manager: 'manager',
-          };
-          const formKey = keyMap[headerStr];
-          if(formKey) {
-             leadObject[formKey] = firstRow[index];
-          }
-      });
-      
-      setFormData(prev => ({
-        ...prev,
-        ...leadObject,
-        pincode: String(leadObject.pincode || ''),
-        contactNumber: String(leadObject.contactNumber || ''),
-        headcount: String(leadObject.headcount || ''),
-      }));
-      
-      toast({
-        title: 'Form Populated',
-        description: `The form has been filled with the first lead from ${selectedFile.name}.`,
-      });
-      handleCancel(); // Reset file input after populating
-    });
-  };
-
-
   const handleCancel = () => {
     setSelectedFile(null);
     setParsedData(null);
@@ -404,6 +370,17 @@ export default function LeadUploadForm() {
         fileInputRef.current.value = '';
     }
   };
+  
+  const handleDownloadSample = () => {
+    const sampleData = [
+      ['pincode', 'company', 'contactPerson', 'address', 'state', 'district', 'contactNumber', 'email', 'reference', 'headcount', 'sector', 'selectedModule', 'manager', 'executive'],
+      ['560001', 'Sample Corp', 'John Doe', '123 Main St', 'Karnataka', 'Bengaluru', '9876543210', 'john.doe@example.com', 'Website', '150', 'IT', 'all-hrms', 'Jane Smith', 'Yathis G']
+    ];
+    const worksheet = XLSX.utils.aoa_to_sheet(sampleData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Leads');
+    XLSX.writeFile(workbook, 'SampleLeads.xlsx');
+  }
 
   return (
     <div className="space-y-6">
@@ -526,36 +503,29 @@ export default function LeadUploadForm() {
 
 
       <Card className="mt-8">
+        <CardHeader>
+            <CardTitle className="text-lg font-medium">Or upload leads from a file</CardTitle>
+        </CardHeader>
         <CardContent className="p-6">
-          <p className="font-semibold text-primary">BULK UPLOAD</p>
-          <p className="text-sm text-muted-foreground mt-1">
-            Choose a .xls or .xlsx file to upload multiple leads at once.
-          </p>
-          <div className="flex flex-col md:flex-row items-start md:items-center gap-4 mt-4">
-            <div
-              className="flex items-center justify-center border-2 border-dashed rounded-lg p-6 w-full md:w-auto cursor-pointer hover:bg-muted"
-              onClick={handleBrowseFileClick}
-            >
-              <div className="text-center">
-                <UploadCloud className="mx-auto h-12 w-12 text-muted-foreground" />
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {selectedFile ? selectedFile.name : 'Click or drag file to this area to upload'}
-                </p>
-              </div>
+            <div className="flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-12 text-center">
+                 <UploadCloud className="mx-auto h-12 w-12 text-muted-foreground" />
+                 <p className="mt-4 font-semibold">Drag & Drop Excel/CSV file</p>
+                 <p className="text-sm text-muted-foreground mt-1">or</p>
+                 <div className="flex items-center gap-4 mt-4">
+                    <Button variant="outline" onClick={handleBrowseFileClick}>Browse File</Button>
+                    <Button variant="ghost" onClick={handleDownloadSample}>
+                        <Download className="mr-2 h-4 w-4" />
+                        Download Sample
+                    </Button>
+                 </div>
             </div>
             <input
               type="file"
               ref={fileInputRef}
               className="hidden"
               onChange={handleFileChange}
-              accept=".xlsx, .xls"
+              accept=".xlsx, .xls, .csv"
             />
-            <div className="flex gap-2 self-center">
-              <Button onClick={handlePreviewData} disabled={!selectedFile}>Preview Data</Button>
-              <Button onClick={handleConfirmUpload} disabled={!selectedFile}>Populate Form</Button>
-              <Button variant="destructive" onClick={handleCancel} disabled={!selectedFile}>Cancel</Button>
-            </div>
-          </div>
         </CardContent>
       </Card>
       
@@ -583,6 +553,10 @@ export default function LeadUploadForm() {
                 </TableBody>
               </Table>
             </div>
+             <div className="flex justify-end gap-2 mt-4">
+                <Button onClick={() => {}}>Confirm Upload</Button>
+                <Button variant="destructive" onClick={handleCancel}>Cancel</Button>
+            </div>
           </CardContent>
         </Card>
       )}
@@ -590,5 +564,3 @@ export default function LeadUploadForm() {
     </div>
   );
 }
-
-    
