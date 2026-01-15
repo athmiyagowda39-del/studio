@@ -129,7 +129,7 @@ export default function LeadUploadForm() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { toast } = useToast();
   
-  const hardcodedExecutives = ["All", "Yathish G", "Mandanna N", "Hukum Chand Kewath"];
+  const hardcodedExecutives = ["All", "Yathish G", "Mandanna N", "Hukum Chand Kewath", "Hemant Sharma"];
 
   useEffect(() => {
     if (formData.pincode.length === 6) {
@@ -236,7 +236,6 @@ export default function LeadUploadForm() {
       givenBy: 'Manual',
       status: 'Not viewed',
       executive: formData.toExecutive ? toExecutiveSelection : undefined,
-      dealer: formData.toExecutive ? toExecutiveSelection : 'As per mapping',
     };
 
     const updatedLeads = [...allLeads, newLead];
