@@ -16,9 +16,6 @@ import { useRouter } from 'next/navigation';
 import AppContent from '@/components/layout/app-content';
 import LeadPerformanceFilters from '@/components/dashboard/lead-performance-filters';
 import dynamic from 'next/dynamic';
-import { useUsers } from '@/context/users-context';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
 
 const LeadPerformanceChart = dynamic(
   () => import('@/components/dashboard/lead-performance-chart'),
@@ -36,18 +33,13 @@ const getLeadsFromLocalStorage = (): LeadFormData[] => {
 export default function DashboardPage() {
     const { isAuthenticated, isLoading, user } = useAuth();
     const router = useRouter();
-    const { users } = useUsers();
     const [allLeads, setAllLeads] = useState<LeadFormData[]>([]);
     const [isDataLoading, setIsDataLoading] = useState(true);
 
     const [selectedPeriod, setSelectedPeriod] = useState<string>((new Date().getMonth() + 1).toString());
     const [selectedState, setSelectedState] = useState<string>('all');
     const [selectedCity, setSelectedCity] = useState<string>('all');
-    const [selectedExecutive, setSelectedExecutive] = useState<string>('all');
     
-    const executives = useMemo(() => users.filter(u => u.role === 'Executive').map(u => u.username), [users]);
-
-
     useEffect(() => {
         if (!isLoading && !isAuthenticated) {
             router.replace('/login');
@@ -58,6 +50,10 @@ export default function DashboardPage() {
     useEffect(() => {
         if (isAuthenticated) {
             let leads = getLeadsFromLocalStorage();
+            // If user is an executive, only show their leads.
+            if (user?.role === 'Executive') {
+                leads = leads.filter(lead => lead.executive === user.username);
+            }
             setAllLeads(leads);
             setIsDataLoading(false);
         }
@@ -65,18 +61,8 @@ export default function DashboardPage() {
 
     const filteredLeads = useMemo(() => {
         if (!allLeads) return [];
-        let leads = allLeads;
-
-        if (user?.role === 'Executive') {
-            return leads.filter(lead => lead.executive === user.username);
-        }
-
-        if (user?.role === 'Admin' && selectedExecutive !== 'all') {
-            return leads.filter(lead => lead.executive === selectedExecutive);
-        }
-        
-        return leads;
-    }, [allLeads, user, selectedExecutive]);
+        return allLeads;
+    }, [allLeads]);
 
 
     const totalLeadsToday = useMemo(() => {
@@ -142,29 +128,6 @@ export default function DashboardPage() {
                         Here is your lead generation overview for today.
                     </p>
                 </div>
-
-                {user?.role === 'Admin' && (
-                    <div className="flex justify-start">
-                        <div className="flex items-center gap-2">
-                        <Label htmlFor="executive-filter" className="font-medium">
-                            View Dashboard for:
-                        </Label>
-                        <Select value={selectedExecutive} onValueChange={setSelectedExecutive}>
-                            <SelectTrigger id="executive-filter" className="w-[220px]">
-                            <SelectValue placeholder="Select Executive" />
-                            </SelectTrigger>
-                            <SelectContent>
-                            <SelectItem value="all">All Executives</SelectItem>
-                            {executives.map((exec) => (
-                                <SelectItem key={exec} value={exec}>
-                                {exec}
-                                </SelectItem>
-                            ))}
-                            </SelectContent>
-                        </Select>
-                        </div>
-                    </div>
-                )}
 
                 <div className="grid grid-cols-1 gap-6">
                     <Card>
