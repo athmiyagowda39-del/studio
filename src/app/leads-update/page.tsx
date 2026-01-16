@@ -24,10 +24,6 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useUsers } from '@/context/users-context';
 import { useAuth } from '@/context/auth-context';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Check, ChevronsUpDown } from 'lucide-react';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useRouter } from 'next/navigation';
 
@@ -36,14 +32,6 @@ import { useRouter } from 'next/navigation';
 
 const LEADS_PER_PAGE = 10;
 type TabValue = 'recent' | 'not-viewed' | 'follow-ups-due' | 'zero-follow-ups' | 'search-result';
-
-const leadSources = [
-    "Website", "Social Media", "Google Ads", "Facebook Ads", "LinkedIn", "Referral", "Cold Call",
-    "Email Campaign", "WhatsApp Campaign", "Walk-in", "Telecalling", "Events / Trade Shows", "Webinars",
-    "Channel Partner", "Reseller", "Distributor", "Existing Customer", "Upselling", "Cross-selling",
-    "Marketplace (Justdial / IndiaMART)", "Third-party Data", "Outdoor Marketing", "Newspaper Ads",
-    "TV / Radio Ads", "Direct Sales", "Field Sales", "Franchise", "Customer Support", "Demo Request", "Trial Signup", "Job Portal"
-];
 
 const leadStatusOptions = [
     'Attended',
@@ -132,7 +120,6 @@ export default function LeadsUpdatePage() {
   const [activeTab, setActiveTab] = useState<TabValue>('recent');
   const [selectedExecutive, setSelectedExecutive] = useState('all');
   const [selectedLeadSource, setSelectedLeadSource] = useState('');
-  const [leadSourceOpen, setLeadSourceOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState('all');
   const [givenBy, setGivenBy] = useState('');
 
@@ -195,8 +182,10 @@ export default function LeadsUpdatePage() {
         tempLeads = tempLeads.filter(lead => lead.executive === selectedExecutive);
     }
 
-    if (selectedLeadSource) {
-        tempLeads = tempLeads.filter(lead => lead.reference === selectedLeadSource);
+    if (selectedLeadSource.trim() !== '') {
+        tempLeads = tempLeads.filter(lead => 
+            lead.reference?.toLowerCase().includes(selectedLeadSource.toLowerCase())
+        );
     }
 
     if (selectedProduct !== 'all') {
@@ -462,54 +451,13 @@ export default function LeadsUpdatePage() {
                       </Select>
                     </div>
                     <div className="space-y-1">
-                      <Label>Lead Source</Label>
-                      <Popover open={leadSourceOpen} onOpenChange={setLeadSourceOpen}>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            role="combobox"
-                            aria-expanded={leadSourceOpen}
-                            className="w-full justify-between font-normal"
-                          >
-                            {selectedLeadSource || "--All--"}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                            <Command>
-                                <CommandList>
-                                <CommandEmpty>No lead source found.</CommandEmpty>
-                                <CommandGroup>
-                                    <ScrollArea className="h-48">
-                                    <CommandItem
-                                        value=""
-                                        onSelect={() => {
-                                            setSelectedLeadSource('');
-                                            setLeadSourceOpen(false);
-                                        }}
-                                    >
-                                        <Check className={cn("mr-2 h-4 w-4", !selectedLeadSource ? "opacity-100" : "opacity-0")}/>
-                                        --All--
-                                    </CommandItem>
-                                    {leadSources.map((source) => (
-                                    <CommandItem
-                                        key={source}
-                                        value={source}
-                                        onSelect={(currentValue) => {
-                                            setSelectedLeadSource(currentValue === selectedLeadSource ? "" : currentValue);
-                                            setLeadSourceOpen(false);
-                                        }}
-                                    >
-                                        <Check className={cn("mr-2 h-4 w-4", selectedLeadSource === source ? "opacity-100" : "opacity-0")}/>
-                                        {source}
-                                    </CommandItem>
-                                    ))}
-                                    </ScrollArea>
-                                </CommandGroup>
-                                </CommandList>
-                            </Command>
-                        </PopoverContent>
-                      </Popover>
+                      <Label htmlFor="leadSource">Lead Source</Label>
+                      <Input
+                        id="leadSource"
+                        placeholder="--All--"
+                        value={selectedLeadSource}
+                        onChange={(e) => setSelectedLeadSource(e.target.value)}
+                      />
                     </div>
                   </div>
 
