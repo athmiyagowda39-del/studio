@@ -477,7 +477,6 @@ export default function LeadsUpdatePage() {
                         </PopoverTrigger>
                         <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
                             <Command>
-                                <CommandInput placeholder="Search lead source..." />
                                 <CommandList>
                                 <CommandEmpty>No lead source found.</CommandEmpty>
                                 <CommandGroup>
@@ -497,8 +496,7 @@ export default function LeadsUpdatePage() {
                                         key={source}
                                         value={source}
                                         onSelect={(currentValue) => {
-                                            const sourceValue = leadSources.find(s => s.toLowerCase() === currentValue);
-                                            setSelectedLeadSource(sourceValue === selectedLeadSource ? "" : sourceValue || "");
+                                            setSelectedLeadSource(currentValue === selectedLeadSource ? "" : currentValue);
                                             setLeadSourceOpen(false);
                                         }}
                                     >
