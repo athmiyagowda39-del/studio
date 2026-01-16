@@ -445,7 +445,7 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
             <CardTitle className="text-base">LEAD TRACKER</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 p-4">
-             <div className="flex items-center gap-4">
+            <div className="space-y-2">
                 <Label className="font-semibold shrink-0">TRANSFERRED LEAD</Label>
                 <Select value={transferredTo} onValueChange={setTransferredTo}>
                     <SelectTrigger className="w-full">
