@@ -147,14 +147,26 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
   }
 
   const handleAddFollowUp = () => {
-    if (!remarks || !nextFollowUpDate) {
+    const isOrderClosedRemark = remarks.trim().toLowerCase() === 'order closed';
+    
+    if (!remarks) {
       toast({
         variant: 'destructive',
         title: 'Missing Information',
-        description: 'Please fill Remarks and Next Follow-up Date.',
+        description: 'Please fill in the Remarks field.',
       });
       return;
     }
+    
+    if (!isOrderClosedRemark && !nextFollowUpDate) {
+       toast({
+        variant: 'destructive',
+        title: 'Missing Information',
+        description: 'Please provide a Next Follow-up Date.',
+      });
+      return;
+    }
+
     if (!leadDetails.leadId) {
       toast({
         variant: 'destructive',
@@ -168,7 +180,7 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
       id: followUps.length + 1,
       date: new Date().toLocaleDateString(),
       remarks: remarks,
-      nextFollowUp: format(nextFollowUpDate, 'PPP'),
+      nextFollowUp: isOrderClosedRemark || !nextFollowUpDate ? 'N/A' : format(nextFollowUpDate, 'PPP'),
       enteredBy: user?.username || 'Demo User',
     };
     
@@ -178,10 +190,12 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
     const updatedLeadDetails = {
       ...leadDetails,
       followUps: updatedFollowups,
-      nextFollowUpDate: nextFollowUpDate.toISOString(),
+      nextFollowUpDate: isOrderClosedRemark ? undefined : nextFollowUpDate?.toISOString(),
+      status: isOrderClosedRemark ? 'Order closed' : leadDetails.status,
     };
-    setLeadDetails(updatedLeadDetails);
 
+    setLeadDetails(updatedLeadDetails);
+    
     const updatedLeads = allLeads.map(l => l.leadId === leadDetails.leadId ? updatedLeadDetails : l);
     saveLeadsToLocalStorage(updatedLeads as LeadFormData[]);
     setAllLeads(updatedLeads as LeadFormData[]);
@@ -249,6 +263,9 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
     
     toast({ title: 'Lead Updated', description: `Lead ${leadDetails.leadId} has been successfully updated.` });
   };
+  
+  const isOrderClosedRemark = remarks.trim().toLowerCase() === 'order closed';
+
 
   return (
     <div className="space-y-6">
@@ -428,20 +445,20 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
             <CardTitle className="text-base">LEAD TRACKER</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 p-4">
-            <div className="space-y-2">
-              <Label className="font-semibold">TRANSFERRED LEAD</Label>
-              <Select value={transferredTo} onValueChange={setTransferredTo}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Executive ID..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All</SelectItem>
-                  <SelectItem value="Yathish N">Yathish N</SelectItem>
-                  <SelectItem value="Mandanna N">Mandanna N</SelectItem>
-                  <SelectItem value="Hukum Chand Kewat">Hukum Chand Kewat</SelectItem>
-                  <SelectItem value="Hemant Sharma">Hemant Sharma</SelectItem>
-                </SelectContent>
-              </Select>
+             <div className="flex items-center gap-4">
+                <Label className="font-semibold shrink-0">TRANSFERRED LEAD</Label>
+                <Select value={transferredTo} onValueChange={setTransferredTo}>
+                    <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select Executive ID..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All</SelectItem>
+                        <SelectItem value="Yathish N">Yathish N</SelectItem>
+                        <SelectItem value="Mandanna N">Mandanna N</SelectItem>
+                        <SelectItem value="Hukum Chand Kewat">Hukum Chand Kewat</SelectItem>
+                        <SelectItem value="Hemant Sharma">Hemant Sharma</SelectItem>
+                    </SelectContent>
+                </Select>
             </div>
             <p className="font-semibold">Follow Up</p>
             <div className="space-y-2">
@@ -462,6 +479,7 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
                       'w-full justify-start text-left font-normal',
                       !nextFollowUpDate && 'text-muted-foreground'
                     )}
+                    disabled={isOrderClosedRemark}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {nextFollowUpDate ? (
@@ -570,9 +588,3 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
     </div>
   );
 }
-
-    
-
-    
-
-
