@@ -105,19 +105,15 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
     }
     const foundLead = allLeads.find(lead => lead.leadId === id);
     if (foundLead) {
-        // Don't set executiveViewDate on select, only on update
         const leadData = {...foundLead};
         setLeadDetails(leadData);
         setFollowUps((foundLead as any).followUps || []);
         setCurrentStatus((foundLead as any).status || 'Initial');
 
-        if (foundLead.status === 'Order closed') {
-            setNextFollowUpDate(undefined);
-        } else if (foundLead.nextFollowUpDate) {
-          setNextFollowUpDate(new Date(foundLead.nextFollowUpDate));
-        } else {
-          setNextFollowUpDate(undefined);
-        }
+        // Reset the follow-up input fields so they are blank for the next entry
+        setRemarks('');
+        setNextFollowUpDate(undefined);
+        
     } else {
         handleResetLeadDetails();
     }
@@ -229,6 +225,7 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
     setNextFollowUpDate(undefined);
     setTransferredTo('');
     setSelectedStatus('');
+    setRemarks('');
   };
 
   const handleSaveLeadDetails = async () => {
