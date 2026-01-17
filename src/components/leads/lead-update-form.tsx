@@ -105,7 +105,9 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
     }
     const foundLead = allLeads.find(lead => lead.leadId === id);
     if (foundLead) {
-        setLeadDetails(foundLead);
+        // Don't set executiveViewDate on select, only on update
+        const leadData = {...foundLead};
+        setLeadDetails(leadData);
         setFollowUps((foundLead as any).followUps || []);
         setCurrentStatus((foundLead as any).status || 'Initial');
 
@@ -205,6 +207,7 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
     const updatedLeadDetailsWithStatus = {
         ...leadDetails, 
         status: selectedStatus, 
+        // Only set executiveViewDate if it's not already set
         executiveViewDate: leadDetails.executiveViewDate || new Date().getTime(),
     };
     
@@ -482,6 +485,7 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
               <Button onClick={handleAddFollowUp}>Add&gt;&gt;</Button>
             </div>
             <div className="space-y-4 pt-4">
+              <ScrollArea className="h-48 w-full rounded-md border">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -504,12 +508,18 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
                         </TableRow>
                       ))
                     ) : (
-                        <TableRow>
-                            <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">No follow-ups added yet.</TableCell>
-                        </TableRow>
+                      <TableRow>
+                        <TableCell
+                          colSpan={5}
+                          className="h-24 text-center text-muted-foreground"
+                        >
+                          No follow-ups added yet.
+                        </TableCell>
+                      </TableRow>
                     )}
                   </TableBody>
                 </Table>
+              </ScrollArea>
             </div>
           </CardContent>
         </Card>
