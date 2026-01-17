@@ -33,24 +33,24 @@ const getLeadsFromLocalStorage = (): LeadFormData[] => {
 const getFunnelData = (leads: LeadFormData[]) => {
   // Define the order of progression through the funnel. Each status is assigned a level.
   const stageOrder: { [key: string]: number } = {
-    // Level 0: Not yet contacted
+    // PRE-FUNNEL
     'Not viewed': 0,
     'Unattended': 0,
     
-    // Level 1: Initial contact made
+    // FUNNEL STAGE 1: Attended
     'Attended': 1,
-    'Not interested': 1, // Also "attended", but with a negative outcome
-    'Do Not Contact': 1, // Also "attended"
+    'Not interested': 1,
+    'Do Not Contact': 1,
     
-    // Level 2: Qualified, demo or quote provided
+    // FUNNEL STAGE 2: Demo Given (includes quote/proposal as equivalent effort)
     'Demo Given': 2,
-    
-    // Level 3: Actively pursuing a deal
+    'Quote Sent': 2,
+    'Proposal Sent': 2,
+
+    // FUNNEL STAGE 3: Pursuing to Purchase
     'Pursuing to Purchase': 3,
-    'Quote Sent': 3,
-    'Proposal Sent': 3,
     
-    // Level 4: Deal won
+    // FUNNEL STAGE 4: Order closed
     'Order closed': 4,
   };
 
