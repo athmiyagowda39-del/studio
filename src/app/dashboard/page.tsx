@@ -42,7 +42,7 @@ export default function DashboardPage() {
 
     const [selectedPeriod, setSelectedPeriod] = useState<string>((new Date().getMonth() + 1).toString());
     const [selectedState, setSelectedState] = useState<string>('all');
-    const [selectedCity, setSelectedCity] = useState<string>('all');
+    const [selectedDistrict, setSelectedDistrict] = useState<string>('all');
     const [selectedExecutive, setSelectedExecutive] = useState<string>('all');
     const [executives, setExecutives] = useState<string[]>([]);
     
@@ -105,8 +105,8 @@ export default function DashboardPage() {
       if (selectedState !== 'all') {
         leads = leads.filter(lead => lead.state === selectedState);
       }
-      if (selectedCity !== 'all') {
-        leads = leads.filter(lead => lead.district === selectedCity);
+      if (selectedDistrict !== 'all') {
+        leads = leads.filter(lead => lead.district === selectedDistrict);
       }
 
       const year = getYear(new Date());
@@ -136,7 +136,7 @@ export default function DashboardPage() {
       });
     
       return Object.values(dailyLeads);
-    }, [filteredLeads, selectedPeriod, selectedState, selectedCity]);
+    }, [filteredLeads, selectedPeriod, selectedState, selectedDistrict]);
   
     if (isLoading || isDataLoading || !isAuthenticated) {
         return null; // or a loading skeleton
@@ -180,8 +180,8 @@ export default function DashboardPage() {
                                 setSelectedPeriod={setSelectedPeriod}
                                 selectedState={selectedState}
                                 setSelectedState={setSelectedState}
-                                selectedCity={selectedCity}
-                                setSelectedCity={setSelectedCity}
+                                selectedDistrict={selectedDistrict}
+                                setSelectedDistrict={setSelectedDistrict}
                             />
                         </div>
                     </CardHeader>

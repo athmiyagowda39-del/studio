@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo, useState } from 'react';
@@ -27,8 +28,8 @@ type LeadPerformanceFiltersProps = {
     setSelectedPeriod: (value: string) => void;
     selectedState: string;
     setSelectedState: (value: string) => void;
-    selectedCity: string;
-    setSelectedCity: (value: string) => void;
+    selectedDistrict: string;
+    setSelectedDistrict: (value: string) => void;
 };
 
 const months = [
@@ -48,7 +49,7 @@ const months = [
 
 const allIndianStates = ["all", "Andaman and Nicobar Islands", "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chandigarh", "Chhattisgarh", "Dadra and Nagar Haveli and Daman and Diu", "Delhi", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jammu and Kashmir", "Jharkhand", "Karnataka", "Kerala", "Ladakh", "Lakshadweep", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Puducherry", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"];
 
-const stateCityMap: Record<string, string[]> = {
+const stateDistrictMap: Record<string, string[]> = {
     "Karnataka": [
         "Bangalore GPO / MG Road", "Shivajinagar", "Malleshwaram", "Rajajinagar", "Jayanagar", "Basavanagudi", "BTM Layout", "JP Nagar", "Yelahanka", "Hebbal", "Whitefield", "Marathahalli", "Electronic City", "KR Puram", "Banashankari", "HSR Layout"
     ],
@@ -62,32 +63,32 @@ export default function LeadPerformanceFilters({
     setSelectedPeriod,
     selectedState,
     setSelectedState,
-    selectedCity,
-    setSelectedCity,
+    selectedDistrict,
+    setSelectedDistrict,
 }: LeadPerformanceFiltersProps) {
     const [stateOpen, setStateOpen] = useState(false);
-    const [cityOpen, setCityOpen] = useState(false);
+    const [districtOpen, setDistrictOpen] = useState(false);
 
-    const cities = useMemo(() => {
+    const districts = useMemo(() => {
         if (selectedState === 'all') {
-            const allCities = Object.values(stateCityMap).flat();
-            const uniqueCities = Array.from(new Set(allCities));
-            return ['all', ...uniqueCities.sort()];
+            const allDistricts = Object.values(stateDistrictMap).flat();
+            const uniqueDistricts = Array.from(new Set(allDistricts));
+            return ['all', ...uniqueDistricts.sort()];
         }
-        return ['all', ...(stateCityMap[selectedState] || [])];
+        return ['all', ...(stateDistrictMap[selectedState] || [])];
     }, [selectedState]);
 
     const handleStateChange = (value: string) => {
         const state = allIndianStates.find(s => s.toLowerCase() === value) || 'all';
         setSelectedState(state);
-        setSelectedCity('all');
+        setSelectedDistrict('all');
         setStateOpen(false);
     }
     
-    const handleCityChange = (value: string) => {
-        const city = cities.find(c => c.toLowerCase() === value) || 'all';
-        setSelectedCity(city);
-        setCityOpen(false);
+    const handleDistrictChange = (value: string) => {
+        const district = districts.find(c => c.toLowerCase() === value) || 'all';
+        setSelectedDistrict(district);
+        setDistrictOpen(false);
     }
 
     return (
@@ -151,40 +152,40 @@ export default function LeadPerformanceFilters({
                 </Popover>
             </div>
             <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">City:</span>
-                <Popover open={cityOpen} onOpenChange={setCityOpen}>
+                <span className="text-sm font-medium">District:</span>
+                <Popover open={districtOpen} onOpenChange={setDistrictOpen}>
                     <PopoverTrigger asChild>
                          <Button
                             variant="outline"
                             role="combobox"
-                            aria-expanded={cityOpen}
+                            aria-expanded={districtOpen}
                             className="w-[180px] justify-between font-normal"
-                            disabled={cities.length <= 1}
+                            disabled={districts.length <= 1}
                         >
-                            {selectedCity === 'all' ? 'All Cities' : selectedCity}
+                            {selectedDistrict === 'all' ? 'All Districts' : selectedDistrict}
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-[180px] p-0">
                         <Command>
-                            <CommandInput placeholder="Search city..." />
+                            <CommandInput placeholder="Search district..." />
                             <CommandList>
-                                <CommandEmpty>No city found.</CommandEmpty>
+                                <CommandEmpty>No district found.</CommandEmpty>
                                 <CommandGroup>
                                     <ScrollArea className="h-48">
-                                        {cities.map((city) => (
+                                        {districts.map((district) => (
                                             <CommandItem
-                                                key={city}
-                                                value={city.toLowerCase()}
-                                                onSelect={handleCityChange}
+                                                key={district}
+                                                value={district.toLowerCase()}
+                                                onSelect={handleDistrictChange}
                                             >
                                                 <Check
                                                     className={cn(
                                                         'mr-2 h-4 w-4',
-                                                        selectedCity === city ? 'opacity-100' : 'opacity-0'
+                                                        selectedDistrict === district ? 'opacity-100' : 'opacity-0'
                                                     )}
                                                 />
-                                                {city === 'all' ? 'All Cities' : city}
+                                                {district === 'all' ? 'All Districts' : district}
                                             </CommandItem>
                                         ))}
                                     </ScrollArea>
