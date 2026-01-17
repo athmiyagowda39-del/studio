@@ -219,6 +219,11 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
     setRemarks('');
     setIsReadyToUpdate(false);
   };
+  
+  const handleNewFollowUp = () => {
+    setRemarks('');
+    setNextFollowUpDate(undefined);
+  };
 
   const handleSaveLeadDetails = async () => {
     if (!leadDetails.leadId) {
@@ -477,7 +482,7 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
               </Popover>
             </div>
             <div className="flex justify-end gap-2">
-              <Button variant="outline">New</Button>
+              <Button variant="outline" onClick={handleNewFollowUp}>New</Button>
               <Button onClick={handleAddFollowUp}>Add&gt;&gt;</Button>
             </div>
             <div className="space-y-4 pt-4">
