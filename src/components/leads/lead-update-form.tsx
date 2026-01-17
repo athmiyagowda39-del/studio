@@ -46,20 +46,13 @@ type FollowUp = {
 const leadStatusOptions = [
     'Attended',
     'Not viewed',
-    'Demo Given',
     'Unattended',
     'Pursuing to Purchase',
     'Not interested',
     'Order closed',
-    'Contacted',
-    'Qualified',
-    'Unqualified',
-    'Follow-up Required',
-    'Fake Lead',
-    'Existing Customer',
+    'Proposal Sent',
     'Do Not Contact',
     'Quote Sent',
-    'Proposal Sent',
 ];
 
 const saveLeadsToLocalStorage = (leads: LeadFormData[]) => {
