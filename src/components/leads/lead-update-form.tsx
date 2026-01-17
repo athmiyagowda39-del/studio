@@ -83,7 +83,6 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
   const [transferredTo, setTransferredTo] = useState('');
   const [transferredToOpen, setTransferredToOpen] = useState(false);
 
-  const [leadIdForStatus, setLeadIdForStatus] = useState('');
   
   const { toast } = useToast();
   const { users } = useUsers();
@@ -127,7 +126,6 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
         setLeadDetails(leadWithViewDate);
         setFollowUps((foundLead as any).followUps || []);
         setCurrentStatus((foundLead as any).status || 'Initial');
-        setLeadIdForStatus(id);
 
         if (foundLead.status === 'Order closed') {
             setNextFollowUpDate(undefined);
@@ -201,6 +199,9 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
 
 
     setRemarks('');
+    if(isOrderClosedRemark) {
+      setCurrentStatus('Order closed');
+    }
     setNextFollowUpDate(undefined);
     
     toast({
@@ -214,27 +215,24 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
       toast({ variant: 'destructive', title: 'No Status Selected', description: 'Please select a status to update.' });
       return;
     }
-     if (!leadIdForStatus) {
+     if (!leadDetails.leadId) {
       toast({ variant: 'destructive', title: 'No Lead Selected', description: 'Please select a lead before updating its status.' });
       return;
     }
     
-    const updatedLeadDetails = {
+    const updatedLeadDetailsWithStatus = {
         ...leadDetails, 
         status: selectedStatus, 
-        leadStatusRemarks: ''
     };
     
-    const updatedLeads = allLeads.map(l => l.leadId === leadIdForStatus ? updatedLeadDetails : l);
+    const updatedLeads = allLeads.map(l => l.leadId === leadDetails.leadId ? updatedLeadDetailsWithStatus : l);
     saveLeadsToLocalStorage(updatedLeads as LeadFormData[]);
     setAllLeads(updatedLeads as LeadFormData[]);
     
-    toast({ title: 'Status Updated', description: `Lead ${leadIdForStatus} status updated to ${selectedStatus}.` });
+    toast({ title: 'Status Updated', description: `Lead ${leadDetails.leadId} status updated to ${selectedStatus}.` });
 
-    if (leadDetails.leadId === leadIdForStatus) {
-        setLeadDetails(updatedLeadDetails);
-        setCurrentStatus(selectedStatus);
-    }
+    setLeadDetails(updatedLeadDetailsWithStatus);
+    setCurrentStatus(selectedStatus);
     setSelectedStatus('');
   };
   
@@ -244,7 +242,6 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
     setCurrentStatus('Initial');
     setNextFollowUpDate(undefined);
     setTransferredTo('');
-    setLeadIdForStatus('');
     setSelectedStatus('');
   };
 
@@ -539,33 +536,34 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
           <CardTitle className='text-primary text-base font-bold'>Lead Status</CardTitle>
         </CardHeader>
         <CardContent className='p-4 space-y-4'>
-            <div className='flex flex-col gap-4'>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
-                    <div className="space-y-2">
-                        <Label htmlFor="lead-id-status" className="shrink-0">Initial Remarks:</Label>
-                         <Input 
-                            id="lead-id-status" 
-                            placeholder="Select Lead..."
-                            value={leadIdForStatus ? `${leadDetails.company} (${leadIdForStatus})` : ''}
-                            readOnly
-                            className="bg-muted"
-                          />
-                    </div>
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-4 items-start'>
+                <div className="space-y-2">
+                    <Label htmlFor="initialRemarks">Initial Remarks</Label>
+                    <Textarea 
+                      id="initialRemarks"
+                      value={leadDetails.initialRemarks || ''}
+                      onChange={(e) => handleLeadDetailChange('initialRemarks', e.target.value)}
+                      placeholder="Enter initial remarks for the lead..."
+                      rows={3}
+                    />
+                </div>
 
+                <div className="space-y-2">
+                    <Label>Current Status</Label>
                     <div className="flex items-center gap-2">
-                        <span className="font-semibold shrink-0">Current Status: {currentStatus}</span>
-                        <Select value={selectedStatus} onValueChange={setSelectedStatus} disabled={!leadIdForStatus}>
-                        <SelectTrigger className="w-full min-w-[200px]">
-                            <SelectValue placeholder="-- Select --" />
-                        </SelectTrigger>
-                        <SelectContent>
-                             <SelectItem value="all">All</SelectItem>
-                            {leadStatusOptions.map((status) => (
-                                <SelectItem key={status} value={status}>{status}</SelectItem>
-                            ))}
-                        </SelectContent>
+                        <span className="font-semibold shrink-0 text-muted-foreground">({currentStatus})</span>
+                        <Select value={selectedStatus} onValueChange={setSelectedStatus} disabled={!leadDetails.leadId}>
+                          <SelectTrigger className="w-full min-w-[200px]">
+                              <SelectValue placeholder="-- Select --" />
+                          </SelectTrigger>
+                          <SelectContent>
+                              <SelectItem value="all">All</SelectItem>
+                              {leadStatusOptions.map((status) => (
+                                  <SelectItem key={status} value={status}>{status}</SelectItem>
+                              ))}
+                          </SelectContent>
                         </Select>
-                        <Button onClick={handleUpdateStatus} disabled={!leadIdForStatus}>Update</Button>
+                        <Button onClick={handleUpdateStatus} disabled={!leadDetails.leadId}>Update</Button>
                     </div>
                 </div>
             </div>
