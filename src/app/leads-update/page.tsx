@@ -117,6 +117,9 @@ export default function LeadsUpdatePage() {
   const [selectedLeadSource, setSelectedLeadSource] = useState('');
   const [selectedProduct, setSelectedProduct] = useState('all');
   const [givenBy, setGivenBy] = useState('');
+  const [selectedLeadStatus, setSelectedLeadStatus] = useState('all');
+  const [selectedSubStatus, setSelectedSubStatus] = useState('all');
+  const [otherSubStatusReason, setOtherSubStatusReason] = useState('');
 
 
   /* ---------------- EFFECT ---------------- */
@@ -244,6 +247,9 @@ export default function LeadsUpdatePage() {
     setSelectedLeadSource('');
     setSelectedProduct('all');
     setGivenBy('');
+    setSelectedLeadStatus('all');
+    setSelectedSubStatus('all');
+    setOtherSubStatusReason('');
     setFilteredLeads(allLeads);
     setCurrentPage(1);
   };
@@ -427,7 +433,7 @@ export default function LeadsUpdatePage() {
                     </div>
                     <div className="space-y-1">
                       <Label>Status of Lead</Label>
-                      <Select>
+                      <Select value={selectedLeadStatus} onValueChange={setSelectedLeadStatus}>
                         <SelectTrigger><SelectValue placeholder="--All--" /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="all">All</SelectItem>
@@ -441,7 +447,7 @@ export default function LeadsUpdatePage() {
                     </div>
                     <div className="space-y-1">
                       <Label>Sub Status of Lead</Label>
-                      <Select>
+                      <Select value={selectedSubStatus} onValueChange={setSelectedSubStatus}>
                         <SelectTrigger><SelectValue placeholder="--All--" /></SelectTrigger>
                         <SelectContent>
                             <ScrollArea className="h-48">
@@ -454,6 +460,14 @@ export default function LeadsUpdatePage() {
                             </ScrollArea>
                         </SelectContent>
                       </Select>
+                       {selectedSubStatus === 'other' && (
+                        <Input
+                          placeholder="Specify other reason"
+                          value={otherSubStatusReason}
+                          onChange={(e) => setOtherSubStatusReason(e.target.value)}
+                          className="mt-2"
+                        />
+                      )}
                     </div>
                     <div className="space-y-1">
                       <Label htmlFor="leadSource">Lead Source</Label>
