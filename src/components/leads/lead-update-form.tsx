@@ -424,7 +424,7 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
               <div className="flex flex-col gap-2">
                 <Select value={transferredTo} onValueChange={setTransferredTo}>
                     <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select Executive ID..." />
+                    <SelectValue placeholder="Select Executive..." />
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="all">All</SelectItem>
@@ -560,5 +560,3 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
     </div>
   );
 }
-
-    
