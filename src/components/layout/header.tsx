@@ -1,3 +1,4 @@
+
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
@@ -42,7 +43,7 @@ export default function Header() {
       setLastLoginDate(storedLastLogin);
     }
     
-    const currentLoginDate = format(new Date(), 'dd-MM-yyyy');
+    const currentLoginDate = format(new Date(), 'EEEE, MMMM d, yyyy p');
     localStorage.setItem('lastLoginDate', currentLoginDate);
 
   }, []);
