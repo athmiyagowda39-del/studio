@@ -31,62 +31,44 @@ const getLeadsFromLocalStorage = (): LeadFormData[] => {
 
 
 const getFunnelData = (leads: LeadFormData[]) => {
-  // Define the order of progression through the funnel.
+  // Define the order of progression through the funnel. Each status is assigned a level.
   const stageOrder: { [key: string]: number } = {
+    // Level 0: Not yet contacted
     'Not viewed': 0,
     'Unattended': 0,
-    'Contacted': 1,
+    
+    // Level 1: Initial contact made
     'Attended': 1,
-    'Not interested': 1,
-    'Do Not Contact': 1,
+    'Not interested': 1, // Also "attended", but with a negative outcome
+    'Do Not Contact': 1, // Also "attended"
+    
+    // Level 2: Qualified, demo or quote provided
     'Demo Given': 2,
+    
+    // Level 3: Actively pursuing a deal
     'Pursuing to Purchase': 3,
     'Quote Sent': 3,
     'Proposal Sent': 3,
+    
+    // Level 4: Deal won
     'Order closed': 4,
   };
 
-  // Initialize counts for each stage of our desired funnel.
+  // Calculate the counts for each funnel stage cumulatively.
   const statusCounts = {
     'Total Leads': leads.length,
-    'Attended': 0,
-    'Demo Given': 0,
-    'Pursuing to Purchase': 0,
-    'Order closed': 0,
+    'Attended': leads.filter(l => (stageOrder[l.status || ''] || 0) >= 1).length,
+    'Demo Given': leads.filter(l => (stageOrder[l.status || ''] || 0) >= 2).length,
+    'Pursuing to Purchase': leads.filter(l => (stageOrder[l.status || ''] || 0) >= 3).length,
+    'Order closed': leads.filter(l => (stageOrder[l.status || ''] || 0) >= 4).length,
   };
-
-  // For stages after Attended, we only count leads on a "positive" path.
-  const positivePathStatuses = [
-    'Attended',
-    'Demo Given',
-    'Pursuing to Purchase',
-    'Quote Sent',
-    'Proposal Sent',
-    'Order closed',
-  ];
-
-  // Attended is any lead that has been contacted.
-  statusCounts['Attended'] = leads.filter(
-    (lead) => (stageOrder[lead.status || ''] || 0) >= 1
-  ).length;
-
-  // Subsequent stages are cumulative but only for positive paths.
-  const positiveLeads = leads.filter((lead) =>
-    positivePathStatuses.includes(lead.status || '')
-  );
-
-  positiveLeads.forEach((lead) => {
-    const leadStageIndex = stageOrder[lead.status || ''] || 0;
-    if (leadStageIndex >= 2) statusCounts['Demo Given']++;
-    if (leadStageIndex >= 3) statusCounts['Pursuing to Purchase']++;
-    if (leadStageIndex >= 4) statusCounts['Order closed']++;
-  });
 
   return funnelStages.map((stage) => ({
     name: stage,
     value: statusCounts[stage as keyof typeof statusCounts],
   }));
 };
+
 
 export default function ConversionFunnelReportPage() {
   const [allLeads, setAllLeads] = useState<LeadFormData[]>([]);
