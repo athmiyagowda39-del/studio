@@ -84,7 +84,6 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
   const [transferredToOpen, setTransferredToOpen] = useState(false);
 
   const [leadIdForStatus, setLeadIdForStatus] = useState('');
-  const [initialRemarks, setInitialRemarks] = useState('');
   
   const { toast } = useToast();
   const { users } = useUsers();
@@ -223,7 +222,7 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
     const updatedLeadDetails = {
         ...leadDetails, 
         status: selectedStatus, 
-        leadStatusRemarks: initialRemarks
+        leadStatusRemarks: ''
     };
     
     const updatedLeads = allLeads.map(l => l.leadId === leadIdForStatus ? updatedLeadDetails : l);
@@ -236,7 +235,6 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
         setLeadDetails(updatedLeadDetails);
         setCurrentStatus(selectedStatus);
     }
-    setInitialRemarks('');
     setSelectedStatus('');
   };
   
@@ -247,7 +245,6 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
     setNextFollowUpDate(undefined);
     setTransferredTo('');
     setLeadIdForStatus('');
-    setInitialRemarks('');
     setSelectedStatus('');
   };
 
@@ -570,17 +567,6 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
                         </Select>
                         <Button onClick={handleUpdateStatus} disabled={!leadIdForStatus}>Update</Button>
                     </div>
-                </div>
-                
-                <div className="space-y-2">
-                    <Textarea 
-                        id="initial-remarks"
-                        placeholder="Enter remarks here..."
-                        value={initialRemarks}
-                        onChange={(e) => setInitialRemarks(e.target.value)}
-                        className="min-h-[40px]"
-                        disabled={!leadIdForStatus}
-                    />
                 </div>
             </div>
         </CardContent>
