@@ -50,10 +50,59 @@ const months = [
 const allIndianStates = ["all", "Andaman and Nicobar Islands", "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chandigarh", "Chhattisgarh", "Dadra and Nagar Haveli and Daman and Diu", "Delhi", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jammu and Kashmir", "Jharkhand", "Karnataka", "Kerala", "Ladakh", "Lakshadweep", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Puducherry", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"];
 
 const stateDistrictMap: Record<string, string[]> = {
+    "Andaman and Nicobar Islands": [
+        "ANDAMAN NICOBAR IS", "Port Blair"
+    ],
+    "Andhra Pradesh": [
+        "ADILABAD", "ANANTAPUR", "CHITTOOR", "EAST_GODAVARI", "GUNTUR", "HYDERABAD", "KADAPA",
+        "KARIMNAGAR", "KHAMMAM/BHADRACHALAM", "KRISHNA", "KURNOOL", "MAHBUBNAGAR", "MEDAK",
+        "NALGONDA", "NELLORE", "NIZAMABAD", "PRAKASAM", "RANGAREDDI", "SRIKAKULAM",
+        "VISAKHAPATNAM", "VIZIANAGARAM", "WARANGAL", "WEST GODAVARI", "Vijayawada"
+    ],
+    "Arunachal Pradesh": [
+        "ANJAW", "CHANGLANG", "EAST KAMENG", "EAST SIANG", "KURUNG KUMEY", "LOHIT",
+        "LOWER DIBANG VALLEY", "LOWER SUBANSIRI", "PAPUM PARE", "TAWANG", "TIRAP",
+        "UPPER DIBANG VALLEY", "UPPER SIANG", "UPPER SUBANSIRI", "WEST KAMENG", "WEST SIANG", "Itanagar"
+    ],
+    "Assam": [
+        "BAKSA", "BARPETA", "BONGAIGAON", "CACHAR", "CHIRANG", "DARRANG", "DHEMAJI",
+        "DHUBRI", "DIBRUGARH", "GOALPARA", "GOLAGHAT", "HAILAKANDI", "JORHAT", "KAMRUP",
+        "KARBI ANGLONG", "KARIMGANJ", "Guwahati"
+    ],
     "Karnataka": [
         "Bangalore GPO / MG Road", "Shivajinagar", "Malleshwaram", "Rajajinagar", "Jayanagar", "Basavanagudi", "BTM Layout", "JP Nagar", "Yelahanka", "Hebbal", "Whitefield", "Marathahalli", "Electronic City", "KR Puram", "Banashankari", "HSR Layout"
     ],
-    "Andhra Pradesh": ["Vijayawada"], "Arunachal Pradesh": ["Itanagar"], "Assam": ["Guwahati"], "Bihar": ["Patna"], "Chhattisgarh": ["Raipur"], "Goa": ["Panaji"], "Gujarat": ["Ahmedabad"], "Haryana": ["Gurugram"], "Himachal Pradesh": ["Shimla"], "Jharkhand": ["Ranchi"], "Kerala": ["Thiruvananthapuram"], "Madhya Pradesh": ["Bhopal"], "Maharashtra": ["Mumbai"], "Manipur": ["Imphal"], "Meghalaya": ["Shillong"], "Mizoram": ["Aizawl"], "Nagaland": ["Kohima"], "Odisha": ["Bhubaneswar"], "Punjab": ["Chandigarh"], "Rajasthan": ["Jaipur"], "Sikkim": ["Gangtok"], "Tamil Nadu": ["Chennai"], "Telangana": ["Hyderabad"], "Tripura": ["Agartala"], "Uttar Pradesh": ["Lucknow"], "Uttarakhand": ["Dehradun"], "West Bengal": ["Kolkata"], "Andaman and Nicobar Islands": ["Port Blair"], "Chandigarh": ["Chandigarh"], "Dadra and Nagar Haveli and Daman and Diu": ["Daman"], "Delhi": ["New Delhi"], "Jammu and Kashmir": ["Srinagar"], "Ladakh": ["Leh"], "Lakshadweep": ["Kavaratti"], "Puducherry": ["Puducherry"],
+    "Bihar": ["Patna"],
+    "Chhattisgarh": ["Raipur"],
+    "Goa": ["Panaji"],
+    "Gujarat": ["Ahmedabad"],
+    "Haryana": ["Gurugram"],
+    "Himachal Pradesh": ["Shimla"],
+    "Jharkhand": ["Ranchi"],
+    "Kerala": ["Thiruvananthapuram"],
+    "Madhya Pradesh": ["Bhopal"],
+    "Maharashtra": ["Mumbai"],
+    "Manipur": ["Imphal"],
+    "Meghalaya": ["Shillong"],
+    "Mizoram": ["Aizawl"],
+    "Nagaland": ["Kohima"],
+    "Odisha": ["Bhubaneswar"],
+    "Punjab": ["Chandigarh"],
+    "Rajasthan": ["Jaipur"],
+    "Sikkim": ["Gangtok"],
+    "Tamil Nadu": ["Chennai"],
+    "Telangana": ["Hyderabad"],
+    "Tripura": ["Agartala"],
+    "Uttar Pradesh": ["Lucknow"],
+    "Uttarakhand": ["Dehradun"],
+    "West Bengal": ["Kolkata"],
+    "Chandigarh": ["Chandigarh"],
+    "Dadra and Nagar Haveli and Daman and Diu": ["Daman"],
+    "Delhi": ["New Delhi"],
+    "Jammu and Kashmir": ["Srinagar"],
+    "Ladakh": ["Leh"],
+    "Lakshadweep": ["Kavaratti"],
+    "Puducherry": ["Puducherry"],
 };
 
 
