@@ -204,6 +204,11 @@ export default function LeadsUpdatePage() {
                 const dueDate = startOfDay(new Date(lead.nextFollowUpDate));
                 return dueDate <= today;
             });
+            // Sort by the next follow-up date in ascending order (oldest first)
+            tempLeads.sort((a, b) => 
+                (a.nextFollowUpDate ? new Date(a.nextFollowUpDate).getTime() : 0) - 
+                (b.nextFollowUpDate ? new Date(b.nextFollowUpDate).getTime() : 0)
+            );
             break;
         case 'zero-follow-ups':
             tempLeads = tempLeads.filter(lead => !lead.followUps || lead.followUps.length === 0);
