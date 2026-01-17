@@ -420,7 +420,6 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
             </div>
             <div className="grid grid-cols-2 gap-4 pt-4 border-t">
               <div>
-                  <p>Manager: {leadDetails.manager || 'N/A'}</p>
                   <div className="flex items-center space-x-2 mt-2">
                       <Checkbox id="readyToUpdate" />
                       <Label htmlFor="readyToUpdate">Yes, I am Ready to Update.</Label>
