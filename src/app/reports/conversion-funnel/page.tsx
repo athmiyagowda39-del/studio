@@ -37,6 +37,8 @@ const getFunnelData = (leads: LeadFormData[]) => {
     'Unattended': 0,
     'Contacted': 1,
     'Attended': 1,
+    'Not interested': 1,
+    'Do Not Contact': 1,
     'Demo Given': 2,
     'Pursuing to Purchase': 3,
     'Quote Sent': 3,
@@ -53,16 +55,34 @@ const getFunnelData = (leads: LeadFormData[]) => {
     'Order closed': 0,
   };
 
-  leads.forEach(lead => {
-    const leadStageIndex = stageOrder[lead.status || ''] || 0;
+  // For stages after Attended, we only count leads on a "positive" path.
+  const positivePathStatuses = [
+    'Attended',
+    'Demo Given',
+    'Pursuing to Purchase',
+    'Quote Sent',
+    'Proposal Sent',
+    'Order closed',
+  ];
 
-    if (leadStageIndex >= 1) statusCounts['Attended']++;
+  // Attended is any lead that has been contacted.
+  statusCounts['Attended'] = leads.filter(
+    (lead) => (stageOrder[lead.status || ''] || 0) >= 1
+  ).length;
+
+  // Subsequent stages are cumulative but only for positive paths.
+  const positiveLeads = leads.filter((lead) =>
+    positivePathStatuses.includes(lead.status || '')
+  );
+
+  positiveLeads.forEach((lead) => {
+    const leadStageIndex = stageOrder[lead.status || ''] || 0;
     if (leadStageIndex >= 2) statusCounts['Demo Given']++;
     if (leadStageIndex >= 3) statusCounts['Pursuing to Purchase']++;
     if (leadStageIndex >= 4) statusCounts['Order closed']++;
   });
 
-  return funnelStages.map(stage => ({
+  return funnelStages.map((stage) => ({
     name: stage,
     value: statusCounts[stage as keyof typeof statusCounts],
   }));

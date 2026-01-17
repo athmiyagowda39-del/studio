@@ -43,6 +43,7 @@ const leadStatusOptions = [
     'Proposal Sent',
     'Do Not Contact',
     'Quote Sent',
+    'Demo Given',
 ];
 
 const leadSubStatusOptions = [
