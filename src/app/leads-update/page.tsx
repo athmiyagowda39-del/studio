@@ -2,7 +2,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Table,
   TableBody,
@@ -98,6 +98,7 @@ const getLeadsFromLocalStorage = (): LeadFormData[] => {
 export default function LeadsUpdatePage() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
+  const pageTopRef = useRef<HTMLDivElement>(null);
 
   const [allLeads, setAllLeads] = useState<LeadFormData[]>([]);
   const [filteredLeads, setFilteredLeads] = useState<LeadFormData[]>([]);
@@ -241,6 +242,11 @@ export default function LeadsUpdatePage() {
     setFilteredLeads(allLeads);
     setCurrentPage(1);
   };
+  
+  const handleSelectLead = (leadId: string) => {
+    setSelectedLeadId(leadId);
+    pageTopRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }
 
 
   /* ---------------- PAGINATION ---------------- */
@@ -259,7 +265,7 @@ export default function LeadsUpdatePage() {
 
   return (
     <AppContent>
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-6" ref={pageTopRef}>
 
         {/* PAGE CARD */}
         <Card>
@@ -560,7 +566,7 @@ export default function LeadsUpdatePage() {
                         return (
                         <TableRow 
                           key={lead.leadId} 
-                          onClick={() => setSelectedLeadId(lead.leadId)} 
+                          onClick={() => handleSelectLead(lead.leadId)} 
                           className="cursor-pointer"
                         >
                           <TableCell>{(currentPage - 1) * LEADS_PER_PAGE + index + 1}</TableCell>
