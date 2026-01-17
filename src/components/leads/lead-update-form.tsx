@@ -17,18 +17,10 @@ import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '../ui/textarea';
 import { Calendar } from '../ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
-import { CalendarIcon, Check, ChevronsUpDown, CircleDot } from 'lucide-react';
+import { CalendarIcon, CircleDot } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command';
 import type { LeadFormData } from './lead-upload-form';
 import { ScrollArea } from '../ui/scroll-area';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '../ui/table';
@@ -74,8 +66,7 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
   const [selectedStatus, setSelectedStatus] = useState('');
   
   const [transferredTo, setTransferredTo] = useState('');
-  const [transferredToOpen, setTransferredToOpen] = useState(false);
-
+  const [isReadyToUpdate, setIsReadyToUpdate] = useState(false);
   
   const { toast } = useToast();
   const { users } = useUsers();
@@ -109,10 +100,9 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
         setLeadDetails(leadData);
         setFollowUps((foundLead as any).followUps || []);
         setCurrentStatus((foundLead as any).status || 'Initial');
-
-        // Reset the follow-up input fields so they are blank for the next entry
         setRemarks('');
         setNextFollowUpDate(undefined);
+        setIsReadyToUpdate(false);
         
     } else {
         handleResetLeadDetails();
@@ -226,6 +216,7 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
     setTransferredTo('');
     setSelectedStatus('');
     setRemarks('');
+    setIsReadyToUpdate(false);
   };
 
   const handleSaveLeadDetails = async () => {
@@ -239,6 +230,7 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
     setAllLeads(updatedLeads as LeadFormData[]);
     
     toast({ title: 'Lead Updated', description: `Lead ${leadDetails.leadId} has been successfully updated.` });
+    setIsReadyToUpdate(false);
   };
   
   const isOrderClosedRemark = remarks.trim().toLowerCase() === 'order closed';
@@ -265,7 +257,7 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
               </div>
               <div className="space-y-2">
                   <Label htmlFor="company">Company</Label>
-                  <Input id="company" value={leadDetails.company || ''} onChange={(e) => handleLeadDetailChange('company', e.target.value)} />
+                  <Input id="company" value={leadDetails.company || ''} readOnly className="bg-muted" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="contactPerson">Contact person</Label>
@@ -277,7 +269,7 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
               </div>
               <div className="space-y-2">
                 <Label htmlFor="address">Address</Label>
-                <Input id="address" value={leadDetails.address || ''} onChange={(e) => handleLeadDetailChange('address', e.target.value)} />
+                <Input id="address" value={leadDetails.address || ''} readOnly className="bg-muted" />
               </div>
                <div className="space-y-2">
                 <Label htmlFor="email">Email ID</Label>
@@ -301,6 +293,7 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
                           'w-full justify-start text-left font-normal',
                           !leadDetails.creationDate && 'text-muted-foreground'
                           )}
+                          disabled
                       >
                           <CalendarIcon className="mr-2 h-4 w-4" />
                           {leadDetails.creationDate ? (
@@ -332,15 +325,15 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
               </div>
                <div className="space-y-2">
                 <Label htmlFor="reference">Reference</Label>
-                <Input id="reference" value={leadDetails.reference || ''} onChange={(e) => handleLeadDetailChange('reference', e.target.value)} />
+                <Input id="reference" value={leadDetails.reference || ''} readOnly className="bg-muted" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="givenBy">Given By</Label>
-                <Input id="givenBy" value={leadDetails.givenBy || ''} onChange={(e) => handleLeadDetailChange('givenBy', e.target.value)} />
+                <Input id="givenBy" value={leadDetails.givenBy || ''} readOnly className="bg-muted" />
               </div>
               <div className="space-y-2 relative">
                 <Label htmlFor="executive">Executive</Label>
-                <Input id="executive" value={leadDetails.executive || ''} onChange={(e) => handleLeadDetailChange('executive', e.target.value)} />
+                <Input id="executive" value={leadDetails.executive || ''} readOnly className="bg-muted" />
                  {leadDetails.leadId && (
                    <Popover>
                     <PopoverTrigger asChild>
@@ -382,6 +375,7 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
                 <Select 
                   value={leadDetails.selectedModule || ''} 
                   onValueChange={(value) => handleLeadDetailChange('selectedModule', value)}
+                  disabled
                 >
                   <SelectTrigger id="module">
                     <SelectValue placeholder="Select Module" />
@@ -398,18 +392,22 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
               </div>
               <div className="space-y-2">
                 <Label htmlFor="manager">Manager</Label>
-                <Input id="manager" value={leadDetails.manager || ''} onChange={(e) => handleLeadDetailChange('manager', e.target.value)} />
+                <Input id="manager" value={leadDetails.manager || ''} readOnly className="bg-muted" />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4 pt-4 border-t">
               <div>
                   <div className="flex items-center space-x-2 mt-2">
-                      <Checkbox id="readyToUpdate" />
+                      <Checkbox 
+                        id="readyToUpdate"
+                        checked={isReadyToUpdate}
+                        onCheckedChange={(checked) => setIsReadyToUpdate(checked as boolean)}
+                       />
                       <Label htmlFor="readyToUpdate">Yes, I am Ready to Update.</Label>
                   </div>
               </div>
               <div className="flex items-center justify-end gap-2">
-                  <Button onClick={handleSaveLeadDetails}>Save</Button>
+                  <Button onClick={handleSaveLeadDetails} disabled={!isReadyToUpdate}>Save</Button>
                   <Button variant="outline" onClick={handleResetLeadDetails}>Reset</Button>
               </div>
             </div>
@@ -562,3 +560,5 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
     </div>
   );
 }
+
+    
