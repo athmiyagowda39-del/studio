@@ -105,18 +105,7 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
     }
     const foundLead = allLeads.find(lead => lead.leadId === id);
     if (foundLead) {
-        let leadWithViewDate: Partial<LeadFormData> = { ...foundLead };
-        if (!foundLead.executiveViewDate) {
-          leadWithViewDate.executiveViewDate = new Date().getTime();
-          
-          const updatedLeads = allLeads.map(l => l.leadId === id ? { ...l, executiveViewDate: leadWithViewDate.executiveViewDate } : l);
-          saveLeadsToLocalStorage(updatedLeads);
-          setAllLeads(updatedLeads);
-
-          console.log("Setting executiveViewDate for lead:", id);
-        }
-
-        setLeadDetails(leadWithViewDate);
+        setLeadDetails(foundLead);
         setFollowUps((foundLead as any).followUps || []);
         setCurrentStatus((foundLead as any).status || 'Initial');
 
@@ -216,6 +205,7 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
     const updatedLeadDetailsWithStatus = {
         ...leadDetails, 
         status: selectedStatus, 
+        executiveViewDate: leadDetails.executiveViewDate || new Date().getTime(),
     };
     
     const updatedLeads = allLeads.map(l => l.leadId === leadDetails.leadId ? updatedLeadDetailsWithStatus : l);
