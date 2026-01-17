@@ -116,7 +116,7 @@ export default function LeadsUpdatePage() {
   const [selectedExecutive, setSelectedExecutive] = useState('all');
   const [selectedLeadSource, setSelectedLeadSource] = useState('');
   const [selectedProduct, setSelectedProduct] = useState('all');
-  const [givenBy, setGivenBy] = useState('');
+  const [givenBy, setGivenBy] = useState('all');
   const [selectedLeadStatus, setSelectedLeadStatus] = useState('all');
   const [selectedSubStatus, setSelectedSubStatus] = useState('all');
   const [otherSubStatusReason, setOtherSubStatusReason] = useState('');
@@ -190,10 +190,8 @@ export default function LeadsUpdatePage() {
         tempLeads = tempLeads.filter(lead => lead.selectedModule === selectedProduct);
     }
     
-    if (givenBy.trim() !== '') {
-        tempLeads = tempLeads.filter(lead => 
-            lead.givenBy?.toLowerCase().includes(givenBy.toLowerCase())
-        );
+    if (givenBy !== 'all') {
+        tempLeads = tempLeads.filter(lead => lead.givenBy === givenBy);
     }
 
     switch (tab) {
@@ -246,7 +244,7 @@ export default function LeadsUpdatePage() {
     setSelectedExecutive('all');
     setSelectedLeadSource('');
     setSelectedProduct('all');
-    setGivenBy('');
+    setGivenBy('all');
     setSelectedLeadStatus('all');
     setSelectedSubStatus('all');
     setOtherSubStatusReason('');
@@ -424,12 +422,19 @@ export default function LeadsUpdatePage() {
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="space-y-1">
                       <Label htmlFor="givenBy">Given by</Label>
-                      <Input 
-                        id="givenBy"
-                        placeholder="--All--"
-                        value={givenBy}
-                        onChange={(e) => setGivenBy(e.target.value)}
-                      />
+                      <Select value={givenBy} onValueChange={setGivenBy}>
+                        <SelectTrigger id="givenBy">
+                          <SelectValue placeholder="--All--" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All</SelectItem>
+                          {executives.map((exec) => (
+                            <SelectItem key={exec} value={exec}>
+                              {exec}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div className="space-y-1">
                       <Label>Status of Lead</Label>
@@ -651,5 +656,7 @@ export default function LeadsUpdatePage() {
     </AppContent>
   );
 }
+
+    
 
     
