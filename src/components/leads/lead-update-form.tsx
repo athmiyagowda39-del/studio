@@ -476,6 +476,7 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
                     mode="single"
                     selected={nextFollowUpDate}
                     onSelect={setNextFollowUpDate}
+                    disabled={{ before: new Date() }}
                     initialFocus
                   />
                 </PopoverContent>
@@ -566,3 +567,4 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
     </div>
   );
 }
+
