@@ -423,18 +423,20 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
           <CardContent className="space-y-4 p-4">
             <div className="space-y-2">
                 <Label className="font-semibold shrink-0">TRANSFERRED LEAD</Label>
-                <Select value={transferredTo} onValueChange={setTransferredTo}>
-                    <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select Executive ID..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">All</SelectItem>
-                        <SelectItem value="Yathish N">Yathish N</SelectItem>
-                        <SelectItem value="Mandanna N">Mandanna N</SelectItem>
-                        <SelectItem value="Hukum Chand Kewat">Hukum Chand Kewat</SelectItem>
-                        <SelectItem value="Hemant Sharma">Hemant Sharma</SelectItem>
-                    </SelectContent>
-                </Select>
+                <div className="flex flex-col gap-2">
+                  <Select value={transferredTo} onValueChange={setTransferredTo}>
+                      <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select Executive ID..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                          <SelectItem value="all">All</SelectItem>
+                          <SelectItem value="Yathish N">Yathish N</SelectItem>
+                          <SelectItem value="Mandanna N">Mandanna N</SelectItem>
+                          <SelectItem value="Hukum Chand Kewat">Hukum Chand Kewat</SelectItem>
+                          <SelectItem value="Hemant Sharma">Hemant Sharma</SelectItem>
+                      </SelectContent>
+                  </Select>
+                </div>
             </div>
             <p className="font-semibold">Follow Up</p>
             <div className="space-y-2">
