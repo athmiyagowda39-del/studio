@@ -189,7 +189,13 @@ export default function LeadsUpdatePage() {
     }
 
     if (selectedLeadSource !== 'all') {
-        tempLeads = tempLeads.filter(lead => lead.reference === selectedLeadSource);
+        if (selectedLeadSource === 'Other') {
+            if(otherLeadSourceReason.trim()) {
+                tempLeads = tempLeads.filter(lead => lead.reference === otherLeadSourceReason);
+            }
+        } else {
+            tempLeads = tempLeads.filter(lead => lead.reference === selectedLeadSource);
+        }
     }
 
     if (selectedProduct !== 'all') {
@@ -198,6 +204,20 @@ export default function LeadsUpdatePage() {
     
     if (givenBy !== 'all') {
         tempLeads = tempLeads.filter(lead => lead.givenBy === givenBy);
+    }
+
+    if (selectedLeadStatus !== 'all') {
+        tempLeads = tempLeads.filter(lead => lead.status === selectedLeadStatus);
+    }
+
+    if (selectedSubStatus !== 'all') {
+        if (selectedSubStatus === 'other') {
+            if (otherSubStatusReason.trim()) {
+                tempLeads = tempLeads.filter(lead => lead.leadSubStatus === otherSubStatusReason);
+            }
+        } else {
+            tempLeads = tempLeads.filter(lead => lead.leadSubStatus === selectedSubStatus);
+        }
     }
 
     switch (tab) {
@@ -235,7 +255,18 @@ export default function LeadsUpdatePage() {
 
   useEffect(() => {
     handleFilterAndTab(allLeads, activeTab, activeTab === 'search-result');
-  }, [activeTab, allLeads, selectedExecutive, selectedLeadSource, selectedProduct, givenBy]);
+  }, [
+    activeTab, 
+    allLeads, 
+    selectedExecutive, 
+    selectedLeadSource, 
+    otherLeadSourceReason,
+    selectedProduct, 
+    givenBy,
+    selectedLeadStatus,
+    selectedSubStatus,
+    otherSubStatusReason
+  ]);
 
   const handleShowButtonClick = () => {
     setActiveTab('search-result');
@@ -688,15 +719,3 @@ export default function LeadsUpdatePage() {
     </AppContent>
   );
 }
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
