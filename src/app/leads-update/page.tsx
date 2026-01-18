@@ -106,35 +106,35 @@ export default function LeadsUpdatePage() {
   const router = useRouter();
   const pageTopRef = useRef<HTMLDivElement>(null);
 
-  const [allLeads, setAllLeads] = useState<LeadFormData[]>([]);
-  const [filteredLeads, setFilteredLeads] = useState<LeadFormData[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
+  const [allLeads, setAllLeads = useState<LeadFormData[]>([]);
+  const [filteredLeads, setFilteredLeads = useState<LeadFormData[]>([]);
+  const [currentPage, setCurrentPage = useState(1);
+  const [selectedLeadId, setSelectedLeadId = useState<string | null>(null);
 
   // ✅ FILTER TOGGLE
-  const [showFilters, setShowFilters] = useState(false);
-  const [considerStatus, setConsiderStatus] = useState(false);
+  const [showFilters, setShowFilters = useState(false);
+  const [considerStatus, setConsiderStatus = useState(false);
 
   // ✅ FILTER STATE
-  const [searchTerm, setSearchTerm] = useState('');
-  const [searchCategory, setSearchCategory] = useState('leadId');
-  const [activeTab, setActiveTab] = useState<TabValue>('recent');
-  const [selectedExecutive, setSelectedExecutive] = useState('all');
-  const [selectedLeadSource, setSelectedLeadSource] = useState('all');
-  const [otherLeadSourceReason, setOtherLeadSourceReason] = useState('');
-  const [tempOtherLeadSource, setTempOtherLeadSource] = useState('');
-  const [selectedProduct, setSelectedProduct] = useState('all');
-  const [givenBy, setGivenBy] = useState('all');
-  const [selectedLeadStatus, setSelectedLeadStatus] = useState('all');
-  const [selectedSubStatus, setSelectedSubStatus] = useState('all');
-  const [otherSubStatusReason, setOtherSubStatusReason] = useState('');
-  const [tempOtherSubStatus, setTempOtherSubStatus] = useState('');
-  const [enteredByFilter, setEnteredByFilter] = useState('all');
+  const [searchTerm, setSearchTerm = useState('');
+  const [searchCategory, setSearchCategory = useState('leadId');
+  const [activeTab, setActiveTab = useState<TabValue>('recent');
+  const [selectedExecutive, setSelectedExecutive = useState('all');
+  const [selectedLeadSource, setSelectedLeadSource = useState('all');
+  const [otherLeadSourceReason, setOtherLeadSourceReason = useState('');
+  const [tempOtherLeadSource, setTempOtherLeadSource = useState('');
+  const [selectedProduct, setSelectedProduct = useState('all');
+  const [givenBy, setGivenBy = useState('all');
+  const [selectedLeadStatus, setSelectedLeadStatus = useState('all');
+  const [selectedSubStatus, setSelectedSubStatus = useState('all');
+  const [otherSubStatusReason, setOtherSubStatusReason = useState('');
+  const [tempOtherSubStatus, setTempOtherSubStatus = useState('');
+  const [enteredByFilter, setEnteredByFilter = useState('all');
 
 
   /* ---------------- EFFECT ---------------- */
   const { users } = useUsers();
-  const [executives, setExecutives] = useState<string[]>([]);
+  const [executives, setExecutives = useState<string[]>([]);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -299,6 +299,22 @@ export default function LeadsUpdatePage() {
     setSelectedLeadId(leadId);
     pageTopRef.current?.scrollIntoView({ behavior: 'smooth' });
   }
+
+  const handleLeadSourceChange = (value: string) => {
+    setSelectedLeadSource(value);
+    if (value !== 'Other') {
+      setOtherLeadSourceReason('');
+      setTempOtherLeadSource('');
+    }
+  };
+
+  const handleSubStatusChange = (value: string) => {
+    setSelectedSubStatus(value);
+    if (value !== 'other') {
+      setOtherSubStatusReason('');
+      setTempOtherSubStatus('');
+    }
+  };
 
 
   /* ---------------- PAGINATION ---------------- */
@@ -495,7 +511,7 @@ export default function LeadsUpdatePage() {
                     </div>
                     <div className="space-y-1">
                       <Label>Sub Status of Lead</Label>
-                      <Select value={selectedSubStatus} onValueChange={setSelectedSubStatus}>
+                      <Select value={selectedSubStatus} onValueChange={handleSubStatusChange}>
                         <SelectTrigger><SelectValue placeholder="--All--" /></SelectTrigger>
                         <SelectContent>
                             <ScrollArea className="h-48">
@@ -509,19 +525,34 @@ export default function LeadsUpdatePage() {
                         </SelectContent>
                       </Select>
                        {selectedSubStatus === 'other' && (
-                        <div className="flex items-center gap-2 mt-2">
-                          <Input
-                            placeholder="Specify other reason"
-                            value={tempOtherSubStatus}
-                            onChange={(e) => setTempOtherSubStatus(e.target.value)}
-                          />
-                          <Button size="sm" onClick={() => setOtherSubStatusReason(tempOtherSubStatus)}>OK</Button>
+                        <div className="mt-2">
+                           {otherSubStatusReason ? (
+                             <div className="flex items-center justify-between text-sm p-2 bg-muted rounded-md">
+                                <span>Filtering by: <strong>{otherSubStatusReason}</strong></span>
+                                <Button variant="link" size="sm" className="h-auto p-0" onClick={() => {
+                                  setOtherSubStatusReason('');
+                                  setTempOtherSubStatus('');
+                                }}>Clear</Button>
+                             </div>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <Input
+                                placeholder="Specify other reason"
+                                value={tempOtherSubStatus}
+                                onChange={(e) => setTempOtherSubStatus(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') setOtherSubStatusReason(tempOtherSubStatus);
+                                }}
+                              />
+                              <Button size="sm" onClick={() => setOtherSubStatusReason(tempOtherSubStatus)}>OK</Button>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
                     <div className="space-y-1">
                       <Label htmlFor="leadSource">Lead Source</Label>
-                      <Select value={selectedLeadSource} onValueChange={setSelectedLeadSource}>
+                      <Select value={selectedLeadSource} onValueChange={handleLeadSourceChange}>
                         <SelectTrigger id="leadSource">
                           <SelectValue placeholder="--All--" />
                         </SelectTrigger>
@@ -534,13 +565,28 @@ export default function LeadsUpdatePage() {
                         </SelectContent>
                       </Select>
                       {selectedLeadSource === 'Other' && (
-                        <div className="flex items-center gap-2 mt-2">
-                            <Input
-                            placeholder="Specify other source"
-                            value={tempOtherLeadSource}
-                            onChange={(e) => setTempOtherLeadSource(e.target.value)}
-                            />
-                            <Button size="sm" onClick={() => setOtherLeadSourceReason(tempOtherLeadSource)}>OK</Button>
+                        <div className="mt-2">
+                          {otherLeadSourceReason ? (
+                             <div className="flex items-center justify-between text-sm p-2 bg-muted rounded-md">
+                                <span>Filtering by: <strong>{otherLeadSourceReason}</strong></span>
+                                <Button variant="link" size="sm" className="h-auto p-0" onClick={() => {
+                                  setOtherLeadSourceReason('');
+                                  setTempOtherLeadSource('');
+                                }}>Clear</Button>
+                             </div>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                                <Input
+                                placeholder="Specify other source"
+                                value={tempOtherLeadSource}
+                                onChange={(e) => setTempOtherLeadSource(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') setOtherLeadSourceReason(tempOtherLeadSource);
+                                }}
+                                />
+                                <Button size="sm" onClick={() => setOtherLeadSourceReason(tempOtherLeadSource)}>OK</Button>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -727,3 +773,5 @@ export default function LeadsUpdatePage() {
     </AppContent>
   );
 }
+
+    
