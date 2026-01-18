@@ -12,6 +12,7 @@ import { useRouter } from 'next/navigation';
 import { useUsers } from './users-context';
 
 type User = {
+  id: string;
   username: string;
   role: string;
   email: string;
@@ -74,6 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const loggedInUser: User = {
+      id: foundUser.id,
       username: foundUser.username,
       role: foundUser.role,
       email: foundUser.email,

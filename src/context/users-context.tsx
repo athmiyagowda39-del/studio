@@ -11,7 +11,7 @@ export type AppUser = {
   id: string;
   username: string;
   email: string;
-  role: 'Admin' | 'Executive';
+  role: 'Admin' | 'Sub Admin' | 'Executive';
   password?: string;
 };
 
@@ -19,6 +19,7 @@ type UsersContextType = {
   users: AppUser[];
   addUser: (user: Omit<AppUser, 'id'>) => Promise<void>;
   updateUser: (id: string, updates: Partial<Omit<AppUser, 'id'>>) => void;
+  deleteUser: (id: string) => void;
 };
 
 const UsersContext = createContext<UsersContextType | undefined>(undefined);
@@ -80,11 +81,19 @@ export function UsersProvider({ children }: { children: ReactNode }) {
     window.dispatchEvent(new StorageEvent('storage', { key: 'appUsers' }));
   };
 
+  const deleteUser = (id: string) => {
+    const updatedUsers = users.filter(user => user.id !== id);
+    setUsers(updatedUsers);
+    localStorage.setItem('appUsers', JSON.stringify(updatedUsers));
+    window.dispatchEvent(new StorageEvent('storage', { key: 'appUsers' }));
+  };
+
 
   const value = {
     users,
     addUser,
     updateUser,
+    deleteUser,
   };
 
   return <UsersContext.Provider value={value}>{children}</UsersContext.Provider>;
@@ -97,5 +106,3 @@ export function useUsers() {
   }
   return context;
 }
-
-    

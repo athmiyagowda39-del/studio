@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import AppContent from '@/components/layout/app-content';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -26,32 +26,38 @@ import { useUsers, type AppUser } from '@/context/users-context';
 import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff, Pencil } from 'lucide-react';
+import { Eye, EyeOff, Pencil, Trash2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
   DialogClose,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export default function UsersPage() {
-  const {
-    originalUser,
-    isAuthenticated,
-    isLoading,
-    impersonate,
-  } = useAuth();
+  const { originalUser, isAuthenticated, isLoading, impersonate } = useAuth();
   const router = useRouter();
-  const { users, addUser, updateUser } = useUsers();
+  const { users, addUser, updateUser, deleteUser } = useUsers();
   const { toast } = useToast();
 
   const [newUsername, setNewUsername] = useState('');
   const [newEmail, setNewEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
-  const [newRole, setNewRole] = useState<'Admin' | 'Executive'>('Executive');
+  const [newRole, setNewRole] = useState<'Admin' | 'Sub Admin' | 'Executive'>(
+    'Executive'
+  );
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [passwordVisibility, setPasswordVisibility] = useState<
     Record<string, boolean>
@@ -61,9 +67,12 @@ export default function UsersPage() {
   const [editUsername, setEditUsername] = useState('');
   const [editEmail, setEditEmail] = useState('');
   const [editPassword, setEditPassword] = useState('');
-  const [editRole, setEditRole] = useState<'Admin' | 'Executive'>('Executive');
+  const [editRole, setEditRole] = useState<
+    'Admin' | 'Sub Admin' | 'Executive'
+  >('Executive');
   const [showEditPassword, setShowEditPassword] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<AppUser | null>(null);
 
   useEffect(() => {
     if (!isLoading && (!isAuthenticated || originalUser?.role !== 'Admin')) {
@@ -169,14 +178,11 @@ export default function UsersPage() {
       return;
     }
 
-    // Note: This only updates the local user list (for roles, etc).
-    // It does not update the user's email or password in Firebase Auth from this dialog
-    // to keep the logic simple for this prototype. Password changes are done on the profile page.
     updateUser(editingUser.id, {
       username: editUsername,
       email: editEmail,
       role: editRole,
-      password: editPassword, // This might be stale, but we save it for local display
+      password: editPassword,
     });
 
     toast({
@@ -186,6 +192,27 @@ export default function UsersPage() {
 
     setIsEditDialogOpen(false);
     setEditingUser(null);
+  };
+
+  const handleDeleteUser = () => {
+    if (!userToDelete) return;
+
+    if (originalUser?.id === userToDelete.id) {
+      toast({
+        variant: 'destructive',
+        title: 'Action Forbidden',
+        description: 'You cannot delete your own account.',
+      });
+      setUserToDelete(null);
+      return;
+    }
+
+    deleteUser(userToDelete.id);
+    toast({
+      title: 'User Deleted',
+      description: `User "${userToDelete.username}" has been removed.`,
+    });
+    setUserToDelete(null);
   };
 
   const togglePasswordVisibility = (userId: string) => {
@@ -202,6 +229,7 @@ export default function UsersPage() {
       return;
     }
     impersonate({
+      id: userToImpersonate.id,
       username: userToImpersonate.username,
       email: userToImpersonate.email,
       role: userToImpersonate.role,
@@ -268,15 +296,16 @@ export default function UsersPage() {
                   <Label htmlFor="role">Role</Label>
                   <Select
                     value={newRole}
-                    onValueChange={(value: 'Admin' | 'Executive') =>
-                      setNewRole(value)
-                    }
+                    onValueChange={(
+                      value: 'Admin' | 'Sub Admin' | 'Executive'
+                    ) => setNewRole(value)}
                   >
                     <SelectTrigger id="role">
                       <SelectValue placeholder="Select a role" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="Executive">Executive</SelectItem>
+                      <SelectItem value="Sub Admin">Sub Admin</SelectItem>
                       <SelectItem value="Admin">Admin</SelectItem>
                     </SelectContent>
                   </Select>
@@ -302,7 +331,9 @@ export default function UsersPage() {
                         <TableHead>Email</TableHead>
                         <TableHead>Role</TableHead>
                         <TableHead>Password (Last Known)</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
+                        <TableHead className="text-right w-[120px]">
+                          Actions
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -350,6 +381,15 @@ export default function UsersPage() {
                             >
                               <Pencil className="h-4 w-4" />
                               <span className="sr-only">Edit User</span>
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setUserToDelete(user)}
+                              disabled={originalUser?.id === user.id}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                              <span className="sr-only">Delete User</span>
                             </Button>
                           </TableCell>
                         </TableRow>
@@ -399,15 +439,16 @@ export default function UsersPage() {
               </Label>
               <Select
                 value={editRole}
-                onValueChange={(value: 'Admin' | 'Executive') =>
-                  setEditRole(value)
-                }
+                onValueChange={(
+                  value: 'Admin' | 'Sub Admin' | 'Executive'
+                ) => setEditRole(value)}
               >
                 <SelectTrigger id="edit-role" className="col-span-3">
                   <SelectValue placeholder="Select a role" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Executive">Executive</SelectItem>
+                  <SelectItem value="Sub Admin">Sub Admin</SelectItem>
                   <SelectItem value="Admin">Admin</SelectItem>
                 </SelectContent>
               </Select>
@@ -423,6 +464,32 @@ export default function UsersPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete User Dialog */}
+      <AlertDialog
+        open={!!userToDelete}
+        onOpenChange={(open) => !open && setUserToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the
+              user account for{' '}
+              <span className="font-semibold">{userToDelete?.username}</span>.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteUser}
+              className={buttonVariants({ variant: 'destructive' })}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppContent>
   );
 }
