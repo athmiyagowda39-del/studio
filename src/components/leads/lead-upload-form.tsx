@@ -221,11 +221,11 @@ export default function LeadUploadForm() {
       }
     }
     
-    if (lead.toExecutive && !toExecutiveSelection) {
+    if (!lead.toExecutive || !toExecutiveSelection) {
        toast({
           variant: 'destructive',
-          title: 'Missing Information',
-          description: 'Please select an executive from the "To Executive" dropdown.',
+          title: 'Executive Not Assigned',
+          description: 'You must check "To Executive" and select an executive before saving.',
         });
         return false;
     }
@@ -522,3 +522,5 @@ export default function LeadUploadForm() {
     </div>
   );
 }
+
+    
