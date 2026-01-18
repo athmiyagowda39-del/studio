@@ -9,7 +9,7 @@ import type { ImagePlaceholder } from '@/lib/placeholder-images.d';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Bell, User, LogOut } from 'lucide-react';
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,11 +32,14 @@ export default function Header() {
   const [lastLoginDate, setLastLoginDate] = useState('N/A');
   const { user, logout } = useAuth();
   const router = useRouter();
+  const loginTimeProcessed = useRef(false);
 
 
   useEffect(() => {
     setIsClient(true);
     setUserAvatar(PlaceHolderImages.find((img) => img.id === 'user-avatar'));
+    
+    if (loginTimeProcessed.current) return;
 
     const storedLastLogin = localStorage.getItem('lastLoginDate');
     if (storedLastLogin) {
@@ -45,6 +48,8 @@ export default function Header() {
     
     const currentLoginDate = format(new Date(), 'EEEE, MMMM d, yyyy p');
     localStorage.setItem('lastLoginDate', currentLoginDate);
+    
+    loginTimeProcessed.current = true;
 
   }, []);
 
