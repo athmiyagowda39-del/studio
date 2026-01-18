@@ -15,7 +15,6 @@ import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import { format } from 'date-fns';
 import AppContent from '@/components/layout/app-content';
 import { useAuth } from '@/context/auth-context';
-import { ScrollArea } from '@/components/ui/scroll-area';
 
 const getLeadsFromLocalStorage = (): LeadFormData[] => {
   if (typeof window !== 'undefined') {
@@ -64,7 +63,7 @@ export default function LeadUpdateStatusReportPage() {
           <CardContent className="p-6">
             <Card>
               <CardContent className="p-0">
-                <ScrollArea className="w-full whitespace-nowrap rounded-md border">
+                <div className="w-full overflow-x-auto rounded-md border">
                   <Table className="min-w-[2800px]">
                     <TableHeader>
                       <TableRow>
@@ -166,7 +165,7 @@ export default function LeadUpdateStatusReportPage() {
                       )}
                     </TableBody>
                   </Table>
-                </ScrollArea>
+                </div>
               </CardContent>
             </Card>
           </CardContent>
