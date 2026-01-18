@@ -2,6 +2,7 @@
 'use client';
 
 import Header from '@/components/layout/header';
+import ImpersonationBanner from '@/components/layout/impersonation-banner';
 import SidebarNav from '@/components/layout/sidebar-nav';
 import {
   Sidebar,
@@ -24,6 +25,7 @@ export default function AppContent({
       </Sidebar>
       <SidebarInset>
         <Header />
+        <ImpersonationBanner />
         <main className="p-4 md:p-6">{children}</main>
       </SidebarInset>
     </SidebarProvider>

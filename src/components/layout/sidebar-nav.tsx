@@ -1,3 +1,4 @@
+
 'use client';
 import {
   SidebarMenu,
@@ -31,7 +32,7 @@ const adminLinks = [
 export default function SidebarNav() {
   const pathname = usePathname();
   const [isClient, setIsClient] = useState(false);
-  const { user } = useAuth();
+  const { originalUser } = useAuth();
 
   useEffect(() => {
     setIsClient(true);
@@ -39,7 +40,7 @@ export default function SidebarNav() {
 
   const isActive = (href: string) => pathname.startsWith(href) && (href !== '/' || pathname === '/');
   
-  const allLinks = user?.role === 'Admin' ? [...links, ...adminLinks] : links;
+  const allLinks = originalUser?.role === 'Admin' ? [...links, ...adminLinks] : links;
 
   return (
     <SidebarMenu>

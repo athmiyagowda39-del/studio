@@ -38,7 +38,12 @@ import {
 } from '@/components/ui/dialog';
 
 export default function UsersPage() {
-  const { user: currentUser, isAuthenticated, isLoading } = useAuth();
+  const {
+    originalUser,
+    isAuthenticated,
+    isLoading,
+    impersonate,
+  } = useAuth();
   const router = useRouter();
   const { users, addUser, updateUser } = useUsers();
   const { toast } = useToast();
@@ -48,7 +53,9 @@ export default function UsersPage() {
   const [newPassword, setNewPassword] = useState('');
   const [newRole, setNewRole] = useState<'Admin' | 'Executive'>('Executive');
   const [showNewPassword, setShowNewPassword] = useState(false);
-  const [passwordVisibility, setPasswordVisibility] = useState<Record<string, boolean>>({});
+  const [passwordVisibility, setPasswordVisibility] = useState<
+    Record<string, boolean>
+  >({});
 
   const [editingUser, setEditingUser] = useState<AppUser | null>(null);
   const [editUsername, setEditUsername] = useState('');
@@ -59,15 +66,15 @@ export default function UsersPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   useEffect(() => {
-    if (!isLoading && (!isAuthenticated || currentUser?.role !== 'Admin')) {
+    if (!isLoading && (!isAuthenticated || originalUser?.role !== 'Admin')) {
       router.replace('/dashboard');
     }
-  }, [isAuthenticated, currentUser, isLoading, router]);
+  }, [isAuthenticated, originalUser, isLoading, router]);
 
-  if (isLoading || !isAuthenticated || currentUser?.role !== 'Admin') {
+  if (isLoading || !isAuthenticated || originalUser?.role !== 'Admin') {
     return null; // or a loading skeleton
   }
-  
+
   const handleAddUser = async () => {
     if (!newUsername.trim() || !newPassword.trim() || !newEmail.trim()) {
       toast({
@@ -77,38 +84,51 @@ export default function UsersPage() {
       });
       return;
     }
-    if(users.some(u => u.username.toLowerCase() === newUsername.toLowerCase() || u.email.toLowerCase() === newEmail.toLowerCase())) {
-        toast({
-            variant: 'destructive',
-            title: 'Validation Error',
-            description: 'Username or Email already exists.',
-        });
-        return;
+    if (
+      users.some(
+        (u) =>
+          u.username.toLowerCase() === newUsername.toLowerCase() ||
+          u.email.toLowerCase() === newEmail.toLowerCase()
+      )
+    ) {
+      toast({
+        variant: 'destructive',
+        title: 'Validation Error',
+        description: 'Username or Email already exists.',
+      });
+      return;
     }
-    
+
     try {
-      await addUser({ username: newUsername, email: newEmail, role: newRole, password: newPassword });
+      await addUser({
+        username: newUsername,
+        email: newEmail,
+        role: newRole,
+        password: newPassword,
+      });
       toast({
         title: 'User Added',
-        description: `User "${newUsername}" has been created in Firebase and added to the list.`,
+        description: `User "${newUsername}" has been created and added to the list.`,
       });
       setNewUsername('');
       setNewEmail('');
       setNewPassword('');
       setNewRole('Executive');
       setShowNewPassword(false);
-    } catch(error: any) {
-        let description = 'Could not create user.';
-        if (error.code === 'auth/email-already-in-use') {
-            description = 'This email address is already in use by another account.';
-        } else if (error.code === 'auth/weak-password') {
-            description = 'The password is too weak. It must be at least 6 characters long.';
-        }
-         toast({
-            variant: 'destructive',
-            title: 'Error creating user',
-            description: description,
-        });
+    } catch (error: any) {
+      let description = 'Could not create user.';
+      if (error.code === 'auth/email-already-in-use') {
+        description =
+          'This email address is already in use by another account.';
+      } else if (error.code === 'auth/weak-password') {
+        description =
+          'The password is too weak. It must be at least 6 characters long.';
+      }
+      toast({
+        variant: 'destructive',
+        title: 'Error creating user',
+        description: description,
+      });
     }
   };
 
@@ -133,16 +153,23 @@ export default function UsersPage() {
       return;
     }
 
-    if (users.some(u => (u.username.toLowerCase() === editUsername.toLowerCase() || u.email.toLowerCase() === editEmail.toLowerCase()) && u.id !== editingUser.id)) {
-        toast({
-            variant: 'destructive',
-            title: 'Validation Error',
-            description: 'Username or email already exists.',
-        });
-        return;
+    if (
+      users.some(
+        (u) =>
+          (u.username.toLowerCase() === editUsername.toLowerCase() ||
+            u.email.toLowerCase() === editEmail.toLowerCase()) &&
+          u.id !== editingUser.id
+      )
+    ) {
+      toast({
+        variant: 'destructive',
+        title: 'Validation Error',
+        description: 'Username or email already exists.',
+      });
+      return;
     }
-    
-    // Note: This only updates the local user list (for roles, etc). 
+
+    // Note: This only updates the local user list (for roles, etc).
     // It does not update the user's email or password in Firebase Auth from this dialog
     // to keep the logic simple for this prototype. Password changes are done on the profile page.
     updateUser(editingUser.id, {
@@ -151,19 +178,34 @@ export default function UsersPage() {
       role: editRole,
       password: editPassword, // This might be stale, but we save it for local display
     });
-    
+
     toast({
       title: 'User Updated',
       description: `User "${editUsername}"'s local details have been updated.`,
     });
-    
+
     setIsEditDialogOpen(false);
     setEditingUser(null);
   };
 
-
   const togglePasswordVisibility = (userId: string) => {
-    setPasswordVisibility(prev => ({ ...prev, [userId]: !prev[userId] }));
+    setPasswordVisibility((prev) => ({ ...prev, [userId]: !prev[userId] }));
+  };
+
+  const handleImpersonate = (userToImpersonate: AppUser) => {
+    if (originalUser?.email === userToImpersonate.email) {
+      toast({
+        variant: 'destructive',
+        title: 'Action not allowed',
+        description: 'You cannot impersonate yourself.',
+      });
+      return;
+    }
+    impersonate({
+      username: userToImpersonate.username,
+      email: userToImpersonate.email,
+      role: userToImpersonate.role,
+    });
   };
 
   return (
@@ -171,7 +213,9 @@ export default function UsersPage() {
       <div className="flex flex-col gap-6">
         <Card>
           <CardHeader className="bg-primary/10">
-            <CardTitle className="text-center text-primary">Manage Users</CardTitle>
+            <CardTitle className="text-center text-primary">
+              Manage Users
+            </CardTitle>
           </CardHeader>
           <CardContent className="p-6 space-y-8">
             {/* Add User Form */}
@@ -187,7 +231,7 @@ export default function UsersPage() {
                     placeholder="Enter username"
                   />
                 </div>
-                 <div className="space-y-2">
+                <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
                   <Input
                     id="email"
@@ -197,7 +241,7 @@ export default function UsersPage() {
                     placeholder="Enter email"
                   />
                 </div>
-                 <div className="space-y-2 relative">
+                <div className="space-y-2 relative">
                   <Label htmlFor="password">Password</Label>
                   <Input
                     id="password"
@@ -206,23 +250,28 @@ export default function UsersPage() {
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="Enter password"
                   />
-                   <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="absolute right-1 bottom-1 h-7 w-7 text-muted-foreground"
-                      onClick={() => setShowNewPassword(prev => !prev)}
-                    >
-                      {showNewPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                    </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-1 bottom-1 h-7 w-7 text-muted-foreground"
+                    onClick={() => setShowNewPassword((prev) => !prev)}
+                  >
+                    {showNewPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </Button>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="role">Role</Label>
-                  <Select value={newRole} onValueChange={(value: 'Admin' | 'Executive') => setNewRole(value)}>
+                  <Select
+                    value={newRole}
+                    onValueChange={(value: 'Admin' | 'Executive') =>
+                      setNewRole(value)
+                    }
+                  >
                     <SelectTrigger id="role">
                       <SelectValue placeholder="Select a role" />
                     </SelectTrigger>
@@ -239,56 +288,74 @@ export default function UsersPage() {
             {/* Users Table */}
             <div className="space-y-4">
               <h2 className="text-lg font-semibold">Existing Users</h2>
-               <p className="text-sm text-muted-foreground">
-                This table shows users stored in the application for role management. Passwords shown here might not be the user's current Firebase password if they changed it on their profile page.
+              <p className="text-sm text-muted-foreground">
+                Click on a user's name to view their dashboard. Passwords shown
+                here are for local login and may not reflect changes made on the
+                profile page.
               </p>
               <Card>
                 <CardContent className="p-0">
-                    <Table>
+                  <Table>
                     <TableHeader>
-                        <TableRow>
+                      <TableRow>
                         <TableHead>Username</TableHead>
                         <TableHead>Email</TableHead>
                         <TableHead>Role</TableHead>
                         <TableHead>Password (Last Known)</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
+                      </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {users.map((user) => (
+                      {users.map((user) => (
                         <TableRow key={user.id}>
-                            <TableCell>{user.username}</TableCell>
-                            <TableCell>{user.email}</TableCell>
-                            <TableCell>{user.role}</TableCell>
-                            <TableCell>
-                                <div className="flex items-center gap-2">
-                                     <span>
-                                        {passwordVisibility[user.id] ? user.password : '••••••••'}
-                                     </span>
-                                     <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-7 w-7 text-muted-foreground"
-                                        onClick={() => togglePasswordVisibility(user.id)}
-                                     >
-                                        {passwordVisibility[user.id] ? (
-                                            <EyeOff className="h-4 w-4" />
-                                        ) : (
-                                            <Eye className="h-4 w-4" />
-                                        )}
-                                     </Button>
-                                </div>
-                            </TableCell>
-                            <TableCell className="text-right">
-                                <Button variant="ghost" size="icon" onClick={() => handleEditUserClick(user)}>
-                                    <Pencil className="h-4 w-4" />
-                                    <span className="sr-only">Edit User</span>
-                                </Button>
-                            </TableCell>
+                          <TableCell>
+                            <Button
+                              variant="link"
+                              className="p-0 h-auto font-medium"
+                              onClick={() => handleImpersonate(user)}
+                            >
+                              {user.username}
+                            </Button>
+                          </TableCell>
+                          <TableCell>{user.email}</TableCell>
+                          <TableCell>{user.role}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <span>
+                                {passwordVisibility[user.id]
+                                  ? user.password
+                                  : '••••••••'}
+                              </span>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-muted-foreground"
+                                onClick={() =>
+                                  togglePasswordVisibility(user.id)
+                                }
+                              >
+                                {passwordVisibility[user.id] ? (
+                                  <EyeOff className="h-4 w-4" />
+                                ) : (
+                                  <Eye className="h-4 w-4" />
+                                )}
+                              </Button>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleEditUserClick(user)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                              <span className="sr-only">Edit User</span>
+                            </Button>
+                          </TableCell>
                         </TableRow>
-                        ))}
+                      ))}
                     </TableBody>
-                    </Table>
+                  </Table>
                 </CardContent>
               </Card>
             </div>
@@ -296,7 +363,7 @@ export default function UsersPage() {
         </Card>
       </div>
 
-       {/* Edit User Dialog */}
+      {/* Edit User Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -314,7 +381,7 @@ export default function UsersPage() {
                 className="col-span-3"
               />
             </div>
-             <div className="grid grid-cols-4 items-center gap-4">
+            <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="edit-email" className="text-right">
                 Email
               </Label>
@@ -330,7 +397,12 @@ export default function UsersPage() {
               <Label htmlFor="edit-role" className="text-right">
                 Role
               </Label>
-              <Select value={editRole} onValueChange={(value: 'Admin' | 'Executive') => setEditRole(value)}>
+              <Select
+                value={editRole}
+                onValueChange={(value: 'Admin' | 'Executive') =>
+                  setEditRole(value)
+                }
+              >
                 <SelectTrigger id="edit-role" className="col-span-3">
                   <SelectValue placeholder="Select a role" />
                 </SelectTrigger>
@@ -343,7 +415,9 @@ export default function UsersPage() {
           </div>
           <DialogFooter>
             <DialogClose asChild>
-                <Button type="button" variant="secondary">Cancel</Button>
+              <Button type="button" variant="secondary">
+                Cancel
+              </Button>
             </DialogClose>
             <Button onClick={handleUpdateUser}>Save Changes</Button>
           </DialogFooter>
