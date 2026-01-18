@@ -28,14 +28,6 @@ import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { Eye, EyeOff, Pencil, Trash2 } from 'lucide-react';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogClose,
-} from '@/components/ui/dialog';
-import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -52,24 +44,18 @@ export default function UsersPage() {
   const { users, addUser, updateUser, deleteUser } = useUsers();
   const { toast } = useToast();
 
+  // State for the Add/Edit form
+  const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [newUsername, setNewUsername] = useState('');
   const [newEmail, setNewEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newRole, setNewRole] = useState<'Admin' | 'Sub Admin' | 'Executive' | ''>('');
   const [showNewPassword, setShowNewPassword] = useState(false);
-  const [passwordVisibility, setPasswordVisibility] = useState<
-    Record<string, boolean>
-  >({});
 
-  const [editingUser, setEditingUser] = useState<AppUser | null>(null);
-  const [editUsername, setEditUsername] = useState('');
-  const [editEmail, setEditEmail] = useState('');
-  const [editPassword, setEditPassword] = useState('');
-  const [editRole, setEditRole] = useState<
-    'Admin' | 'Sub Admin' | 'Executive'
-  >('Executive');
-  const [showEditPassword, setShowEditPassword] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  // State for password visibility in the table
+  const [passwordVisibility, setPasswordVisibility] = useState<Record<string, boolean>>({});
+
+  // State for delete confirmation
   const [userToDelete, setUserToDelete] = useState<AppUser | null>(null);
 
   useEffect(() => {
@@ -82,7 +68,16 @@ export default function UsersPage() {
     return null; // or a loading skeleton
   }
 
-  const handleAddUser = async () => {
+  const resetForm = () => {
+    setEditingUserId(null);
+    setNewUsername('');
+    setNewEmail('');
+    setNewPassword('');
+    setNewRole('');
+    setShowNewPassword(false);
+  };
+
+  const handleSaveUser = async () => {
     if (!newUsername.trim() || !newPassword.trim() || !newEmail.trim() || !newRole) {
       toast({
         variant: 'destructive',
@@ -91,107 +86,82 @@ export default function UsersPage() {
       });
       return;
     }
-    if (
-      users.some(
-        (u) =>
-          u.username.toLowerCase() === newUsername.toLowerCase() ||
-          u.email.toLowerCase() === newEmail.toLowerCase()
-      )
-    ) {
-      toast({
-        variant: 'destructive',
-        title: 'Validation Error',
-        description: 'Username or Email already exists.',
-      });
-      return;
-    }
 
-    try {
-      await addUser({
+    if (editingUserId) {
+      // Update existing user
+       if (
+        users.some(
+          (u) =>
+            (u.username.toLowerCase() === newUsername.toLowerCase() ||
+              u.email.toLowerCase() === newEmail.toLowerCase()) &&
+            u.id !== editingUserId
+        )
+      ) {
+        toast({
+          variant: 'destructive',
+          title: 'Validation Error',
+          description: 'Username or email already exists.',
+        });
+        return;
+      }
+      
+      updateUser(editingUserId, {
         username: newUsername,
         email: newEmail,
         role: newRole,
         password: newPassword,
       });
       toast({
-        title: 'User Added',
-        description: `User "${newUsername}" has been created and added to the list.`,
+        title: 'User Updated',
+        description: `User "${newUsername}"'s details have been updated.`,
       });
-      setNewUsername('');
-      setNewEmail('');
-      setNewPassword('');
-      setNewRole('');
-      setShowNewPassword(false);
-    } catch (error: any) {
-      let description = 'Could not create user.';
-      if (error.code === 'auth/email-already-in-use') {
-        description =
-          'This email address is already in use by another account.';
-      } else if (error.code === 'auth/weak-password') {
-        description =
-          'The password is too weak. It must be at least 6 characters long.';
+    } else {
+      // Add new user
+      if (
+        users.some(
+          (u) =>
+            u.username.toLowerCase() === newUsername.toLowerCase() ||
+            u.email.toLowerCase() === newEmail.toLowerCase()
+        )
+      ) {
+        toast({
+          variant: 'destructive',
+          title: 'Validation Error',
+          description: 'Username or Email already exists.',
+        });
+        return;
       }
-      toast({
-        variant: 'destructive',
-        title: 'Error creating user',
-        description: description,
-      });
+      try {
+        await addUser({
+          username: newUsername,
+          email: newEmail,
+          role: newRole,
+          password: newPassword,
+        });
+        toast({
+          title: 'User Added',
+          description: `User "${newUsername}" has been created and added to the list.`,
+        });
+      } catch (error: any) {
+        toast({
+          variant: 'destructive',
+          title: 'Error creating user',
+          description: 'Could not create user.',
+        });
+      }
     }
+    resetForm();
   };
 
-  const handleEditUserClick = (user: AppUser) => {
-    setEditingUser(user);
-    setEditUsername(user.username);
-    setEditEmail(user.email);
-    setEditPassword(user.password || ''); // Password may not be available from our list
-    setEditRole(user.role);
-    setIsEditDialogOpen(true);
+  const handleEditClick = (user: AppUser) => {
+    setEditingUserId(user.id);
+    setNewUsername(user.username);
+    setNewEmail(user.email);
+    setNewPassword(user.password || '');
+    setNewRole(user.role);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-
-  const handleUpdateUser = () => {
-    if (!editingUser) return;
-
-    if (!editUsername.trim() || !editEmail.trim()) {
-      toast({
-        variant: 'destructive',
-        title: 'Validation Error',
-        description: 'Username and Email cannot be empty.',
-      });
-      return;
-    }
-
-    if (
-      users.some(
-        (u) =>
-          (u.username.toLowerCase() === editUsername.toLowerCase() ||
-            u.email.toLowerCase() === editEmail.toLowerCase()) &&
-          u.id !== editingUser.id
-      )
-    ) {
-      toast({
-        variant: 'destructive',
-        title: 'Validation Error',
-        description: 'Username or email already exists.',
-      });
-      return;
-    }
-
-    updateUser(editingUser.id, {
-      username: editUsername,
-      email: editEmail,
-      role: editRole,
-      password: editPassword,
-    });
-
-    toast({
-      title: 'User Updated',
-      description: `User "${editUsername}"'s local details have been updated.`,
-    });
-
-    setIsEditDialogOpen(false);
-    setEditingUser(null);
-  };
-
+  
   const handleDeleteUser = () => {
     if (!userToDelete) return;
 
@@ -244,9 +214,11 @@ export default function UsersPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6 space-y-8">
-            {/* Add User Form */}
+            {/* Add/Edit User Form */}
             <div className="space-y-4">
-              <h2 className="text-lg font-semibold">Add New User</h2>
+              <h2 className="text-lg font-semibold">
+                {editingUserId ? `Editing: ${newUsername}` : 'Add New User'}
+              </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
                 <div className="space-y-2">
                   <Label htmlFor="username">Username</Label>
@@ -267,6 +239,7 @@ export default function UsersPage() {
                     onChange={(e) => setNewEmail(e.target.value)}
                     placeholder="Enter email"
                     autoComplete="off"
+                    disabled={!!editingUserId}
                   />
                 </div>
                 <div className="space-y-2 relative">
@@ -311,7 +284,16 @@ export default function UsersPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                <Button onClick={handleAddUser}>Add User</Button>
+                <div className="flex gap-2">
+                    <Button onClick={handleSaveUser} className="w-full">
+                      {editingUserId ? 'Update User' : 'Add User'}
+                    </Button>
+                    {editingUserId && (
+                      <Button onClick={resetForm} variant="outline">
+                        Cancel
+                      </Button>
+                    )}
+                </div>
               </div>
             </div>
 
@@ -319,9 +301,7 @@ export default function UsersPage() {
             <div className="space-y-4">
               <h2 className="text-lg font-semibold">Existing Users</h2>
               <p className="text-sm text-muted-foreground">
-                Click on a user's name to view their dashboard. Passwords shown
-                here are for local login and may not reflect changes made on the
-                profile page.
+                Click on a username to view their dashboard. Click the pencil icon to edit their details in the form above.
               </p>
               <Card>
                 <CardContent className="p-0">
@@ -378,7 +358,7 @@ export default function UsersPage() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() => handleEditUserClick(user)}
+                              onClick={() => handleEditClick(user)}
                             >
                               <Pencil className="h-4 w-4" />
                               <span className="sr-only">Edit User</span>
@@ -403,68 +383,6 @@ export default function UsersPage() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Edit User Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit User Details</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-username" className="text-right">
-                Username
-              </Label>
-              <Input
-                id="edit-username"
-                value={editUsername}
-                onChange={(e) => setEditUsername(e.target.value)}
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-email" className="text-right">
-                Email
-              </Label>
-              <Input
-                id="edit-email"
-                value={editEmail}
-                onChange={(e) => setEditEmail(e.target.value)}
-                className="col-span-3"
-                disabled
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-role" className="text-right">
-                Role
-              </Label>
-              <Select
-                value={editRole}
-                onValueChange={(
-                  value: 'Admin' | 'Sub Admin' | 'Executive'
-                ) => setEditRole(value)}
-              >
-                <SelectTrigger id="edit-role" className="col-span-3">
-                  <SelectValue placeholder="Select a role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Executive">Executive</SelectItem>
-                  <SelectItem value="Sub Admin">Sub Admin</SelectItem>
-                  <SelectItem value="Admin">Admin</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button type="button" variant="secondary">
-                Cancel
-              </Button>
-            </DialogClose>
-            <Button onClick={handleUpdateUser}>Save Changes</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Delete User Dialog */}
       <AlertDialog
