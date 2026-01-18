@@ -33,19 +33,6 @@ import { useRouter } from 'next/navigation';
 const LEADS_PER_PAGE = 10;
 type TabValue = 'recent' | 'not-viewed' | 'follow-ups-due' | 'zero-follow-ups' | 'search-result';
 
-const leadStatusOptions = [
-    'Attended',
-    'Not viewed',
-    'Unattended',
-    'Pursuing to Purchase',
-    'Not interested',
-    'Order closed',
-    'Proposal Sent',
-    'Do Not Contact',
-    'Quote Sent',
-    'Demo Given',
-];
-
 const leadSubStatusOptions = [
     'All',
     'pricing issue',
@@ -106,9 +93,6 @@ export default function LeadsUpdatePage() {
   const [selectedProduct, setSelectedProduct] = useState('all');
   const [givenBy, setGivenBy] = useState('all');
   const [otherGivenByInput, setOtherGivenByInput] = useState('');
-
-  const [selectedLeadStatus, setSelectedLeadStatus] = useState('all');
-  const [otherLeadStatusInput, setOtherLeadStatusInput] = useState('');
 
   const [selectedSubStatus, setSelectedSubStatus] = useState('all');
   const [otherSubStatusInput, setOtherSubStatusInput] = useState('');
@@ -211,10 +195,6 @@ export default function LeadsUpdatePage() {
         tempLeads = tempLeads.filter(lead => lead.givenBy === givenBy);
     }
 
-    if (selectedLeadStatus !== 'all' && selectedLeadStatus !== 'Other') {
-        tempLeads = tempLeads.filter(lead => lead.status === selectedLeadStatus);
-    }
-
     if (selectedSubStatus !== 'all' && selectedSubStatus !== 'Other') {
         tempLeads = tempLeads.filter(lead => lead.leadSubStatus === selectedSubStatus);
     }
@@ -315,7 +295,6 @@ export default function LeadsUpdatePage() {
     selectedLeadSource, 
     selectedProduct, 
     givenBy,
-    selectedLeadStatus,
     selectedSubStatus,
     considerStatus,
     followUpStatus,
@@ -341,8 +320,6 @@ export default function LeadsUpdatePage() {
     setSelectedProduct('all');
     setGivenBy('all');
     setOtherGivenByInput('');
-    setSelectedLeadStatus('all');
-    setOtherLeadStatusInput('');
     setSelectedSubStatus('all');
     setOtherSubStatusInput('');
     
@@ -385,15 +362,6 @@ export default function LeadsUpdatePage() {
       setOtherGivenByInput('');
     }
   };
-
-  const handleSetOtherLeadStatus = () => {
-    if (otherLeadStatusInput.trim()) {
-      const newStatus = otherLeadStatusInput.trim();
-      setSelectedLeadStatus(newStatus);
-      setOtherLeadStatusInput('');
-    }
-  };
-
 
   const handleSetOtherSubStatus = () => {
     if(otherSubStatusInput.trim()){
@@ -594,7 +562,7 @@ export default function LeadsUpdatePage() {
                   </div>
 
                   {/* ROW 4 */}
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                      <div className="space-y-1">
                       <Label>Executive Name</Label>
                       <Select value={selectedExecutive} onValueChange={(value) => setSelectedExecutive(value)}>
@@ -626,39 +594,6 @@ export default function LeadsUpdatePage() {
                                 }}
                               />
                               <Button size="sm" onClick={handleSetOtherExecutive}>OK</Button>
-                            </div>
-                        </div>
-                      )}
-                    </div>
-                    <div className="space-y-1">
-                      <Label>Status of Lead</Label>
-                      <Select value={selectedLeadStatus} onValueChange={(value) => setSelectedLeadStatus(value)}>
-                        <SelectTrigger><SelectValue placeholder="--All--" /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All</SelectItem>
-                           {leadStatusOptions.map(status => (
-                            <SelectItem key={status} value={status}>
-                              {status}
-                            </SelectItem>
-                          ))}
-                          {!leadStatusOptions.includes(selectedLeadStatus) && selectedLeadStatus !== 'all' && selectedLeadStatus !== 'Other' && (
-                              <SelectItem value={selectedLeadStatus}>{selectedLeadStatus}</SelectItem>
-                          )}
-                           <SelectItem value="Other">Other</SelectItem>
-                        </SelectContent>
-                      </Select>
-                       {selectedLeadStatus === 'Other' && (
-                        <div className="mt-2">
-                           <div className="flex items-center gap-2">
-                              <Input
-                                placeholder="Specify other status"
-                                value={otherLeadStatusInput}
-                                onChange={(e) => setOtherLeadStatusInput(e.target.value)}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter') handleSetOtherLeadStatus();
-                                }}
-                              />
-                              <Button size="sm" onClick={handleSetOtherLeadStatus}>OK</Button>
                             </div>
                         </div>
                       )}
