@@ -65,7 +65,7 @@ export default function LeadUpdateStatusReportPage() {
             <Card>
               <CardContent className="p-0">
                 <ScrollArea className="w-full whitespace-nowrap rounded-md border">
-                  <Table className="min-w-max">
+                  <Table className="min-w-[2800px]">
                     <TableHeader>
                       <TableRow>
                         <TableHead>Sl No</TableHead>
