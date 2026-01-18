@@ -582,7 +582,7 @@ export default function LeadsUpdatePage() {
                   </div>
 
                   {/* ROW 4 */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                      <div className="space-y-1">
                       <Label>Executive Name</Label>
                       <Select value={selectedExecutive} onValueChange={(value) => setSelectedExecutive(value)}>
@@ -617,22 +617,6 @@ export default function LeadsUpdatePage() {
                             </div>
                         </div>
                       )}
-                    </div>
-                    <div className="space-y-1">
-                      <Label>Status of Lead</Label>
-                      <Select value={selectedStatus} onValueChange={(value) => setSelectedStatus(value)}>
-                        <SelectTrigger>
-                            <SelectValue placeholder="--All--" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All</SelectItem>
-                          {leadStatusOptions.map(status => (
-                            <SelectItem key={status} value={status}>
-                              {status}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
                     </div>
                     <div className="space-y-1">
                       <Label htmlFor="leadSource">Lead Source</Label>
@@ -917,3 +901,5 @@ export default function LeadsUpdatePage() {
     </AppContent>
   );
 }
+
+    
