@@ -47,6 +47,7 @@ const leadStatusOptions = [
 ];
 
 const leadSubStatusOptions = [
+    'All',
     'pricing issue',
     'requirement doesnot match',
     'Already using another product',
@@ -271,9 +272,6 @@ export default function LeadsUpdatePage() {
   const handleSetOtherLeadSource = () => {
     if(otherLeadSourceInput.trim()){
       const newSource = otherLeadSourceInput.trim();
-      if(!dynamicReferences.includes(newSource)){
-        setDynamicReferences(prev => [...prev, newSource]);
-      }
       setSelectedLeadSource(newSource);
       setOtherLeadSourceInput('');
     }
@@ -282,9 +280,6 @@ export default function LeadsUpdatePage() {
   const handleSetOtherSubStatus = () => {
     if(otherSubStatusInput.trim()){
       const newStatus = otherSubStatusInput.trim();
-      if(!dynamicSubStatusOptions.includes(newStatus)){
-        setDynamicSubStatusOptions(prev => [...prev, newStatus]);
-      }
       setSelectedSubStatus(newStatus);
       setOtherSubStatusInput('');
     }
