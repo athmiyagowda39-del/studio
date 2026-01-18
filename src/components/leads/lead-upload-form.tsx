@@ -281,60 +281,80 @@ export default function LeadUploadForm() {
         const json: ParsedData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
         
         if (json.length < 2) {
-          toast({ variant: "destructive", title: "Empty File", description: "The file has no data rows." });
+          toast({ variant: "destructive", title: "Empty File", description: "The file has no data rows to import." });
           return;
         }
 
         const headers: string[] = json[0].map(h => String(h).toLowerCase().replace(/\s+/g, ''));
-        const leadsToCreate = json.slice(1).map(row => {
-          const leadObject: any = {};
-           headers.forEach((header, index) => {
-              const keyMap: {[key: string]: keyof Omit<LeadFormData, 'leadId' | 'creationDate' | 'givenBy' | 'status'>} = {
-                  'pincode': 'pincode', 'company': 'company', 'contactperson': 'contactPerson',
-                  'address': 'address', 'state': 'state', 'district': 'district',
-                  'contactnumber': 'contactNumber', 'email': 'email', 'reference': 'reference',
-                  'companyheadcount': 'headcount', 'sector': 'sector', 'modules': 'selectedModule',
-                  'executive': 'executive', 'manager': 'manager',
-              };
-              const formKey = keyMap[header];
-              if(formKey) leadObject[formKey] = row[index];
-          });
-          return leadObject;
+        const firstLeadRow = json[1];
+
+        if (!firstLeadRow) {
+            toast({ variant: "destructive", title: "No Data", description: "The file has no data rows to import." });
+            return;
+        }
+
+        const leadObject: any = {};
+        headers.forEach((header, index) => {
+            const keyMap: {[key: string]: keyof LeadFormData} = {
+                'pincode': 'pincode',
+                'company': 'company',
+                'contactperson': 'contactPerson',
+                'address': 'address',
+                'state': 'state',
+                'district': 'district',
+                'contactnumber': 'contactNumber',
+                'email': 'email',
+                'reference': 'reference',
+                'headcount': 'headcount',
+                'sector': 'sector',
+                'selectedmodule': 'selectedModule',
+                'manager': 'manager',
+                'executive': 'executive',
+            };
+            const formKey = keyMap[header];
+            if(formKey) leadObject[formKey] = firstLeadRow[index];
         });
 
-        const allLeads = getLeadsFromLocalStorage();
-        let nextId = parseInt(getNextLeadId(), 10);
-        
-        const newLeads: LeadFormData[] = leadsToCreate.map(ld => {
-          const lead: LeadFormData = {
+        // Create a new form state from the parsed lead object
+        const newFormData: Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId' | 'givenBy'> = {
             ...initialFormState,
-            ...ld,
-            pincode: String(ld.pincode || ''),
-            contactNumber: String(ld.contactNumber || ''),
-            headcount: String(ld.headcount || ''),
-            leadId: (nextId++).toString(),
-            creationDate: Date.now(),
-            givenBy: 'Bulk Upload',
-            status: 'Not viewed',
-          };
-          return lead;
-        });
+            pincode: String(leadObject.pincode || ''),
+            state: String(leadObject.state || ''),
+            district: String(leadObject.district || ''),
+            address: String(leadObject.address || ''),
+            contactPerson: String(leadObject.contactPerson || ''),
+            contactNumber: String(leadObject.contactNumber || ''),
+            reference: String(leadObject.reference || ''),
+            email: String(leadObject.email || ''),
+            company: String(leadObject.company || ''),
+            headcount: String(leadObject.headcount || ''),
+            sector: String(leadObject.sector || ''),
+            selectedModule: String(leadObject.selectedModule || ''),
+            manager: String(leadObject.manager || ''),
+            toExecutive: !!leadObject.executive,
+        };
+        
+        setFormData(newFormData);
 
-        const updatedLeads = [...allLeads, ...newLeads];
-        saveLeadsToLocalStorage(updatedLeads);
+        if (leadObject.executive) {
+            setToExecutiveSelection(String(leadObject.executive));
+        } else {
+            setToExecutiveSelection('');
+        }
 
         toast({
-          title: "Bulk Upload Successful",
-          description: `${newLeads.length} leads have been successfully uploaded.`,
+          title: "File Processed",
+          description: "Form has been populated with the first lead. Please review and save.",
         });
 
         handleCancel();
 
       } catch (error) {
+        console.error(error);
         toast({
             variant: "destructive",
             title: "Error parsing file",
-            description: "Could not read the file. Please ensure it's a valid Excel/CSV file.",
+            description: "Could not read the file. Please ensure it's a valid Excel/CSV file with correct headers.",
         });
       }
     };
@@ -523,7 +543,3 @@ export default function LeadUploadForm() {
     </div>
   );
 }
-
-    
-
-    
