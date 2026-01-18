@@ -145,6 +145,8 @@ export default function LeadsUpdatePage() {
         let leads = getLeadsFromLocalStorage();
         if (user?.role === 'Executive') {
           leads = leads.filter(lead => lead.executive === user.username);
+        } else if (user?.role === 'Sub Admin') {
+            // Future logic for Sub Admins can go here
         }
         setAllLeads(leads);
       };
@@ -152,8 +154,10 @@ export default function LeadsUpdatePage() {
       loadLeads(); // Initial load
 
       // Listen for changes in local storage from other tabs/windows
-      const handleStorageChange = () => {
-        loadLeads();
+      const handleStorageChange = (e: StorageEvent) => {
+        if (e.key === 'allLeads') {
+            loadLeads();
+        }
       };
       
       window.addEventListener('storage', handleStorageChange);
@@ -168,7 +172,7 @@ export default function LeadsUpdatePage() {
   const handleLeadsUpdate = (updatedLeads: LeadFormData[]) => {
     let leadsToUpdate = updatedLeads;
     if (user?.role === 'Executive') {
-        leadsToUpdate = leadsToUpdate.filter(lead => lead.executive === user.username);
+        leadsToUpdate = updatedLeads.filter(lead => lead.executive === user.username);
     }
     setAllLeads(leadsToUpdate);
     // Re-apply filters and tabs after update
@@ -275,8 +279,12 @@ export default function LeadsUpdatePage() {
             const today = startOfDay(new Date());
             tempLeads = tempLeads.filter(lead => {
                 if (!lead.nextFollowUpDate) return false;
-                const dueDate = startOfDay(new Date(lead.nextFollowUpDate));
-                return dueDate <= today;
+                try {
+                  const dueDate = startOfDay(new Date(lead.nextFollowUpDate));
+                  return dueDate <= today;
+                } catch {
+                  return false;
+                }
             });
             tempLeads.sort((a, b) => 
                 (a.nextFollowUpDate ? new Date(a.nextFollowUpDate).getTime() : 0) - 
@@ -290,6 +298,7 @@ export default function LeadsUpdatePage() {
             break;
         case 'recent':
         default:
+            tempLeads.sort((a,b) => b.creationDate - a.creationDate);
             break;
     }
 
@@ -825,7 +834,7 @@ export default function LeadsUpdatePage() {
                     List of Leads &gt;&gt; [All Leads ({filteredLeads.length} Records)]
                   </CardTitle>
                 </CardHeader>
-                <div className="w-full overflow-x-auto border rounded-md">
+                <ScrollArea className="h-96 w-full rounded-md border">
                   <Table className="min-w-[2800px]">
                     <TableHeader className="bg-muted">
                       <TableRow>
@@ -898,7 +907,7 @@ export default function LeadsUpdatePage() {
                       )})}
                     </TableBody>
                   </Table>
-                </div>
+                </ScrollArea>
                  {/* PAGINATION */}
                 {totalPages > 1 && (
                   <div className="flex justify-end gap-2 p-4">
