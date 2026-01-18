@@ -58,7 +58,7 @@ const leadSubStatusOptions = [
     'Service not available in location',
     'Wrong contact details',
     'Business closed',
-    'other',
+    'Other',
 ];
 
 const references = [
@@ -191,7 +191,7 @@ export default function LeadsUpdatePage() {
         tempLeads = tempLeads.filter(lead => lead.status === selectedLeadStatus);
     }
 
-    if (selectedSubStatus !== 'all' && selectedSubStatus !== 'other') {
+    if (selectedSubStatus !== 'all' && selectedSubStatus !== 'Other') {
         tempLeads = tempLeads.filter(lead => lead.leadSubStatus === selectedSubStatus);
     }
 
@@ -447,9 +447,9 @@ export default function LeadsUpdatePage() {
                     </div>
                     <div className="space-y-1">
                       <Label htmlFor="givenBy">Given by</Label>
-                       <Select value={givenBy === 'all' || executives.includes(givenBy) ? givenBy : 'Other'} onValueChange={(value) => setGivenBy(value)}>
+                       <Select value={givenBy} onValueChange={(value) => setGivenBy(value)}>
                         <SelectTrigger id="givenBy">
-                          <SelectValue placeholder="--All--">{givenBy}</SelectValue>
+                          <SelectValue placeholder="--All--" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="all">All</SelectItem>
@@ -458,6 +458,9 @@ export default function LeadsUpdatePage() {
                               {exec}
                             </SelectItem>
                           ))}
+                          {!executives.includes(givenBy) && givenBy !== 'all' && givenBy !== 'Other' && (
+                              <SelectItem value={givenBy}>{givenBy}</SelectItem>
+                          )}
                           <SelectItem value="Other">Other</SelectItem>
                         </SelectContent>
                       </Select>
@@ -496,11 +499,9 @@ export default function LeadsUpdatePage() {
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                      <div className="space-y-1">
                       <Label>Executive Name</Label>
-                      <Select value={selectedExecutive === 'all' || executives.includes(selectedExecutive) ? selectedExecutive : 'Other'} onValueChange={(value) => setSelectedExecutive(value)}>
+                      <Select value={selectedExecutive} onValueChange={(value) => setSelectedExecutive(value)}>
                         <SelectTrigger>
-                            <SelectValue placeholder="--All--">
-                                {selectedExecutive}
-                            </SelectValue>
+                            <SelectValue placeholder="--All--" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="all">All</SelectItem>
@@ -509,6 +510,9 @@ export default function LeadsUpdatePage() {
                               {exec}
                             </SelectItem>
                           ))}
+                          {!executives.includes(selectedExecutive) && selectedExecutive !== 'all' && selectedExecutive !== 'Other' && (
+                              <SelectItem value={selectedExecutive}>{selectedExecutive}</SelectItem>
+                          )}
                           <SelectItem value="Other">Other</SelectItem>
                         </SelectContent>
                       </Select>
@@ -530,8 +534,8 @@ export default function LeadsUpdatePage() {
                     </div>
                     <div className="space-y-1">
                       <Label>Status of Lead</Label>
-                      <Select value={selectedLeadStatus === 'all' || leadStatusOptions.includes(selectedLeadStatus) ? selectedLeadStatus : 'Other'} onValueChange={(value) => setSelectedLeadStatus(value)}>
-                        <SelectTrigger><SelectValue placeholder="--All--">{selectedLeadStatus}</SelectValue></SelectTrigger>
+                      <Select value={selectedLeadStatus} onValueChange={(value) => setSelectedLeadStatus(value)}>
+                        <SelectTrigger><SelectValue placeholder="--All--" /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="all">All</SelectItem>
                            {leadStatusOptions.map(status => (
@@ -539,6 +543,9 @@ export default function LeadsUpdatePage() {
                               {status}
                             </SelectItem>
                           ))}
+                          {!leadStatusOptions.includes(selectedLeadStatus) && selectedLeadStatus !== 'all' && selectedLeadStatus !== 'Other' && (
+                              <SelectItem value={selectedLeadStatus}>{selectedLeadStatus}</SelectItem>
+                          )}
                            <SelectItem value="Other">Other</SelectItem>
                         </SelectContent>
                       </Select>
@@ -560,11 +567,9 @@ export default function LeadsUpdatePage() {
                     </div>
                     <div className="space-y-1">
                       <Label>Sub Status of Lead</Label>
-                      <Select value={leadSubStatusOptions.includes(selectedSubStatus) ? selectedSubStatus : 'other'} onValueChange={(value) => setSelectedSubStatus(value)}>
+                      <Select value={selectedSubStatus} onValueChange={(value) => setSelectedSubStatus(value)}>
                         <SelectTrigger>
-                            <SelectValue placeholder="--All--">
-                                {selectedSubStatus}
-                            </SelectValue>
+                            <SelectValue placeholder="--All--" />
                         </SelectTrigger>
                         <SelectContent>
                             <ScrollArea className="h-48">
@@ -573,10 +578,13 @@ export default function LeadsUpdatePage() {
                                     {status}
                                 </SelectItem>
                                 ))}
+                                {!leadSubStatusOptions.includes(selectedSubStatus) && selectedSubStatus !== 'all' && (
+                                    <SelectItem value={selectedSubStatus}>{selectedSubStatus}</SelectItem>
+                                )}
                             </ScrollArea>
                         </SelectContent>
                       </Select>
-                       {selectedSubStatus === 'other' && (
+                       {selectedSubStatus === 'Other' && (
                         <div className="mt-2">
                            <div className="flex items-center gap-2">
                               <Input
@@ -594,11 +602,9 @@ export default function LeadsUpdatePage() {
                     </div>
                     <div className="space-y-1">
                       <Label htmlFor="leadSource">Lead Source</Label>
-                      <Select value={references.includes(selectedLeadSource) ? selectedLeadSource : 'Other'} onValueChange={(value) => setSelectedLeadSource(value)}>
+                      <Select value={selectedLeadSource} onValueChange={(value) => setSelectedLeadSource(value)}>
                         <SelectTrigger id="leadSource">
-                          <SelectValue placeholder="--All--">
-                             {selectedLeadSource}
-                          </SelectValue>
+                          <SelectValue placeholder="--All--" />
                         </SelectTrigger>
                         <SelectContent>
                           {references.map((source) => (
@@ -606,6 +612,9 @@ export default function LeadsUpdatePage() {
                               {source}
                             </SelectItem>
                           ))}
+                          {!references.includes(selectedLeadSource) && selectedLeadSource !== 'all' && (
+                            <SelectItem value={selectedLeadSource}>{selectedLeadSource}</SelectItem>
+                          )}
                         </SelectContent>
                       </Select>
                       {selectedLeadSource === 'Other' && (
