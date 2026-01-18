@@ -48,7 +48,6 @@ const leadStatusOptions = [
 
 const leadSubStatusOptions = [
     'pricing issue',
-    'other',
     'requirement doesnot match',
     'Already using another product',
     'Requirement already fulfilled',
@@ -61,6 +60,7 @@ const leadSubStatusOptions = [
     'Not responding',
     'Wrong contact details',
     'Business closed',
+    'other',
 ];
 
 const references = [
@@ -496,6 +496,7 @@ export default function LeadsUpdatePage() {
                         </SelectTrigger>
                         <SelectContent>
                             <ScrollArea className="h-48">
+                                <SelectItem value="all">All</SelectItem>
                                 {dynamicSubStatusOptions.map(status => (
                                 <SelectItem key={status} value={status}>
                                     {status}
