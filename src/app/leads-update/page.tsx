@@ -44,6 +44,7 @@ const leadStatusOptions = [
     'Do Not Contact',
     'Quote Sent',
     'Demo Given',
+    'Other',
 ];
 
 const leadSubStatusOptions = [
@@ -105,7 +106,10 @@ export default function LeadsUpdatePage() {
 
   const [selectedProduct, setSelectedProduct] = useState('all');
   const [givenBy, setGivenBy] = useState('all');
+  const [otherGivenByInput, setOtherGivenByInput] = useState('');
+
   const [selectedLeadStatus, setSelectedLeadStatus] = useState('all');
+  const [otherLeadStatusInput, setOtherLeadStatusInput] = useState('');
 
   const [selectedSubStatus, setSelectedSubStatus] = useState('all');
   const [otherSubStatusInput, setOtherSubStatusInput] = useState('');
@@ -179,11 +183,11 @@ export default function LeadsUpdatePage() {
         tempLeads = tempLeads.filter(lead => lead.selectedModule === selectedProduct);
     }
     
-    if (givenBy !== 'all') {
+    if (givenBy !== 'all' && givenBy !== 'other') {
         tempLeads = tempLeads.filter(lead => lead.givenBy === givenBy);
     }
 
-    if (selectedLeadStatus !== 'all') {
+    if (selectedLeadStatus !== 'all' && selectedLeadStatus !== 'Other') {
         tempLeads = tempLeads.filter(lead => lead.status === selectedLeadStatus);
     }
 
@@ -252,7 +256,9 @@ export default function LeadsUpdatePage() {
     setOtherLeadSourceInput('');
     setSelectedProduct('all');
     setGivenBy('all');
+    setOtherGivenByInput('');
     setSelectedLeadStatus('all');
+    setOtherLeadStatusInput('');
     setSelectedSubStatus('all');
     setOtherSubStatusInput('');
     setEnteredByFilter('all');
@@ -272,6 +278,23 @@ export default function LeadsUpdatePage() {
       setOtherLeadSourceInput('');
     }
   };
+
+  const handleSetOtherGivenBy = () => {
+    if (otherGivenByInput.trim()) {
+      const newGivenBy = otherGivenByInput.trim();
+      setGivenBy(newGivenBy);
+      setOtherGivenByInput('');
+    }
+  };
+
+  const handleSetOtherLeadStatus = () => {
+    if (otherLeadStatusInput.trim()) {
+      const newStatus = otherLeadStatusInput.trim();
+      setSelectedLeadStatus(newStatus);
+      setOtherLeadStatusInput('');
+    }
+  };
+
 
   const handleSetOtherSubStatus = () => {
     if(otherSubStatusInput.trim()){
@@ -446,9 +469,9 @@ export default function LeadsUpdatePage() {
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="space-y-1">
                       <Label htmlFor="givenBy">Given by</Label>
-                      <Select value={givenBy} onValueChange={setGivenBy}>
+                      <Select value={givenBy} onValueChange={(value) => setGivenBy(value === 'other' ? 'other' : value)}>
                         <SelectTrigger id="givenBy">
-                          <SelectValue placeholder="--All--" />
+                          <SelectValue placeholder="--All--">{givenBy}</SelectValue>
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="all">All</SelectItem>
@@ -457,12 +480,28 @@ export default function LeadsUpdatePage() {
                               {exec}
                             </SelectItem>
                           ))}
+                          <SelectItem value="other">Other</SelectItem>
                         </SelectContent>
                       </Select>
+                      {givenBy === 'other' && (
+                        <div className="mt-2">
+                           <div className="flex items-center gap-2">
+                              <Input
+                                placeholder="Specify who gave it"
+                                value={otherGivenByInput}
+                                onChange={(e) => setOtherGivenByInput(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') handleSetOtherGivenBy();
+                                }}
+                              />
+                              <Button size="sm" onClick={handleSetOtherGivenBy}>OK</Button>
+                            </div>
+                        </div>
+                      )}
                     </div>
                     <div className="space-y-1">
                       <Label>Status of Lead</Label>
-                      <Select value={selectedLeadStatus} onValueChange={setSelectedLeadStatus}>
+                      <Select value={selectedLeadStatus} onValueChange={(value) => setSelectedLeadStatus(value === 'Other' ? 'Other' : value)}>
                         <SelectTrigger><SelectValue placeholder="--All--" /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="all">All</SelectItem>
@@ -473,13 +512,28 @@ export default function LeadsUpdatePage() {
                           ))}
                         </SelectContent>
                       </Select>
+                       {selectedLeadStatus === 'Other' && (
+                        <div className="mt-2">
+                           <div className="flex items-center gap-2">
+                              <Input
+                                placeholder="Specify other status"
+                                value={otherLeadStatusInput}
+                                onChange={(e) => setOtherLeadStatusInput(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') handleSetOtherLeadStatus();
+                                }}
+                              />
+                              <Button size="sm" onClick={handleSetOtherLeadStatus}>OK</Button>
+                            </div>
+                        </div>
+                      )}
                     </div>
                     <div className="space-y-1">
                       <Label>Sub Status of Lead</Label>
                       <Select value={selectedSubStatus} onValueChange={(value) => setSelectedSubStatus(value === 'other' ? 'other' : value)}>
                         <SelectTrigger>
                             <SelectValue placeholder="--All--">
-                                {references.includes(selectedSubStatus) || selectedSubStatus === 'all' ? selectedSubStatus : `${selectedSubStatus} (custom)`}
+                                {selectedSubStatus}
                             </SelectValue>
                         </SelectTrigger>
                         <SelectContent>
@@ -513,7 +567,7 @@ export default function LeadsUpdatePage() {
                       <Select value={selectedLeadSource} onValueChange={(value) => setSelectedLeadSource(value === 'Other' ? 'Other' : value)}>
                         <SelectTrigger id="leadSource">
                           <SelectValue placeholder="--All--">
-                             {references.includes(selectedLeadSource) || selectedLeadSource === 'all' ? selectedLeadSource : `${selectedLeadSource} (custom)`}
+                             {selectedLeadSource}
                           </SelectValue>
                         </SelectTrigger>
                         <SelectContent>
