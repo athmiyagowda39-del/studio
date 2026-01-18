@@ -255,6 +255,7 @@ export default function UsersPage() {
                     value={newUsername}
                     onChange={(e) => setNewUsername(e.target.value)}
                     placeholder="Enter username"
+                    autoComplete="off"
                   />
                 </div>
                 <div className="space-y-2">
@@ -265,6 +266,7 @@ export default function UsersPage() {
                     value={newEmail}
                     onChange={(e) => setNewEmail(e.target.value)}
                     placeholder="Enter email"
+                    autoComplete="off"
                   />
                 </div>
                 <div className="space-y-2 relative">
@@ -275,6 +277,7 @@ export default function UsersPage() {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="Enter password"
+                    autoComplete="new-password"
                   />
                   <Button
                     type="button"
