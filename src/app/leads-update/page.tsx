@@ -106,35 +106,35 @@ export default function LeadsUpdatePage() {
   const router = useRouter();
   const pageTopRef = useRef<HTMLDivElement>(null);
 
-  const [allLeads, setAllLeads = useState<LeadFormData[]>([]);
-  const [filteredLeads, setFilteredLeads = useState<LeadFormData[]>([]);
-  const [currentPage, setCurrentPage = useState(1);
-  const [selectedLeadId, setSelectedLeadId = useState<string | null>(null);
+  const [allLeads, setAllLeads] = useState<LeadFormData[]>([]);
+  const [filteredLeads, setFilteredLeads] = useState<LeadFormData[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
 
   // ✅ FILTER TOGGLE
-  const [showFilters, setShowFilters = useState(false);
-  const [considerStatus, setConsiderStatus = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [considerStatus, setConsiderStatus] = useState(false);
 
   // ✅ FILTER STATE
-  const [searchTerm, setSearchTerm = useState('');
-  const [searchCategory, setSearchCategory = useState('leadId');
-  const [activeTab, setActiveTab = useState<TabValue>('recent');
-  const [selectedExecutive, setSelectedExecutive = useState('all');
-  const [selectedLeadSource, setSelectedLeadSource = useState('all');
-  const [otherLeadSourceReason, setOtherLeadSourceReason = useState('');
-  const [tempOtherLeadSource, setTempOtherLeadSource = useState('');
-  const [selectedProduct, setSelectedProduct = useState('all');
-  const [givenBy, setGivenBy = useState('all');
-  const [selectedLeadStatus, setSelectedLeadStatus = useState('all');
-  const [selectedSubStatus, setSelectedSubStatus = useState('all');
-  const [otherSubStatusReason, setOtherSubStatusReason = useState('');
-  const [tempOtherSubStatus, setTempOtherSubStatus = useState('');
-  const [enteredByFilter, setEnteredByFilter = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchCategory, setSearchCategory] = useState('leadId');
+  const [activeTab, setActiveTab] = useState<TabValue>('recent');
+  const [selectedExecutive, setSelectedExecutive] = useState('all');
+  const [selectedLeadSource, setSelectedLeadSource] = useState('all');
+  const [otherLeadSourceReason, setOtherLeadSourceReason] = useState('');
+  const [tempOtherLeadSource, setTempOtherLeadSource] = useState('');
+  const [selectedProduct, setSelectedProduct] = useState('all');
+  const [givenBy, setGivenBy] = useState('all');
+  const [selectedLeadStatus, setSelectedLeadStatus] = useState('all');
+  const [selectedSubStatus, setSelectedSubStatus] = useState('all');
+  const [otherSubStatusReason, setOtherSubStatusReason] = useState('');
+  const [tempOtherSubStatus, setTempOtherSubStatus] = useState('');
+  const [enteredByFilter, setEnteredByFilter] = useState('all');
 
 
   /* ---------------- EFFECT ---------------- */
   const { users } = useUsers();
-  const [executives, setExecutives = useState<string[]>([]);
+  const [executives, setExecutives] = useState<string[]>([]);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -773,5 +773,7 @@ export default function LeadsUpdatePage() {
     </AppContent>
   );
 }
+
+    
 
     
