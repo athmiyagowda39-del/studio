@@ -122,11 +122,13 @@ export default function LeadsUpdatePage() {
   const [selectedExecutive, setSelectedExecutive] = useState('all');
   const [selectedLeadSource, setSelectedLeadSource] = useState('all');
   const [otherLeadSourceReason, setOtherLeadSourceReason] = useState('');
+  const [tempOtherLeadSource, setTempOtherLeadSource] = useState('');
   const [selectedProduct, setSelectedProduct] = useState('all');
   const [givenBy, setGivenBy] = useState('all');
   const [selectedLeadStatus, setSelectedLeadStatus] = useState('all');
   const [selectedSubStatus, setSelectedSubStatus] = useState('all');
   const [otherSubStatusReason, setOtherSubStatusReason] = useState('');
+  const [tempOtherSubStatus, setTempOtherSubStatus] = useState('');
   const [enteredByFilter, setEnteredByFilter] = useState('all');
 
 
@@ -281,11 +283,13 @@ export default function LeadsUpdatePage() {
     setSelectedExecutive('all');
     setSelectedLeadSource('all');
     setOtherLeadSourceReason('');
+    setTempOtherLeadSource('');
     setSelectedProduct('all');
     setGivenBy('all');
     setSelectedLeadStatus('all');
     setSelectedSubStatus('all');
     setOtherSubStatusReason('');
+    setTempOtherSubStatus('');
     setEnteredByFilter('all');
     setFilteredLeads(allLeads);
     setCurrentPage(1);
@@ -505,12 +509,14 @@ export default function LeadsUpdatePage() {
                         </SelectContent>
                       </Select>
                        {selectedSubStatus === 'other' && (
-                        <Input
-                          placeholder="Specify other reason"
-                          value={otherSubStatusReason}
-                          onChange={(e) => setOtherSubStatusReason(e.target.value)}
-                          className="mt-2"
-                        />
+                        <div className="flex items-center gap-2 mt-2">
+                          <Input
+                            placeholder="Specify other reason"
+                            value={tempOtherSubStatus}
+                            onChange={(e) => setTempOtherSubStatus(e.target.value)}
+                          />
+                          <Button size="sm" onClick={() => setOtherSubStatusReason(tempOtherSubStatus)}>OK</Button>
+                        </div>
                       )}
                     </div>
                     <div className="space-y-1">
@@ -528,12 +534,14 @@ export default function LeadsUpdatePage() {
                         </SelectContent>
                       </Select>
                       {selectedLeadSource === 'Other' && (
-                        <Input
-                          placeholder="Specify other source"
-                          value={otherLeadSourceReason}
-                          onChange={(e) => setOtherLeadSourceReason(e.target.value)}
-                          className="mt-2"
-                        />
+                        <div className="flex items-center gap-2 mt-2">
+                            <Input
+                            placeholder="Specify other source"
+                            value={tempOtherLeadSource}
+                            onChange={(e) => setTempOtherLeadSource(e.target.value)}
+                            />
+                            <Button size="sm" onClick={() => setOtherLeadSourceReason(tempOtherLeadSource)}>OK</Button>
+                        </div>
                       )}
                     </div>
                   </div>
