@@ -63,7 +63,7 @@ const leadSubStatusOptions = [
 
 const references = [
     "All", "Website", "Social Media", "Google Ads", "Facebook Ads", "LinkedIn", "Referral", "Cold Call",
-    "Telecalling", "Walk-in", "Email Campaign", "WhatsApp Campaign", "IndiaMART", "Justdial", "Channel Partner",
+    "Telecalling", "Walk-in", "Email Campaign", "WhatsApp Campaign", "IndiaMART", "Channel Partner",
     "Existing Customer", "Upselling", "Cross-selling", "Events / Trade Shows", "Demo Request", "Trial Signup", "Other"
 ];
 
@@ -102,7 +102,6 @@ export default function LeadsUpdatePage() {
   
   const [selectedLeadSource, setSelectedLeadSource] = useState('all');
   const [otherLeadSourceInput, setOtherLeadSourceInput] = useState('');
-  const [dynamicReferences, setDynamicReferences] = useState(references);
 
   const [selectedProduct, setSelectedProduct] = useState('all');
   const [givenBy, setGivenBy] = useState('all');
@@ -110,7 +109,6 @@ export default function LeadsUpdatePage() {
 
   const [selectedSubStatus, setSelectedSubStatus] = useState('all');
   const [otherSubStatusInput, setOtherSubStatusInput] = useState('');
-  const [dynamicSubStatusOptions, setDynamicSubStatusOptions] = useState(leadSubStatusOptions);
 
   const [enteredByFilter, setEnteredByFilter] = useState('all');
 
@@ -252,13 +250,11 @@ export default function LeadsUpdatePage() {
     setSelectedExecutive('all');
     setSelectedLeadSource('all');
     setOtherLeadSourceInput('');
-    setDynamicReferences(references);
     setSelectedProduct('all');
     setGivenBy('all');
     setSelectedLeadStatus('all');
     setSelectedSubStatus('all');
     setOtherSubStatusInput('');
-    setDynamicSubStatusOptions(leadSubStatusOptions);
     setEnteredByFilter('all');
     setFilteredLeads(allLeads);
     setCurrentPage(1);
@@ -480,16 +476,15 @@ export default function LeadsUpdatePage() {
                     </div>
                     <div className="space-y-1">
                       <Label>Sub Status of Lead</Label>
-                      <Select value={selectedSubStatus} onValueChange={setSelectedSubStatus}>
+                      <Select value={selectedSubStatus} onValueChange={(value) => setSelectedSubStatus(value === 'other' ? 'other' : value)}>
                         <SelectTrigger>
                             <SelectValue placeholder="--All--">
-                                {dynamicSubStatusOptions.includes(selectedSubStatus) || selectedSubStatus === 'all' ? selectedSubStatus : `${selectedSubStatus} (custom)`}
+                                {references.includes(selectedSubStatus) || selectedSubStatus === 'all' ? selectedSubStatus : `${selectedSubStatus} (custom)`}
                             </SelectValue>
                         </SelectTrigger>
                         <SelectContent>
                             <ScrollArea className="h-48">
-                                <SelectItem value="all">All</SelectItem>
-                                {dynamicSubStatusOptions.map(status => (
+                                {leadSubStatusOptions.map(status => (
                                 <SelectItem key={status} value={status}>
                                     {status}
                                 </SelectItem>
@@ -515,14 +510,14 @@ export default function LeadsUpdatePage() {
                     </div>
                     <div className="space-y-1">
                       <Label htmlFor="leadSource">Lead Source</Label>
-                      <Select value={selectedLeadSource} onValueChange={setSelectedLeadSource}>
+                      <Select value={selectedLeadSource} onValueChange={(value) => setSelectedLeadSource(value === 'Other' ? 'Other' : value)}>
                         <SelectTrigger id="leadSource">
                           <SelectValue placeholder="--All--">
-                             {dynamicReferences.includes(selectedLeadSource) || selectedLeadSource === 'all' ? selectedLeadSource : `${selectedLeadSource} (custom)`}
+                             {references.includes(selectedLeadSource) || selectedLeadSource === 'all' ? selectedLeadSource : `${selectedLeadSource} (custom)`}
                           </SelectValue>
                         </SelectTrigger>
                         <SelectContent>
-                          {dynamicReferences.map((source) => (
+                          {references.map((source) => (
                             <SelectItem key={source} value={source}>
                               {source}
                             </SelectItem>
