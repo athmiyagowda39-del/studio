@@ -520,7 +520,19 @@ export default function LeadsUpdatePage() {
                       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <Input type="date" />
                         <Input type="date" />
-                        <Select><SelectTrigger><SelectValue placeholder="Entered By" /></SelectTrigger></Select>
+                        <Select>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Entered By" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All</SelectItem>
+                            {executives.map((exec) => (
+                              <SelectItem key={exec} value={exec}>
+                                {exec}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         <Input placeholder="Remarks" />
                       </div>
                     </>
@@ -666,6 +678,8 @@ export default function LeadsUpdatePage() {
     </AppContent>
   );
 }
+
+    
 
     
 
