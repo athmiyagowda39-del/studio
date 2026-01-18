@@ -100,6 +100,7 @@ export default function LeadsUpdatePage() {
   const [searchCategory, setSearchCategory] = useState('leadId');
   const [activeTab, setActiveTab] = useState<TabValue>('recent');
   const [selectedExecutive, setSelectedExecutive] = useState('all');
+  const [otherExecutiveInput, setOtherExecutiveInput] = useState('');
   
   const [selectedLeadSource, setSelectedLeadSource] = useState('all');
   const [otherLeadSourceInput, setOtherLeadSourceInput] = useState('');
@@ -171,7 +172,7 @@ export default function LeadsUpdatePage() {
       }
     }
 
-    if (selectedExecutive !== 'all') {
+    if (selectedExecutive !== 'all' && selectedExecutive !== 'Other') {
         tempLeads = tempLeads.filter(lead => lead.executive === selectedExecutive);
     }
 
@@ -252,6 +253,7 @@ export default function LeadsUpdatePage() {
     setSearchCategory('leadId');
     setActiveTab('recent');
     setSelectedExecutive('all');
+    setOtherExecutiveInput('');
     setSelectedLeadSource('all');
     setOtherLeadSourceInput('');
     setSelectedProduct('all');
@@ -270,6 +272,14 @@ export default function LeadsUpdatePage() {
     setSelectedLeadId(leadId);
     pageTopRef.current?.scrollIntoView({ behavior: 'smooth' });
   }
+
+  const handleSetOtherExecutive = () => {
+    if(otherExecutiveInput.trim()){
+      const newExec = otherExecutiveInput.trim();
+      setSelectedExecutive(newExec);
+      setOtherExecutiveInput('');
+    }
+  };
 
   const handleSetOtherLeadSource = () => {
     if(otherLeadSourceInput.trim()){
@@ -451,8 +461,12 @@ export default function LeadsUpdatePage() {
                     </div>
                     <div className="space-y-1">
                       <Label>Executive Name</Label>
-                      <Select value={selectedExecutive} onValueChange={setSelectedExecutive}>
-                        <SelectTrigger><SelectValue placeholder="--All--" /></SelectTrigger>
+                      <Select value={selectedExecutive} onValueChange={(value) => setSelectedExecutive(value === 'Other' ? 'Other' : value)}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="--All--">
+                                {selectedExecutive}
+                            </SelectValue>
+                        </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="all">All</SelectItem>
                            {executives.map(exec => (
@@ -460,8 +474,24 @@ export default function LeadsUpdatePage() {
                               {exec}
                             </SelectItem>
                           ))}
+                          <SelectItem value="Other">Other</SelectItem>
                         </SelectContent>
                       </Select>
+                      {selectedExecutive === 'Other' && (
+                        <div className="mt-2">
+                           <div className="flex items-center gap-2">
+                              <Input
+                                placeholder="Specify other executive"
+                                value={otherExecutiveInput}
+                                onChange={(e) => setOtherExecutiveInput(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') handleSetOtherExecutive();
+                                }}
+                              />
+                              <Button size="sm" onClick={handleSetOtherExecutive}>OK</Button>
+                            </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -502,7 +532,7 @@ export default function LeadsUpdatePage() {
                     <div className="space-y-1">
                       <Label>Status of Lead</Label>
                       <Select value={selectedLeadStatus} onValueChange={(value) => setSelectedLeadStatus(value === 'Other' ? 'Other' : value)}>
-                        <SelectTrigger><SelectValue placeholder="--All--" /></SelectTrigger>
+                        <SelectTrigger><SelectValue placeholder="--All--">{selectedLeadStatus}</SelectValue></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="all">All</SelectItem>
                            {leadStatusOptions.map(status => (
