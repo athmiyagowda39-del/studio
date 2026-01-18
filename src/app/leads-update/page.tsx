@@ -82,6 +82,12 @@ const leadSubStatusOptions = [
     'Business closed',
 ];
 
+const references = [
+    "All", "Website", "Social Media", "Google Ads", "Facebook Ads", "LinkedIn", "Referral", "Cold Call",
+    "Telecalling", "Walk-in", "Email Campaign", "WhatsApp Campaign", "IndiaMART", "Justdial", "Channel Partner",
+    "Existing Customer", "Upselling", "Cross-selling", "Events / Trade Shows", "Demo Request", "Trial Signup", "Other"
+];
+
 
 /* ---------------- HELPERS ---------------- */
 
@@ -114,7 +120,7 @@ export default function LeadsUpdatePage() {
   const [searchCategory, setSearchCategory] = useState('leadId');
   const [activeTab, setActiveTab] = useState<TabValue>('recent');
   const [selectedExecutive, setSelectedExecutive] = useState('all');
-  const [selectedLeadSource, setSelectedLeadSource] = useState('');
+  const [selectedLeadSource, setSelectedLeadSource] = useState('all');
   const [selectedProduct, setSelectedProduct] = useState('all');
   const [givenBy, setGivenBy] = useState('all');
   const [selectedLeadStatus, setSelectedLeadStatus] = useState('all');
@@ -180,10 +186,8 @@ export default function LeadsUpdatePage() {
         tempLeads = tempLeads.filter(lead => lead.executive === selectedExecutive);
     }
 
-    if (selectedLeadSource.trim() !== '') {
-        tempLeads = tempLeads.filter(lead => 
-            lead.reference?.toLowerCase().includes(selectedLeadSource.toLowerCase())
-        );
+    if (selectedLeadSource !== 'all') {
+        tempLeads = tempLeads.filter(lead => lead.reference === selectedLeadSource);
     }
 
     if (selectedProduct !== 'all') {
@@ -242,7 +246,7 @@ export default function LeadsUpdatePage() {
     setSearchCategory('leadId');
     setActiveTab('recent');
     setSelectedExecutive('all');
-    setSelectedLeadSource('');
+    setSelectedLeadSource('all');
     setSelectedProduct('all');
     setGivenBy('all');
     setSelectedLeadStatus('all');
@@ -476,12 +480,18 @@ export default function LeadsUpdatePage() {
                     </div>
                     <div className="space-y-1">
                       <Label htmlFor="leadSource">Lead Source</Label>
-                      <Input
-                        id="leadSource"
-                        placeholder="--All--"
-                        value={selectedLeadSource}
-                        onChange={(e) => setSelectedLeadSource(e.target.value)}
-                      />
+                      <Select value={selectedLeadSource} onValueChange={setSelectedLeadSource}>
+                        <SelectTrigger id="leadSource">
+                          <SelectValue placeholder="--All--" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {references.map((source) => (
+                            <SelectItem key={source} value={source}>
+                              {source}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
 
@@ -656,6 +666,8 @@ export default function LeadsUpdatePage() {
     </AppContent>
   );
 }
+
+    
 
     
 
