@@ -120,7 +120,6 @@ export default function LeadsUpdatePage() {
   const [followUpToDate, setFollowUpToDate] = useState('');
   const [followUpGivenBy, setFollowUpGivenBy] = useState('all');
   const [otherFollowUpGivenByInput, setOtherFollowUpGivenByInput] = useState('');
-  const [followUpRemarks, setFollowUpRemarks] = useState('');
 
 
   /* ---------------- EFFECT ---------------- */
@@ -246,10 +245,6 @@ export default function LeadsUpdatePage() {
                         isMatch = false;
                     }
 
-                    if (followUpRemarks && !followUp.remarks.toLowerCase().includes(followUpRemarks.toLowerCase())) {
-                        isMatch = false;
-                    }
-
                     return isMatch;
                 });
             });
@@ -303,7 +298,6 @@ export default function LeadsUpdatePage() {
     followUpFromDate,
     followUpToDate,
     followUpGivenBy,
-    followUpRemarks
   ]);
 
   const handleShowButtonClick = () => {
@@ -334,7 +328,6 @@ export default function LeadsUpdatePage() {
     setFollowUpToDate('');
     setFollowUpGivenBy('all');
     setOtherFollowUpGivenByInput('');
-    setFollowUpRemarks('');
 
     setFilteredLeads(allLeads);
     setCurrentPage(1);
@@ -740,7 +733,7 @@ export default function LeadsUpdatePage() {
                       </RadioGroup>
 
                       {/* ROW 7 */}
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="space-y-1">
                             <Label>From Date</Label>
                             <Input type="date" value={followUpFromDate} onChange={(e) => setFollowUpFromDate(e.target.value)} />
@@ -783,10 +776,6 @@ export default function LeadsUpdatePage() {
                                     </div>
                                 </div>
                             )}
-                        </div>
-                        <div className="space-y-1">
-                            <Label>Remarks</Label>
-                            <Input placeholder="Remarks" value={followUpRemarks} onChange={(e) => setFollowUpRemarks(e.target.value)} />
                         </div>
                       </div>
                     </>
