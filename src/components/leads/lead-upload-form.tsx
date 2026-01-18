@@ -27,6 +27,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '../ui/textarea';
 import type { AppUser } from '@/context/users-context';
 import { Checkbox } from '../ui/checkbox';
+import { useUsers } from '@/context/users-context';
 
 type ParsedData = (string | number)[][];
 
@@ -130,7 +131,15 @@ export default function LeadUploadForm() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { toast } = useToast();
   
-  const hardcodedExecutives = ["All", "Yathish G", "Mandanna N", "Hukum Chand Kewath", "Hemant Sharma"];
+  const { users } = useUsers();
+  const [executives, setExecutives] = useState<string[]>([]);
+
+  useEffect(() => {
+    const executiveUsers = users
+      .filter(user => user.role === 'Executive')
+      .map(user => user.username);
+    setExecutives(['All', ...executiveUsers]);
+  }, [users]);
 
   useEffect(() => {
     if (formData.pincode.length === 6) {
@@ -468,7 +477,7 @@ export default function LeadUploadForm() {
                     <SelectValue placeholder="Select Executive..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {hardcodedExecutives.map((name) => (
+                    {executives.map((name) => (
                       <SelectItem key={name} value={name}>{name}</SelectItem>
                     ))}
                   </SelectContent>
@@ -513,3 +522,5 @@ export default function LeadUploadForm() {
     </div>
   );
 }
+
+    

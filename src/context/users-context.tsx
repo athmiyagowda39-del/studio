@@ -31,6 +31,7 @@ const defaultUsers: AppUser[] = [
     { id: 'user-5', username: 'Yathis G', email: 'yathish.g@peopleworks.in', role: 'Executive', password: 'Yathish@789' },
     { id: 'user-6', username: 'Mandanna N', email: 'mandanna.n@peopleworks.in', role: 'Executive', password: 'Mandanna@101' },
     { id: 'user-7', username: 'Hukum Chand Kewat', email: 'hukum@peopleworks.in', role: 'Executive', password: 'Hukum@112' },
+    { id: 'user-8', username: 'Hemant Sharma', email: 'hemant.sharma@peopleworks.in', role: 'Executive', password: 'Password123' },
 ];
 
 
@@ -96,3 +97,5 @@ export function useUsers() {
   }
   return context;
 }
+
+    

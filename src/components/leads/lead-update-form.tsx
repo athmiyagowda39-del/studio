@@ -434,10 +434,9 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="all">All</SelectItem>
-                        <SelectItem value="Yathish N">Yathish N</SelectItem>
-                        <SelectItem value="Mandanna N">Mandanna N</SelectItem>
-                        <SelectItem value="Hukum Chand Kewat">Hukum Chand Kewat</SelectItem>
-                        <SelectItem value="Hemant Sharma">Hemant Sharma</SelectItem>
+                        {executives.map(exec => (
+                            <SelectItem key={exec} value={exec}>{exec}</SelectItem>
+                        ))}
                     </SelectContent>
                 </Select>
               </div>
@@ -569,5 +568,7 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
 }
 
 
+
+    
 
     
