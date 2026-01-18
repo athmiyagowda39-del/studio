@@ -55,9 +55,7 @@ export default function UsersPage() {
   const [newUsername, setNewUsername] = useState('');
   const [newEmail, setNewEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
-  const [newRole, setNewRole] = useState<'Admin' | 'Sub Admin' | 'Executive'>(
-    'Executive'
-  );
+  const [newRole, setNewRole] = useState<'Admin' | 'Sub Admin' | 'Executive' | ''>('');
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [passwordVisibility, setPasswordVisibility] = useState<
     Record<string, boolean>
@@ -85,11 +83,11 @@ export default function UsersPage() {
   }
 
   const handleAddUser = async () => {
-    if (!newUsername.trim() || !newPassword.trim() || !newEmail.trim()) {
+    if (!newUsername.trim() || !newPassword.trim() || !newEmail.trim() || !newRole) {
       toast({
         variant: 'destructive',
         title: 'Validation Error',
-        description: 'Username, Email, and password cannot be empty.',
+        description: 'All fields are required.',
       });
       return;
     }
@@ -122,7 +120,7 @@ export default function UsersPage() {
       setNewUsername('');
       setNewEmail('');
       setNewPassword('');
-      setNewRole('Executive');
+      setNewRole('');
       setShowNewPassword(false);
     } catch (error: any) {
       let description = 'Could not create user.';
