@@ -115,6 +115,7 @@ export default function LeadsUpdatePage() {
   const [otherSubStatusInput, setOtherSubStatusInput] = useState('');
 
   const [enteredByFilter, setEnteredByFilter] = useState('all');
+  const [otherEnteredByInput, setOtherEnteredByInput] = useState('');
 
 
   /* ---------------- EFFECT ---------------- */
@@ -263,6 +264,7 @@ export default function LeadsUpdatePage() {
     setSelectedSubStatus('all');
     setOtherSubStatusInput('');
     setEnteredByFilter('all');
+    setOtherEnteredByInput('');
     setFilteredLeads(allLeads);
     setCurrentPage(1);
   };
@@ -310,6 +312,14 @@ export default function LeadsUpdatePage() {
       const newStatus = otherSubStatusInput.trim();
       setSelectedSubStatus(newStatus);
       setOtherSubStatusInput('');
+    }
+  };
+
+  const handleSetOtherEnteredBy = () => {
+    if(otherEnteredByInput.trim()){
+      const newEnteredBy = otherEnteredByInput.trim();
+      setEnteredByFilter(newEnteredBy);
+      setOtherEnteredByInput('');
     }
   };
 
@@ -578,9 +588,10 @@ export default function LeadsUpdatePage() {
                                     {status}
                                 </SelectItem>
                                 ))}
-                                {!leadSubStatusOptions.includes(selectedSubStatus) && selectedSubStatus !== 'all' && (
+                                {!leadSubStatusOptions.includes(selectedSubStatus) && selectedSubStatus !== 'all' && selectedSubStatus !== 'Other' && (
                                     <SelectItem value={selectedSubStatus}>{selectedSubStatus}</SelectItem>
                                 )}
+                                <SelectItem value="Other">Other</SelectItem>
                             </ScrollArea>
                         </SelectContent>
                       </Select>
@@ -612,9 +623,10 @@ export default function LeadsUpdatePage() {
                               {source}
                             </SelectItem>
                           ))}
-                          {!references.includes(selectedLeadSource) && selectedLeadSource !== 'all' && (
+                          {!references.includes(selectedLeadSource) && selectedLeadSource !== 'all' && selectedLeadSource !== 'Other' && (
                             <SelectItem value={selectedLeadSource}>{selectedLeadSource}</SelectItem>
                           )}
+                           <SelectItem value="Other">Other</SelectItem>
                         </SelectContent>
                       </Select>
                       {selectedLeadSource === 'Other' && (
@@ -658,22 +670,53 @@ export default function LeadsUpdatePage() {
 
                       {/* ROW 7 */}
                       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <Input type="date" />
-                        <Input type="date" />
-                        <Select value={enteredByFilter} onValueChange={setEnteredByFilter}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Entered By" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All</SelectItem>
-                            {executives.map((exec) => (
-                              <SelectItem key={exec} value={exec}>
-                                {exec}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <Input placeholder="Remarks" />
+                        <div className="space-y-1">
+                            <Label>From Date</Label>
+                            <Input type="date" />
+                        </div>
+                        <div className="space-y-1">
+                            <Label>To Date</Label>
+                            <Input type="date" />
+                        </div>
+                        <div className="space-y-1">
+                            <Label htmlFor="givenByFollowUp">Given by</Label>
+                            <Select value={enteredByFilter} onValueChange={(value) => setEnteredByFilter(value)}>
+                                <SelectTrigger id="givenByFollowUp">
+                                    <SelectValue placeholder="--All--" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All</SelectItem>
+                                    {executives.map((exec) => (
+                                    <SelectItem key={exec} value={exec}>
+                                        {exec}
+                                    </SelectItem>
+                                    ))}
+                                    {!executives.includes(enteredByFilter) && enteredByFilter !== 'all' && enteredByFilter !== 'Other' && (
+                                        <SelectItem value={enteredByFilter}>{enteredByFilter}</SelectItem>
+                                    )}
+                                    <SelectItem value="Other">Other</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            {enteredByFilter === 'Other' && (
+                                <div className="mt-2">
+                                    <div className="flex items-center gap-2">
+                                        <Input
+                                            placeholder="Specify who gave it"
+                                            value={otherEnteredByInput}
+                                            onChange={(e) => setOtherEnteredByInput(e.target.value)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') handleSetOtherEnteredBy();
+                                            }}
+                                        />
+                                        <Button size="sm" onClick={handleSetOtherEnteredBy}>OK</Button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                        <div className="space-y-1">
+                            <Label>Remarks</Label>
+                            <Input placeholder="Remarks" />
+                        </div>
                       </div>
                     </>
                   )}
