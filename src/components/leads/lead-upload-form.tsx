@@ -522,7 +522,3 @@ export default function LeadUploadForm() {
     </div>
   );
 }
-
-    
-
-    
