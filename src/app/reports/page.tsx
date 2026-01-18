@@ -8,7 +8,7 @@ import Link from 'next/link';
 export default function ReportsPage() {
   const reports = [
     { name: 'LEAD REPORT', href: '/reports/lead-report' },
-    { name: 'Conversion Funnel Report', href: '/reports/conversion-funnel' },
+    { name: 'CONVERSION FUNNEL REPORT', href: '/reports/conversion-funnel' },
     { name: 'LEAD UPDATE STATUS REPORT', href: '/reports/lead-update-status' },
     { name: 'LEAD UPLOAD STATUS REPORT', href: '/reports/lead-upload-status' },
   ];

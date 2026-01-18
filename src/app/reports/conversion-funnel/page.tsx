@@ -93,7 +93,7 @@ export default function ConversionFunnelReportPage() {
       <div className="flex flex-col gap-6">
         <Card>
           <CardHeader className="bg-primary/10">
-            <CardTitle className="text-center text-primary">Conversion Funnel Report</CardTitle>
+            <CardTitle className="text-center text-primary">CONVERSION FUNNEL REPORT</CardTitle>
           </CardHeader>
           <CardContent className="p-6">
             <div className="flex justify-center">
