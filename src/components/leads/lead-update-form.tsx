@@ -147,7 +147,7 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
 
     const newFollowUp: FollowUp = {
       id: followUps.length + 1,
-      date: new Date().toLocaleDateString(),
+      date: new Date().toISOString(),
       remarks: remarks,
       nextFollowUp: isOrderClosedRemark || !nextFollowUpDate ? 'N/A' : format(nextFollowUpDate, 'PPP'),
       enteredBy: user?.username || 'Demo User',
@@ -503,7 +503,7 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
                       followUps.map((followUp) => (
                         <TableRow key={followUp.id}>
                           <TableCell>{followUp.id}</TableCell>
-                          <TableCell>{followUp.date}</TableCell>
+                          <TableCell>{format(new Date(followUp.date), 'PPP')}</TableCell>
                           <TableCell>{followUp.remarks}</TableCell>
                           <TableCell>{followUp.nextFollowUp}</TableCell>
                           <TableCell>{followUp.enteredBy}</TableCell>

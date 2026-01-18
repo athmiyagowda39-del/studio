@@ -15,7 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import LeadUpdateForm from '@/components/leads/lead-update-form';
 import AppContent from '@/components/layout/app-content';
-import { format, startOfDay } from 'date-fns';
+import { format, startOfDay, endOfDay } from 'date-fns';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -92,9 +92,8 @@ export default function LeadsUpdatePage() {
 
   // ✅ FILTER TOGGLE
   const [showFilters, setShowFilters] = useState(false);
-  const [considerStatus, setConsiderStatus] = useState(false);
-
-  // ✅ FILTER STATE
+  
+  // ✅ MAIN FILTER STATE
   const [searchTerm, setSearchTerm] = useState('');
   const [searchCategory, setSearchCategory] = useState('leadId');
   const [activeTab, setActiveTab] = useState<TabValue>('recent');
@@ -114,8 +113,14 @@ export default function LeadsUpdatePage() {
   const [selectedSubStatus, setSelectedSubStatus] = useState('all');
   const [otherSubStatusInput, setOtherSubStatusInput] = useState('');
 
-  const [enteredByFilter, setEnteredByFilter] = useState('all');
-  const [otherEnteredByInput, setOtherEnteredByInput] = useState('');
+  // ✅ FOLLOW-UP FILTER STATE
+  const [considerStatus, setConsiderStatus] = useState(false);
+  const [followUpStatus, setFollowUpStatus] = useState('pending');
+  const [followUpFromDate, setFollowUpFromDate] = useState('');
+  const [followUpToDate, setFollowUpToDate] = useState('');
+  const [followUpGivenBy, setFollowUpGivenBy] = useState('all');
+  const [otherFollowUpGivenByInput, setOtherFollowUpGivenByInput] = useState('');
+  const [followUpRemarks, setFollowUpRemarks] = useState('');
 
 
   /* ---------------- EFFECT ---------------- */
@@ -195,6 +200,62 @@ export default function LeadsUpdatePage() {
     if (selectedSubStatus !== 'all' && selectedSubStatus !== 'Other') {
         tempLeads = tempLeads.filter(lead => lead.leadSubStatus === selectedSubStatus);
     }
+    
+    if (considerStatus) {
+        const excludedStatuses = ['Order closed', 'Fake', 'Existing Users', 'Not interested'];
+        tempLeads = tempLeads.filter(lead => !excludedStatuses.includes(lead.status || ''));
+        
+        if (followUpStatus === 'pending') {
+            tempLeads = tempLeads.filter(lead => {
+                if (!lead.nextFollowUpDate) return false;
+                try {
+                    const nextFollowUp = startOfDay(new Date(lead.nextFollowUpDate));
+                    let inDateRange = true;
+                    if (followUpFromDate) {
+                        inDateRange = inDateRange && nextFollowUp >= startOfDay(new Date(followUpFromDate));
+                    }
+                    if (followUpToDate) {
+                        inDateRange = inDateRange && nextFollowUp <= endOfDay(new Date(followUpToDate));
+                    }
+                    return inDateRange;
+                } catch(e) {
+                    return false;
+                }
+            });
+        } else if (followUpStatus === 'made') {
+            tempLeads = tempLeads.filter(lead => {
+                if (!lead.followUps || lead.followUps.length === 0) return false;
+
+                return lead.followUps.some(followUp => {
+                    let isMatch = true;
+                    try {
+                        const followUpDate = startOfDay(new Date(followUp.date));
+                        let inDateRange = true;
+                        if (followUpFromDate) {
+                            inDateRange = inDateRange && followUpDate >= startOfDay(new Date(followUpFromDate));
+                        }
+                        if (followUpToDate) {
+                            inDateRange = inDateRange && followUpDate <= endOfDay(new Date(followUpToDate));
+                        }
+                        if (!inDateRange) isMatch = false;
+                    } catch(e) {
+                        isMatch = false;
+                    }
+
+                    if (followUpGivenBy !== 'all' && followUpGivenBy !== 'Other' && followUp.enteredBy !== followUpGivenBy) {
+                        isMatch = false;
+                    }
+
+                    if (followUpRemarks && !followUp.remarks.toLowerCase().includes(followUpRemarks.toLowerCase())) {
+                        isMatch = false;
+                    }
+
+                    return isMatch;
+                });
+            });
+        }
+    }
+
 
     switch (tab) {
         case 'not-viewed':
@@ -207,7 +268,6 @@ export default function LeadsUpdatePage() {
                 const dueDate = startOfDay(new Date(lead.nextFollowUpDate));
                 return dueDate <= today;
             });
-            // Sort by the next follow-up date in ascending order (oldest first)
             tempLeads.sort((a, b) => 
                 (a.nextFollowUpDate ? new Date(a.nextFollowUpDate).getTime() : 0) - 
                 (b.nextFollowUpDate ? new Date(b.nextFollowUpDate).getTime() : 0)
@@ -217,16 +277,14 @@ export default function LeadsUpdatePage() {
             tempLeads = tempLeads.filter(lead => !lead.followUps || lead.followUps.length === 0);
             break;
         case 'search-result':
-            // The search filter is already applied above
             break;
         case 'recent':
         default:
-            // No extra filtering needed for 'recent'
             break;
     }
 
     setFilteredLeads(tempLeads);
-    setCurrentPage(1); // Reset to first page after filtering
+    setCurrentPage(1);
   };
 
   useEffect(() => {
@@ -239,7 +297,13 @@ export default function LeadsUpdatePage() {
     selectedProduct, 
     givenBy,
     selectedLeadStatus,
-    selectedSubStatus
+    selectedSubStatus,
+    considerStatus,
+    followUpStatus,
+    followUpFromDate,
+    followUpToDate,
+    followUpGivenBy,
+    followUpRemarks
   ]);
 
   const handleShowButtonClick = () => {
@@ -263,8 +327,15 @@ export default function LeadsUpdatePage() {
     setOtherLeadStatusInput('');
     setSelectedSubStatus('all');
     setOtherSubStatusInput('');
-    setEnteredByFilter('all');
-    setOtherEnteredByInput('');
+    
+    setConsiderStatus(false);
+    setFollowUpStatus('pending');
+    setFollowUpFromDate('');
+    setFollowUpToDate('');
+    setFollowUpGivenBy('all');
+    setOtherFollowUpGivenByInput('');
+    setFollowUpRemarks('');
+
     setFilteredLeads(allLeads);
     setCurrentPage(1);
   };
@@ -315,11 +386,11 @@ export default function LeadsUpdatePage() {
     }
   };
 
-  const handleSetOtherEnteredBy = () => {
-    if(otherEnteredByInput.trim()){
-      const newEnteredBy = otherEnteredByInput.trim();
-      setEnteredByFilter(newEnteredBy);
-      setOtherEnteredByInput('');
+  const handleSetOtherFollowUpGivenBy = () => {
+    if(otherFollowUpGivenByInput.trim()){
+      const newGivenBy = otherFollowUpGivenByInput.trim();
+      setFollowUpGivenBy(newGivenBy);
+      setOtherFollowUpGivenByInput('');
     }
   };
 
@@ -591,7 +662,6 @@ export default function LeadsUpdatePage() {
                                 {!leadSubStatusOptions.includes(selectedSubStatus) && selectedSubStatus !== 'all' && selectedSubStatus !== 'Other' && (
                                     <SelectItem value={selectedSubStatus}>{selectedSubStatus}</SelectItem>
                                 )}
-                                <SelectItem value="Other">Other</SelectItem>
                             </ScrollArea>
                         </SelectContent>
                       </Select>
@@ -626,7 +696,6 @@ export default function LeadsUpdatePage() {
                           {!references.includes(selectedLeadSource) && selectedLeadSource !== 'all' && selectedLeadSource !== 'Other' && (
                             <SelectItem value={selectedLeadSource}>{selectedLeadSource}</SelectItem>
                           )}
-                           <SelectItem value="Other">Other</SelectItem>
                         </SelectContent>
                       </Select>
                       {selectedLeadSource === 'Other' && (
@@ -659,12 +728,14 @@ export default function LeadsUpdatePage() {
                   {considerStatus && (
                     <>
                       {/* ROW 6 */}
-                      <RadioGroup defaultValue="pending" className="flex gap-4">
+                      <RadioGroup value={followUpStatus} onValueChange={setFollowUpStatus} className="flex gap-4">
                         <div className="flex items-center gap-2">
-                          <RadioGroupItem value="pending" /> Follow Up Pending
+                          <RadioGroupItem value="pending" id="pending" />
+                          <Label htmlFor="pending">Follow Up Pending</Label>
                         </div>
                         <div className="flex items-center gap-2">
-                          <RadioGroupItem value="made" /> Follow Up Made
+                          <RadioGroupItem value="made" id="made" />
+                           <Label htmlFor="made">Follow Up Made</Label>
                         </div>
                       </RadioGroup>
 
@@ -672,15 +743,15 @@ export default function LeadsUpdatePage() {
                       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <div className="space-y-1">
                             <Label>From Date</Label>
-                            <Input type="date" />
+                            <Input type="date" value={followUpFromDate} onChange={(e) => setFollowUpFromDate(e.target.value)} />
                         </div>
                         <div className="space-y-1">
                             <Label>To Date</Label>
-                            <Input type="date" />
+                            <Input type="date" value={followUpToDate} onChange={(e) => setFollowUpToDate(e.target.value)} />
                         </div>
                         <div className="space-y-1">
                             <Label htmlFor="givenByFollowUp">Given by</Label>
-                            <Select value={enteredByFilter} onValueChange={(value) => setEnteredByFilter(value)}>
+                            <Select value={followUpGivenBy} onValueChange={(value) => setFollowUpGivenBy(value)}>
                                 <SelectTrigger id="givenByFollowUp">
                                     <SelectValue placeholder="--All--" />
                                 </SelectTrigger>
@@ -691,31 +762,31 @@ export default function LeadsUpdatePage() {
                                         {exec}
                                     </SelectItem>
                                     ))}
-                                    {!executives.includes(enteredByFilter) && enteredByFilter !== 'all' && enteredByFilter !== 'Other' && (
-                                        <SelectItem value={enteredByFilter}>{enteredByFilter}</SelectItem>
+                                    {!executives.includes(followUpGivenBy) && followUpGivenBy !== 'all' && followUpGivenBy !== 'Other' && (
+                                        <SelectItem value={followUpGivenBy}>{followUpGivenBy}</SelectItem>
                                     )}
                                     <SelectItem value="Other">Other</SelectItem>
                                 </SelectContent>
                             </Select>
-                            {enteredByFilter === 'Other' && (
+                            {followUpGivenBy === 'Other' && (
                                 <div className="mt-2">
                                     <div className="flex items-center gap-2">
                                         <Input
                                             placeholder="Specify who gave it"
-                                            value={otherEnteredByInput}
-                                            onChange={(e) => setOtherEnteredByInput(e.target.value)}
+                                            value={otherFollowUpGivenByInput}
+                                            onChange={(e) => setOtherFollowUpGivenByInput(e.target.value)}
                                             onKeyDown={(e) => {
-                                                if (e.key === 'Enter') handleSetOtherEnteredBy();
+                                                if (e.key === 'Enter') handleSetOtherFollowUpGivenBy();
                                             }}
                                         />
-                                        <Button size="sm" onClick={handleSetOtherEnteredBy}>OK</Button>
+                                        <Button size="sm" onClick={handleSetOtherFollowUpGivenBy}>OK</Button>
                                     </div>
                                 </div>
                             )}
                         </div>
                         <div className="space-y-1">
                             <Label>Remarks</Label>
-                            <Input placeholder="Remarks" />
+                            <Input placeholder="Remarks" value={followUpRemarks} onChange={(e) => setFollowUpRemarks(e.target.value)} />
                         </div>
                       </div>
                     </>
@@ -812,7 +883,7 @@ export default function LeadsUpdatePage() {
                           <TableCell>{lead.reference}</TableCell>
                           <TableCell>{lead.executive}</TableCell>
                           <TableCell>{lead.manager}</TableCell>
-                          <TableCell>{lastFollowUp ? lastFollowUp.date : 'N/A'}</TableCell>
+                          <TableCell>{lastFollowUp ? format(new Date(lastFollowUp.date), 'PPP') : 'N/A'}</TableCell>
                           <TableCell>{lastFollowUp ? lastFollowUp.enteredBy : 'N/A'}</TableCell>
                           <TableCell>{nextFollowupDate}</TableCell>
                           <TableCell>{lastFollowUp ? lastFollowUp.remarks : 'N/A'}</TableCell>
