@@ -143,6 +143,13 @@ export default function LeadUploadForm() {
       .map(user => user.username);
     setExecutives(executiveUsers);
   }, [users]);
+  
+  useEffect(() => {
+    if (user?.role === 'Executive') {
+      setFormData(prev => ({ ...prev, toExecutive: true }));
+      setToExecutiveSelection(user.username);
+    }
+  }, [user]);
 
   useEffect(() => {
     if (formData.pincode.length === 6) {
@@ -202,7 +209,12 @@ export default function LeadUploadForm() {
 
   const resetForm = () => {
     setFormData(initialFormState);
-    setToExecutiveSelection('');
+    if (user?.role === 'Executive') {
+      setToExecutiveSelection(user.username);
+      setFormData((prev) => ({ ...prev, toExecutive: true }));
+    } else {
+      setToExecutiveSelection('');
+    }
     handleCancel();
   };
 
@@ -523,12 +535,17 @@ export default function LeadUploadForm() {
               id="toExecutive"
               checked={formData.toExecutive}
               onCheckedChange={handleCheckboxChange}
+              disabled={user?.role === 'Executive'}
             />
             <Label htmlFor="toExecutive">To Executive</Label>
           </div>
           {formData.toExecutive && (
               <div className="w-full md:w-auto">
-                <Select value={toExecutiveSelection} onValueChange={setToExecutiveSelection}>
+                <Select
+                  value={toExecutiveSelection}
+                  onValueChange={setToExecutiveSelection}
+                  disabled={user?.role === 'Executive'}
+                >
                   <SelectTrigger className="w-[200px]">
                     <SelectValue placeholder="As per mapping" />
                   </SelectTrigger>
