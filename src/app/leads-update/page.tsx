@@ -834,7 +834,7 @@ export default function LeadsUpdatePage() {
                     List of Leads &gt;&gt; [All Leads ({filteredLeads.length} Records)]
                   </CardTitle>
                 </CardHeader>
-                <ScrollArea className="h-96 w-full rounded-md border">
+                <div className="w-full overflow-x-auto rounded-md border">
                   <Table className="min-w-[2800px]">
                     <TableHeader className="bg-muted">
                       <TableRow>
@@ -907,7 +907,7 @@ export default function LeadsUpdatePage() {
                       )})}
                     </TableBody>
                   </Table>
-                </ScrollArea>
+                </div>
                  {/* PAGINATION */}
                 {totalPages > 1 && (
                   <div className="flex justify-end gap-2 p-4">
