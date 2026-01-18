@@ -26,11 +26,11 @@ const UsersContext = createContext<UsersContextType | undefined>(undefined);
 
 const defaultUsers: AppUser[] = [
     { id: 'user-1', username: 'Athmiya.ag', email: 'athmiya.ag@peopleworks.in', role: 'Admin', password: 'Welcome123#' },
-    { id: 'user-2', username: 'Luke Rajkumar', email: 'Luke.rajkumar@peopleworks.in', role: 'Executive', password: 'Luke@123' },
     { id: 'user-3', username: 'Varghese', email: 'Varghese@peopleworks.in', role: 'Admin', password: 'Varghese@123' },
     { id: 'user-4', username: 'sam.devasia', email: 'sam.devasia@peopleworks.in', role: 'Admin', password: 'SamDev@456' },
-    { id: 'user-5', username: 'Yathis G', email: 'yathish.g@peopleworks.in', role: 'Executive', password: 'Yathish@789' },
     { id: 'user-6', username: 'Mandanna N', email: 'mandanna.n@peopleworks.in', role: 'Executive', password: 'Mandanna@101' },
+    { id: 'user-2', username: 'Luke Rajkumar', email: 'Luke.rajkumar@peopleworks.in', role: 'Executive', password: 'Luke@123' },
+    { id: 'user-5', username: 'Yathis G', email: 'yathish.g@peopleworks.in', role: 'Executive', password: 'Yathish@789' },
     { id: 'user-7', username: 'Hukum Chand Kewat', email: 'hukum@peopleworks.in', role: 'Executive', password: 'Hukum@112' },
     { id: 'user-8', username: 'Hemant Sharma', email: 'hemant.sharma@peopleworks.in', role: 'Executive', password: 'Password123' },
 ];
