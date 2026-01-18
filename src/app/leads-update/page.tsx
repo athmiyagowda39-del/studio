@@ -33,6 +33,19 @@ import { useRouter } from 'next/navigation';
 const LEADS_PER_PAGE = 10;
 type TabValue = 'recent' | 'not-viewed' | 'follow-ups-due' | 'zero-follow-ups' | 'search-result';
 
+const leadStatusOptions = [
+    'Attended',
+    'Not viewed',
+    'Unattended',
+    'Pursuing to Purchase',
+    'Not interested',
+    'Order closed',
+    'Proposal Sent',
+    'Do Not Contact',
+    'Quote Sent',
+    'Demo Given',
+];
+
 const leadSubStatusOptions = [
     'All',
     'pricing issue',
@@ -94,6 +107,7 @@ export default function LeadsUpdatePage() {
   const [givenBy, setGivenBy] = useState('all');
   const [otherGivenByInput, setOtherGivenByInput] = useState('');
 
+  const [selectedStatus, setSelectedStatus] = useState('all');
   const [selectedSubStatus, setSelectedSubStatus] = useState('all');
   const [otherSubStatusInput, setOtherSubStatusInput] = useState('');
 
@@ -193,6 +207,10 @@ export default function LeadsUpdatePage() {
     
     if (givenBy !== 'all' && givenBy !== 'Other') {
         tempLeads = tempLeads.filter(lead => lead.givenBy === givenBy);
+    }
+
+    if (selectedStatus !== 'all') {
+      tempLeads = tempLeads.filter(lead => lead.status === selectedStatus);
     }
 
     if (selectedSubStatus !== 'all' && selectedSubStatus !== 'Other') {
@@ -295,6 +313,7 @@ export default function LeadsUpdatePage() {
     selectedLeadSource, 
     selectedProduct, 
     givenBy,
+    selectedStatus,
     selectedSubStatus,
     considerStatus,
     followUpStatus,
@@ -320,6 +339,7 @@ export default function LeadsUpdatePage() {
     setSelectedProduct('all');
     setGivenBy('all');
     setOtherGivenByInput('');
+    setSelectedStatus('all');
     setSelectedSubStatus('all');
     setOtherSubStatusInput('');
     
@@ -599,39 +619,20 @@ export default function LeadsUpdatePage() {
                       )}
                     </div>
                     <div className="space-y-1">
-                      <Label>Sub Status of Lead</Label>
-                      <Select value={selectedSubStatus} onValueChange={(value) => setSelectedSubStatus(value)}>
+                      <Label>Status of Lead</Label>
+                      <Select value={selectedStatus} onValueChange={(value) => setSelectedStatus(value)}>
                         <SelectTrigger>
                             <SelectValue placeholder="--All--" />
                         </SelectTrigger>
                         <SelectContent>
-                            <ScrollArea className="h-48">
-                                {leadSubStatusOptions.map(status => (
-                                <SelectItem key={status} value={status}>
-                                    {status}
-                                </SelectItem>
-                                ))}
-                                {!leadSubStatusOptions.includes(selectedSubStatus) && selectedSubStatus !== 'all' && selectedSubStatus !== 'Other' && (
-                                    <SelectItem value={selectedSubStatus}>{selectedSubStatus}</SelectItem>
-                                )}
-                            </ScrollArea>
+                          <SelectItem value="all">All</SelectItem>
+                          {leadStatusOptions.map(status => (
+                            <SelectItem key={status} value={status}>
+                              {status}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
-                       {selectedSubStatus === 'Other' && (
-                        <div className="mt-2">
-                           <div className="flex items-center gap-2">
-                              <Input
-                                placeholder="Specify other reason"
-                                value={otherSubStatusInput}
-                                onChange={(e) => setOtherSubStatusInput(e.target.value)}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter') handleSetOtherSubStatus();
-                                }}
-                              />
-                              <Button size="sm" onClick={handleSetOtherSubStatus}>OK</Button>
-                            </div>
-                        </div>
-                      )}
                     </div>
                     <div className="space-y-1">
                       <Label htmlFor="leadSource">Lead Source</Label>
@@ -669,12 +670,50 @@ export default function LeadsUpdatePage() {
                   </div>
 
                   {/* ROW 5 */}
-                  <div className="flex items-center gap-2">
-                    <Checkbox
-                      checked={considerStatus}
-                      onCheckedChange={(checked) => setConsiderStatus(checked as boolean)}
-                    /> Do not consider Order Closed/Fake/Existing Users/Not Interested
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <Label>Sub Status of Lead</Label>
+                      <Select value={selectedSubStatus} onValueChange={(value) => setSelectedSubStatus(value)}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="--All--" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <ScrollArea className="h-48">
+                                {leadSubStatusOptions.map(status => (
+                                <SelectItem key={status} value={status}>
+                                    {status}
+                                </SelectItem>
+                                ))}
+                                {!leadSubStatusOptions.includes(selectedSubStatus) && selectedSubStatus !== 'all' && selectedSubStatus !== 'Other' && (
+                                    <SelectItem value={selectedSubStatus}>{selectedSubStatus}</SelectItem>
+                                )}
+                            </ScrollArea>
+                        </SelectContent>
+                      </Select>
+                       {selectedSubStatus === 'Other' && (
+                        <div className="mt-2">
+                           <div className="flex items-center gap-2">
+                              <Input
+                                placeholder="Specify other reason"
+                                value={otherSubStatusInput}
+                                onChange={(e) => setOtherSubStatusInput(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') handleSetOtherSubStatus();
+                                }}
+                              />
+                              <Button size="sm" onClick={handleSetOtherSubStatus}>OK</Button>
+                            </div>
+                        </div>
+                      )}
+                    </div>
+                     <div className="flex items-center gap-2 pt-6">
+                        <Checkbox
+                        checked={considerStatus}
+                        onCheckedChange={(checked) => setConsiderStatus(checked as boolean)}
+                        /> Do not consider Order Closed/Fake/Existing Users/Not Interested
+                    </div>
                   </div>
+                  
 
                   {/* CONDITIONAL ROWS */}
                   {considerStatus && (
