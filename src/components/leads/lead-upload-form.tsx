@@ -28,6 +28,7 @@ import { Textarea } from '../ui/textarea';
 import type { AppUser } from '@/context/users-context';
 import { Checkbox } from '../ui/checkbox';
 import { useUsers } from '@/context/users-context';
+import { useAuth } from '@/context/auth-context';
 import { cn } from '@/lib/utils';
 
 type ParsedData = (string | number)[][];
@@ -133,6 +134,7 @@ export default function LeadUploadForm() {
   const { toast } = useToast();
   
   const { users } = useUsers();
+  const { user } = useAuth();
   const [executives, setExecutives] = useState<string[]>([]);
 
   useEffect(() => {
@@ -244,7 +246,7 @@ export default function LeadUploadForm() {
       ...formData,
       leadId: getNextLeadId(),
       creationDate: new Date().getTime(),
-      givenBy: 'Manual',
+      givenBy: user?.username || 'Manual',
       status: 'Not viewed',
       executive: formData.toExecutive ? toExecutiveSelection : undefined,
     };
@@ -585,5 +587,3 @@ export default function LeadUploadForm() {
     </div>
   );
 }
-
-    
