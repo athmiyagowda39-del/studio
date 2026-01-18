@@ -44,7 +44,6 @@ const leadStatusOptions = [
     'Do Not Contact',
     'Quote Sent',
     'Demo Given',
-    'Other',
 ];
 
 const leadSubStatusOptions = [
@@ -184,7 +183,7 @@ export default function LeadsUpdatePage() {
         tempLeads = tempLeads.filter(lead => lead.selectedModule === selectedProduct);
     }
     
-    if (givenBy !== 'all' && givenBy !== 'other') {
+    if (givenBy !== 'all' && givenBy !== 'Other') {
         tempLeads = tempLeads.filter(lead => lead.givenBy === givenBy);
     }
 
@@ -447,6 +446,38 @@ export default function LeadsUpdatePage() {
                       <Input type="date" />
                     </div>
                     <div className="space-y-1">
+                      <Label htmlFor="givenBy">Given by</Label>
+                       <Select value={givenBy === 'all' || executives.includes(givenBy) ? givenBy : 'Other'} onValueChange={(value) => setGivenBy(value)}>
+                        <SelectTrigger id="givenBy">
+                          <SelectValue placeholder="--All--">{givenBy}</SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All</SelectItem>
+                          {executives.map((exec) => (
+                            <SelectItem key={exec} value={exec}>
+                              {exec}
+                            </SelectItem>
+                          ))}
+                          <SelectItem value="Other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {givenBy === 'Other' && (
+                        <div className="mt-2">
+                           <div className="flex items-center gap-2">
+                              <Input
+                                placeholder="Specify who gave it"
+                                value={otherGivenByInput}
+                                onChange={(e) => setOtherGivenByInput(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') handleSetOtherGivenBy();
+                                }}
+                              />
+                              <Button size="sm" onClick={handleSetOtherGivenBy}>OK</Button>
+                            </div>
+                        </div>
+                      )}
+                    </div>
+                    <div className="space-y-1">
                       <Label>Product Name</Label>
                       <Select value={selectedProduct} onValueChange={setSelectedProduct}>
                         <SelectTrigger><SelectValue placeholder="--All--" /></SelectTrigger>
@@ -459,9 +490,13 @@ export default function LeadsUpdatePage() {
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="space-y-1">
+                  </div>
+
+                  {/* ROW 4 */}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                     <div className="space-y-1">
                       <Label>Executive Name</Label>
-                      <Select value={selectedExecutive} onValueChange={(value) => setSelectedExecutive(value === 'Other' ? 'Other' : value)}>
+                      <Select value={selectedExecutive === 'all' || executives.includes(selectedExecutive) ? selectedExecutive : 'Other'} onValueChange={(value) => setSelectedExecutive(value)}>
                         <SelectTrigger>
                             <SelectValue placeholder="--All--">
                                 {selectedExecutive}
@@ -493,45 +528,9 @@ export default function LeadsUpdatePage() {
                         </div>
                       )}
                     </div>
-                  </div>
-
-                  {/* ROW 4 */}
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="space-y-1">
-                      <Label htmlFor="givenBy">Given by</Label>
-                      <Select value={givenBy} onValueChange={(value) => setGivenBy(value === 'other' ? 'other' : value)}>
-                        <SelectTrigger id="givenBy">
-                          <SelectValue placeholder="--All--">{givenBy}</SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All</SelectItem>
-                          {executives.map((exec) => (
-                            <SelectItem key={exec} value={exec}>
-                              {exec}
-                            </SelectItem>
-                          ))}
-                          <SelectItem value="other">Other</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      {givenBy === 'other' && (
-                        <div className="mt-2">
-                           <div className="flex items-center gap-2">
-                              <Input
-                                placeholder="Specify who gave it"
-                                value={otherGivenByInput}
-                                onChange={(e) => setOtherGivenByInput(e.target.value)}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter') handleSetOtherGivenBy();
-                                }}
-                              />
-                              <Button size="sm" onClick={handleSetOtherGivenBy}>OK</Button>
-                            </div>
-                        </div>
-                      )}
-                    </div>
                     <div className="space-y-1">
                       <Label>Status of Lead</Label>
-                      <Select value={selectedLeadStatus} onValueChange={(value) => setSelectedLeadStatus(value === 'Other' ? 'Other' : value)}>
+                      <Select value={selectedLeadStatus === 'all' || leadStatusOptions.includes(selectedLeadStatus) ? selectedLeadStatus : 'Other'} onValueChange={(value) => setSelectedLeadStatus(value)}>
                         <SelectTrigger><SelectValue placeholder="--All--">{selectedLeadStatus}</SelectValue></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="all">All</SelectItem>
@@ -540,6 +539,7 @@ export default function LeadsUpdatePage() {
                               {status}
                             </SelectItem>
                           ))}
+                           <SelectItem value="Other">Other</SelectItem>
                         </SelectContent>
                       </Select>
                        {selectedLeadStatus === 'Other' && (
@@ -560,7 +560,7 @@ export default function LeadsUpdatePage() {
                     </div>
                     <div className="space-y-1">
                       <Label>Sub Status of Lead</Label>
-                      <Select value={selectedSubStatus} onValueChange={(value) => setSelectedSubStatus(value === 'other' ? 'other' : value)}>
+                      <Select value={leadSubStatusOptions.includes(selectedSubStatus) ? selectedSubStatus : 'other'} onValueChange={(value) => setSelectedSubStatus(value)}>
                         <SelectTrigger>
                             <SelectValue placeholder="--All--">
                                 {selectedSubStatus}
@@ -594,7 +594,7 @@ export default function LeadsUpdatePage() {
                     </div>
                     <div className="space-y-1">
                       <Label htmlFor="leadSource">Lead Source</Label>
-                      <Select value={selectedLeadSource} onValueChange={(value) => setSelectedLeadSource(value === 'Other' ? 'Other' : value)}>
+                      <Select value={references.includes(selectedLeadSource) ? selectedLeadSource : 'Other'} onValueChange={(value) => setSelectedLeadSource(value)}>
                         <SelectTrigger id="leadSource">
                           <SelectValue placeholder="--All--">
                              {selectedLeadSource}
