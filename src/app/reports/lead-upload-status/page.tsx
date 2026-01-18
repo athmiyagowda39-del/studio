@@ -64,8 +64,8 @@ export default function LeadUploadStatusReportPage() {
           <CardContent className="p-6">
             <Card>
               <CardContent className="p-0">
-                <ScrollArea className="w-full whitespace-nowrap rounded-md border h-[60vh]">
-                  <Table className="min-w-max">
+                <ScrollArea className="w-full whitespace-nowrap rounded-md border">
+                  <Table className="min-w-[1800px]">
                     <TableHeader>
                       <TableRow>
                         <TableHead>Sl No</TableHead>
@@ -94,7 +94,7 @@ export default function LeadUploadStatusReportPage() {
                               <TableCell>
                                 {lead.contactPerson || 'N/A'}
                               </TableCell>
-                              <TableCell>{lead.address || 'N/A'}</TableCell>
+                              <TableCell>{lead.address || 'NA'}</TableCell>
                               <TableCell>{lead.state || 'N/A'}</TableCell>
                               <TableCell>{lead.district || 'N/A'}</TableCell>
                               <TableCell>
