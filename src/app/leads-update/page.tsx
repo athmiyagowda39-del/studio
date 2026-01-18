@@ -141,14 +141,29 @@ export default function LeadsUpdatePage() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      let leads = getLeadsFromLocalStorage();
-      if (user?.role === 'Executive') {
-        leads = leads.filter(lead => lead.executive === user.username);
-      }
-      setAllLeads(leads);
-      setFilteredLeads(leads);
+      const loadLeads = () => {
+        let leads = getLeadsFromLocalStorage();
+        if (user?.role === 'Executive') {
+          leads = leads.filter(lead => lead.executive === user.username);
+        }
+        setAllLeads(leads);
+      };
+
+      loadLeads(); // Initial load
+
+      // Listen for changes in local storage from other tabs/windows
+      const handleStorageChange = () => {
+        loadLeads();
+      };
+      
+      window.addEventListener('storage', handleStorageChange);
+      
+      return () => {
+        window.removeEventListener('storage', handleStorageChange);
+      };
     }
   }, [user, isAuthenticated]);
+
 
   const handleLeadsUpdate = (updatedLeads: LeadFormData[]) => {
     let leadsToUpdate = updatedLeads;
