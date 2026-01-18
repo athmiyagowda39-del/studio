@@ -121,6 +121,7 @@ export default function LeadsUpdatePage() {
   const [activeTab, setActiveTab] = useState<TabValue>('recent');
   const [selectedExecutive, setSelectedExecutive] = useState('all');
   const [selectedLeadSource, setSelectedLeadSource] = useState('all');
+  const [otherLeadSourceReason, setOtherLeadSourceReason] = useState('');
   const [selectedProduct, setSelectedProduct] = useState('all');
   const [givenBy, setGivenBy] = useState('all');
   const [selectedLeadStatus, setSelectedLeadStatus] = useState('all');
@@ -248,6 +249,7 @@ export default function LeadsUpdatePage() {
     setActiveTab('recent');
     setSelectedExecutive('all');
     setSelectedLeadSource('all');
+    setOtherLeadSourceReason('');
     setSelectedProduct('all');
     setGivenBy('all');
     setSelectedLeadStatus('all');
@@ -494,6 +496,14 @@ export default function LeadsUpdatePage() {
                           ))}
                         </SelectContent>
                       </Select>
+                      {selectedLeadSource === 'Other' && (
+                        <Input
+                          placeholder="Specify other source"
+                          value={otherLeadSourceReason}
+                          onChange={(e) => setOtherLeadSourceReason(e.target.value)}
+                          className="mt-2"
+                        />
+                      )}
                     </div>
                   </div>
 
@@ -678,6 +688,8 @@ export default function LeadsUpdatePage() {
     </AppContent>
   );
 }
+
+    
 
     
 
