@@ -120,15 +120,19 @@ export default function LeadsUpdatePage() {
   const [searchCategory, setSearchCategory] = useState('leadId');
   const [activeTab, setActiveTab] = useState<TabValue>('recent');
   const [selectedExecutive, setSelectedExecutive] = useState('all');
+  
   const [selectedLeadSource, setSelectedLeadSource] = useState('all');
-  const [otherLeadSourceReason, setOtherLeadSourceReason] = useState('');
-  const [tempOtherLeadSource, setTempOtherLeadSource] = useState('');
+  const [otherLeadSourceInput, setOtherLeadSourceInput] = useState('');
+  const [dynamicReferences, setDynamicReferences] = useState(references);
+
   const [selectedProduct, setSelectedProduct] = useState('all');
   const [givenBy, setGivenBy] = useState('all');
   const [selectedLeadStatus, setSelectedLeadStatus] = useState('all');
+
   const [selectedSubStatus, setSelectedSubStatus] = useState('all');
-  const [otherSubStatusReason, setOtherSubStatusReason] = useState('');
-  const [tempOtherSubStatus, setTempOtherSubStatus] = useState('');
+  const [otherSubStatusInput, setOtherSubStatusInput] = useState('');
+  const [dynamicSubStatusOptions, setDynamicSubStatusOptions] = useState(leadSubStatusOptions);
+
   const [enteredByFilter, setEnteredByFilter] = useState('all');
 
 
@@ -190,14 +194,8 @@ export default function LeadsUpdatePage() {
         tempLeads = tempLeads.filter(lead => lead.executive === selectedExecutive);
     }
 
-    if (selectedLeadSource !== 'all') {
-        if (selectedLeadSource === 'Other') {
-            if(otherLeadSourceReason.trim()) {
-                tempLeads = tempLeads.filter(lead => lead.reference === otherLeadSourceReason);
-            }
-        } else {
-            tempLeads = tempLeads.filter(lead => lead.reference === selectedLeadSource);
-        }
+    if (selectedLeadSource !== 'all' && selectedLeadSource !== 'Other') {
+        tempLeads = tempLeads.filter(lead => lead.reference === selectedLeadSource);
     }
 
     if (selectedProduct !== 'all') {
@@ -212,14 +210,8 @@ export default function LeadsUpdatePage() {
         tempLeads = tempLeads.filter(lead => lead.status === selectedLeadStatus);
     }
 
-    if (selectedSubStatus !== 'all') {
-        if (selectedSubStatus === 'other') {
-            if (otherSubStatusReason.trim()) {
-                tempLeads = tempLeads.filter(lead => lead.leadSubStatus === otherSubStatusReason);
-            }
-        } else {
-            tempLeads = tempLeads.filter(lead => lead.leadSubStatus === selectedSubStatus);
-        }
+    if (selectedSubStatus !== 'all' && selectedSubStatus !== 'other') {
+        tempLeads = tempLeads.filter(lead => lead.leadSubStatus === selectedSubStatus);
     }
 
     switch (tab) {
@@ -262,12 +254,10 @@ export default function LeadsUpdatePage() {
     allLeads, 
     selectedExecutive, 
     selectedLeadSource, 
-    otherLeadSourceReason,
     selectedProduct, 
     givenBy,
     selectedLeadStatus,
-    selectedSubStatus,
-    otherSubStatusReason
+    selectedSubStatus
   ]);
 
   const handleShowButtonClick = () => {
@@ -282,14 +272,14 @@ export default function LeadsUpdatePage() {
     setActiveTab('recent');
     setSelectedExecutive('all');
     setSelectedLeadSource('all');
-    setOtherLeadSourceReason('');
-    setTempOtherLeadSource('');
+    setOtherLeadSourceInput('');
+    setDynamicReferences(references);
     setSelectedProduct('all');
     setGivenBy('all');
     setSelectedLeadStatus('all');
     setSelectedSubStatus('all');
-    setOtherSubStatusReason('');
-    setTempOtherSubStatus('');
+    setOtherSubStatusInput('');
+    setDynamicSubStatusOptions(leadSubStatusOptions);
     setEnteredByFilter('all');
     setFilteredLeads(allLeads);
     setCurrentPage(1);
@@ -300,19 +290,25 @@ export default function LeadsUpdatePage() {
     pageTopRef.current?.scrollIntoView({ behavior: 'smooth' });
   }
 
-  const handleLeadSourceChange = (value: string) => {
-    setSelectedLeadSource(value);
-    if (value !== 'Other') {
-      setOtherLeadSourceReason('');
-      setTempOtherLeadSource('');
+  const handleSetOtherLeadSource = () => {
+    if(otherLeadSourceInput.trim()){
+      const newSource = otherLeadSourceInput.trim();
+      if(!dynamicReferences.includes(newSource)){
+        setDynamicReferences(prev => [...prev, newSource]);
+      }
+      setSelectedLeadSource(newSource);
+      setOtherLeadSourceInput('');
     }
   };
 
-  const handleSubStatusChange = (value: string) => {
-    setSelectedSubStatus(value);
-    if (value !== 'other') {
-      setOtherSubStatusReason('');
-      setTempOtherSubStatus('');
+  const handleSetOtherSubStatus = () => {
+    if(otherSubStatusInput.trim()){
+      const newStatus = otherSubStatusInput.trim();
+      if(!dynamicSubStatusOptions.includes(newStatus)){
+        setDynamicSubStatusOptions(prev => [...prev, newStatus]);
+      }
+      setSelectedSubStatus(newStatus);
+      setOtherSubStatusInput('');
     }
   };
 
@@ -511,12 +507,11 @@ export default function LeadsUpdatePage() {
                     </div>
                     <div className="space-y-1">
                       <Label>Sub Status of Lead</Label>
-                      <Select value={selectedSubStatus} onValueChange={handleSubStatusChange}>
+                      <Select value={selectedSubStatus} onValueChange={setSelectedSubStatus}>
                         <SelectTrigger><SelectValue placeholder="--All--" /></SelectTrigger>
                         <SelectContent>
                             <ScrollArea className="h-48">
-                                <SelectItem value="all">All</SelectItem>
-                                {leadSubStatusOptions.map(status => (
+                                {dynamicSubStatusOptions.map(status => (
                                 <SelectItem key={status} value={status}>
                                     {status}
                                 </SelectItem>
@@ -526,38 +521,28 @@ export default function LeadsUpdatePage() {
                       </Select>
                        {selectedSubStatus === 'other' && (
                         <div className="mt-2">
-                           {otherSubStatusReason ? (
-                             <div className="flex items-center justify-between text-sm p-2 bg-muted rounded-md">
-                                <span>Filtering by: <strong>{otherSubStatusReason}</strong></span>
-                                <Button variant="link" size="sm" className="h-auto p-0" onClick={() => {
-                                  setOtherSubStatusReason('');
-                                  setTempOtherSubStatus('');
-                                }}>Clear</Button>
-                             </div>
-                          ) : (
-                            <div className="flex items-center gap-2">
+                           <div className="flex items-center gap-2">
                               <Input
                                 placeholder="Specify other reason"
-                                value={tempOtherSubStatus}
-                                onChange={(e) => setTempOtherSubStatus(e.target.value)}
+                                value={otherSubStatusInput}
+                                onChange={(e) => setOtherSubStatusInput(e.target.value)}
                                 onKeyDown={(e) => {
-                                    if (e.key === 'Enter') setOtherSubStatusReason(tempOtherSubStatus);
+                                    if (e.key === 'Enter') handleSetOtherSubStatus();
                                 }}
                               />
-                              <Button size="sm" onClick={() => setOtherSubStatusReason(tempOtherSubStatus)}>OK</Button>
+                              <Button size="sm" onClick={handleSetOtherSubStatus}>OK</Button>
                             </div>
-                          )}
                         </div>
                       )}
                     </div>
                     <div className="space-y-1">
                       <Label htmlFor="leadSource">Lead Source</Label>
-                      <Select value={selectedLeadSource} onValueChange={handleLeadSourceChange}>
+                      <Select value={selectedLeadSource} onValueChange={setSelectedLeadSource}>
                         <SelectTrigger id="leadSource">
                           <SelectValue placeholder="--All--" />
                         </SelectTrigger>
                         <SelectContent>
-                          {references.map((source) => (
+                          {dynamicReferences.map((source) => (
                             <SelectItem key={source} value={source}>
                               {source}
                             </SelectItem>
@@ -566,27 +551,17 @@ export default function LeadsUpdatePage() {
                       </Select>
                       {selectedLeadSource === 'Other' && (
                         <div className="mt-2">
-                          {otherLeadSourceReason ? (
-                             <div className="flex items-center justify-between text-sm p-2 bg-muted rounded-md">
-                                <span>Filtering by: <strong>{otherLeadSourceReason}</strong></span>
-                                <Button variant="link" size="sm" className="h-auto p-0" onClick={() => {
-                                  setOtherLeadSourceReason('');
-                                  setTempOtherLeadSource('');
-                                }}>Clear</Button>
-                             </div>
-                          ) : (
                             <div className="flex items-center gap-2">
                                 <Input
                                 placeholder="Specify other source"
-                                value={tempOtherLeadSource}
-                                onChange={(e) => setTempOtherLeadSource(e.target.value)}
+                                value={otherLeadSourceInput}
+                                onChange={(e) => setOtherLeadSourceInput(e.target.value)}
                                 onKeyDown={(e) => {
-                                    if (e.key === 'Enter') setOtherLeadSourceReason(tempOtherLeadSource);
+                                    if (e.key === 'Enter') handleSetOtherLeadSource();
                                 }}
                                 />
-                                <Button size="sm" onClick={() => setOtherLeadSourceReason(tempOtherLeadSource)}>OK</Button>
+                                <Button size="sm" onClick={handleSetOtherLeadSource}>OK</Button>
                             </div>
-                          )}
                         </div>
                       )}
                     </div>
@@ -773,7 +748,3 @@ export default function LeadsUpdatePage() {
     </AppContent>
   );
 }
-
-    
-
-    
