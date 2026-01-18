@@ -293,7 +293,7 @@ export default function LeadReportPage() {
                         Leads with status "{selectedStatus}" in {selectedState}: <span className="text-primary font-bold">{filteredLeads.length}</span>
                     </h2>
                     <ScrollArea className="w-full whitespace-nowrap rounded-md border">
-                        <Table className="min-w-max">
+                        <Table className="min-w-[2800px]">
                             <TableHeader>
                             <TableRow>
                                 <TableHead>Sl No</TableHead>
