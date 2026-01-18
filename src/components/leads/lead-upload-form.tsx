@@ -28,6 +28,7 @@ import { Textarea } from '../ui/textarea';
 import type { AppUser } from '@/context/users-context';
 import { Checkbox } from '../ui/checkbox';
 import { useUsers } from '@/context/users-context';
+import { cn } from '@/lib/utils';
 
 type ParsedData = (string | number)[][];
 
@@ -128,7 +129,7 @@ export default function LeadUploadForm() {
   const [toExecutiveSelection, setToExecutiveSelection] = useState('');
   
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const { toast } = useToast();
   
   const { users } = useUsers();
@@ -265,7 +266,6 @@ export default function LeadUploadForm() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      setSelectedFile(file);
       processFileAndUpload(file);
     }
   };
@@ -362,9 +362,43 @@ export default function LeadUploadForm() {
   }
 
   const handleCancel = () => {
-    setSelectedFile(null);
     if (fileInputRef.current) {
         fileInputRef.current.value = '';
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isDragging) setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isDragging) setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      const validExtensions = ['.xlsx', '.xls', '.csv'];
+      const fileExtension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+
+      if (validExtensions.includes(fileExtension)) {
+        processFileAndUpload(file);
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Invalid File Type",
+          description: "Please upload a valid Excel or CSV file.",
+        });
+      }
     }
   };
   
@@ -519,7 +553,15 @@ export default function LeadUploadForm() {
             <CardTitle className="text-lg font-medium">Or upload leads from a file</CardTitle>
         </CardHeader>
         <CardContent className="p-6">
-            <div className="flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-12 text-center">
+            <div
+              className={cn(
+                "flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-12 text-center transition-colors",
+                isDragging ? "border-primary bg-primary/10" : "border-input"
+              )}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            >
                  <UploadCloud className="mx-auto h-12 w-12 text-muted-foreground" />
                  <p className="mt-4 font-semibold">Drag & Drop Excel/CSV file</p>
                  <p className="text-sm text-muted-foreground mt-1">or</p>
@@ -543,3 +585,5 @@ export default function LeadUploadForm() {
     </div>
   );
 }
+
+    
