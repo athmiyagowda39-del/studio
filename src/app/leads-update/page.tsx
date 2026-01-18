@@ -580,7 +580,6 @@ export default function LeadsUpdatePage() {
                         <TableHead>Company</TableHead>
                         <TableHead>Contact</TableHead>
                         <TableHead>Phone</TableHead>
-                        <TableHead>Cell</TableHead>
                         <TableHead>Emailid</TableHead>
                         <TableHead>Address</TableHead>
                         <TableHead>Place</TableHead>
@@ -623,7 +622,6 @@ export default function LeadsUpdatePage() {
                           <TableCell>{lead.selectedModule}</TableCell>
                           <TableCell>{lead.company}</TableCell>
                           <TableCell>{lead.contactPerson}</TableCell>
-                          <TableCell>{lead.contactNumber}</TableCell>
                           <TableCell>{lead.contactNumber}</TableCell>
                           <TableCell>{lead.email}</TableCell>
                           <TableCell>{lead.address}</TableCell>

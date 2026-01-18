@@ -352,14 +352,14 @@ export default function LeadReportPage() {
                                     <TableCell>{lastFollowUp ? lastFollowUp.remarks : 'N/A'}</TableCell>
                                     <TableCell>{lead.status || 'N/A'}</TableCell>
                                     <TableCell>{lead.leadSubStatus || 'N/A'}</TableCell>
-                                    <TableCell>{lead.leadStatusRemarks || 'N/A'}</TableCell>
+                                    <TableCell>{lead.initialRemarks || 'N/A'}</TableCell>
                                     <TableCell>{lead.givenBy || 'N/A'}</TableCell>
                                     </TableRow>
                                 )
                                 })
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={23} className="text-center h-24">
+                                    <TableCell colSpan={22} className="text-center h-24">
                                         No leads found for the selected criteria.
                                     </TableCell>
                                 </TableRow>

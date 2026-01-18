@@ -148,7 +148,7 @@ export default function LeadUpdateStatusReportPage() {
                                 {lead.leadSubStatus || 'N/A'}
                               </TableCell>
                               <TableCell>
-                                {(lead as any).leadStatusRemarks || 'N/A'}
+                                {lead.initialRemarks || 'N/A'}
                               </TableCell>
                               <TableCell>{lead.givenBy || 'N/A'}</TableCell>
                             </TableRow>
