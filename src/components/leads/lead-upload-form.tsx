@@ -138,7 +138,7 @@ export default function LeadUploadForm() {
     const executiveUsers = users
       .filter(user => user.role === 'Executive')
       .map(user => user.username);
-    setExecutives(['All', ...executiveUsers]);
+    setExecutives(executiveUsers);
   }, [users]);
 
   useEffect(() => {
@@ -522,5 +522,7 @@ export default function LeadUploadForm() {
     </div>
   );
 }
+
+    
 
     
