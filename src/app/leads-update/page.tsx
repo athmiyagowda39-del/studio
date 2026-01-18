@@ -126,6 +126,7 @@ export default function LeadsUpdatePage() {
   const [selectedLeadStatus, setSelectedLeadStatus] = useState('all');
   const [selectedSubStatus, setSelectedSubStatus] = useState('all');
   const [otherSubStatusReason, setOtherSubStatusReason] = useState('');
+  const [enteredByFilter, setEnteredByFilter] = useState('all');
 
 
   /* ---------------- EFFECT ---------------- */
@@ -252,6 +253,7 @@ export default function LeadsUpdatePage() {
     setSelectedLeadStatus('all');
     setSelectedSubStatus('all');
     setOtherSubStatusReason('');
+    setEnteredByFilter('all');
     setFilteredLeads(allLeads);
     setCurrentPage(1);
   };
@@ -520,7 +522,7 @@ export default function LeadsUpdatePage() {
                       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <Input type="date" />
                         <Input type="date" />
-                        <Select>
+                        <Select value={enteredByFilter} onValueChange={setEnteredByFilter}>
                           <SelectTrigger>
                             <SelectValue placeholder="Entered By" />
                           </SelectTrigger>
@@ -678,6 +680,8 @@ export default function LeadsUpdatePage() {
     </AppContent>
   );
 }
+
+    
 
     
 
