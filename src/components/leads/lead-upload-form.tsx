@@ -474,9 +474,10 @@ export default function LeadUploadForm() {
               <div className="w-full md:w-auto">
                 <Select value={toExecutiveSelection} onValueChange={setToExecutiveSelection}>
                   <SelectTrigger className="w-[200px]">
-                    <SelectValue placeholder="Select Executive..." />
+                    <SelectValue placeholder="As per mapping" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
                     {executives.map((name) => (
                       <SelectItem key={name} value={name}>{name}</SelectItem>
                     ))}
@@ -522,5 +523,7 @@ export default function LeadUploadForm() {
     </div>
   );
 }
+
+    
 
     
