@@ -36,6 +36,7 @@ type FollowUp = {
 };
 
 const leadStatusOptions = [
+    'All',
     'Attended',
     'Not viewed',
     'Unattended',
