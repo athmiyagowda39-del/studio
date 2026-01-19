@@ -18,7 +18,7 @@ import {
   ChevronsUpDown,
   ChevronDown,
 } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '../ui/card';
 import { useState, useRef, useEffect } from 'react';
 import * as XLSX from 'xlsx';
 import {
@@ -167,6 +167,8 @@ const getNextLeadId = (): string => {
 
 export default function LeadUploadForm() {
   const [formData, setFormData] = useState<Omit<LeadFormData, 'leadId' | 'creationDate'>>(initialFormState);
+  const [parsedLeads, setParsedLeads] = useState<Partial<LeadFormData>[]>([]);
+  const [showPreview, setShowPreview] = useState(false);
   const [toExecutiveSelection, setToExecutiveSelection] = useState('');
   const [otherReferenceInput, setOtherReferenceInput] = useState('');
   const [otherSectorInput, setOtherSectorInput] = useState('');
@@ -269,7 +271,7 @@ export default function LeadUploadForm() {
     if (!isExecutiveContext && !isImpersonating) {
       setToExecutiveSelection('');
     }
-    handleCancel();
+    handleCancelUpload();
   };
 
   const validateLead = (lead: Omit<LeadFormData, 'leadId' | 'creationDate'>) => {
@@ -365,70 +367,49 @@ export default function LeadUploadForm() {
           return;
         }
 
-        const headers: string[] = json[0].map(h => String(h).toLowerCase().replace(/\s+/g, ''));
-        const firstLeadRow = json[1];
-
-        if (!firstLeadRow) {
-            toast({ variant: "destructive", title: "No Data", description: "The file has no data rows to import." });
-            return;
-        }
-
-        const leadObject: any = {};
-        headers.forEach((header, index) => {
-            const keyMap: {[key: string]: keyof LeadFormData} = {
-                'pincode': 'pincode',
-                'company': 'company',
-                'contactperson': 'contactPerson',
-                'address': 'address',
-                'state': 'state',
-                'district': 'district',
-                'contactnumber': 'contactNumber',
-                'email': 'email',
-                'reference': 'reference',
-                'headcount': 'headcount',
-                'sector': 'sector',
-                'selectedmodule': 'selectedModule',
-                'manager': 'manager',
-                'executive': 'executive',
-            };
-            const formKey = keyMap[header];
-            if(formKey) leadObject[formKey] = firstLeadRow[index];
-        });
-
-        // Create a new form state from the parsed lead object
-        const newFormData: Omit<LeadFormData, 'leadId' | 'creationDate'> = {
-            ...initialFormState,
-            pincode: String(leadObject.pincode || ''),
-            state: String(leadObject.state || ''),
-            district: String(leadObject.district || ''),
-            address: String(leadObject.address || ''),
-            contactPerson: String(leadObject.contactPerson || ''),
-            contactNumber: String(leadObject.contactNumber || ''),
-            reference: String(leadObject.reference || ''),
-            email: String(leadObject.email || ''),
-            company: String(leadObject.company || ''),
-            headcount: String(leadObject.headcount || ''),
-            sector: String(leadObject.sector || ''),
-            selectedModule: String(leadObject.selectedModule || ''),
-            manager: String(leadObject.manager || ''),
-            toExecutive: !!leadObject.executive,
-            givenBy: user?.username || 'File Upload',
+        const headers: string[] = (json[0] as string[]).map(h => String(h).toLowerCase().replace(/\s+/g, ''));
+        const keyMap: { [key: string]: keyof Partial<LeadFormData> } = {
+            'pincode': 'pincode',
+            'company': 'company',
+            'contactperson': 'contactPerson',
+            'address': 'address',
+            'state': 'state',
+            'district': 'district',
+            'contactnumber': 'contactNumber',
+            'email': 'email',
+            'reference': 'reference',
+            'headcount': 'headcount',
+            'sector': 'sector',
+            'selectedmodule': 'selectedModule',
+            'manager': 'manager',
+            'executive': 'executive',
         };
-        
-        setFormData(newFormData);
 
-        if (leadObject.executive) {
-            setToExecutiveSelection(String(leadObject.executive));
-        } else {
-            setToExecutiveSelection('');
+        const leadsData = json.slice(1).map(row => {
+            const leadObject: Partial<LeadFormData> = {};
+            if (Array.isArray(row) && row.length > 0) {
+              headers.forEach((header, index) => {
+                  const formKey = keyMap[header];
+                  if (formKey) {
+                      (leadObject as any)[formKey] = row[index];
+                  }
+              });
+            }
+            return leadObject;
+        }).filter(lead => Object.keys(lead).length > 0);
+
+        if (leadsData.length === 0) {
+          toast({ variant: "destructive", title: "No Data Found", description: "The file appears to be empty or formatted incorrectly." });
+          return;
         }
+        
+        setParsedLeads(leadsData);
+        setShowPreview(false);
 
         toast({
-          title: "File Processed",
-          description: "Form has been populated with the first lead. Please review and save.",
+          title: `File Processed: ${leadsData.length} leads found.`,
+          description: "Review the data below and click 'Confirm Upload' to save.",
         });
-
-        handleCancel();
 
       } catch (error) {
         console.error(error);
@@ -442,11 +423,63 @@ export default function LeadUploadForm() {
     reader.readAsBinaryString(file);
   }
 
-  const handleCancel = () => {
+  const handleConfirmUpload = () => {
+    if (parsedLeads.length === 0) {
+        toast({
+            variant: "destructive",
+            title: "No Data",
+            description: "There is no data to upload."
+        });
+        return;
+    }
+
+    const allLeads = getLeadsFromLocalStorage();
+    let nextId = parseInt(getNextLeadId(), 10);
+
+    const newLeads: LeadFormData[] = parsedLeads.map(parsedLead => {
+        const newLead: LeadFormData = {
+            pincode: parsedLead.pincode || '',
+            state: parsedLead.state || '',
+            district: parsedLead.district || '',
+            address: parsedLead.address || '',
+            contactPerson: parsedLead.contactPerson || '',
+            contactNumber: String(parsedLead.contactNumber || ''),
+            reference: parsedLead.reference || '',
+            email: parsedLead.email || '',
+            company: parsedLead.company || '',
+            headcount: String(parsedLead.headcount || ''),
+            sector: parsedLead.sector || '',
+            selectedModule: parsedLead.selectedModule || '',
+            manager: parsedLead.manager || '',
+            executive: parsedLead.executive || '',
+            toExecutive: !!parsedLead.executive,
+            // new fields
+            leadId: (nextId++).toString(),
+            creationDate: new Date().getTime(),
+            givenBy: user?.username || 'File Upload',
+            status: 'Not viewed',
+        };
+        return newLead;
+    });
+
+    const updatedLeads = [...allLeads, ...newLeads];
+    saveLeadsToLocalStorage(updatedLeads);
+
+    toast({
+        title: "Upload Successful",
+        description: `${newLeads.length} leads have been successfully uploaded and saved.`
+    });
+    
+    handleCancelUpload(); // Reset UI
+};
+
+const handleCancelUpload = () => {
+    setParsedLeads([]);
+    setShowPreview(false);
     if (fileInputRef.current) {
         fileInputRef.current.value = '';
     }
-  };
+};
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -821,8 +854,58 @@ export default function LeadUploadForm() {
               accept=".xlsx, .xls, .csv"
               disabled={isReadOnly}
             />
+            {parsedLeads.length > 0 && (
+              <div className="mt-6 flex items-center gap-4 border-t pt-6">
+                <Button variant="ghost" onClick={() => setShowPreview(!showPreview)}>
+                  {showPreview ? 'Hide Preview' : 'Preview data'}
+                </Button>
+                <Button onClick={handleConfirmUpload}>Confirm Upload</Button>
+                <Button variant="destructive" onClick={handleCancelUpload}>
+                  Cancel
+                </Button>
+              </div>
+            )}
         </CardContent>
       </Card>
+
+      {showPreview && parsedLeads.length > 0 && (
+          <Card className="mt-8">
+              <CardHeader>
+                  <CardTitle>Preview Data</CardTitle>
+                  <CardDescription>
+                      Review the leads to be uploaded from the file. A total of {parsedLeads.length} leads will be added.
+                  </CardDescription>
+              </CardHeader>
+              <CardContent>
+                  <ScrollArea className="h-72 w-full rounded-md border">
+                      <Table>
+                          <TableHeader>
+                              <TableRow>
+                                  <TableHead>#</TableHead>
+                                  <TableHead>Company</TableHead>
+                                  <TableHead>Contact Person</TableHead>
+                                  <TableHead>Contact Number</TableHead>
+                                  <TableHead>Email</TableHead>
+                                  <TableHead>Executive</TableHead>
+                              </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                              {parsedLeads.map((lead, index) => (
+                                  <TableRow key={index}>
+                                      <TableCell>{index + 1}</TableCell>
+                                      <TableCell>{lead.company}</TableCell>
+                                      <TableCell>{lead.contactPerson}</TableCell>
+                                      <TableCell>{String(lead.contactNumber)}</TableCell>
+                                      <TableCell>{lead.email}</TableCell>
+                                      <TableCell>{lead.executive}</TableCell>
+                                  </TableRow>
+                              ))}
+                          </TableBody>
+                      </Table>
+                  </ScrollArea>
+              </CardContent>
+          </Card>
+      )}
     </div>
   );
 }
