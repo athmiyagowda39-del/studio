@@ -331,7 +331,7 @@ export default function LeadsUpdatePage() {
             break;
         case 'recent':
         default:
-            tempLeads.sort((a,b) => b.creationDate - a.creationDate);
+            tempLeads.sort((a,b) => a.creationDate - b.creationDate);
             break;
     }
 
@@ -913,7 +913,7 @@ export default function LeadsUpdatePage() {
               <CardContent className="p-4 space-y-4">
                 <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as TabValue)}>
                   <TabsList>
-                    <TabsTrigger value="recent">Recent Leads</TabsTrigger>
+                    <TabsTrigger value="recent">All Leads</TabsTrigger>
                     <TabsTrigger value="not-viewed">Leads not Viewed</TabsTrigger>
                     <TabsTrigger value="follow-ups-due">Follow Ups Due</TabsTrigger>
                     <TabsTrigger value="zero-follow-ups">Zero Follow Ups!</TabsTrigger>
