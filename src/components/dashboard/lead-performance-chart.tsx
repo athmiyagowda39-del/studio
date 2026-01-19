@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -17,17 +18,20 @@ const chartConfig = {
 type PerformanceDataPoint = {
   day?: string;
   hour?: string;
+  month?: string;
   leads: number;
 };
 
 type LeadPerformanceChartProps = {
   performanceData: PerformanceDataPoint[];
   xAxisLabel?: string;
+  dataKey?: 'day' | 'month' | 'hour';
 };
 
 export default function LeadPerformanceChart({
   performanceData,
   xAxisLabel = 'Number of Days',
+  dataKey = 'day',
 }: LeadPerformanceChartProps) {
   const maxLeads = Math.max(...performanceData.map((d) => d.leads), 0);
   const yAxisMax = Math.ceil((maxLeads * 1.2) / 10) * 10 || 10;
@@ -46,7 +50,7 @@ export default function LeadPerformanceChart({
         >
           <CartesianGrid vertical={false} />
           <XAxis
-            dataKey="day"
+            dataKey={dataKey}
             tickLine={false}
             tickMargin={10}
             axisLine={false}
