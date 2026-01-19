@@ -81,7 +81,7 @@ const getLeadsFromLocalStorage = (): LeadFormData[] => {
 /* ---------------- COMPONENT ---------------- */
 
 export default function LeadsUpdatePage() {
-  const { user, isAuthenticated, isLoading, originalUser } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const pageTopRef = useRef<HTMLDivElement>(null);
 
@@ -136,55 +136,42 @@ export default function LeadsUpdatePage() {
     setExecutives(executiveUsers);
   }, [users]);
   
-  const loadLeads = useCallback(() => {
-    if (isAuthenticated) {
-        let leads = getLeadsFromLocalStorage();
-        if (user?.role === 'Executive') {
-          leads = leads.filter(lead => lead.executive === user?.username);
-        }
-        setAllLeads(leads);
-    }
-  }, [isAuthenticated, user]);
-
+  // Load all leads from storage and set up listener for updates
   useEffect(() => {
+    const loadLeads = () => {
+      if (isAuthenticated) {
+        setAllLeads(getLeadsFromLocalStorage());
+      }
+    };
+
     loadLeads(); // Initial load
 
-    window.addEventListener('storage', loadLeads);
     window.addEventListener('leadsUpdated', loadLeads);
     
     return () => {
-      window.removeEventListener('storage', loadLeads);
       window.removeEventListener('leadsUpdated', loadLeads);
     };
-  }, [loadLeads]);
+  }, [isAuthenticated]);
 
 
-  const handleLeadsUpdate = (updatedLeads: LeadFormData[]) => {
-    let leadsToUpdate = updatedLeads;
+  // Centralized filtering logic
+  useEffect(() => {
+    let tempLeads = [...allLeads];
+
+    // Role-based filtering
     if (user?.role === 'Executive') {
-        leadsToUpdate = updatedLeads.filter(lead => lead.executive === user.username);
-    }
-    setAllLeads(leadsToUpdate);
-    // Re-apply filters and tabs after update
-    handleFilterAndTab(leadsToUpdate, activeTab, activeTab === 'search-result');
-  };
-  
-  const handleFilterAndTab = (
-    sourceLeads: LeadFormData[],
-    tab: TabValue,
-    isSearchResult: boolean = false
-  ) => {
-    let tempLeads = [...sourceLeads];
-
-    if (isSearchResult) {
-      if (searchTerm.trim() !== '') {
-        tempLeads = tempLeads.filter(lead => {
-          const leadValue = (lead[searchCategory as keyof LeadFormData] as string)?.toString().toLowerCase() || '';
-          return leadValue.startsWith(searchTerm.toLowerCase());
-        });
-      }
+      tempLeads = tempLeads.filter(lead => lead.executive === user.username);
     }
 
+    // Search term filtering
+    if (activeTab === 'search-result' && searchTerm.trim() !== '') {
+      tempLeads = tempLeads.filter(lead => {
+        const leadValue = (lead[searchCategory as keyof LeadFormData] as string)?.toString().toLowerCase() || '';
+        return leadValue.startsWith(searchTerm.toLowerCase());
+      });
+    }
+
+    // Filter panel filtering
     if (selectedExecutive !== 'all' && selectedExecutive !== 'Other') {
         tempLeads = tempLeads.filter(lead => lead.executive === selectedExecutive);
     }
@@ -256,8 +243,8 @@ export default function LeadsUpdatePage() {
         }
     }
 
-
-    switch (tab) {
+    // Tab-based filtering
+    switch (activeTab) {
         case 'not-viewed':
             tempLeads = tempLeads.filter(lead => !lead.executiveViewDate);
             break;
@@ -290,13 +277,12 @@ export default function LeadsUpdatePage() {
 
     setFilteredLeads(tempLeads);
     setCurrentPage(1);
-  };
-
-  useEffect(() => {
-    handleFilterAndTab(allLeads, activeTab, activeTab === 'search-result');
   }, [
+    allLeads,
+    user,
     activeTab, 
-    allLeads, 
+    searchTerm,
+    searchCategory,
     selectedExecutive, 
     selectedLeadSource, 
     selectedProduct, 
@@ -311,7 +297,6 @@ export default function LeadsUpdatePage() {
 
   const handleShowButtonClick = () => {
     setActiveTab('search-result');
-    handleFilterAndTab(allLeads, 'search-result', true);
   };
 
 
@@ -335,7 +320,6 @@ export default function LeadsUpdatePage() {
     setFollowUpGivenBy('all');
     setOtherFollowUpGivenByInput('');
 
-    setFilteredLeads(allLeads);
     setCurrentPage(1);
   };
   
@@ -417,7 +401,7 @@ export default function LeadsUpdatePage() {
             <LeadUpdateForm
               leadId={selectedLeadId}
               allLeads={allLeads}
-              setAllLeads={handleLeadsUpdate}
+              setAllLeads={setAllLeads}
             />
 
             {/* ================= FILTER TOGGLE (CLICK ANYWHERE) ================= */}

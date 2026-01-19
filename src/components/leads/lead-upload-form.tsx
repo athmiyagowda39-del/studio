@@ -134,7 +134,7 @@ export default function LeadUploadForm() {
   const { toast } = useToast();
   
   const { users } = useUsers();
-  const { user } = useAuth();
+  const { user, originalUser } = useAuth();
   const [executives, setExecutives] = useState<string[]>([]);
 
   useEffect(() => {
@@ -246,7 +246,7 @@ export default function LeadUploadForm() {
       ...formData,
       leadId: getNextLeadId(),
       creationDate: new Date().getTime(),
-      givenBy: user?.username || 'Manual',
+      givenBy: originalUser?.username || user?.username || 'Manual',
       status: 'Not viewed',
       executive: formData.toExecutive ? toExecutiveSelection : undefined,
     };
