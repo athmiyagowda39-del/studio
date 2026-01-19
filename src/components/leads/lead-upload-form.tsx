@@ -11,7 +11,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Download, UploadCloud, Info } from 'lucide-react';
+import {
+  Download,
+  UploadCloud,
+  Info,
+  ChevronsUpDown,
+  ChevronDown,
+} from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
 import { useState, useRef, useEffect } from 'react';
 import * as XLSX from 'xlsx';
@@ -31,6 +37,13 @@ import { useUsers } from '@/context/users-context';
 import { useAuth } from '@/context/auth-context';
 import { cn } from '@/lib/utils';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '../ui/collapsible';
+import { ScrollArea } from '../ui/scroll-area';
 
 type ParsedData = (string | number)[][];
 
@@ -75,6 +88,31 @@ const references = [
     "All", "Website", "Social Media", "Google Ads", "Facebook Ads", "LinkedIn", "Referral", "Cold Call",
     "Telecalling", "Walk-in", "Email Campaign", "WhatsApp Campaign", "IndiaMART", "Channel Partner",
     "Existing Customer", "Upselling", "Cross-selling", "Events / Trade Shows", "Demo Request", "Trial Signup", "Other"
+];
+
+const mainProducts = [
+  'Manpower Resource Planning',
+  'Recruitment and Requisition Management',
+  'Onboarding',
+  'Letter Generation',
+];
+const attendanceProducts = [
+  'Desktop Attendance Marking Only',
+  'Integration with Attendance Machine',
+  'Mobile Attendance Marking without Location',
+  'Geo Fencing',
+  'Geo Tracking',
+];
+const otherProducts = [
+  'Shift Roaster Management',
+  'Timesheet Management',
+  'Performance Management',
+  'Training Management',
+  'Employee Movement / Transfer',
+  'Probation to Confirmation',
+  'Employee Database Management',
+  'Mobile App',
+  'Employee Self Service',
 ];
 
 
@@ -138,6 +176,7 @@ export default function LeadUploadForm() {
   const { users } = useUsers();
   const { user, isReadOnly, isImpersonating } = useAuth();
   const [executives, setExecutives] = useState<string[]>([]);
+  const [productPopoverOpen, setProductPopoverOpen] = useState(false);
   
   const isExecutiveContext = user?.role === 'Executive';
 
@@ -210,6 +249,11 @@ export default function LeadUploadForm() {
   const handleSelectChange = (id: string, value: string) => {
     setFormData(prev => ({...prev, [id]: value}));
   }
+
+  const handleProductSelect = (product: string) => {
+    handleSelectChange('selectedModule', product);
+    setProductPopoverOpen(false);
+  };
 
   const handleCheckboxChange = (checked: boolean) => {
     setFormData(prev => ({...prev, toExecutive: checked as boolean}));
@@ -524,19 +568,99 @@ export default function LeadUploadForm() {
           
           <div className="space-y-2">
             <Label htmlFor="selectedModule">Modules</Label>
-            <Select value={formData.selectedModule} onValueChange={(value) => handleSelectChange('selectedModule', value)} disabled={isReadOnly}>
-              <SelectTrigger id="selectedModule">
-                <SelectValue placeholder="Select Modules..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="ar">AR</SelectItem>
-                <SelectItem value="all-hrms">All HRMS</SelectItem>
-                <SelectItem value="module1">Module 1</SelectItem>
-                <SelectItem value="module2">Module 2</SelectItem>
-                <SelectItem value="module3">Module 3</SelectItem>
-              </SelectContent>
-            </Select>
+            <Popover
+              open={productPopoverOpen}
+              onOpenChange={setProductPopoverOpen}
+            >
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  className="w-full justify-between font-normal"
+                  disabled={isReadOnly}
+                >
+                  <span className="truncate">
+                    {formData.selectedModule === 'all'
+                      ? 'All'
+                      : formData.selectedModule || 'Select Module...'}
+                  </span>
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                <ScrollArea className="h-72">
+                  <div className="space-y-1 p-1">
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start"
+                      onClick={() => handleProductSelect('all')}
+                    >
+                      All
+                    </Button>
+                    {mainProducts.map((product) => (
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start"
+                        key={product}
+                        onClick={() => handleProductSelect(product)}
+                      >
+                        {product}
+                      </Button>
+                    ))}
+
+                    <Collapsible>
+                      <CollapsibleTrigger asChild>
+                        <button className="flex w-full items-center justify-between rounded-sm px-2 py-1.5 text-left text-sm font-bold hover:bg-accent [&[data-state=open]>svg]:rotate-180">
+                          <span>Leave Management</span>
+                          <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
+                        </button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="space-y-1 pt-1 pl-4">
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start text-sm"
+                          key="Leave Management"
+                          onClick={() => handleProductSelect('Leave Management')}
+                        >
+                          Leave Management
+                        </Button>
+                        <Collapsible>
+                          <CollapsibleTrigger asChild>
+                            <button className="flex w-full items-center justify-between rounded-sm px-2 py-1.5 text-left text-sm font-bold hover:bg-accent [&[data-state=open]>svg]:rotate-180">
+                              <span>Attendance Management</span>
+                              <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
+                            </button>
+                          </CollapsibleTrigger>
+                          <CollapsibleContent className="space-y-1 pt-1 pl-4">
+                            {attendanceProducts.map((product) => (
+                              <Button
+                                variant="ghost"
+                                className="w-full justify-start text-xs"
+                                key={product}
+                                onClick={() => handleProductSelect(product)}
+                              >
+                                {product}
+                              </Button>
+                            ))}
+                          </CollapsibleContent>
+                        </Collapsible>
+                      </CollapsibleContent>
+                    </Collapsible>
+
+                    {otherProducts.map((product) => (
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start"
+                        key={product}
+                        onClick={() => handleProductSelect(product)}
+                      >
+                        {product}
+                      </Button>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </PopoverContent>
+            </Popover>
           </div>
           
            <div className="space-y-2">
@@ -637,3 +761,5 @@ export default function LeadUploadForm() {
     </div>
   );
 }
+
+    
