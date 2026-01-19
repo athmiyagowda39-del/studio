@@ -855,8 +855,11 @@ const handleCancelUpload = () => {
               disabled={isReadOnly}
             />
             {parsedLeads.length > 0 && (
-              <div className="mt-6 flex items-center gap-4 border-t pt-6">
-                <Button variant="ghost" onClick={() => setShowPreview(!showPreview)}>
+              <div className="mt-6 flex items-center gap-4">
+                <Button
+                  variant="secondary"
+                  onClick={() => setShowPreview(!showPreview)}
+                >
                   {showPreview ? 'Hide Preview' : 'Preview data'}
                 </Button>
                 <Button onClick={handleConfirmUpload}>Confirm Upload</Button>
