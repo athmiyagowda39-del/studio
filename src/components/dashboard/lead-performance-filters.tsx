@@ -8,9 +8,7 @@ import { ScrollArea } from '../ui/scroll-area';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Check, ChevronsUpDown } from 'lucide-react';
-import { Command, CommandEmpty, CommandGroup, CommandItem, CommandList } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
 
 
 type LeadPerformanceFiltersProps = {
@@ -152,47 +150,40 @@ export default function LeadPerformanceFilters({
                         </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-[180px] p-0">
-                        <Command>
-                            <CommandList>
-                                <CommandEmpty>No month found.</CommandEmpty>
-                                <CommandGroup>
-                                    {months.map((month) => {
-                                        const isSelected = selectedPeriod.includes(month.value);
-                                        return (
-                                            <CommandItem
-                                                key={month.value}
-                                                value={month.value}
-                                                onMouseDown={(e) => {
-                                                    e.preventDefault();
-                                                    e.stopPropagation();
-                                                }}
-                                                onSelect={(currentValue) => {
-                                                    if (selectedPeriod.includes(currentValue)) {
-                                                        setSelectedPeriod(
-                                                            selectedPeriod.filter((p) => p !== currentValue)
-                                                        );
-                                                    } else {
-                                                        setSelectedPeriod([...selectedPeriod, currentValue]);
-                                                    }
-                                                }}
+                        <ScrollArea className="h-48">
+                            <div className="p-1">
+                                {months.map((month) => {
+                                    const isSelected = selectedPeriod.includes(month.value);
+                                    return (
+                                        <div
+                                            key={month.value}
+                                            onClick={() => {
+                                                if (isSelected) {
+                                                    setSelectedPeriod(
+                                                        selectedPeriod.filter((p) => p !== month.value)
+                                                    );
+                                                } else {
+                                                    setSelectedPeriod([...selectedPeriod, month.value]);
+                                                }
+                                            }}
+                                            className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                                        >
+                                            <div
+                                                className={cn(
+                                                    "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                                                    isSelected
+                                                        ? "bg-primary text-primary-foreground"
+                                                        : "opacity-50 [&_svg]:invisible"
+                                                )}
                                             >
-                                                <div
-                                                    className={cn(
-                                                        "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
-                                                        isSelected
-                                                            ? "bg-primary text-primary-foreground"
-                                                            : "opacity-50 [&_svg]:invisible"
-                                                    )}
-                                                >
-                                                    <Check className={cn("h-4 w-4")} />
-                                                </div>
-                                                {month.label}
-                                            </CommandItem>
-                                        );
-                                    })}
-                                </CommandGroup>
-                            </CommandList>
-                        </Command>
+                                                <Check className={cn("h-4 w-4")} />
+                                            </div>
+                                            {month.label}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </ScrollArea>
                     </PopoverContent>
                 </Popover>
             </div>
