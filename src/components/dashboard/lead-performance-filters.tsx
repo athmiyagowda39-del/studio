@@ -159,7 +159,7 @@ export default function LeadPerformanceFilters({
             </div>
             <div className="flex items-center gap-2">
                 <span className="text-sm font-medium">District:</span>
-                <Select value={selectedDistrict} onValueChange={handleDistrictChange} disabled={selectedState === 'all'}>
+                <Select value={selectedDistrict} onValueChange={handleDistrictChange}>
                     <SelectTrigger className="w-[180px]">
                         <SelectValue placeholder="Select District" />
                     </SelectTrigger>
