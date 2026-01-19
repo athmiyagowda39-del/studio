@@ -85,7 +85,7 @@ export type LeadFormData = {
 
 const sectors = ['All', 'IT', 'Finance', 'Healthcare', 'Manufacturing', 'Education', 'Retail', 'Hospitality', 'Telecommunication', 'Construction', 'Real Estate', 'Media & Entertainment', 'Government', 'Non-profit', 'Other'];
 const references = [
-    "All", "Website", "Social Media", "Google Ads", "Facebook Ads", "LinkedIn", "Referral", "Cold Call",
+    "Website", "Social Media", "Google Ads", "Facebook Ads", "LinkedIn", "Referral", "Cold Call",
     "Telecalling", "Walk-in", "Email Campaign", "WhatsApp Campaign", "IndiaMART", "Channel Partner",
     "Existing Customer", "Upselling", "Cross-selling", "Events / Trade Shows", "Demo Request", "Trial Signup", "Other"
 ];
@@ -168,6 +168,7 @@ const getNextLeadId = (): string => {
 export default function LeadUploadForm() {
   const [formData, setFormData] = useState<Omit<LeadFormData, 'leadId' | 'creationDate'>>(initialFormState);
   const [toExecutiveSelection, setToExecutiveSelection] = useState('');
+  const [otherReferenceInput, setOtherReferenceInput] = useState('');
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -278,11 +279,13 @@ export default function LeadUploadForm() {
     ];
     
     for (const field of requiredFields) {
-      if (!lead[field]) {
+      if (!lead[field] || lead[field] === 'Other') {
+        let fieldName = field.replace(/([A-Z])/g, ' $1');
+        fieldName = fieldName.charAt(0).toUpperCase() + fieldName.slice(1);
         toast({
           variant: 'destructive',
           title: 'Missing Information',
-          description: `Please fill all required fields before saving. Missing: ${field}`,
+          description: `Please fill all required fields before saving. Missing or incomplete: ${fieldName}`,
         });
         return false;
       }
@@ -485,6 +488,14 @@ export default function LeadUploadForm() {
     XLSX.writeFile(workbook, 'SampleLeads.xlsx');
   }
 
+  const handleSetOtherReference = () => {
+    if (otherReferenceInput.trim()) {
+        const newRef = otherReferenceInput.trim();
+        handleSelectChange('reference', newRef);
+        setOtherReferenceInput('');
+    }
+  };
+
   return (
     <div className="space-y-6">
        {isReadOnly && (
@@ -543,8 +554,25 @@ export default function LeadUploadForm() {
                             {ref}
                         </SelectItem>
                     ))}
+                    {!references.includes(formData.reference) && formData.reference !== 'Other' && formData.reference && (
+                      <SelectItem value={formData.reference}>{formData.reference}</SelectItem>
+                    )}
                 </SelectContent>
             </Select>
+            {formData.reference === 'Other' && (
+              <div className="mt-2 flex items-center gap-2">
+                  <Input
+                      placeholder="Specify other reference"
+                      value={otherReferenceInput}
+                      onChange={(e) => setOtherReferenceInput(e.target.value)}
+                      onKeyDown={(e) => {
+                          if (e.key === 'Enter') handleSetOtherReference();
+                      }}
+                      disabled={isReadOnly}
+                  />
+                  <Button size="sm" onClick={handleSetOtherReference} disabled={isReadOnly}>OK</Button>
+              </div>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="headcount">Company headcount</Label>
@@ -761,5 +789,7 @@ export default function LeadUploadForm() {
     </div>
   );
 }
+
+    
 
     
