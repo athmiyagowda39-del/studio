@@ -4,21 +4,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useState, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command';
-import { Check, ChevronsUpDown } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
@@ -130,7 +115,6 @@ export default function LeadReportPage() {
   }, [user]);
 
   const [selectedState, setSelectedState] = useState('Karnataka');
-  const [openState, setOpenState] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedSector, setSelectedSector] = useState('All');
   const [selectedHeadcount, setSelectedHeadcount] = useState('All');
@@ -187,14 +171,6 @@ export default function LeadReportPage() {
       }));
   }, [leadStatuses]);
     
-  const handleStateSelect = (currentState: string) => {
-    const state = allStates.find(s => s.toLowerCase() === currentState.toLowerCase());
-    if(state) {
-        setSelectedState(state);
-    }
-    setOpenState(false);
-  }
-  
   const handleStatusChange = (value: string) => {
       setSelectedStatus(value === 'all-statuses' ? '' : value);
   }
@@ -230,46 +206,20 @@ export default function LeadReportPage() {
             <div className="mb-6 flex flex-wrap items-start gap-4">
                 <div className="flex items-center gap-2">
                     <span className="font-medium">Select State:</span>
-                    <Popover open={openState} onOpenChange={setOpenState}>
-                    <PopoverTrigger asChild>
-                        <Button
-                        variant="outline"
-                        role="combobox"
-                        aria-expanded={openState}
-                        className="w-[200px] justify-between"
-                        >
-                        {selectedState}
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-[200px] p-0">
-                        <Command>
-                        <CommandInput placeholder="Search state..." />
-                        <CommandList>
-                            <CommandEmpty>No state found.</CommandEmpty>
-                            <CommandGroup>
-                            {allStates.map((state) => (
-                                <CommandItem
-                                key={state}
-                                value={state.toLowerCase()}
-                                onSelect={handleStateSelect}
-                                >
-                                <Check
-                                    className={cn(
-                                    'mr-2 h-4 w-4',
-                                    selectedState === state
-                                        ? 'opacity-100'
-                                        : 'opacity-0'
-                                    )}
-                                />
-                                {state}
-                                </CommandItem>
-                            ))}
-                            </CommandGroup>
-                        </CommandList>
-                        </Command>
-                    </PopoverContent>
-                    </Popover>
+                    <Select value={selectedState} onValueChange={setSelectedState}>
+                        <SelectTrigger className="w-[200px]">
+                            <SelectValue placeholder="Select a state" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <ScrollArea className="h-72">
+                                {allStates.map((state) => (
+                                    <SelectItem key={state} value={state}>
+                                        {state}
+                                    </SelectItem>
+                                ))}
+                            </ScrollArea>
+                        </SelectContent>
+                    </Select>
                 </div>
                 <div className="flex items-center gap-2">
                     <span className="font-medium">Status:</span>
