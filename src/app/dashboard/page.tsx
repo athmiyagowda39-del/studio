@@ -44,7 +44,6 @@ export default function DashboardPage() {
     const [selectedState, setSelectedState] = useState<string>('all');
     const [selectedDistrict, setSelectedDistrict] = useState<string>('all');
     const [selectedExecutive, setSelectedExecutive] = useState<string>('all');
-    const [executives, setExecutives] = useState<string[]>([]);
     
     useEffect(() => {
         if (!isLoading && !isAuthenticated) {
@@ -53,11 +52,6 @@ export default function DashboardPage() {
     }, [isAuthenticated, isLoading, router]);
 
     useEffect(() => {
-        const executiveUsers = users
-          .filter(user => user.role === 'Executive')
-          .map(user => user.username);
-        setExecutives(executiveUsers);
-    
         if (user?.role === 'Executive') {
           setSelectedExecutive(user.username);
         } else {
@@ -71,29 +65,35 @@ export default function DashboardPage() {
             const leads = getLeadsFromLocalStorage();
             setAllLeads(leads);
             setIsDataLoading(false);
+
+            const handleStorageChange = () => {
+              const updatedLeads = getLeadsFromLocalStorage();
+              setAllLeads(updatedLeads);
+            };
+
+            window.addEventListener('leadsUpdated', handleStorageChange);
+            return () => {
+              window.removeEventListener('leadsUpdated', handleStorageChange);
+            };
         }
     }, [isAuthenticated]);
 
     const filteredLeads = useMemo(() => {
         if (!allLeads || !user) return [];
 
-        // For Executives, they always see leads assigned to them.
+        // For Admins/Sub Admins, their view is global.
+        if (user.role === 'Admin' || user.role === 'Sub Admin') {
+            if (selectedExecutive !== 'all') {
+                return allLeads.filter(lead => lead.executive === selectedExecutive);
+            }
+            return allLeads; // Show all leads for admin by default
+        }
+
+        // For Executives, they only see leads assigned to them.
         if (user.role === 'Executive') {
             return allLeads.filter(lead => lead.executive === user.username);
         }
-
-        // For Admins/Sub Admins, their view depends on the executive filter.
-        if (user.role === 'Admin' || user.role === 'Sub Admin') {
-            if (selectedExecutive !== 'all') {
-                // If a specific executive is selected, show their leads.
-                return allLeads.filter(lead => lead.executive === selectedExecutive);
-            } else {
-                // If 'all' is selected (default), show all leads.
-                return allLeads;
-            }
-        }
         
-        // Fallback for any other roles or if user is null
         return [];
     }, [allLeads, user, selectedExecutive]);
 
