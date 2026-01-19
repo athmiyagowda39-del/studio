@@ -282,6 +282,7 @@ export default function LeadUploadForm() {
   };
 
   const handleBrowseFileClick = () => {
+    if (isReadOnly) return;
     fileInputRef.current?.click();
   };
 
@@ -393,12 +394,14 @@ export default function LeadUploadForm() {
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
+    if (isReadOnly) return;
     if (!isDragging) setIsDragging(true);
   };
 
   const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
+    if (isReadOnly) return;
     if (isDragging) setIsDragging(false);
   };
 
@@ -406,6 +409,8 @@ export default function LeadUploadForm() {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
+
+    if (isReadOnly) return;
 
     const files = e.dataTransfer.files;
     if (files && files.length > 0) {
@@ -436,58 +441,55 @@ export default function LeadUploadForm() {
     XLSX.writeFile(workbook, 'SampleLeads.xlsx');
   }
 
-  if (isReadOnly) {
-    return (
-      <Alert>
-        <Info className="h-4 w-4" />
-        <AlertTitle>Read-Only Mode</AlertTitle>
-        <AlertDescription>
-          As an admin impersonating another user, you can view their data but cannot create new leads.
-        </AlertDescription>
-      </Alert>
-    );
-  }
-
   return (
     <div className="space-y-6">
+       {isReadOnly && (
+        <Alert>
+          <Info className="h-4 w-4" />
+          <AlertTitle>Read-Only Mode</AlertTitle>
+          <AlertDescription>
+            You are viewing this page in read-only mode. No new leads can be created while impersonating a user.
+          </AlertDescription>
+        </Alert>
+      )}
       <div>
         <p className="font-semibold mb-4 text-primary">Provide the new Lead detail</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 mt-4">
           <div className="space-y-2 md:col-span-2">
             <Label htmlFor="pincode">Pin code</Label>
-            <Input id="pincode" value={formData.pincode} onChange={handleInputChange} maxLength={6} />
+            <Input id="pincode" value={formData.pincode} onChange={handleInputChange} maxLength={6} readOnly={isReadOnly} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="company">Company</Label>
-            <Input id="company" value={formData.company} onChange={handleInputChange} />
+            <Input id="company" value={formData.company} onChange={handleInputChange} readOnly={isReadOnly} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="contactPerson">Contact person</Label>
-            <Input id="contactPerson" value={formData.contactPerson} onChange={handleInputChange} />
+            <Input id="contactPerson" value={formData.contactPerson} onChange={handleInputChange} readOnly={isReadOnly} />
           </div>
            <div className="space-y-2 md:col-span-2">
             <Label htmlFor="address">Address</Label>
-            <Input id="address" value={formData.address} onChange={handleInputChange} />
+            <Input id="address" value={formData.address} onChange={handleInputChange} readOnly={isReadOnly} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="state">State</Label>
-            <Input id="state" value={formData.state} onChange={(e) => handleSelectChange('state', e.target.value)} />
+            <Input id="state" value={formData.state} onChange={(e) => handleSelectChange('state', e.target.value)} readOnly={isReadOnly} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="district">District</Label>
-            <Input id="district" value={formData.district} onChange={(e) => handleSelectChange('district', e.target.value)} />
+            <Input id="district" value={formData.district} onChange={(e) => handleSelectChange('district', e.target.value)} readOnly={isReadOnly} />
           </div>
           <div className="space-y-2">
              <Label htmlFor="contactNumber">Contact Number</Label>
-            <Input id="contactNumber" value={formData.contactNumber} onChange={handleInputChange} />
+            <Input id="contactNumber" value={formData.contactNumber} onChange={handleInputChange} readOnly={isReadOnly} />
           </div>
           <div className="space-y-2">
              <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" value={formData.email} onChange={handleInputChange} />
+            <Input id="email" type="email" value={formData.email} onChange={handleInputChange} readOnly={isReadOnly} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="reference">Reference</Label>
-             <Select value={formData.reference} onValueChange={(value) => handleSelectChange('reference', value)}>
+             <Select value={formData.reference} onValueChange={(value) => handleSelectChange('reference', value)} disabled={isReadOnly}>
                 <SelectTrigger id="reference">
                     <SelectValue placeholder="Select Reference..."/>
                 </SelectTrigger>
@@ -502,11 +504,11 @@ export default function LeadUploadForm() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="headcount">Company headcount</Label>
-            <Input id="headcount" value={formData.headcount} onChange={handleInputChange} />
+            <Input id="headcount" value={formData.headcount} onChange={handleInputChange} readOnly={isReadOnly} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="sector">Sector</Label>
-            <Select value={formData.sector} onValueChange={(value) => handleSelectChange('sector', value)}>
+            <Select value={formData.sector} onValueChange={(value) => handleSelectChange('sector', value)} disabled={isReadOnly}>
                 <SelectTrigger id="sector">
                     <SelectValue placeholder="Select Sector..."/>
                 </SelectTrigger>
@@ -522,7 +524,7 @@ export default function LeadUploadForm() {
           
           <div className="space-y-2">
             <Label htmlFor="selectedModule">Modules</Label>
-            <Select value={formData.selectedModule} onValueChange={(value) => handleSelectChange('selectedModule', value)}>
+            <Select value={formData.selectedModule} onValueChange={(value) => handleSelectChange('selectedModule', value)} disabled={isReadOnly}>
               <SelectTrigger id="selectedModule">
                 <SelectValue placeholder="Select Modules..." />
               </SelectTrigger>
@@ -539,12 +541,12 @@ export default function LeadUploadForm() {
           
            <div className="space-y-2">
               <Label htmlFor="manager">Manager</Label>
-              <Input id="manager" value={formData.manager || ''} onChange={handleInputChange} />
+              <Input id="manager" value={formData.manager || ''} onChange={handleInputChange} readOnly={isReadOnly} />
           </div>
           
           <div className="space-y-2 md:col-span-2">
             <Label htmlFor="initialRemarks">Initial Remarks</Label>
-            <Textarea id="initialRemarks" value={formData.initialRemarks || ''} onChange={handleInputChange} />
+            <Textarea id="initialRemarks" value={formData.initialRemarks || ''} onChange={handleInputChange} readOnly={isReadOnly} />
           </div>
 
         </div>
@@ -556,7 +558,7 @@ export default function LeadUploadForm() {
               id="toExecutive"
               checked={formData.toExecutive}
               onCheckedChange={handleCheckboxChange}
-              disabled={isExecutiveContext || isImpersonating}
+              disabled={isExecutiveContext || isImpersonating || isReadOnly}
             />
             <Label htmlFor="toExecutive">To Executive</Label>
           </div>
@@ -572,6 +574,7 @@ export default function LeadUploadForm() {
                   <Select
                     value={toExecutiveSelection}
                     onValueChange={setToExecutiveSelection}
+                    disabled={isReadOnly}
                   >
                     <SelectTrigger className="w-[200px]">
                       <SelectValue placeholder="As per mapping" />
@@ -589,8 +592,8 @@ export default function LeadUploadForm() {
         </div>
         
         <div className="flex gap-2">
-          <Button onClick={handleSaveLead}>SAVE</Button>
-          <Button variant="outline" onClick={resetForm}>RESET</Button>
+          <Button onClick={handleSaveLead} disabled={isReadOnly}>SAVE</Button>
+          <Button variant="outline" onClick={resetForm} disabled={isReadOnly}>RESET</Button>
         </div>
       </div>
 
@@ -603,7 +606,8 @@ export default function LeadUploadForm() {
             <div
               className={cn(
                 "flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-12 text-center transition-colors",
-                isDragging ? "border-primary bg-primary/10" : "border-input"
+                isDragging && !isReadOnly ? "border-primary bg-primary/10" : "border-input",
+                isReadOnly && "bg-muted/50 cursor-not-allowed"
               )}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
@@ -613,7 +617,7 @@ export default function LeadUploadForm() {
                  <p className="mt-4 font-semibold">Drag & Drop Excel/CSV file</p>
                  <p className="text-sm text-muted-foreground mt-1">or</p>
                  <div className="flex items-center gap-4 mt-4">
-                    <Button variant="outline" onClick={handleBrowseFileClick}>Browse File</Button>
+                    <Button variant="outline" onClick={handleBrowseFileClick} disabled={isReadOnly}>Browse File</Button>
                     <Button variant="ghost" onClick={handleDownloadSample}>
                         <Download className="mr-2 h-4 w-4" />
                         Download Sample
@@ -626,6 +630,7 @@ export default function LeadUploadForm() {
               className="hidden"
               onChange={handleFileChange}
               accept=".xlsx, .xls, .csv"
+              disabled={isReadOnly}
             />
         </CardContent>
       </Card>
