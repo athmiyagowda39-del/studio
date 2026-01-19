@@ -107,7 +107,6 @@ export default function LeadsUpdatePage() {
   const [givenBy, setGivenBy] = useState('all');
   const [otherGivenByInput, setOtherGivenByInput] = useState('');
 
-  const [selectedStatus, setSelectedStatus] = useState('all');
   const [selectedSubStatus, setSelectedSubStatus] = useState('all');
   const [otherSubStatusInput, setOtherSubStatusInput] = useState('');
 
@@ -151,7 +150,7 @@ export default function LeadsUpdatePage() {
 
       // Listen for changes in local storage from other tabs/windows
       const handleStorageChange = (e: StorageEvent) => {
-        if (e.key === 'allLeads') {
+        if (e.key === 'allLeads' || e.key === null) {
             loadLeads();
         }
       };
@@ -172,7 +171,7 @@ export default function LeadsUpdatePage() {
     }
     setAllLeads(leadsToUpdate);
     // Re-apply filters and tabs after update
-    handleFilterAndTab(leadsToUpdate, activeTab, true);
+    handleFilterAndTab(leadsToUpdate, activeTab, activeTab === 'search-result');
   };
   
   const handleFilterAndTab = (
@@ -205,10 +204,6 @@ export default function LeadsUpdatePage() {
     
     if (givenBy !== 'all' && givenBy !== 'Other') {
         tempLeads = tempLeads.filter(lead => lead.givenBy === givenBy);
-    }
-
-    if (selectedStatus !== 'all') {
-      tempLeads = tempLeads.filter(lead => lead.status === selectedStatus);
     }
 
     if (selectedSubStatus !== 'all' && selectedSubStatus !== 'Other') {
@@ -311,7 +306,6 @@ export default function LeadsUpdatePage() {
     selectedLeadSource, 
     selectedProduct, 
     givenBy,
-    selectedStatus,
     selectedSubStatus,
     considerStatus,
     followUpStatus,
@@ -337,7 +331,6 @@ export default function LeadsUpdatePage() {
     setSelectedProduct('all');
     setGivenBy('all');
     setOtherGivenByInput('');
-    setSelectedStatus('all');
     setOtherSubStatusInput('');
     
     setConsiderStatus(false);
@@ -652,27 +645,6 @@ export default function LeadsUpdatePage() {
 
                   {/* ROW 5 */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                     <div className="space-y-1">
-                        <Label>Status of Lead</Label>
-                        <Select value={selectedStatus} onValueChange={(value) => setSelectedStatus(value)}>
-                            <SelectTrigger>
-                                <SelectValue placeholder="--All--" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <ScrollArea className="h-48">
-                                    <SelectItem value="all">All</SelectItem>
-                                    {leadStatusOptions.map(status => (
-                                    <SelectItem key={status} value={status}>
-                                        {status}
-                                    </SelectItem>
-                                    ))}
-                                    {!leadStatusOptions.includes(selectedStatus) && selectedStatus !== 'all' && (
-                                        <SelectItem value={selectedStatus}>{selectedStatus}</SelectItem>
-                                    )}
-                                </ScrollArea>
-                            </SelectContent>
-                        </Select>
-                    </div>
                     <div className="space-y-1">
                       <Label>Sub Status of Lead</Label>
                       <Select value={selectedSubStatus} onValueChange={(value) => setSelectedSubStatus(value)}>
