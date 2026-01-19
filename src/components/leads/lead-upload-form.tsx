@@ -16,9 +16,15 @@ import {
   UploadCloud,
   Info,
   ChevronsUpDown,
-  ChevronDown,
+  Check,
 } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '../ui/card';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardDescription,
+} from '../ui/card';
 import { useState, useRef, useEffect } from 'react';
 import * as XLSX from 'xlsx';
 import {
@@ -38,12 +44,15 @@ import { useAuth } from '@/context/auth-context';
 import { cn } from '@/lib/utils';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '../ui/collapsible';
 import { ScrollArea } from '../ui/scroll-area';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
 
 type ParsedData = (string | number)[][];
 
@@ -83,11 +92,45 @@ export type LeadFormData = {
   initialRemarks?: string;
 };
 
-const sectors = ['All', 'IT', 'Finance', 'Healthcare', 'Manufacturing', 'Education', 'Retail', 'Hospitality', 'Telecommunication', 'Construction', 'Real Estate', 'Media & Entertainment', 'Government', 'Non-profit', 'Other'];
+const sectors = [
+  'All',
+  'IT',
+  'Finance',
+  'Healthcare',
+  'Manufacturing',
+  'Education',
+  'Retail',
+  'Hospitality',
+  'Telecommunication',
+  'Construction',
+  'Real Estate',
+  'Media & Entertainment',
+  'Government',
+  'Non-profit',
+  'Other',
+];
 const references = [
-    "All", "Website", "Social Media", "Google Ads", "Facebook Ads", "LinkedIn", "Referral", "Cold Call",
-    "Telecalling", "Walk-in", "Email Campaign", "WhatsApp Campaign", "IndiaMART", "Channel Partner",
-    "Existing Customer", "Upselling", "Cross-selling", "Events / Trade Shows", "Demo Request", "Trial Signup", "Other"
+  'All',
+  'Website',
+  'Social Media',
+  'Google Ads',
+  'Facebook Ads',
+  'LinkedIn',
+  'Referral',
+  'Cold Call',
+  'Telecalling',
+  'Walk-in',
+  'Email Campaign',
+  'WhatsApp Campaign',
+  'IndiaMART',
+  'Channel Partner',
+  'Existing Customer',
+  'Upselling',
+  'Cross-selling',
+  'Events / Trade Shows',
+  'Demo Request',
+  'Trial Signup',
+  'Other',
 ];
 
 const mainProducts = [
@@ -115,26 +158,34 @@ const otherProducts = [
   'Employee Self Service',
 ];
 
+const allProducts = [
+  'All',
+  ...mainProducts,
+  'Leave Management',
+  'Attendance Management',
+  ...attendanceProducts,
+  ...otherProducts,
+];
 
 const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate'> = {
-    pincode: '',
-    state: '',
-    district: '',
-    address: '',
-    contactPerson: '',
-    contactNumber: '',
-    reference: '',
-    email: '',
-    company: '',
-    headcount: '',
-    sector: '',
-    selectedModule: '',
-    toExecutive: false,
-    initialRemarks: '',
-    dealer: '',
-    executive: '',
-    manager: '',
-    givenBy: '',
+  pincode: '',
+  state: '',
+  district: '',
+  address: '',
+  contactPerson: '',
+  contactNumber: '',
+  reference: '',
+  email: '',
+  company: '',
+  headcount: '',
+  sector: '',
+  selectedModule: '',
+  toExecutive: false,
+  initialRemarks: '',
+  dealer: '',
+  executive: '',
+  manager: '',
+  givenBy: '',
 };
 
 const saveLeadsToLocalStorage = (leads: LeadFormData[]) => {
@@ -162,45 +213,46 @@ const getNextLeadId = (): string => {
     return !isNaN(leadIdNum) && leadIdNum > max ? leadIdNum : max;
   }, 99999);
   return (maxId + 1).toString();
-}
-
+};
 
 export default function LeadUploadForm() {
-  const [formData, setFormData] = useState<Omit<LeadFormData, 'leadId' | 'creationDate'>>(initialFormState);
+  const [formData, setFormData] = useState<
+    Omit<LeadFormData, 'leadId' | 'creationDate'>
+  >(initialFormState);
   const [parsedLeads, setParsedLeads] = useState<Partial<LeadFormData>[]>([]);
   const [showPreview, setShowPreview] = useState(false);
   const [toExecutiveSelection, setToExecutiveSelection] = useState('');
   const [otherReferenceInput, setOtherReferenceInput] = useState('');
   const [otherSectorInput, setOtherSectorInput] = useState('');
-  
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const { toast } = useToast();
-  
+
   const { users } = useUsers();
   const { user, isReadOnly, isImpersonating } = useAuth();
   const [executives, setExecutives] = useState<string[]>([]);
   const [productPopoverOpen, setProductPopoverOpen] = useState(false);
-  
+
   const isExecutiveContext = user?.role === 'Executive';
 
   useEffect(() => {
     const executiveUsers = users
-      .filter(user => user.role === 'Executive')
-      .map(user => user.username);
+      .filter((user) => user.role === 'Executive')
+      .map((user) => user.username);
     setExecutives(executiveUsers);
   }, [users]);
-  
+
   useEffect(() => {
     if (isImpersonating && user?.role === 'Executive') {
-      setFormData(prev => ({ ...prev, toExecutive: true }));
+      setFormData((prev) => ({ ...prev, toExecutive: true }));
       setToExecutiveSelection(user.username);
     } else if (user?.role === 'Executive') {
-      setFormData(prev => ({ ...prev, toExecutive: true }));
+      setFormData((prev) => ({ ...prev, toExecutive: true }));
       setToExecutiveSelection(user.username);
     } else {
       // Reset when not in an executive context (e.g., admin logs in or stops impersonating)
-      setFormData(prev => ({ ...prev, toExecutive: false }));
+      setFormData((prev) => ({ ...prev, toExecutive: false }));
       setToExecutiveSelection('');
     }
   }, [user, isImpersonating]);
@@ -208,11 +260,11 @@ export default function LeadUploadForm() {
   useEffect(() => {
     if (formData.pincode.length === 6) {
       fetch(`https://api.postalpincode.in/pincode/${formData.pincode}`)
-        .then(response => response.json())
-        .then(data => {
+        .then((response) => response.json())
+        .then((data) => {
           if (data && data[0].Status === 'Success') {
             const postOffice = data[0].PostOffice[0];
-            setFormData(prev => ({
+            setFormData((prev) => ({
               ...prev,
               state: postOffice.State,
               district: postOffice.District,
@@ -222,7 +274,7 @@ export default function LeadUploadForm() {
               description: `State and District have been auto-filled for pincode ${formData.pincode}.`,
             });
           } else {
-             setFormData(prev => ({
+            setFormData((prev) => ({
               ...prev,
               state: '',
               district: '',
@@ -234,37 +286,34 @@ export default function LeadUploadForm() {
             });
           }
         })
-        .catch(error => {
-          console.error("Error fetching pincode details:", error);
+        .catch((error) => {
+          console.error('Error fetching pincode details:', error);
           toast({
-              variant: 'destructive',
-              title: 'API Error',
-              description: 'Could not fetch pincode details.',
-            });
+            variant: 'destructive',
+            title: 'API Error',
+            description: 'Could not fetch pincode details.',
+          });
         });
     }
   }, [formData.pincode, toast]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { id, value } = e.target;
-    setFormData(prev => ({ ...prev, [id]: value }));
+    setFormData((prev) => ({ ...prev, [id]: value }));
   };
 
   const handleSelectChange = (id: string, value: string) => {
-    setFormData(prev => ({...prev, [id]: value}));
-  }
-
-  const handleProductSelect = (product: string) => {
-    handleSelectChange('selectedModule', product);
-    setProductPopoverOpen(false);
+    setFormData((prev) => ({ ...prev, [id]: value }));
   };
 
   const handleCheckboxChange = (checked: boolean) => {
-    setFormData(prev => ({...prev, toExecutive: checked as boolean}));
-     if (!checked) {
+    setFormData((prev) => ({ ...prev, toExecutive: checked as boolean }));
+    if (!checked) {
       setToExecutiveSelection('');
     }
-  }
+  };
 
   const resetForm = () => {
     setFormData(initialFormState);
@@ -274,24 +323,40 @@ export default function LeadUploadForm() {
     handleCancelUpload();
   };
 
-  const validateLead = (lead: Omit<LeadFormData, 'leadId' | 'creationDate'>) => {
+  const validateLead = (
+    lead: Omit<LeadFormData, 'leadId' | 'creationDate'>
+  ) => {
     const requiredFields: (keyof typeof lead)[] = [
-      'pincode', 'company', 'contactPerson', 'address', 'state', 'district', 
-      'contactNumber', 'email', 'reference', 'headcount', 'sector', 
-      'selectedModule', 'manager'
+      'pincode',
+      'company',
+      'contactPerson',
+      'address',
+      'state',
+      'district',
+      'contactNumber',
+      'email',
+      'reference',
+      'headcount',
+      'sector',
+      'selectedModule',
+      'manager',
     ];
-    
+
     for (const field of requiredFields) {
-      if (!lead[field] || (field === 'reference' && lead[field] === 'Other') || (field === 'sector' && lead[field] === 'Other')) {
+      if (
+        !lead[field] ||
+        (field === 'reference' && lead[field] === 'Other') ||
+        (field === 'sector' && lead[field] === 'Other')
+      ) {
         let fieldName = field.replace(/([A-Z])/g, ' $1');
         fieldName = fieldName.charAt(0).toUpperCase() + fieldName.slice(1);
-        
+
         let message = `Please fill all required fields before saving. Missing or incomplete: ${fieldName}`;
-        if(field === 'reference' && lead[field] === 'Other') {
-            message = "Please specify a value for 'Other' reference.";
+        if (field === 'reference' && lead[field] === 'Other') {
+          message = "Please specify a value for 'Other' reference.";
         }
-        if(field === 'sector' && lead[field] === 'Other') {
-            message = "Please specify a value for 'Other' sector.";
+        if (field === 'sector' && lead[field] === 'Other') {
+          message = "Please specify a value for 'Other' sector.";
         }
 
         toast({
@@ -302,24 +367,25 @@ export default function LeadUploadForm() {
         return false;
       }
     }
-    
+
     if (!lead.toExecutive || !toExecutiveSelection) {
-       toast({
-          variant: 'destructive',
-          title: 'Executive Not Assigned',
-          description: 'You must check "To Executive" and select an executive before saving.',
-        });
-        return false;
+      toast({
+        variant: 'destructive',
+        title: 'Executive Not Assigned',
+        description:
+          'You must check "To Executive" and select an executive before saving.',
+      });
+      return false;
     }
 
     return true;
-  }
+  };
 
   const handleSaveLead = () => {
     if (!validateLead(formData)) {
       return;
     }
-    
+
     const allLeads = getLeadsFromLocalStorage();
     const newLead: LeadFormData = {
       ...formData,
@@ -334,7 +400,7 @@ export default function LeadUploadForm() {
     saveLeadsToLocalStorage(updatedLeads);
 
     toast({
-      title: "Lead saved successfully",
+      title: 'Lead saved successfully',
       description: `Lead for ${newLead.company} has been saved.`,
     });
     resetForm();
@@ -360,126 +426,143 @@ export default function LeadUploadForm() {
         const workbook = XLSX.read(data, { type: 'binary' });
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
-        const json: ParsedData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-        
+        const json: ParsedData = XLSX.utils.sheet_to_json(worksheet, {
+          header: 1,
+        });
+
         if (json.length < 2) {
-          toast({ variant: "destructive", title: "Empty File", description: "The file has no data rows to import." });
+          toast({
+            variant: 'destructive',
+            title: 'Empty File',
+            description: 'The file has no data rows to import.',
+          });
           return;
         }
 
-        const headers: string[] = (json[0] as string[]).map(h => String(h).toLowerCase().replace(/\s+/g, ''));
+        const headers: string[] = (json[0] as string[]).map((h) =>
+          String(h).toLowerCase().replace(/\s+/g, '')
+        );
         const keyMap: { [key: string]: keyof Partial<LeadFormData> } = {
-            'pincode': 'pincode',
-            'company': 'company',
-            'contactperson': 'contactPerson',
-            'address': 'address',
-            'state': 'state',
-            'district': 'district',
-            'contactnumber': 'contactNumber',
-            'email': 'email',
-            'reference': 'reference',
-            'headcount': 'headcount',
-            'sector': 'sector',
-            'selectedmodule': 'selectedModule',
-            'manager': 'manager',
-            'executive': 'executive',
+          pincode: 'pincode',
+          company: 'company',
+          contactperson: 'contactPerson',
+          address: 'address',
+          state: 'state',
+          district: 'district',
+          contactnumber: 'contactNumber',
+          email: 'email',
+          reference: 'reference',
+          headcount: 'headcount',
+          sector: 'sector',
+          selectedmodule: 'selectedModule',
+          manager: 'manager',
+          executive: 'executive',
         };
 
-        const leadsData = json.slice(1).map(row => {
+        const leadsData = json
+          .slice(1)
+          .map((row) => {
             const leadObject: Partial<LeadFormData> = {};
             if (Array.isArray(row) && row.length > 0) {
               headers.forEach((header, index) => {
-                  const formKey = keyMap[header];
-                  if (formKey) {
-                      (leadObject as any)[formKey] = row[index];
-                  }
+                const formKey = keyMap[header];
+                if (formKey) {
+                  (leadObject as any)[formKey] = row[index];
+                }
               });
             }
             return leadObject;
-        }).filter(lead => Object.keys(lead).length > 0);
+          })
+          .filter((lead) => Object.keys(lead).length > 0);
 
         if (leadsData.length === 0) {
-          toast({ variant: "destructive", title: "No Data Found", description: "The file appears to be empty or formatted incorrectly." });
+          toast({
+            variant: 'destructive',
+            title: 'No Data Found',
+            description:
+              'The file appears to be empty or formatted incorrectly.',
+          });
           return;
         }
-        
+
         setParsedLeads(leadsData);
         setShowPreview(false);
 
         toast({
           title: `File Processed: ${leadsData.length} leads found.`,
-          description: "Review the data below and click 'Confirm Upload' to save.",
+          description:
+            "Review the data below and click 'Confirm Upload' to save.",
         });
-
       } catch (error) {
         console.error(error);
         toast({
-            variant: "destructive",
-            title: "Error parsing file",
-            description: "Could not read the file. Please ensure it's a valid Excel/CSV file with correct headers.",
+          variant: 'destructive',
+          title: 'Error parsing file',
+          description:
+            "Could not read the file. Please ensure it's a valid Excel/CSV file with correct headers.",
         });
       }
     };
     reader.readAsBinaryString(file);
-  }
+  };
 
   const handleConfirmUpload = () => {
     if (parsedLeads.length === 0) {
-        toast({
-            variant: "destructive",
-            title: "No Data",
-            description: "There is no data to upload."
-        });
-        return;
+      toast({
+        variant: 'destructive',
+        title: 'No Data',
+        description: 'There is no data to upload.',
+      });
+      return;
     }
 
     const allLeads = getLeadsFromLocalStorage();
     let nextId = parseInt(getNextLeadId(), 10);
 
-    const newLeads: LeadFormData[] = parsedLeads.map(parsedLead => {
-        const newLead: LeadFormData = {
-            pincode: parsedLead.pincode || '',
-            state: parsedLead.state || '',
-            district: parsedLead.district || '',
-            address: parsedLead.address || '',
-            contactPerson: parsedLead.contactPerson || '',
-            contactNumber: String(parsedLead.contactNumber || ''),
-            reference: parsedLead.reference || '',
-            email: parsedLead.email || '',
-            company: parsedLead.company || '',
-            headcount: String(parsedLead.headcount || ''),
-            sector: parsedLead.sector || '',
-            selectedModule: parsedLead.selectedModule || '',
-            manager: parsedLead.manager || '',
-            executive: parsedLead.executive || '',
-            toExecutive: !!parsedLead.executive,
-            // new fields
-            leadId: (nextId++).toString(),
-            creationDate: new Date().getTime(),
-            givenBy: user?.username || 'File Upload',
-            status: 'Not viewed',
-        };
-        return newLead;
+    const newLeads: LeadFormData[] = parsedLeads.map((parsedLead) => {
+      const newLead: LeadFormData = {
+        pincode: parsedLead.pincode || '',
+        state: parsedLead.state || '',
+        district: parsedLead.district || '',
+        address: parsedLead.address || '',
+        contactPerson: parsedLead.contactPerson || '',
+        contactNumber: String(parsedLead.contactNumber || ''),
+        reference: parsedLead.reference || '',
+        email: parsedLead.email || '',
+        company: parsedLead.company || '',
+        headcount: String(parsedLead.headcount || ''),
+        sector: parsedLead.sector || '',
+        selectedModule: parsedLead.selectedModule || '',
+        manager: parsedLead.manager || '',
+        executive: parsedLead.executive || '',
+        toExecutive: !!parsedLead.executive,
+        // new fields
+        leadId: (nextId++).toString(),
+        creationDate: new Date().getTime(),
+        givenBy: user?.username || 'File Upload',
+        status: 'Not viewed',
+      };
+      return newLead;
     });
 
     const updatedLeads = [...allLeads, ...newLeads];
     saveLeadsToLocalStorage(updatedLeads);
 
     toast({
-        title: "Upload Successful",
-        description: `${newLeads.length} leads have been successfully uploaded and saved.`
+      title: 'Upload Successful',
+      description: `${newLeads.length} leads have been successfully uploaded and saved.`,
     });
-    
-    handleCancelUpload(); // Reset UI
-};
 
-const handleCancelUpload = () => {
+    handleCancelUpload(); // Reset UI
+  };
+
+  const handleCancelUpload = () => {
     setParsedLeads([]);
     setShowPreview(false);
     if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+      fileInputRef.current.value = '';
     }
-};
+  };
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -506,36 +589,68 @@ const handleCancelUpload = () => {
     if (files && files.length > 0) {
       const file = files[0];
       const validExtensions = ['.xlsx', '.xls', '.csv'];
-      const fileExtension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+      const fileExtension = file.name
+        .substring(file.name.lastIndexOf('.'))
+        .toLowerCase();
 
       if (validExtensions.includes(fileExtension)) {
         processFileAndUpload(file);
       } else {
         toast({
-          variant: "destructive",
-          title: "Invalid File Type",
-          description: "Please upload a valid Excel or CSV file.",
+          variant: 'destructive',
+          title: 'Invalid File Type',
+          description: 'Please upload a valid Excel or CSV file.',
         });
       }
     }
   };
-  
+
   const handleDownloadSample = () => {
     const sampleData = [
-      ['pincode', 'company', 'contactPerson', 'address', 'state', 'district', 'contactNumber', 'email', 'reference', 'headcount', 'sector', 'selectedModule', 'manager', 'executive'],
-      ['560001', 'Sample Corp', 'John Doe', '123 Main St', 'Karnataka', 'Bengaluru', '9876543210', 'john.doe@example.com', 'Website', '150', 'IT', 'all-hrms', 'Jane Smith', 'Yathish G']
+      [
+        'pincode',
+        'company',
+        'contactPerson',
+        'address',
+        'state',
+        'district',
+        'contactNumber',
+        'email',
+        'reference',
+        'headcount',
+        'sector',
+        'selectedModule',
+        'manager',
+        'executive',
+      ],
+      [
+        '560001',
+        'Sample Corp',
+        'John Doe',
+        '123 Main St',
+        'Karnataka',
+        'Bengaluru',
+        '9876543210',
+        'john.doe@example.com',
+        'Website',
+        '150',
+        'IT',
+        'all-hrms',
+        'Jane Smith',
+        'Yathish G',
+      ],
     ];
     const worksheet = XLSX.utils.aoa_to_sheet(sampleData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Leads');
     XLSX.writeFile(workbook, 'SampleLeads.xlsx');
-  }
+  };
 
   const handleSetOtherReference = () => {
     if (otherReferenceInput.trim()) {
-        const newRef = otherReferenceInput.trim();
-        handleSelectChange('reference', newRef);
-        setOtherReferenceInput('');
+      const newRef = otherReferenceInput.trim();
+      handleSelectChange('reference', newRef);
+      setOtherReferenceInput('');
     }
   };
 
@@ -549,121 +664,191 @@ const handleCancelUpload = () => {
 
   return (
     <div className="space-y-6">
-       {isReadOnly && (
+      {isReadOnly && (
         <Alert>
           <Info className="h-4 w-4" />
           <AlertTitle>Read-Only Mode</AlertTitle>
           <AlertDescription>
-            You are viewing this page in read-only mode. No new leads can be created while impersonating a user.
+            You are viewing this page in read-only mode. No new leads can be
+            created while impersonating a user.
           </AlertDescription>
         </Alert>
       )}
       <div>
-        <p className="font-semibold mb-4 text-primary">Provide the new Lead detail</p>
+        <p className="font-semibold mb-4 text-primary">
+          Provide the new Lead detail
+        </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 mt-4">
           <div className="space-y-2 md:col-span-2">
             <Label htmlFor="pincode">Pin code</Label>
-            <Input id="pincode" value={formData.pincode} onChange={handleInputChange} maxLength={6} readOnly={isReadOnly} />
+            <Input
+              id="pincode"
+              value={formData.pincode}
+              onChange={handleInputChange}
+              maxLength={6}
+              readOnly={isReadOnly}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="company">Company</Label>
-            <Input id="company" value={formData.company} onChange={handleInputChange} readOnly={isReadOnly} />
+            <Input
+              id="company"
+              value={formData.company}
+              onChange={handleInputChange}
+              readOnly={isReadOnly}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="contactPerson">Contact person</Label>
-            <Input id="contactPerson" value={formData.contactPerson} onChange={handleInputChange} readOnly={isReadOnly} />
+            <Input
+              id="contactPerson"
+              value={formData.contactPerson}
+              onChange={handleInputChange}
+              readOnly={isReadOnly}
+            />
           </div>
-           <div className="space-y-2 md:col-span-2">
+          <div className="space-y-2 md:col-span-2">
             <Label htmlFor="address">Address</Label>
-            <Input id="address" value={formData.address} onChange={handleInputChange} readOnly={isReadOnly} />
+            <Input
+              id="address"
+              value={formData.address}
+              onChange={handleInputChange}
+              readOnly={isReadOnly}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="state">State</Label>
-            <Input id="state" value={formData.state} onChange={(e) => handleSelectChange('state', e.target.value)} readOnly={isReadOnly} />
+            <Input
+              id="state"
+              value={formData.state}
+              onChange={(e) => handleSelectChange('state', e.target.value)}
+              readOnly={isReadOnly}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="district">District</Label>
-            <Input id="district" value={formData.district} onChange={(e) => handleSelectChange('district', e.target.value)} readOnly={isReadOnly} />
+            <Input
+              id="district"
+              value={formData.district}
+              onChange={(e) => handleSelectChange('district', e.target.value)}
+              readOnly={isReadOnly}
+            />
           </div>
           <div className="space-y-2">
-             <Label htmlFor="contactNumber">Contact Number</Label>
-            <Input id="contactNumber" value={formData.contactNumber} onChange={handleInputChange} readOnly={isReadOnly} />
+            <Label htmlFor="contactNumber">Contact Number</Label>
+            <Input
+              id="contactNumber"
+              value={formData.contactNumber}
+              onChange={handleInputChange}
+              readOnly={isReadOnly}
+            />
           </div>
           <div className="space-y-2">
-             <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" value={formData.email} onChange={handleInputChange} readOnly={isReadOnly} />
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              readOnly={isReadOnly}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="reference">Reference</Label>
-             <Select value={formData.reference} onValueChange={(value) => handleSelectChange('reference', value)} disabled={isReadOnly}>
-                <SelectTrigger id="reference">
-                  {formData.reference && !references.includes(formData.reference) ? (
-                    <span className="truncate">{formData.reference}</span>
-                  ) : (
-                    <SelectValue placeholder="Select Reference..." />
-                  )}
-                </SelectTrigger>
-                <SelectContent>
-                    {references.map((ref) => (
-                        <SelectItem key={ref} value={ref}>
-                            {ref}
-                        </SelectItem>
-                    ))}
-                </SelectContent>
+            <Select
+              value={formData.reference}
+              onValueChange={(value) => handleSelectChange('reference', value)}
+              disabled={isReadOnly}
+            >
+              <SelectTrigger id="reference">
+                {formData.reference && !references.includes(formData.reference) ? (
+                  <span className="truncate">{formData.reference}</span>
+                ) : (
+                  <SelectValue placeholder="Select Reference..." />
+                )}
+              </SelectTrigger>
+              <SelectContent>
+                {references.map((ref) => (
+                  <SelectItem key={ref} value={ref}>
+                    {ref}
+                  </SelectItem>
+                ))}
+              </SelectContent>
             </Select>
             {formData.reference === 'Other' && (
               <div className="mt-2 flex items-center gap-2">
-                  <Input
-                      placeholder="Specify other reference"
-                      value={otherReferenceInput}
-                      onChange={(e) => setOtherReferenceInput(e.target.value)}
-                      onKeyDown={(e) => {
-                          if (e.key === 'Enter') handleSetOtherReference();
-                      }}
-                      disabled={isReadOnly}
-                  />
-                  <Button size="sm" onClick={handleSetOtherReference} disabled={isReadOnly}>OK</Button>
+                <Input
+                  placeholder="Specify other reference"
+                  value={otherReferenceInput}
+                  onChange={(e) => setOtherReferenceInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleSetOtherReference();
+                  }}
+                  disabled={isReadOnly}
+                />
+                <Button
+                  size="sm"
+                  onClick={handleSetOtherReference}
+                  disabled={isReadOnly}
+                >
+                  OK
+                </Button>
               </div>
             )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="headcount">Company headcount</Label>
-            <Input id="headcount" value={formData.headcount} onChange={handleInputChange} readOnly={isReadOnly} />
+            <Input
+              id="headcount"
+              value={formData.headcount}
+              onChange={handleInputChange}
+              readOnly={isReadOnly}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="sector">Sector</Label>
-            <Select value={formData.sector} onValueChange={(value) => handleSelectChange('sector', value)} disabled={isReadOnly}>
-                <SelectTrigger id="sector">
-                    {formData.sector && !sectors.includes(formData.sector) ? (
-                        <span className="truncate">{formData.sector}</span>
-                    ) : (
-                        <SelectValue placeholder="Select Sector..."/>
-                    )}
-                </SelectTrigger>
-                <SelectContent>
-                    {sectors.map((sector) => (
-                        <SelectItem key={sector} value={sector}>
-                            {sector}
-                        </SelectItem>
-                    ))}
-                </SelectContent>
+            <Select
+              value={formData.sector}
+              onValueChange={(value) => handleSelectChange('sector', value)}
+              disabled={isReadOnly}
+            >
+              <SelectTrigger id="sector">
+                {formData.sector && !sectors.includes(formData.sector) ? (
+                  <span className="truncate">{formData.sector}</span>
+                ) : (
+                  <SelectValue placeholder="Select Sector..." />
+                )}
+              </SelectTrigger>
+              <SelectContent>
+                {sectors.map((sector) => (
+                  <SelectItem key={sector} value={sector}>
+                    {sector}
+                  </SelectItem>
+                ))}
+              </SelectContent>
             </Select>
             {formData.sector === 'Other' && (
               <div className="mt-2 flex items-center gap-2">
-                  <Input
-                      placeholder="Specify other sector"
-                      value={otherSectorInput}
-                      onChange={(e) => setOtherSectorInput(e.target.value)}
-                      onKeyDown={(e) => {
-                          if (e.key === 'Enter') handleSetOtherSector();
-                      }}
-                      disabled={isReadOnly}
-                  />
-                  <Button size="sm" onClick={handleSetOtherSector} disabled={isReadOnly}>OK</Button>
+                <Input
+                  placeholder="Specify other sector"
+                  value={otherSectorInput}
+                  onChange={(e) => setOtherSectorInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleSetOtherSector();
+                  }}
+                  disabled={isReadOnly}
+                />
+                <Button
+                  size="sm"
+                  onClick={handleSetOtherSector}
+                  disabled={isReadOnly}
+                >
+                  OK
+                </Button>
               </div>
             )}
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="selectedModule">Modules</Label>
             <Popover
@@ -674,117 +859,81 @@ const handleCancelUpload = () => {
                 <Button
                   variant="outline"
                   role="combobox"
+                  aria-expanded={productPopoverOpen}
                   className="w-full justify-between font-normal"
                   disabled={isReadOnly}
                 >
                   <span className="truncate">
-                    {formData.selectedModule === 'all'
-                      ? 'All'
-                      : formData.selectedModule || 'Select Module...'}
+                    {formData.selectedModule || 'Select Module...'}
                   </span>
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                <ScrollArea className="h-72">
-                  <div className="space-y-1 p-1">
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start"
-                      onClick={() => handleProductSelect('all')}
-                    >
-                      All
-                    </Button>
-                    {mainProducts.map((product) => (
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start"
-                        key={product}
-                        onClick={() => handleProductSelect(product)}
-                      >
-                        {product}
-                      </Button>
-                    ))}
-
-                    <Collapsible>
-                      <CollapsibleTrigger asChild>
-                        <button className="flex w-full items-center justify-between rounded-sm px-2 py-1.5 text-left text-sm font-bold hover:bg-accent [&[data-state=open]>svg]:rotate-180">
-                          <span>Leave Management</span>
-                          <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
-                        </button>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent className="space-y-1 pt-1 pl-4">
-                        <Button
-                          variant="ghost"
-                          className="w-full justify-start text-sm"
-                          key="Leave Management"
-                          onClick={() => handleProductSelect('Leave Management')}
-                        >
-                          Leave Management
-                        </Button>
-                        <Collapsible>
-                          <CollapsibleTrigger asChild>
-                            <button className="flex w-full items-center justify-between rounded-sm px-2 py-1.5 text-left text-sm font-bold hover:bg-accent [&[data-state=open]>svg]:rotate-180">
-                              <span>Attendance Management</span>
-                              <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
-                            </button>
-                          </CollapsibleTrigger>
-                          <CollapsibleContent className="space-y-1 pt-1 pl-4">
-                            <Button
-                              variant="ghost"
-                              className="w-full justify-start text-sm"
-                              key="Attendance Management"
-                              onClick={() => handleProductSelect("Attendance Management")}
-                            >
-                              Attendance Management
-                            </Button>
-                            {attendanceProducts.map((product) => (
-                              <Button
-                                variant="ghost"
-                                className="w-full justify-start text-xs"
-                                key={product}
-                                onClick={() => handleProductSelect(product)}
-                              >
-                                {product}
-                              </Button>
-                            ))}
-                          </CollapsibleContent>
-                        </Collapsible>
-                      </CollapsibleContent>
-                    </Collapsible>
-
-                    {otherProducts.map((product) => (
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start"
-                        key={product}
-                        onClick={() => handleProductSelect(product)}
-                      >
-                        {product}
-                      </Button>
-                    ))}
-                  </div>
-                </ScrollArea>
+                <Command>
+                  <CommandInput placeholder="Search module..." />
+                  <CommandList>
+                    <CommandEmpty>No module found.</CommandEmpty>
+                    <CommandGroup>
+                      <ScrollArea className="h-72">
+                        {allProducts.map((product) => (
+                          <CommandItem
+                            key={product}
+                            value={product}
+                            onSelect={(currentValue) => {
+                              handleSelectChange(
+                                'selectedModule',
+                                currentValue === formData.selectedModule
+                                  ? ''
+                                  : currentValue
+                              );
+                              setProductPopoverOpen(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                'mr-2 h-4 w-4',
+                                formData.selectedModule === product
+                                  ? 'opacity-100'
+                                  : 'opacity-0'
+                              )}
+                            />
+                            {product}
+                          </CommandItem>
+                        ))}
+                      </ScrollArea>
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
               </PopoverContent>
             </Popover>
           </div>
-          
-           <div className="space-y-2">
-              <Label htmlFor="manager">Manager</Label>
-              <Input id="manager" value={formData.manager || ''} onChange={handleInputChange} readOnly={isReadOnly} />
-          </div>
-          
-          <div className="space-y-2 md:col-span-2">
-            <Label htmlFor="initialRemarks">Initial Remarks</Label>
-            <Textarea id="initialRemarks" value={formData.initialRemarks || ''} onChange={handleInputChange} readOnly={isReadOnly} />
+
+          <div className="space-y-2">
+            <Label htmlFor="manager">Manager</Label>
+            <Input
+              id="manager"
+              value={formData.manager || ''}
+              onChange={handleInputChange}
+              readOnly={isReadOnly}
+            />
           </div>
 
+          <div className="space-y-2 md:col-span-2">
+            <Label htmlFor="initialRemarks">Initial Remarks</Label>
+            <Textarea
+              id="initialRemarks"
+              value={formData.initialRemarks || ''}
+              onChange={handleInputChange}
+              readOnly={isReadOnly}
+            />
+          </div>
         </div>
       </div>
       <div className="flex justify-between items-center gap-4 mt-6 pt-6 border-t">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <Checkbox 
+            <Checkbox
               id="toExecutive"
               checked={formData.toExecutive}
               onCheckedChange={handleCheckboxChange}
@@ -793,129 +942,145 @@ const handleCancelUpload = () => {
             <Label htmlFor="toExecutive">To Executive</Label>
           </div>
           {formData.toExecutive && (
-              <div className="w-full md:w-auto">
-                {isExecutiveContext || isImpersonating ? (
-                  <Input
-                    value={toExecutiveSelection}
-                    readOnly
-                    className="w-[200px] bg-muted"
-                  />
-                ) : (
-                  <Select
-                    value={toExecutiveSelection}
-                    onValueChange={setToExecutiveSelection}
-                    disabled={isReadOnly}
-                  >
-                    <SelectTrigger className="w-[200px]">
-                      <SelectValue placeholder="As per mapping" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All</SelectItem>
-                      {executives.map((name) => (
-                        <SelectItem key={name} value={name}>{name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              </div>
+            <div className="w-full md:w-auto">
+              {isExecutiveContext || isImpersonating ? (
+                <Input
+                  value={toExecutiveSelection}
+                  readOnly
+                  className="w-[200px] bg-muted"
+                />
+              ) : (
+                <Select
+                  value={toExecutiveSelection}
+                  onValueChange={setToExecutiveSelection}
+                  disabled={isReadOnly}
+                >
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="As per mapping" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
+                    {executives.map((name) => (
+                      <SelectItem key={name} value={name}>
+                        {name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
           )}
         </div>
-        
+
         <div className="flex gap-2">
-          <Button onClick={handleSaveLead} disabled={isReadOnly}>SAVE</Button>
-          <Button variant="outline" onClick={resetForm} disabled={isReadOnly}>RESET</Button>
+          <Button onClick={handleSaveLead} disabled={isReadOnly}>
+            SAVE
+          </Button>
+          <Button variant="outline" onClick={resetForm} disabled={isReadOnly}>
+            RESET
+          </Button>
         </div>
       </div>
 
-
       <Card className="mt-8">
         <CardHeader>
-            <CardTitle className="text-lg font-medium">Or upload leads from a file</CardTitle>
+          <CardTitle className="text-lg font-medium">
+            Or upload leads from a file
+          </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
-            <div
-              className={cn(
-                "flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-12 text-center transition-colors",
-                isDragging && !isReadOnly ? "border-primary bg-primary/10" : "border-input",
-                isReadOnly && "bg-muted/50 cursor-not-allowed"
-              )}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-            >
-                 <UploadCloud className="mx-auto h-12 w-12 text-muted-foreground" />
-                 <p className="mt-4 font-semibold">Drag & Drop Excel/CSV file</p>
-                 <p className="text-sm text-muted-foreground mt-1">or</p>
-                 <div className="flex items-center gap-4 mt-4">
-                    <Button variant="outline" onClick={handleBrowseFileClick} disabled={isReadOnly}>Browse File</Button>
-                    <Button variant="ghost" onClick={handleDownloadSample}>
-                        <Download className="mr-2 h-4 w-4" />
-                        Download Sample
-                    </Button>
-                 </div>
-            </div>
-            <input
-              type="file"
-              ref={fileInputRef}
-              className="hidden"
-              onChange={handleFileChange}
-              accept=".xlsx, .xls, .csv"
-              disabled={isReadOnly}
-            />
-            {parsedLeads.length > 0 && (
-              <div className="mt-6 flex items-center gap-4">
-                <Button
-                  variant="secondary"
-                  onClick={() => setShowPreview(!showPreview)}
-                >
-                  {showPreview ? 'Hide Preview' : 'Preview data'}
-                </Button>
-                <Button onClick={handleConfirmUpload}>Confirm Upload</Button>
-                <Button variant="destructive" onClick={handleCancelUpload}>
-                  Cancel
-                </Button>
-              </div>
+          <div
+            className={cn(
+              'flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-12 text-center transition-colors',
+              isDragging && !isReadOnly
+                ? 'border-primary bg-primary/10'
+                : 'border-input',
+              isReadOnly && 'bg-muted/50 cursor-not-allowed'
             )}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
+            <UploadCloud className="mx-auto h-12 w-12 text-muted-foreground" />
+            <p className="mt-4 font-semibold">Drag & Drop Excel/CSV file</p>
+            <p className="text-sm text-muted-foreground mt-1">or</p>
+            <div className="flex items-center gap-4 mt-4">
+              <Button
+                variant="outline"
+                onClick={handleBrowseFileClick}
+                disabled={isReadOnly}
+              >
+                Browse File
+              </Button>
+              <Button variant="ghost" onClick={handleDownloadSample}>
+                <Download className="mr-2 h-4 w-4" />
+                Download Sample
+              </Button>
+            </div>
+          </div>
+          <input
+            type="file"
+            ref={fileInputRef}
+            className="hidden"
+            onChange={handleFileChange}
+            accept=".xlsx, .xls, .csv"
+            disabled={isReadOnly}
+          />
+          {parsedLeads.length > 0 && (
+            <div className="mt-6 flex items-center gap-4">
+              <Button
+                variant="secondary"
+                onClick={() => setShowPreview(!showPreview)}
+              >
+                {showPreview ? 'Hide Preview' : 'Preview data'}
+              </Button>
+              <Button onClick={handleConfirmUpload}>Confirm Upload</Button>
+              <Button variant="destructive" onClick={handleCancelUpload}>
+                Cancel
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
 
       {showPreview && parsedLeads.length > 0 && (
-          <Card className="mt-8">
-              <CardHeader>
-                  <CardTitle>Preview Data</CardTitle>
-                  <CardDescription>
-                      Review the leads to be uploaded from the file. A total of {parsedLeads.length} leads will be added.
-                  </CardDescription>
-              </CardHeader>
-              <CardContent>
-                  <ScrollArea className="h-72 w-full rounded-md border">
-                      <Table>
-                          <TableHeader>
-                              <TableRow>
-                                  <TableHead>#</TableHead>
-                                  <TableHead>Company</TableHead>
-                                  <TableHead>Contact Person</TableHead>
-                                  <TableHead>Contact Number</TableHead>
-                                  <TableHead>Email</TableHead>
-                                  <TableHead>Executive</TableHead>
-                              </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                              {parsedLeads.map((lead, index) => (
-                                  <TableRow key={index}>
-                                      <TableCell>{index + 1}</TableCell>
-                                      <TableCell>{lead.company}</TableCell>
-                                      <TableCell>{lead.contactPerson}</TableCell>
-                                      <TableCell>{String(lead.contactNumber)}</TableCell>
-                                      <TableCell>{lead.email}</TableCell>
-                                      <TableCell>{lead.executive}</TableCell>
-                                  </TableRow>
-                              ))}
-                          </TableBody>
-                      </Table>
-                  </ScrollArea>
-              </CardContent>
-          </Card>
+        <Card className="mt-8">
+          <CardHeader>
+            <CardTitle>Preview Data</CardTitle>
+            <CardDescription>
+              Review the leads to be uploaded from the file. A total of{' '}
+              {parsedLeads.length} leads will be added.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ScrollArea className="h-72 w-full rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>#</TableHead>
+                    <TableHead>Company</TableHead>
+                    <TableHead>Contact Person</TableHead>
+                    <TableHead>Contact Number</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Executive</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {parsedLeads.map((lead, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{index + 1}</TableCell>
+                      <TableCell>{lead.company}</TableCell>
+                      <TableCell>{lead.contactPerson}</TableCell>
+                      <TableCell>{String(lead.contactNumber)}</TableCell>
+                      <TableCell>{lead.email}</TableCell>
+                      <TableCell>{lead.executive}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </ScrollArea>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
