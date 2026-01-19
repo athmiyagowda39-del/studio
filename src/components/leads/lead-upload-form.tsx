@@ -169,6 +169,7 @@ export default function LeadUploadForm() {
   const [formData, setFormData] = useState<Omit<LeadFormData, 'leadId' | 'creationDate'>>(initialFormState);
   const [toExecutiveSelection, setToExecutiveSelection] = useState('');
   const [otherReferenceInput, setOtherReferenceInput] = useState('');
+  const [otherSectorInput, setOtherSectorInput] = useState('');
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -279,13 +280,16 @@ export default function LeadUploadForm() {
     ];
     
     for (const field of requiredFields) {
-      if (!lead[field] || (field === 'reference' && lead[field] === 'Other')) {
+      if (!lead[field] || (field === 'reference' && lead[field] === 'Other') || (field === 'sector' && lead[field] === 'Other')) {
         let fieldName = field.replace(/([A-Z])/g, ' $1');
         fieldName = fieldName.charAt(0).toUpperCase() + fieldName.slice(1);
         
         let message = `Please fill all required fields before saving. Missing or incomplete: ${fieldName}`;
         if(field === 'reference' && lead[field] === 'Other') {
             message = "Please specify a value for 'Other' reference.";
+        }
+        if(field === 'sector' && lead[field] === 'Other') {
+            message = "Please specify a value for 'Other' sector.";
         }
 
         toast({
@@ -502,6 +506,14 @@ export default function LeadUploadForm() {
     }
   };
 
+  const handleSetOtherSector = () => {
+    if (otherSectorInput.trim()) {
+      const newSector = otherSectorInput.trim();
+      handleSelectChange('sector', newSector);
+      setOtherSectorInput('');
+    }
+  };
+
   return (
     <div className="space-y-6">
        {isReadOnly && (
@@ -589,16 +601,34 @@ export default function LeadUploadForm() {
             <Label htmlFor="sector">Sector</Label>
             <Select value={formData.sector} onValueChange={(value) => handleSelectChange('sector', value)} disabled={isReadOnly}>
                 <SelectTrigger id="sector">
-                    <SelectValue placeholder="Select Sector..."/>
+                    {formData.sector && !sectors.includes(formData.sector) ? (
+                        <span className="truncate">{formData.sector}</span>
+                    ) : (
+                        <SelectValue placeholder="Select Sector..."/>
+                    )}
                 </SelectTrigger>
                 <SelectContent>
                     {sectors.map((sector) => (
-                        <SelectItem key={sector} value={sector.toLowerCase()}>
+                        <SelectItem key={sector} value={sector}>
                             {sector}
                         </SelectItem>
                     ))}
                 </SelectContent>
             </Select>
+            {formData.sector === 'Other' && (
+              <div className="mt-2 flex items-center gap-2">
+                  <Input
+                      placeholder="Specify other sector"
+                      value={otherSectorInput}
+                      onChange={(e) => setOtherSectorInput(e.target.value)}
+                      onKeyDown={(e) => {
+                          if (e.key === 'Enter') handleSetOtherSector();
+                      }}
+                      disabled={isReadOnly}
+                  />
+                  <Button size="sm" onClick={handleSetOtherSector} disabled={isReadOnly}>OK</Button>
+              </div>
+            )}
           </div>
           
           <div className="space-y-2">
