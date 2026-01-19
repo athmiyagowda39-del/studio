@@ -40,12 +40,11 @@ import { ChevronsUpDown, ChevronDown } from 'lucide-react';
 
 
 /* ---------------- NEW PRODUCT OPTIONS ---------------- */
-const mainProductsBeforeAttendance = [
+const mainProducts = [
   'Manpower Resource Planning',
   'Recruitment and Requisition Management',
   'Onboarding',
   'Letter Generation',
-  'Leave Management',
 ];
 const attendanceProducts = [
   'Desktop Attendance Marking Only',
@@ -54,7 +53,7 @@ const attendanceProducts = [
   'Geo Fencing',
   'Geo Tracking',
 ];
-const mainProductsAfterAttendance = [
+const otherProducts = [
   'Shift Roaster Management',
   'Timesheet Management',
   'Performance Management',
@@ -592,7 +591,7 @@ export default function LeadsUpdatePage() {
                               >
                                 All
                               </Button>
-                              {mainProductsBeforeAttendance.map((product) => (
+                              {mainProducts.map((product) => (
                                 <Button
                                   variant="ghost"
                                   className="w-full justify-start"
@@ -606,27 +605,45 @@ export default function LeadsUpdatePage() {
                               <Collapsible>
                                 <CollapsibleTrigger asChild>
                                   <button className="flex w-full items-center justify-between rounded-sm px-2 py-1.5 text-left text-sm font-normal hover:bg-accent [&[data-state=open]>svg]:rotate-180">
-                                    <span>Attendance Management</span>
+                                    <span>Leave Management</span>
                                     <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
                                   </button>
                                 </CollapsibleTrigger>
                                 <CollapsibleContent className="space-y-1 pt-1 pl-4">
-                                  {attendanceProducts.map((product) => (
-                                    <Button
-                                      variant="ghost"
-                                      className="w-full justify-start text-xs"
-                                      key={product}
-                                      onClick={() =>
-                                        handleProductSelect(product)
-                                      }
-                                    >
-                                      {product}
-                                    </Button>
-                                  ))}
+                                  <Button
+                                    variant="ghost"
+                                    className="w-full justify-start text-sm"
+                                    key="Leave Management"
+                                    onClick={() => handleProductSelect("Leave Management")}
+                                  >
+                                    Leave Management
+                                  </Button>
+                                  <Collapsible>
+                                    <CollapsibleTrigger asChild>
+                                      <button className="flex w-full items-center justify-between rounded-sm px-2 py-1.5 text-left text-sm font-normal hover:bg-accent [&[data-state=open]>svg]:rotate-180">
+                                        <span>Attendance Management</span>
+                                        <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
+                                      </button>
+                                    </CollapsibleTrigger>
+                                    <CollapsibleContent className="space-y-1 pt-1 pl-4">
+                                      {attendanceProducts.map((product) => (
+                                        <Button
+                                          variant="ghost"
+                                          className="w-full justify-start text-xs"
+                                          key={product}
+                                          onClick={() =>
+                                            handleProductSelect(product)
+                                          }
+                                        >
+                                          {product}
+                                        </Button>
+                                      ))}
+                                    </CollapsibleContent>
+                                  </Collapsible>
                                 </CollapsibleContent>
                               </Collapsible>
 
-                              {mainProductsAfterAttendance.map((product) => (
+                              {otherProducts.map((product) => (
                                 <Button
                                   variant="ghost"
                                   className="w-full justify-start"
@@ -810,8 +827,8 @@ export default function LeadsUpdatePage() {
 
                     {/* NESTED FOLLOW-UP SECTION */}
                     {considerStatus && (
-                      <div className="space-y-4 pl-6 border-l-2 border-muted ml-2">
-                        <div className="flex items-center gap-2 pt-2">
+                      <div className="space-y-4 pl-6 border-l-2 border-muted ml-2 pt-2">
+                        <div className="flex items-center gap-2">
                           <Checkbox
                             id="considerFollowUps"
                             checked={considerFollowUps}
