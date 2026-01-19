@@ -84,10 +84,29 @@ const stateDistrictMap: Record<string, string[]> = {
         "ANDAMAN NICOBAR IS", "Port Blair"
     ],
     "Andhra Pradesh": [
-        "ADILABAD", "ANANTAPUR", "CHITTOOR", "EAST_GODAVARI", "GUNTUR", "HYDERABAD", "KADAPA",
-        "KARIMNAGAR", "KHAMMAM/BHADRACHALAM", "KRISHNA", "KURNOOL", "MAHBUBNAGAR", "MEDAK",
-        "NALGONDA", "NELLORE", "NIZAMABAD", "PRAKASAM", "RANGAREDDI", "SRIKAKULAM",
-        "VISAKHAPATNAM", "VIZIANAGARAM", "WARANGAL", "WEST GODAVARI", "Vijayawada"
+        "ADILABAD",
+        "ANANTAPUR",
+        "CHITTOOR",
+        "EAST GODAVARI",
+        "GUNTUR",
+        "HYDERABAD",
+        "KADAPA",
+        "KARIMNAGAR",
+        "KHAMMAM/BHADRACHALAM",
+        "KRISHNA",
+        "KURNOOL",
+        "MAHBUBNAGAR",
+        "MEDAK",
+        "NALGONDA",
+        "NELLORE",
+        "NIZAMABAD",
+        "PRAKASAM",
+        "RANGAREDDI",
+        "SRIKAKULAM",
+        "VISAKHAPATNAM",
+        "VIZIANAGARAM",
+        "WARANGAL",
+        "WEST GODAVARI"
     ],
     "Arunachal Pradesh": [
         "ANJAW", "CHANGLANG", "EAST KAMENG", "EAST SIANG", "KURUNG KUMEY", "LOHIT",
