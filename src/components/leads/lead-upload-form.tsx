@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Download, UploadCloud } from 'lucide-react';
+import { Download, UploadCloud, Info } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
 import { useState, useRef, useEffect } from 'react';
 import * as XLSX from 'xlsx';
@@ -30,6 +30,7 @@ import { Checkbox } from '../ui/checkbox';
 import { useUsers } from '@/context/users-context';
 import { useAuth } from '@/context/auth-context';
 import { cn } from '@/lib/utils';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 type ParsedData = (string | number)[][];
 
@@ -135,7 +136,7 @@ export default function LeadUploadForm() {
   const { toast } = useToast();
   
   const { users } = useUsers();
-  const { user } = useAuth();
+  const { user, isReadOnly, isImpersonating } = useAuth();
   const [executives, setExecutives] = useState<string[]>([]);
   
   const isExecutiveContext = user?.role === 'Executive';
@@ -148,7 +149,10 @@ export default function LeadUploadForm() {
   }, [users]);
   
   useEffect(() => {
-    if (user?.role === 'Executive') {
+    if (isImpersonating && user?.role === 'Executive') {
+      setFormData(prev => ({ ...prev, toExecutive: true }));
+      setToExecutiveSelection(user.username);
+    } else if (user?.role === 'Executive') {
       setFormData(prev => ({ ...prev, toExecutive: true }));
       setToExecutiveSelection(user.username);
     } else {
@@ -156,7 +160,7 @@ export default function LeadUploadForm() {
       setFormData(prev => ({ ...prev, toExecutive: false }));
       setToExecutiveSelection('');
     }
-  }, [user]);
+  }, [user, isImpersonating]);
 
   useEffect(() => {
     if (formData.pincode.length === 6) {
@@ -216,7 +220,7 @@ export default function LeadUploadForm() {
 
   const resetForm = () => {
     setFormData(initialFormState);
-    if (!isExecutiveContext) {
+    if (!isExecutiveContext && !isImpersonating) {
       setToExecutiveSelection('');
     }
     handleCancel();
@@ -432,6 +436,18 @@ export default function LeadUploadForm() {
     XLSX.writeFile(workbook, 'SampleLeads.xlsx');
   }
 
+  if (isReadOnly) {
+    return (
+      <Alert>
+        <Info className="h-4 w-4" />
+        <AlertTitle>Read-Only Mode</AlertTitle>
+        <AlertDescription>
+          As an admin impersonating another user, you can view their data but cannot create new leads.
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -540,13 +556,13 @@ export default function LeadUploadForm() {
               id="toExecutive"
               checked={formData.toExecutive}
               onCheckedChange={handleCheckboxChange}
-              disabled={isExecutiveContext}
+              disabled={isExecutiveContext || isImpersonating}
             />
             <Label htmlFor="toExecutive">To Executive</Label>
           </div>
           {formData.toExecutive && (
               <div className="w-full md:w-auto">
-                {isExecutiveContext ? (
+                {isExecutiveContext || isImpersonating ? (
                   <Input
                     value={toExecutiveSelection}
                     readOnly

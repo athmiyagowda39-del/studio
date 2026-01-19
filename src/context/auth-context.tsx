@@ -24,6 +24,7 @@ type AuthContextType = {
   originalUser: User | null; // The originally logged-in user (admin)
   isImpersonating: boolean;
   isLoading: boolean;
+  isReadOnly: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   impersonate: (userToImpersonate: User) => void;
@@ -99,7 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const impersonate = (userToImpersonate: User) => {
-    if (originalUser && originalUser.role === 'Admin') {
+    if (originalUser && (originalUser.role === 'Admin' || originalUser.role === 'Sub Admin')) {
       localStorage.setItem(
         'impersonatedUser',
         JSON.stringify(userToImpersonate)
@@ -121,6 +122,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     originalUser.email !== user.email
   );
 
+  const isReadOnly = isImpersonating && originalUser?.role === 'Admin';
+
   return (
     <AuthContext.Provider
       value={{
@@ -129,6 +132,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         originalUser,
         isImpersonating,
         isLoading,
+        isReadOnly,
         login,
         logout,
         impersonate,

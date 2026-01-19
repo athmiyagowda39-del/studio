@@ -17,7 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '../ui/textarea';
 import { Calendar } from '../ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
-import { CalendarIcon, CircleDot } from 'lucide-react';
+import { CalendarIcon, CircleDot, Info } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
@@ -26,6 +26,8 @@ import { ScrollArea } from '../ui/scroll-area';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '../ui/table';
 import { useUsers } from '@/context/users-context';
 import { useAuth } from '@/context/auth-context';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+
 
 type FollowUp = {
   id: number;
@@ -72,7 +74,7 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
   
   const { toast } = useToast();
   const { users } = useUsers();
-  const { user } = useAuth();
+  const { user, isReadOnly } = useAuth();
   const [executives, setExecutives] = useState<string[]>([]);
 
    useEffect(() => {
@@ -245,6 +247,15 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
 
   return (
     <div className="space-y-6">
+      {isReadOnly && (
+        <Alert variant="default" className="bg-blue-50 border-blue-200 text-blue-800">
+            <Info className="h-4 w-4 !text-blue-800" />
+            <AlertTitle>Read-Only Mode</AlertTitle>
+            <AlertDescription>
+                You are viewing this data as an admin. No changes can be made while impersonating.
+            </AlertDescription>
+        </Alert>
+      )}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
         <Card>
           <CardHeader>
@@ -268,11 +279,11 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
               </div>
               <div className="space-y-2">
                 <Label htmlFor="contactPerson">Contact person</Label>
-                <Input id="contactPerson" value={leadDetails.contactPerson || ''} onChange={(e) => handleLeadDetailChange('contactPerson', e.target.value)} />
+                <Input id="contactPerson" value={leadDetails.contactPerson || ''} onChange={(e) => handleLeadDetailChange('contactPerson', e.target.value)} readOnly={isReadOnly} />
               </div>
                <div className="space-y-2">
                 <Label htmlFor="contactNumber">Contact Number</Label>
-                <Input id="contactNumber" value={leadDetails.contactNumber || ''} onChange={(e) => handleLeadDetailChange('contactNumber', e.target.value)} />
+                <Input id="contactNumber" value={leadDetails.contactNumber || ''} onChange={(e) => handleLeadDetailChange('contactNumber', e.target.value)} readOnly={isReadOnly} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="address">Address</Label>
@@ -280,7 +291,7 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
               </div>
                <div className="space-y-2">
                 <Label htmlFor="email">Email ID</Label>
-                <Input id="email" type="email" value={leadDetails.email || ''} onChange={(e) => handleLeadDetailChange('email', e.target.value)} />
+                <Input id="email" type="email" value={leadDetails.email || ''} onChange={(e) => handleLeadDetailChange('email', e.target.value)} readOnly={isReadOnly} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="district">District</Label>
@@ -316,6 +327,7 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
                           selected={leadDetails.creationDate ? new Date(leadDetails.creationDate) : undefined}
                           onSelect={(date) => handleLeadDetailChange('creationDate', date?.getTime())}
                           initialFocus
+                          disabled
                       />
                       </PopoverContent>
                   </Popover>
@@ -409,13 +421,14 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
                         id="readyToUpdate"
                         checked={isReadyToUpdate}
                         onCheckedChange={(checked) => setIsReadyToUpdate(checked as boolean)}
+                        disabled={isReadOnly}
                        />
                       <Label htmlFor="readyToUpdate">Yes, I am Ready to Update.</Label>
                   </div>
               </div>
               <div className="flex items-center justify-end gap-2">
-                  <Button onClick={handleSaveLeadDetails} disabled={!isReadyToUpdate}>Save</Button>
-                  <Button variant="outline" onClick={handleResetLeadDetails}>Reset</Button>
+                  <Button onClick={handleSaveLeadDetails} disabled={!isReadyToUpdate || isReadOnly}>Save</Button>
+                  <Button variant="outline" onClick={handleResetLeadDetails} disabled={isReadOnly}>Reset</Button>
               </div>
             </div>
           </CardContent>
@@ -429,7 +442,7 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
             <div className="space-y-2">
               <Label className="font-semibold shrink-0">TRANSFERRED LEAD</Label>
               <div className="flex flex-col gap-2">
-                <Select value={transferredTo} onValueChange={setTransferredTo}>
+                <Select value={transferredTo} onValueChange={setTransferredTo} disabled={isReadOnly}>
                     <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select Executive..." />
                     </SelectTrigger>
@@ -449,6 +462,7 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
                 id="remarks"
                 value={remarks}
                 onChange={(e) => setRemarks(e.target.value)}
+                readOnly={isReadOnly}
               />
             </div>
             <div className="space-y-2">
@@ -461,7 +475,7 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
                       'w-full justify-start text-left font-normal',
                       !nextFollowUpDate && 'text-muted-foreground'
                     )}
-                    disabled={isOrderClosedRemark}
+                    disabled={isOrderClosedRemark || isReadOnly}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {nextFollowUpDate ? (
@@ -483,8 +497,8 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
               </Popover>
             </div>
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={handleNewFollowUp}>New</Button>
-              <Button onClick={handleAddFollowUp}>Add&gt;&gt;</Button>
+              <Button variant="outline" onClick={handleNewFollowUp} disabled={isReadOnly}>New</Button>
+              <Button onClick={handleAddFollowUp} disabled={isReadOnly}>Add&gt;&gt;</Button>
             </div>
             <div className="space-y-4 pt-4">
               <ScrollArea className="h-48 w-full rounded-md border">
@@ -541,6 +555,7 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
                       onChange={(e) => handleLeadDetailChange('initialRemarks', e.target.value)}
                       placeholder="Enter initial remarks for the lead..."
                       rows={3}
+                      readOnly={isReadOnly}
                     />
                 </div>
 
@@ -548,7 +563,7 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
                     <Label>Current Status</Label>
                     <div className="flex items-center gap-2">
                         <span className="font-semibold shrink-0 text-muted-foreground">({currentStatus})</span>
-                        <Select value={selectedStatus} onValueChange={setSelectedStatus} disabled={!leadDetails.leadId}>
+                        <Select value={selectedStatus} onValueChange={setSelectedStatus} disabled={!leadDetails.leadId || isReadOnly}>
                           <SelectTrigger className="w-full min-w-[200px]">
                               <SelectValue placeholder="-- Select --" />
                           </SelectTrigger>
@@ -558,7 +573,7 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
                               ))}
                           </SelectContent>
                         </Select>
-                        <Button onClick={handleUpdateStatus} disabled={!leadDetails.leadId}>Update</Button>
+                        <Button onClick={handleUpdateStatus} disabled={!leadDetails.leadId || isReadOnly}>Update</Button>
                     </div>
                 </div>
             </div>
@@ -567,10 +582,3 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
     </div>
   );
 }
-
-
-
-    
-
-    
-
