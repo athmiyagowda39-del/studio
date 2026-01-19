@@ -17,7 +17,7 @@ import LeadUpdateForm from '@/components/leads/lead-update-form';
 import AppContent from '@/components/layout/app-content';
 import { format, startOfDay, endOfDay } from 'date-fns';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
@@ -26,6 +26,34 @@ import { useUsers } from '@/context/users-context';
 import { useAuth } from '@/context/auth-context';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { useRouter } from 'next/navigation';
+
+
+/* ---------------- NEW PRODUCT OPTIONS ---------------- */
+const mainProductsBeforeAttendance = [
+  'Manpower Resource Planning',
+  'Recruitment and Requisition Management',
+  'Onboarding',
+  'Letter Generation',
+  'Leave Management',
+];
+const attendanceProducts = [
+  'Desktop Attendance Marking Only',
+  'Integration with Attendance Machine',
+  'Mobile Attendance Marking without Location',
+  'Geo Fencing',
+  'Geo Tracking',
+];
+const mainProductsAfterAttendance = [
+  'Shift Roaster Management',
+  'Timesheet Management',
+  'Performance Management',
+  'Training Management',
+  'Employee Movement / Transfer',
+  'Probation to Confirmation',
+  'Employee Database Management',
+  'Mobile App',
+  'Employee Self Service',
+];
 
 
 /* ---------------- CONSTANTS ---------------- */
@@ -519,16 +547,32 @@ export default function LeadsUpdatePage() {
                     </div>
                      <div className="space-y-1">
                       <Label>Product Name</Label>
-                      <Select value={selectedProduct} onValueChange={setSelectedProduct}>
-                        <SelectTrigger><SelectValue placeholder="--All--" /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All</SelectItem>
-                          <SelectItem value="all-hrms">All HRMS</SelectItem>
-                          <SelectItem value="module1">Module 1</SelectItem>
-                          <SelectItem value="module2">Module 2</SelectItem>
-                          <SelectItem value="module3">Module 3</SelectItem>
-                        </SelectContent>
-                      </Select>
+                        <Select value={selectedProduct} onValueChange={setSelectedProduct}>
+                            <SelectTrigger><SelectValue placeholder="--All--" /></SelectTrigger>
+                            <SelectContent>
+                                <ScrollArea className="h-72">
+                                    <SelectItem value="all">All</SelectItem>
+                                    {mainProductsBeforeAttendance.map((product) => (
+                                    <SelectItem key={product} value={product}>
+                                        {product}
+                                    </SelectItem>
+                                    ))}
+                                    <SelectGroup>
+                                    <SelectLabel>Attendance Management</SelectLabel>
+                                    {attendanceProducts.map((product) => (
+                                        <SelectItem key={product} value={product}>
+                                        {product}
+                                        </SelectItem>
+                                    ))}
+                                    </SelectGroup>
+                                    {mainProductsAfterAttendance.map((product) => (
+                                    <SelectItem key={product} value={product}>
+                                        {product}
+                                    </SelectItem>
+                                    ))}
+                                </ScrollArea>
+                            </SelectContent>
+                        </Select>
                     </div>
                     <div className="space-y-1">
                       <Label>Executive Name</Label>
