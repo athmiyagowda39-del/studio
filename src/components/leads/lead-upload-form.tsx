@@ -16,7 +16,7 @@ import {
   UploadCloud,
   Info,
   ChevronsUpDown,
-  Check,
+  ChevronDown,
 } from 'lucide-react';
 import {
   Card,
@@ -46,13 +46,10 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { ScrollArea } from '../ui/scroll-area';
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command';
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 
 type ParsedData = (string | number)[][];
 
@@ -156,15 +153,6 @@ const otherProducts = [
   'Employee Database Management',
   'Mobile App',
   'Employee Self Service',
-];
-
-const allProducts = [
-  'All',
-  ...mainProducts,
-  'Leave Management',
-  'Attendance Management',
-  ...attendanceProducts,
-  ...otherProducts,
 ];
 
 const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate'> = {
@@ -662,6 +650,11 @@ export default function LeadUploadForm() {
     }
   };
 
+  const handleProductSelect = (product: string) => {
+    handleSelectChange('selectedModule', product);
+    setProductPopoverOpen(false);
+  };
+
   return (
     <div className="space-y-6">
       {isReadOnly && (
@@ -769,7 +762,7 @@ export default function LeadUploadForm() {
               </SelectTrigger>
               <SelectContent>
                 {references.map((ref) => (
-                  <SelectItem key={ref} value={ref}>
+                  <SelectItem key={ref} value={ref} onClick={() => handleSelectChange('reference', ref)}>
                     {ref}
                   </SelectItem>
                 ))}
@@ -870,41 +863,87 @@ export default function LeadUploadForm() {
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                <Command>
-                  <CommandInput placeholder="Search module..." />
-                  <CommandList>
-                    <CommandEmpty>No module found.</CommandEmpty>
-                    <CommandGroup>
-                      <ScrollArea className="h-72">
-                        {allProducts.map((product) => (
-                          <CommandItem
-                            key={product}
-                            value={product}
-                            onSelect={(currentValue) => {
-                              handleSelectChange(
-                                'selectedModule',
-                                currentValue === formData.selectedModule
-                                  ? ''
-                                  : currentValue
-                              );
-                              setProductPopoverOpen(false);
-                            }}
-                          >
-                            <Check
-                              className={cn(
-                                'mr-2 h-4 w-4',
-                                formData.selectedModule === product
-                                  ? 'opacity-100'
-                                  : 'opacity-0'
-                              )}
-                            />
-                            {product}
-                          </CommandItem>
-                        ))}
-                      </ScrollArea>
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
+                <ScrollArea className="h-72">
+                  <div className="space-y-1 p-1">
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start"
+                      onClick={() => handleProductSelect('All')}
+                    >
+                      All
+                    </Button>
+                    {mainProducts.map((product) => (
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start"
+                        key={product}
+                        onClick={() => handleProductSelect(product)}
+                      >
+                        {product}
+                      </Button>
+                    ))}
+
+                    <Collapsible>
+                      <CollapsibleTrigger asChild>
+                        <button className="flex w-full items-center justify-between rounded-sm px-2 py-1.5 text-left text-sm font-bold hover:bg-accent [&[data-state=open]>svg]:rotate-180">
+                          <span>Leave Management</span>
+                          <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
+                        </button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="space-y-1 pt-1 pl-4">
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start text-sm"
+                          key="Leave Management"
+                          onClick={() => handleProductSelect('Leave Management')}
+                        >
+                          Leave Management
+                        </Button>
+                        <Collapsible>
+                          <CollapsibleTrigger asChild>
+                            <button className="flex w-full items-center justify-between rounded-sm px-2 py-1.5 text-left text-sm font-bold hover:bg-accent [&[data-state=open]>svg]:rotate-180">
+                              <span>Attendance Management</span>
+                              <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
+                            </button>
+                          </CollapsibleTrigger>
+                          <CollapsibleContent className="space-y-1 pt-1 pl-4">
+                            <Button
+                              variant="ghost"
+                              className="w-full justify-start text-sm"
+                              key="Attendance Management"
+                              onClick={() =>
+                                handleProductSelect('Attendance Management')
+                              }
+                            >
+                              Attendance Management
+                            </Button>
+                            {attendanceProducts.map((product) => (
+                              <Button
+                                variant="ghost"
+                                className="w-full justify-start text-xs"
+                                key={product}
+                                onClick={() => handleProductSelect(product)}
+                              >
+                                {product}
+                              </Button>
+                            ))}
+                          </CollapsibleContent>
+                        </Collapsible>
+                      </CollapsibleContent>
+                    </Collapsible>
+
+                    {otherProducts.map((product) => (
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start"
+                        key={product}
+                        onClick={() => handleProductSelect(product)}
+                      >
+                        {product}
+                      </Button>
+                    ))}
+                  </div>
+                </ScrollArea>
               </PopoverContent>
             </Popover>
           </div>
