@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/card';
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import { useState, useMemo, useEffect } from 'react';
-import { startOfDay, endOfDay, getDay, format as formatDate, eachDayOfInterval, getMonth, getYear, startOfMonth, endOfMonth } from 'date-fns';
+import { startOfDay, endOfDay, getDay, format as formatDate, eachDayOfInterval, getMonth, getYear, startOfMonth, endOfMonth, eachMonthOfInterval } from 'date-fns';
 import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
 import AppContent from '@/components/layout/app-content';
@@ -118,6 +118,29 @@ export default function DashboardPage() {
       }
 
       const year = getYear(new Date());
+      const isAllYearView = selectedPeriod.includes('all');
+
+      if (isAllYearView) {
+        const monthlyData = eachMonthOfInterval({
+          start: new Date(year, 0, 1),
+          end: new Date(year, 11, 1),
+        }).map(monthDate => ({
+          month: formatDate(monthDate, 'MMM'),
+          leads: 0,
+        }));
+
+        const relevantLeads = leads.filter(lead => getYear(new Date(lead.creationDate)) === year);
+
+        relevantLeads.forEach(lead => {
+          const monthIndex = getMonth(new Date(lead.creationDate));
+          if (monthlyData[monthIndex]) {
+            monthlyData[monthIndex].leads++;
+          }
+        });
+        
+        return monthlyData;
+      }
+
       const isSingleMonthView = selectedPeriod.length === 1 || selectedPeriod.length === 0;
 
       let monthIndexesToShow: number[];
@@ -189,7 +212,8 @@ export default function DashboardPage() {
       }
     }, [filteredLeads, selectedPeriod, selectedState, selectedDistrict]);
   
-    const isSingleMonthView = selectedPeriod.length === 1 || selectedPeriod.length === 0;
+    const isAllYearView = selectedPeriod.includes('all');
+    const isSingleMonthView = !isAllYearView && (selectedPeriod.length === 1 || selectedPeriod.length === 0);
 
     if (isLoading || isDataLoading || !isAuthenticated) {
         return null; // or a loading skeleton
@@ -241,8 +265,8 @@ export default function DashboardPage() {
                     <CardContent>
                       <LeadPerformanceChart 
                         performanceData={performanceData} 
-                        xAxisLabel={isSingleMonthView ? "Number of Days" : "Date"} 
-                        dataKey={isSingleMonthView ? 'day' : 'date'}
+                        xAxisLabel={isAllYearView ? "Month" : isSingleMonthView ? "Number of Days" : "Date"} 
+                        dataKey={isAllYearView ? 'month' : isSingleMonthView ? 'day' : 'date'}
                       />
                     </CardContent>
                 </Card>

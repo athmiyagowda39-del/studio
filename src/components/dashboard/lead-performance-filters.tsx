@@ -22,6 +22,7 @@ type LeadPerformanceFiltersProps = {
 };
 
 const months = [
+    { value: 'all', label: 'All' },
     { value: '1', label: 'January' },
     { value: '2', label: 'February' },
     { value: '3', label: 'March' },
@@ -129,11 +130,21 @@ export default function LeadPerformanceFilters({
         setSelectedDistrict(value);
     }
 
+    const handleMonthSelect = (value: string) => {
+        if (value === 'all') {
+            setSelectedPeriod(prev => prev.includes('all') ? [] : ['all']);
+        } else {
+            const newSelection = selectedPeriod.includes(value)
+                ? selectedPeriod.filter(p => p !== value && p !== 'all')
+                : [...selectedPeriod.filter(p => p !== 'all'), value];
+            setSelectedPeriod(newSelection);
+        }
+    };
+
+
     return (
         <div className="flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">Period:</span>
-                <Popover open={open} onOpenChange={setOpen}>
+             <Popover open={open} onOpenChange={setOpen}>
                     <PopoverTrigger asChild>
                         <Button
                             variant="outline"
@@ -142,51 +153,40 @@ export default function LeadPerformanceFilters({
                             className="w-[180px] justify-between"
                         >
                             <span className="truncate">
-                                {selectedPeriod.length === 0 && "Current Month"}
-                                {selectedPeriod.length === 1 && months.find(m => m.value === selectedPeriod[0])?.label}
-                                {selectedPeriod.length > 1 && `${selectedPeriod.length} months selected`}
+                                {selectedPeriod.includes('all') ? 'All Months' :
+                                 selectedPeriod.length === 0 ? 'Current Month' :
+                                 selectedPeriod.length === 1 ? months.find(m => m.value === selectedPeriod[0])?.label :
+                                 `${selectedPeriod.length} months selected`}
                             </span>
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-[180px] p-0">
+                    <PopoverContent className="w-[200px] p-0" onOpenAutoFocus={(e) => e.preventDefault()}>
                         <ScrollArea className="h-48">
-                            <div className="p-1">
-                                {months.map((month) => {
-                                    const isSelected = selectedPeriod.includes(month.value);
-                                    return (
+                             <div className="p-1">
+                                {months.map((month) => (
+                                    <div
+                                        key={month.value}
+                                        onClick={() => handleMonthSelect(month.value)}
+                                        className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                                    >
                                         <div
-                                            key={month.value}
-                                            onClick={() => {
-                                                if (isSelected) {
-                                                    setSelectedPeriod(
-                                                        selectedPeriod.filter((p) => p !== month.value)
-                                                    );
-                                                } else {
-                                                    setSelectedPeriod([...selectedPeriod, month.value]);
-                                                }
-                                            }}
-                                            className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                                            className={cn(
+                                                "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                                                selectedPeriod.includes(month.value)
+                                                    ? "bg-primary text-primary-foreground"
+                                                    : "opacity-50 [&_svg]:invisible"
+                                            )}
                                         >
-                                            <div
-                                                className={cn(
-                                                    "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
-                                                    isSelected
-                                                        ? "bg-primary text-primary-foreground"
-                                                        : "opacity-50 [&_svg]:invisible"
-                                                )}
-                                            >
-                                                <Check className={cn("h-4 w-4")} />
-                                            </div>
-                                            {month.label}
+                                            <Check className={cn("h-4 w-4")} />
                                         </div>
-                                    );
-                                })}
+                                        {month.label}
+                                    </div>
+                                ))}
                             </div>
                         </ScrollArea>
                     </PopoverContent>
                 </Popover>
-            </div>
             <div className="flex items-center gap-2">
                 <span className="text-sm font-medium">State:</span>
                 <Select value={selectedState} onValueChange={handleStateChange}>
