@@ -4,7 +4,6 @@
 import {
   ChartContainer,
   ChartTooltip,
-  ChartTooltipContent,
 } from '@/components/ui/chart';
 import { Line, LineChart, CartesianGrid, XAxis, YAxis, Label } from 'recharts';
 
@@ -27,6 +26,33 @@ type LeadPerformanceChartProps = {
   xAxisLabel?: string;
   dataKey?: 'day' | 'month' | 'hour';
 };
+
+// Custom Tooltip Component
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="rounded-lg border bg-background p-2.5 text-sm shadow-lg">
+        <div className="grid grid-cols-1 gap-1.5">
+          <p className="font-medium">{label}</p>
+          <div className="flex items-center gap-2">
+            <span
+              className="h-2.5 w-2.5 shrink-0 rounded-[2px]"
+              style={{ backgroundColor: 'hsl(var(--primary))' }}
+            />
+            <div className="flex flex-1 justify-between gap-4">
+              <span className="text-muted-foreground">Total number of leads</span>
+              <span className="font-mono font-medium tabular-nums text-foreground">
+                {payload[0].value}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
 
 export default function LeadPerformanceChart({
   performanceData,
@@ -73,7 +99,10 @@ export default function LeadPerformanceChart({
               style={{ textAnchor: 'middle' }}
             />
           </YAxis>
-          <ChartTooltip content={<ChartTooltipContent />} />
+          <ChartTooltip
+            cursor={false}
+            content={<CustomTooltip />}
+          />
           <Line
             dataKey="leads"
             type="monotone"
