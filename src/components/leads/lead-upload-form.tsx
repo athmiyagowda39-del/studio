@@ -100,7 +100,7 @@ const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdmin
 const saveLeadsToLocalStorage = (leads: LeadFormData[]) => {
   if (typeof window !== 'undefined') {
     localStorage.setItem('allLeads', JSON.stringify(leads));
-    window.dispatchEvent(new Event('storage'));
+    window.dispatchEvent(new CustomEvent('leadsUpdated'));
   }
 };
 

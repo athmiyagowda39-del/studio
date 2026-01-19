@@ -52,8 +52,8 @@ const leadStatusOptions = [
 const saveLeadsToLocalStorage = (leads: LeadFormData[]) => {
   if (typeof window !== 'undefined') {
     localStorage.setItem('allLeads', JSON.stringify(leads));
-    // Dispatch a storage event to notify other tabs/windows
-    window.dispatchEvent(new Event('storage'));
+    // Dispatch a custom event to notify other components
+    window.dispatchEvent(new CustomEvent('leadsUpdated'));
   }
 };
 
@@ -573,3 +573,4 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
     
 
     
+

@@ -148,17 +148,17 @@ export default function LeadsUpdatePage() {
 
       loadLeads(); // Initial load
 
-      // Listen for changes in local storage from other tabs/windows
-      const handleStorageChange = (e: StorageEvent) => {
-        if (e.key === 'allLeads' || e.key === null) {
-            loadLeads();
-        }
+      // Listen for changes from other tabs and within the same app
+      const handleLeadsUpdate = () => {
+        loadLeads();
       };
       
-      window.addEventListener('storage', handleStorageChange);
+      window.addEventListener('storage', handleLeadsUpdate);
+      window.addEventListener('leadsUpdated', handleLeadsUpdate);
       
       return () => {
-        window.removeEventListener('storage', handleStorageChange);
+        window.removeEventListener('storage', handleLeadsUpdate);
+        window.removeEventListener('leadsUpdated', handleLeadsUpdate);
       };
     }
   }, [user, isAuthenticated]);
