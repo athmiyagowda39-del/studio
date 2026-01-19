@@ -781,7 +781,11 @@ export default function LeadsUpdatePage() {
                       <Label htmlFor="leadSource">Lead Source</Label>
                       <Select value={selectedLeadSource} onValueChange={(value) => setSelectedLeadSource(value)}>
                         <SelectTrigger id="leadSource">
-                          <SelectValue placeholder="--All--" />
+                           {selectedLeadSource && !references.includes(selectedLeadSource) ? (
+                            <span className="truncate">{selectedLeadSource}</span>
+                           ) : (
+                            <SelectValue placeholder="--All--" />
+                           )}
                         </SelectTrigger>
                         <SelectContent>
                           {references.map((source) => (
@@ -789,9 +793,6 @@ export default function LeadsUpdatePage() {
                               {source}
                             </SelectItem>
                           ))}
-                          {!references.includes(selectedLeadSource) && selectedLeadSource !== 'all' && selectedLeadSource !== 'Other' && (
-                            <SelectItem value={selectedLeadSource}>{selectedLeadSource}</SelectItem>
-                          )}
                         </SelectContent>
                       </Select>
                       {selectedLeadSource === 'Other' && (
