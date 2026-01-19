@@ -145,13 +145,6 @@ export default function LeadUploadForm() {
   }, [users]);
   
   useEffect(() => {
-    if (user?.role === 'Executive') {
-      setFormData(prev => ({ ...prev, toExecutive: true }));
-      setToExecutiveSelection(user.username);
-    }
-  }, [user]);
-
-  useEffect(() => {
     if (formData.pincode.length === 6) {
       fetch(`https://api.postalpincode.in/pincode/${formData.pincode}`)
         .then(response => response.json())
@@ -209,12 +202,7 @@ export default function LeadUploadForm() {
 
   const resetForm = () => {
     setFormData(initialFormState);
-    if (user?.role === 'Executive') {
-      setToExecutiveSelection(user.username);
-      setFormData((prev) => ({ ...prev, toExecutive: true }));
-    } else {
-      setToExecutiveSelection('');
-    }
+    setToExecutiveSelection('');
     handleCancel();
   };
 
@@ -535,7 +523,6 @@ export default function LeadUploadForm() {
               id="toExecutive"
               checked={formData.toExecutive}
               onCheckedChange={handleCheckboxChange}
-              disabled={user?.role === 'Executive'}
             />
             <Label htmlFor="toExecutive">To Executive</Label>
           </div>
@@ -544,7 +531,6 @@ export default function LeadUploadForm() {
                 <Select
                   value={toExecutiveSelection}
                   onValueChange={setToExecutiveSelection}
-                  disabled={user?.role === 'Executive'}
                 >
                   <SelectTrigger className="w-[200px]">
                     <SelectValue placeholder="As per mapping" />
