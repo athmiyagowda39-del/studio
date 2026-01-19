@@ -26,6 +26,17 @@ import { useUsers } from '@/context/users-context';
 import { useAuth } from '@/context/auth-context';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { useRouter } from 'next/navigation';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { ChevronsUpDown, ChevronDown } from 'lucide-react';
 
 
 /* ---------------- NEW PRODUCT OPTIONS ---------------- */
@@ -129,6 +140,7 @@ export default function LeadsUpdatePage() {
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const [selectedProduct, setSelectedProduct] = useState('all');
+  const [productPopoverOpen, setProductPopoverOpen] = useState(false);
   const [selectedExecutive, setSelectedExecutive] = useState('all');
   const [otherExecutiveInput, setOtherExecutiveInput] = useState('');
   
@@ -413,6 +425,11 @@ export default function LeadsUpdatePage() {
     }
   };
 
+  const handleProductSelect = (product: string) => {
+    setSelectedProduct(product);
+    setProductPopoverOpen(false);
+  };
+
 
   /* ---------------- PAGINATION ---------------- */
 
@@ -545,34 +562,84 @@ export default function LeadsUpdatePage() {
                       <Label>To Date</Label>
                       <Input type="date" value={toDate} onChange={e => setToDate(e.target.value)}/>
                     </div>
-                     <div className="space-y-1">
+                    <div className="space-y-1">
                       <Label>Product Name</Label>
-                        <Select value={selectedProduct} onValueChange={setSelectedProduct}>
-                            <SelectTrigger><SelectValue placeholder="--All--" /></SelectTrigger>
-                            <SelectContent>
-                                <ScrollArea className="h-72">
-                                    <SelectItem value="all">All</SelectItem>
-                                    {mainProductsBeforeAttendance.map((product) => (
-                                    <SelectItem key={product} value={product}>
-                                        {product}
-                                    </SelectItem>
-                                    ))}
-                                    <SelectGroup>
-                                    <SelectLabel>Attendance Management</SelectLabel>
-                                    {attendanceProducts.map((product) => (
-                                        <SelectItem key={product} value={product}>
-                                        {product}
-                                        </SelectItem>
-                                    ))}
-                                    </SelectGroup>
-                                    {mainProductsAfterAttendance.map((product) => (
-                                    <SelectItem key={product} value={product}>
-                                        {product}
-                                    </SelectItem>
-                                    ))}
-                                </ScrollArea>
-                            </SelectContent>
-                        </Select>
+                      <Popover
+                        open={productPopoverOpen}
+                        onOpenChange={setProductPopoverOpen}
+                      >
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            className="w-full justify-between font-normal"
+                          >
+                            <span className="truncate">
+                              {selectedProduct === 'all'
+                                ? 'All'
+                                : selectedProduct || 'Select Product...'}
+                            </span>
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                          <ScrollArea className="h-72">
+                            <div className="space-y-1 p-1">
+                              <Button
+                                variant="ghost"
+                                className="w-full justify-start"
+                                onClick={() => handleProductSelect('all')}
+                              >
+                                All
+                              </Button>
+                              {mainProductsBeforeAttendance.map((product) => (
+                                <Button
+                                  variant="ghost"
+                                  className="w-full justify-start"
+                                  key={product}
+                                  onClick={() => handleProductSelect(product)}
+                                >
+                                  {product}
+                                </Button>
+                              ))}
+
+                              <Collapsible>
+                                <CollapsibleTrigger asChild>
+                                  <button className="flex w-full items-center justify-between rounded-sm px-2 py-1.5 text-left text-sm font-normal hover:bg-accent [&[data-state=open]>svg]:rotate-180">
+                                    <span>Attendance Management</span>
+                                    <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
+                                  </button>
+                                </CollapsibleTrigger>
+                                <CollapsibleContent className="space-y-1 pt-1 pl-4">
+                                  {attendanceProducts.map((product) => (
+                                    <Button
+                                      variant="ghost"
+                                      className="w-full justify-start text-xs"
+                                      key={product}
+                                      onClick={() =>
+                                        handleProductSelect(product)
+                                      }
+                                    >
+                                      {product}
+                                    </Button>
+                                  ))}
+                                </CollapsibleContent>
+                              </Collapsible>
+
+                              {mainProductsAfterAttendance.map((product) => (
+                                <Button
+                                  variant="ghost"
+                                  className="w-full justify-start"
+                                  key={product}
+                                  onClick={() => handleProductSelect(product)}
+                                >
+                                  {product}
+                                </Button>
+                              ))}
+                            </div>
+                          </ScrollArea>
+                        </PopoverContent>
+                      </Popover>
                     </div>
                     <div className="space-y-1">
                       <Label>Executive Name</Label>
@@ -752,66 +819,63 @@ export default function LeadsUpdatePage() {
                           /> 
                           <Label htmlFor="considerFollowUps">Consider Follow Ups</Label>
                         </div>
-                        {considerFollowUps && (
-                          <>
-                            <RadioGroup value={followUpStatus} onValueChange={setFollowUpStatus} className="flex gap-4">
-                              <div className="flex items-center gap-2">
-                                <RadioGroupItem value="pending" id="pending" />
-                                <Label htmlFor="pending">Follow Up Pending</Label>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <RadioGroupItem value="made" id="made" />
-                                <Label htmlFor="made">Follow Up Made</Label>
-                              </div>
-                            </RadioGroup>
+                        
+                        <RadioGroup value={followUpStatus} onValueChange={setFollowUpStatus} className="flex gap-4">
+                          <div className="flex items-center gap-2">
+                            <RadioGroupItem value="pending" id="pending" />
+                            <Label htmlFor="pending">Follow Up Pending</Label>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <RadioGroupItem value="made" id="made" />
+                            <Label htmlFor="made">Follow Up Made</Label>
+                          </div>
+                        </RadioGroup>
 
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                              <div className="space-y-1">
-                                  <Label>From Date</Label>
-                                  <Input type="date" value={followUpFromDate} onChange={(e) => setFollowUpFromDate(e.target.value)} />
-                              </div>
-                              <div className="space-y-1">
-                                  <Label>To Date</Label>
-                                  <Input type="date" value={followUpToDate} onChange={(e) => setFollowUpToDate(e.target.value)} />
-                              </div>
-                              <div className="space-y-1">
-                                  <Label htmlFor="enteredByFollowUp">Enter by</Label>
-                                  <Select value={followUpEnteredBy} onValueChange={(value) => setFollowUpEnteredBy(value)}>
-                                      <SelectTrigger id="enteredByFollowUp">
-                                          <SelectValue placeholder="--All--" />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                          <SelectItem value="all">All</SelectItem>
-                                          {executives.map((exec) => (
-                                          <SelectItem key={exec} value={exec}>
-                                              {exec}
-                                          </SelectItem>
-                                          ))}
-                                          {!executives.includes(followUpEnteredBy) && followUpEnteredBy !== 'all' && followUpEnteredBy !== 'Other' && (
-                                              <SelectItem value={followUpEnteredBy}>{followUpEnteredBy}</SelectItem>
-                                          )}
-                                          <SelectItem value="Other">Other</SelectItem>
-                                      </SelectContent>
-                                  </Select>
-                                  {followUpEnteredBy === 'Other' && (
-                                      <div className="mt-2">
-                                          <div className="flex items-center gap-2">
-                                              <Input
-                                                  placeholder="Specify who entered it"
-                                                  value={otherFollowUpEnteredByInput}
-                                                  onChange={(e) => setOtherFollowUpEnteredByInput(e.target.value)}
-                                                  onKeyDown={(e) => {
-                                                      if (e.key === 'Enter') handleSetOtherFollowUpEnteredBy();
-                                                  }}
-                                              />
-                                              <Button size="sm" onClick={handleSetOtherFollowUpEnteredBy}>OK</Button>
-                                          </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="space-y-1">
+                              <Label>From Date</Label>
+                              <Input type="date" value={followUpFromDate} onChange={(e) => setFollowUpFromDate(e.target.value)} />
+                          </div>
+                          <div className="space-y-1">
+                              <Label>To Date</Label>
+                              <Input type="date" value={followUpToDate} onChange={(e) => setFollowUpToDate(e.target.value)} />
+                          </div>
+                          <div className="space-y-1">
+                              <Label htmlFor="enteredByFollowUp">Enter by</Label>
+                              <Select value={followUpEnteredBy} onValueChange={(value) => setFollowUpEnteredBy(value)}>
+                                  <SelectTrigger id="enteredByFollowUp">
+                                      <SelectValue placeholder="--All--" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                      <SelectItem value="all">All</SelectItem>
+                                      {executives.map((exec) => (
+                                      <SelectItem key={exec} value={exec}>
+                                          {exec}
+                                      </SelectItem>
+                                      ))}
+                                      {!executives.includes(followUpEnteredBy) && followUpEnteredBy !== 'all' && followUpEnteredBy !== 'Other' && (
+                                          <SelectItem value={followUpEnteredBy}>{followUpEnteredBy}</SelectItem>
+                                      )}
+                                      <SelectItem value="Other">Other</SelectItem>
+                                  </SelectContent>
+                              </Select>
+                              {followUpEnteredBy === 'Other' && (
+                                  <div className="mt-2">
+                                      <div className="flex items-center gap-2">
+                                          <Input
+                                              placeholder="Specify who entered it"
+                                              value={otherFollowUpEnteredByInput}
+                                              onChange={(e) => setOtherFollowUpEnteredByInput(e.target.value)}
+                                              onKeyDown={(e) => {
+                                                  if (e.key === 'Enter') handleSetOtherFollowUpEnteredBy();
+                                              }}
+                                          />
+                                          <Button size="sm" onClick={handleSetOtherFollowUpEnteredBy}>OK</Button>
                                       </div>
-                                  )}
-                              </div>
-                            </div>
-                          </>
-                        )}
+                                  </div>
+                              )}
+                          </div>
+                        </div>
                       </div>
                     )}
                   </div>
