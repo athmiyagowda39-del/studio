@@ -28,6 +28,7 @@ import { useAuth } from '@/context/auth-context';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
+import { Input } from '@/components/ui/input';
 
 const LeadStatusChart = dynamic(
   () => import('@/components/reports/lead-status-chart'),
@@ -36,7 +37,7 @@ const LeadStatusChart = dynamic(
 
 const allStates = ["All", "Andaman and Nicobar Islands", "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chandigarh", "Chhattisgarh", "Dadra and Nagar Haveli and Daman and Diu", "Delhi", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jammu and Kashmir", "Jharkhand", "Karnataka", "Kerala", "Ladakh", "Lakshadweep", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Puducherry", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"];
 
-const leadStatusOptions = [
+const chartLeadStatusOptions = [
     'Attended',
     'Not viewed',
     'Demo Given',
@@ -46,6 +47,8 @@ const leadStatusOptions = [
     'Order closed',
     'Proposal Sent',
 ];
+
+const filterLeadStatusOptions = [...chartLeadStatusOptions, 'Other'];
 
 const sectors = ['All', 'IT', 'Finance', 'Healthcare', 'Manufacturing', 'Education', 'Retail', 'Hospitality', 'Telecommunication', 'Construction', 'Real Estate', 'Media & Entertainment', 'Government', 'Non-profit', 'Other'];
 const headcounts = ['All', '1-50', '51-200', '201-500', '501-1000', '1000+'];
@@ -87,7 +90,7 @@ const getLeadStatusesForFilters = (
     return matches;
   });
 
-  const statusCounts = leadStatusOptions.reduce((acc, status) => {
+  const statusCounts = chartLeadStatusOptions.reduce((acc, status) => {
     acc[status] = 0;
     return acc;
   }, {} as Record<string, number>);
@@ -132,6 +135,9 @@ export default function LeadReportPage() {
   const [selectedSector, setSelectedSector] = useState('All');
   const [selectedHeadcount, setSelectedHeadcount] = useState('All');
 
+  const [otherStatusInput, setOtherStatusInput] = useState('');
+  const [otherSectorInput, setOtherSectorInput] = useState('');
+
   const leadStatuses = useMemo(() => {
     if (!allLeads) return [];
     return getLeadStatusesForFilters(allLeads, selectedState, selectedSector, selectedHeadcount);
@@ -145,11 +151,11 @@ export default function LeadReportPage() {
         leads = leads.filter(lead => lead.state === selectedState);
     }
     
-    if (selectedStatus && selectedStatus !== 'all-statuses') {
+    if (selectedStatus && selectedStatus !== 'all-statuses' && selectedStatus !== 'Other') {
       leads = leads.filter(lead => (lead as any).status === selectedStatus);
     }
 
-    if (selectedSector && selectedSector !== 'All') {
+    if (selectedSector && selectedSector !== 'All' && selectedSector !== 'Other') {
       leads = leads.filter(lead => lead.sector === selectedSector);
     }
 
@@ -193,7 +199,21 @@ export default function LeadReportPage() {
       setSelectedStatus(value === 'all-statuses' ? '' : value);
   }
 
-  const shouldShowDetails = selectedStatus && selectedStatus !== 'all-statuses';
+  const handleSetOtherStatus = () => {
+    if (otherStatusInput.trim()) {
+      setSelectedStatus(otherStatusInput.trim());
+      setOtherStatusInput('');
+    }
+  };
+
+  const handleSetOtherSector = () => {
+    if (otherSectorInput.trim()) {
+      setSelectedSector(otherSectorInput.trim());
+      setOtherSectorInput('');
+    }
+  };
+
+  const shouldShowDetails = selectedStatus && selectedStatus !== 'all-statuses' && selectedStatus !== 'Other';
 
   if (isLoading || !isAuthenticated) {
     return null;
@@ -207,7 +227,7 @@ export default function LeadReportPage() {
             <CardTitle className="text-center text-primary">Lead Report</CardTitle>
             </CardHeader>
             <CardContent className="p-6">
-            <div className="mb-6 flex flex-wrap items-center gap-4">
+            <div className="mb-6 flex flex-wrap items-start gap-4">
                 <div className="flex items-center gap-2">
                     <span className="font-medium">Select State:</span>
                     <Popover open={openState} onOpenChange={setOpenState}>
@@ -253,34 +273,66 @@ export default function LeadReportPage() {
                 </div>
                 <div className="flex items-center gap-2">
                     <span className="font-medium">Status:</span>
-                    <Select value={selectedStatus} onValueChange={handleStatusChange}>
-                        <SelectTrigger className="w-[180px]">
-                            <SelectValue placeholder="Select a status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all-statuses">All Statuses</SelectItem>
-                            {leadStatusOptions.map(status => (
-                                <SelectItem key={status} value={status}>
-                                    {status}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                    <div className="flex flex-col gap-1">
+                        <Select value={selectedStatus} onValueChange={handleStatusChange}>
+                            <SelectTrigger className="w-[180px]">
+                                <SelectValue placeholder="Select a status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all-statuses">All Statuses</SelectItem>
+                                {filterLeadStatusOptions.map(status => (
+                                    <SelectItem key={status} value={status}>
+                                        {status}
+                                    </SelectItem>
+                                ))}
+                                {selectedStatus && !filterLeadStatusOptions.includes(selectedStatus) && selectedStatus !== '' && selectedStatus !== 'all-statuses' && (
+                                    <SelectItem value={selectedStatus}>{selectedStatus}</SelectItem>
+                                )}
+                            </SelectContent>
+                        </Select>
+                        {selectedStatus === 'Other' && (
+                            <div className="mt-1 flex items-center gap-2">
+                                <Input
+                                    placeholder="Specify other status"
+                                    value={otherStatusInput}
+                                    onChange={(e) => setOtherStatusInput(e.target.value)}
+                                    onKeyDown={(e) => { if (e.key === 'Enter') handleSetOtherStatus(); }}
+                                />
+                                <Button size="sm" onClick={handleSetOtherStatus}>OK</Button>
+                            </div>
+                        )}
+                    </div>
                 </div>
                 <div className="flex items-center gap-2">
                     <span className="font-medium">Sectors:</span>
-                    <Select value={selectedSector} onValueChange={setSelectedSector}>
-                        <SelectTrigger className="w-[180px]">
-                            <SelectValue placeholder="Select a sector" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {sectors.map(sector => (
-                                <SelectItem key={sector} value={sector}>
-                                    {sector}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                     <div className="flex flex-col gap-1">
+                        <Select value={selectedSector} onValueChange={setSelectedSector}>
+                            <SelectTrigger className="w-[180px]">
+                                <SelectValue placeholder="Select a sector" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {sectors.map(sector => (
+                                    <SelectItem key={sector} value={sector}>
+                                        {sector}
+                                    </SelectItem>
+                                ))}
+                                 {selectedSector && !sectors.includes(selectedSector) && (
+                                    <SelectItem value={selectedSector}>{selectedSector}</SelectItem>
+                                )}
+                            </SelectContent>
+                        </Select>
+                        {selectedSector === 'Other' && (
+                            <div className="mt-1 flex items-center gap-2">
+                                <Input
+                                    placeholder="Specify other sector"
+                                    value={otherSectorInput}
+                                    onChange={(e) => setOtherSectorInput(e.target.value)}
+                                    onKeyDown={(e) => { if (e.key === 'Enter') handleSetOtherSector(); }}
+                                />
+                                <Button size="sm" onClick={handleSetOtherSector}>OK</Button>
+                            </div>
+                        )}
+                    </div>
                 </div>
                 <div className="flex items-center gap-2">
                     <span className="font-medium">Headcount:</span>
