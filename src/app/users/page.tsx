@@ -196,6 +196,14 @@ export default function UsersPage() {
       });
       return;
     }
+     if (userToImpersonate.role === 'Admin') {
+      toast({
+        variant: 'destructive',
+        title: 'Action Forbidden',
+        description: 'An admin cannot impersonate another admin.',
+      });
+      return;
+    }
     impersonate({
       id: userToImpersonate.id,
       username: userToImpersonate.username,
@@ -280,7 +288,7 @@ export default function UsersPage() {
                     <SelectContent>
                       <SelectItem value="Executive">Executive</SelectItem>
                       <SelectItem value="Sub Admin">Sub Admin</SelectItem>
-                      <SelectItem value="Admin">Admin</SelectItem>
+                       {originalUser?.role === 'Admin' && <SelectItem value="Admin">Admin</SelectItem>}
                     </SelectContent>
                   </Select>
                 </div>
@@ -321,14 +329,18 @@ export default function UsersPage() {
                       <TableBody>
                         {users.map((user) => (
                           <TableRow key={user.id}>
-                            <TableCell>
-                              <Button
-                                variant="link"
-                                className="p-0 h-auto font-medium"
-                                onClick={() => handleImpersonate(user)}
-                              >
-                                {user.username}
-                              </Button>
+                             <TableCell>
+                              {user.role === 'Admin' ? (
+                                <span className="font-medium px-1">{user.username}</span>
+                              ) : (
+                                <Button
+                                  variant="link"
+                                  className="p-0 h-auto font-medium"
+                                  onClick={() => handleImpersonate(user)}
+                                >
+                                  {user.username}
+                                </Button>
+                              )}
                             </TableCell>
                             <TableCell>{user.email}</TableCell>
                             <TableCell>{user.role}</TableCell>
