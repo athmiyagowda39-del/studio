@@ -154,14 +154,23 @@ export default function LeadsUpdatePage() {
   }, [isAuthenticated]);
 
 
+  // Base list of leads a user is allowed to see, based on their role.
+  const visibleLeads = useMemo(() => {
+    if (!user) return [];
+
+    // Executives can only see leads assigned to them.
+    if (user.role === 'Executive') {
+      return allLeads.filter(lead => lead.executive === user.username);
+    }
+
+    // Admins and Sub Admins can see all leads. Filters will narrow it down.
+    return allLeads;
+  }, [allLeads, user]);
+
+
   // Centralized filtering logic
   useEffect(() => {
-    let tempLeads = [...allLeads];
-
-    // Role-based filtering
-    if (user?.role === 'Executive') {
-      tempLeads = tempLeads.filter(lead => lead.executive === user.username);
-    }
+    let tempLeads = [...visibleLeads];
 
     // Search term filtering
     if (activeTab === 'search-result' && searchTerm.trim() !== '') {
@@ -278,8 +287,7 @@ export default function LeadsUpdatePage() {
     setFilteredLeads(tempLeads);
     setCurrentPage(1);
   }, [
-    allLeads,
-    user,
+    visibleLeads,
     activeTab, 
     searchTerm,
     searchCategory,
