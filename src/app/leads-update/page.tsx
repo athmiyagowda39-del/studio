@@ -153,7 +153,6 @@ export default function LeadsUpdatePage() {
   const [considerStatus, setConsiderStatus] = useState(false); // This is the "Do not consider..." checkbox
 
   // ✅ FOLLOW-UP FILTER STATE
-  const [considerFollowUps, setConsiderFollowUps] = useState(false);
   const [followUpStatus, setFollowUpStatus] = useState('pending');
   const [followUpFromDate, setFollowUpFromDate] = useState('');
   const [followUpToDate, setFollowUpToDate] = useState('');
@@ -258,7 +257,7 @@ export default function LeadsUpdatePage() {
     }
     
     // Follow-up filters
-    if (considerStatus && considerFollowUps) {
+    if (considerStatus) {
         if (followUpStatus === 'pending') {
             tempLeads = tempLeads.filter(lead => {
                 if (!lead.nextFollowUpDate) return false;
@@ -341,7 +340,7 @@ export default function LeadsUpdatePage() {
   }, [
     visibleLeads, activeTab, searchTerm, searchCategory, fromDate, toDate, 
     selectedProduct, selectedExecutive, givenBy, selectedStatus, 
-    selectedSubStatus, selectedLeadSource, considerStatus, considerFollowUps,
+    selectedSubStatus, selectedLeadSource, considerStatus,
     followUpStatus, followUpFromDate, followUpToDate, followUpEnteredBy
   ]);
 
@@ -369,7 +368,6 @@ export default function LeadsUpdatePage() {
     setOtherLeadSourceInput('');
     setConsiderStatus(false);
     
-    setConsiderFollowUps(false);
     setFollowUpStatus('pending');
     setFollowUpFromDate('');
     setFollowUpToDate('');
@@ -828,14 +826,6 @@ export default function LeadsUpdatePage() {
                     {/* NESTED FOLLOW-UP SECTION */}
                     {considerStatus && (
                       <div className="space-y-4 pl-6 border-l-2 border-muted ml-2 pt-2">
-                        <div className="flex items-center gap-2">
-                          <Checkbox
-                            id="considerFollowUps"
-                            checked={considerFollowUps}
-                            onCheckedChange={(checked) => setConsiderFollowUps(checked as boolean)}
-                          /> 
-                          <Label htmlFor="considerFollowUps">Consider Follow Ups</Label>
-                        </div>
                         
                         <RadioGroup value={followUpStatus} onValueChange={setFollowUpStatus} className="flex gap-4">
                           <div className="flex items-center gap-2">
