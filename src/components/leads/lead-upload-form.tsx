@@ -546,7 +546,11 @@ export default function LeadUploadForm() {
             <Label htmlFor="reference">Reference</Label>
              <Select value={formData.reference} onValueChange={(value) => handleSelectChange('reference', value)} disabled={isReadOnly}>
                 <SelectTrigger id="reference">
-                    <SelectValue placeholder="Select Reference..."/>
+                  {formData.reference && formData.reference !== 'Other' ? (
+                    <span className="truncate">{formData.reference}</span>
+                  ) : (
+                    <SelectValue placeholder="Select Reference..." />
+                  )}
                 </SelectTrigger>
                 <SelectContent>
                     {references.map((ref) => (
@@ -554,9 +558,6 @@ export default function LeadUploadForm() {
                             {ref}
                         </SelectItem>
                     ))}
-                    {!references.includes(formData.reference) && formData.reference !== 'Other' && formData.reference && (
-                      <SelectItem value={formData.reference}>{formData.reference}</SelectItem>
-                    )}
                 </SelectContent>
             </Select>
             {formData.reference === 'Other' && (
@@ -789,6 +790,8 @@ export default function LeadUploadForm() {
     </div>
   );
 }
+
+    
 
     
 
