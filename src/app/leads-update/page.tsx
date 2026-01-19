@@ -81,7 +81,7 @@ const getLeadsFromLocalStorage = (): LeadFormData[] => {
 /* ---------------- COMPONENT ---------------- */
 
 export default function LeadsUpdatePage() {
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading, originalUser } = useAuth();
   const router = useRouter();
   const pageTopRef = useRef<HTMLDivElement>(null);
 
@@ -810,7 +810,7 @@ export default function LeadsUpdatePage() {
                     List of Leads &gt;&gt; [All Leads ({filteredLeads.length} Records)]
                   </CardTitle>
                 </CardHeader>
-                 <ScrollArea className="h-[600px] w-full whitespace-nowrap rounded-md border">
+                 <ScrollArea className="w-full whitespace-nowrap rounded-md border">
                   <Table className="min-w-[2800px]">
                     <TableHeader className="bg-muted">
                       <TableRow>
