@@ -314,6 +314,16 @@ export default function LeadUploadForm() {
   const validateLead = (
     lead: Omit<LeadFormData, 'leadId' | 'creationDate'>
   ) => {
+    // Specific check for module
+    if (!lead.selectedModule) {
+      toast({
+        variant: 'destructive',
+        title: 'Missing Information',
+        description: 'Please select a module.',
+      });
+      return false;
+    }
+
     const requiredFields: (keyof typeof lead)[] = [
       'pincode',
       'company',
@@ -326,34 +336,35 @@ export default function LeadUploadForm() {
       'reference',
       'headcount',
       'sector',
-      'selectedModule',
       'manager',
     ];
 
     for (const field of requiredFields) {
-      if (
-        !lead[field] ||
-        (field === 'reference' && lead[field] === 'Other') ||
-        (field === 'sector' && lead[field] === 'Other')
-      ) {
-        let fieldName = field.replace(/([A-Z])/g, ' $1');
-        fieldName = fieldName.charAt(0).toUpperCase() + fieldName.slice(1);
-
-        let message = `Please fill all required fields before saving. Missing or incomplete: ${fieldName}`;
-        if (field === 'reference' && lead[field] === 'Other') {
-          message = "Please specify a value for 'Other' reference.";
-        }
-        if (field === 'sector' && lead[field] === 'Other') {
-          message = "Please specify a value for 'Other' sector.";
-        }
-
+      if (!lead[field]) {
         toast({
           variant: 'destructive',
           title: 'Missing Information',
-          description: message,
+          description: 'Please fill all required fields.',
         });
         return false;
       }
+    }
+
+    if (lead.reference === 'Other') {
+      toast({
+        variant: 'destructive',
+        title: 'Missing Information',
+        description: "Please specify a value for 'Other' reference.",
+      });
+      return false;
+    }
+    if (lead.sector === 'Other') {
+      toast({
+        variant: 'destructive',
+        title: 'Missing Information',
+        description: "Please specify a value for 'Other' sector.",
+      });
+      return false;
     }
 
     if (!lead.toExecutive || !toExecutiveSelection) {
