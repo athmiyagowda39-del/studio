@@ -24,7 +24,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useUsers } from '@/context/users-context';
 import { useAuth } from '@/context/auth-context';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { useRouter } from 'next/navigation';
 
 
@@ -129,6 +129,12 @@ export default function LeadsUpdatePage() {
       router.replace('/login');
     }
   }, [isAuthenticated, isLoading, router]);
+
+  useEffect(() => {
+    if (originalUser?.role === 'Sub Admin') {
+      router.replace('/users');
+    }
+  }, [originalUser, router]);
 
   useEffect(() => {
     const executiveUsers = users
@@ -338,7 +344,6 @@ export default function LeadsUpdatePage() {
     setGivenBy('all');
     setOtherGivenByInput('');
     setSelectedStatus('all');
-    setSelectedSubStatus('all');
     setOtherSubStatusInput('');
     
     setConsiderStatus(false);
@@ -408,7 +413,7 @@ export default function LeadsUpdatePage() {
   const totalPages = Math.ceil(filteredLeads.length / LEADS_PER_PAGE);
 
   /* ---------------- UI ---------------- */
-  if (isLoading || !isAuthenticated) {
+  if (isLoading || !isAuthenticated || originalUser?.role === 'Sub Admin') {
     return null; // or a loading skeleton
   }
 
@@ -654,24 +659,25 @@ export default function LeadsUpdatePage() {
                   {/* ROW 5 */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                      <div className="space-y-1">
-                      <Label>Status of Lead</Label>
-                      <Select value={selectedStatus} onValueChange={(value) => setSelectedStatus(value)}>
-                        <SelectTrigger>
-                            <SelectValue placeholder="--All--" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <ScrollArea className="h-48">
-                                {leadStatusOptions.map(status => (
-                                <SelectItem key={status} value={status}>
-                                    {status}
-                                </SelectItem>
-                                ))}
-                                {!leadStatusOptions.includes(selectedStatus) && selectedStatus !== 'all' && (
-                                    <SelectItem value={selectedStatus}>{selectedStatus}</SelectItem>
-                                )}
-                            </ScrollArea>
-                        </SelectContent>
-                      </Select>
+                        <Label>Status of Lead</Label>
+                        <Select value={selectedStatus} onValueChange={(value) => setSelectedStatus(value)}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="--All--" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <ScrollArea className="h-48">
+                                    <SelectItem value="all">All</SelectItem>
+                                    {leadStatusOptions.map(status => (
+                                    <SelectItem key={status} value={status}>
+                                        {status}
+                                    </SelectItem>
+                                    ))}
+                                    {!leadStatusOptions.includes(selectedStatus) && selectedStatus !== 'all' && (
+                                        <SelectItem value={selectedStatus}>{selectedStatus}</SelectItem>
+                                    )}
+                                </ScrollArea>
+                            </SelectContent>
+                        </Select>
                     </div>
                     <div className="space-y-1">
                       <Label>Sub Status of Lead</Label>
@@ -883,6 +889,7 @@ export default function LeadsUpdatePage() {
                       )})}
                     </TableBody>
                   </Table>
+                  <ScrollBar orientation="horizontal" />
                 </ScrollArea>
                  {/* PAGINATION */}
                 {totalPages > 1 && (
@@ -917,5 +924,5 @@ export default function LeadsUpdatePage() {
         </Card>
       </div>
     </AppContent>
-  );
-}
+
+    
