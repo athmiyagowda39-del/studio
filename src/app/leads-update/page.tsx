@@ -261,6 +261,12 @@ export default function LeadsUpdatePage() {
         if (followUpStatus === 'pending') {
             tempLeads = tempLeads.filter(lead => {
                 if (!lead.nextFollowUpDate) return false;
+
+                // Condition 1: Check if the lead's executive matches the 'entered by' filter
+                const executiveMatch = (followUpEnteredBy === 'all' || followUpEnteredBy === 'Other') || lead.executive === followUpEnteredBy;
+                if (!executiveMatch) return false;
+
+                // Condition 2: Check date range
                 try {
                     const nextFollowUp = startOfDay(new Date(lead.nextFollowUpDate));
                     let inDateRange = true;
@@ -281,6 +287,15 @@ export default function LeadsUpdatePage() {
 
                 return lead.followUps.some(followUp => {
                     let isMatch = true;
+                    
+                    // Condition 1: Check 'entered by'
+                    if (followUpEnteredBy !== 'all' && followUpEnteredBy !== 'Other' && followUp.enteredBy !== followUpEnteredBy) {
+                        isMatch = false;
+                    }
+
+                    if (!isMatch) return false; // Early exit if person doesn't match
+
+                    // Condition 2: Check date range
                     try {
                         const followUpDate = startOfDay(new Date(followUp.date));
                         let inDateRange = true;
@@ -292,10 +307,6 @@ export default function LeadsUpdatePage() {
                         }
                         if (!inDateRange) isMatch = false;
                     } catch(e) { isMatch = false; }
-
-                    if (followUpEnteredBy !== 'all' && followUpEnteredBy !== 'Other' && followUp.enteredBy !== followUpEnteredBy) {
-                        isMatch = false;
-                    }
 
                     return isMatch;
                 });
@@ -1033,3 +1044,5 @@ export default function LeadsUpdatePage() {
     </AppContent>
   );
 }
+
+    
