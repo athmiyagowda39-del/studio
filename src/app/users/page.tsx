@@ -52,9 +52,6 @@ export default function UsersPage() {
   const [newRole, setNewRole] = useState<'Admin' | 'Sub Admin' | 'Executive' | ''>('');
   const [showNewPassword, setShowNewPassword] = useState(false);
 
-  // State for password visibility in the table
-  const [passwordVisibility, setPasswordVisibility] = useState<Record<string, boolean>>({});
-
   // State for delete confirmation
   const [userToDelete, setUserToDelete] = useState<AppUser | null>(null);
 
@@ -78,17 +75,17 @@ export default function UsersPage() {
   };
 
   const handleSaveUser = async () => {
-    if (!newUsername.trim() || !newPassword.trim() || !newEmail.trim() || !newRole) {
-      toast({
-        variant: 'destructive',
-        title: 'Validation Error',
-        description: 'All fields are required.',
-      });
-      return;
-    }
-
     if (editingUserId) {
       // Update existing user
+      if (!newUsername.trim() || !newEmail.trim() || !newRole) {
+        toast({
+          variant: 'destructive',
+          title: 'Validation Error',
+          description: 'Username, email, and role are required.',
+        });
+        return;
+      }
+
        if (
         users.some(
           (u) =>
@@ -105,18 +102,31 @@ export default function UsersPage() {
         return;
       }
       
-      updateUser(editingUserId, {
+      const updates: Partial<Omit<AppUser, 'id'>> = {
         username: newUsername,
         email: newEmail,
         role: newRole,
-        password: newPassword,
-      });
+      };
+
+      if (newPassword.trim()) {
+        updates.password = newPassword;
+      }
+
+      updateUser(editingUserId, updates);
       toast({
         title: 'User Updated',
         description: `User "${newUsername}"'s details have been updated.`,
       });
     } else {
       // Add new user
+      if (!newUsername.trim() || !newPassword.trim() || !newEmail.trim() || !newRole) {
+        toast({
+          variant: 'destructive',
+          title: 'Validation Error',
+          description: 'All fields are required.',
+        });
+        return;
+      }
       if (
         users.some(
           (u) =>
@@ -157,7 +167,7 @@ export default function UsersPage() {
     setEditingUserId(user.id);
     setNewUsername(user.username);
     setNewEmail(user.email);
-    setNewPassword(user.password || '');
+    setNewPassword(''); // Don't pre-fill password
     setNewRole(user.role);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -181,10 +191,6 @@ export default function UsersPage() {
       description: `User "${userToDelete.username}" has been removed.`,
     });
     setUserToDelete(null);
-  };
-
-  const togglePasswordVisibility = (userId: string) => {
-    setPasswordVisibility((prev) => ({ ...prev, [userId]: !prev[userId] }));
   };
 
   const handleImpersonate = (userToImpersonate: AppUser) => {
@@ -257,7 +263,7 @@ export default function UsersPage() {
                     type={showNewPassword ? 'text' : 'password'}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Enter password"
+                    placeholder={editingUserId ? 'Leave blank to keep password' : 'Enter password'}
                     autoComplete="new-password"
                   />
                   <Button
@@ -320,7 +326,6 @@ export default function UsersPage() {
                           <TableHead>Username</TableHead>
                           <TableHead>Email</TableHead>
                           <TableHead>Role</TableHead>
-                          <TableHead>Password (Last Known)</TableHead>
                           <TableHead className="text-right w-[120px]">
                             Actions
                           </TableHead>
@@ -344,29 +349,6 @@ export default function UsersPage() {
                             </TableCell>
                             <TableCell>{user.email}</TableCell>
                             <TableCell>{user.role}</TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <span>
-                                  {passwordVisibility[user.id]
-                                    ? user.password
-                                    : '••••••••'}
-                                </span>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-7 w-7 text-muted-foreground"
-                                  onClick={() =>
-                                    togglePasswordVisibility(user.id)
-                                  }
-                                >
-                                  {passwordVisibility[user.id] ? (
-                                    <EyeOff className="h-4 w-4" />
-                                  ) : (
-                                    <Eye className="h-4 w-4" />
-                                  )}
-                                </Button>
-                              </div>
-                            </TableCell>
                             <TableCell className="text-right">
                               <Button
                                 variant="ghost"
