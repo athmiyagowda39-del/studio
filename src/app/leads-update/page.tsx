@@ -2,7 +2,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import {
   Table,
   TableBody,
@@ -135,33 +135,28 @@ export default function LeadsUpdatePage() {
       .map(user => user.username);
     setExecutives(executiveUsers);
   }, [users]);
-
-  useEffect(() => {
+  
+  const loadLeads = useCallback(() => {
     if (isAuthenticated) {
-      const loadLeads = () => {
         let leads = getLeadsFromLocalStorage();
         if (user?.role === 'Executive') {
-          leads = leads.filter(lead => lead.executive === user.username);
+          leads = leads.filter(lead => lead.executive === user?.username);
         }
         setAllLeads(leads);
-      };
-
-      loadLeads(); // Initial load
-
-      // Listen for changes from other tabs and within the same app
-      const handleLeadsUpdate = () => {
-        loadLeads();
-      };
-      
-      window.addEventListener('storage', handleLeadsUpdate);
-      window.addEventListener('leadsUpdated', handleLeadsUpdate);
-      
-      return () => {
-        window.removeEventListener('storage', handleLeadsUpdate);
-        window.removeEventListener('leadsUpdated', handleLeadsUpdate);
-      };
     }
-  }, [user, isAuthenticated]);
+  }, [isAuthenticated, user]);
+
+  useEffect(() => {
+    loadLeads(); // Initial load
+
+    window.addEventListener('storage', loadLeads);
+    window.addEventListener('leadsUpdated', loadLeads);
+    
+    return () => {
+      window.removeEventListener('storage', loadLeads);
+      window.removeEventListener('leadsUpdated', loadLeads);
+    };
+  }, [loadLeads]);
 
 
   const handleLeadsUpdate = (updatedLeads: LeadFormData[]) => {
