@@ -184,6 +184,42 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
     });
   };
 
+  const handleTransferLead = () => {
+    if (!leadDetails.leadId) {
+      toast({
+        variant: 'destructive',
+        title: 'No Lead Selected',
+        description: 'Please select a lead to transfer.',
+      });
+      return;
+    }
+    if (!transferredTo) {
+      toast({
+        variant: 'destructive',
+        title: 'No Executive Selected',
+        description: 'Please select an executive to transfer the lead to.',
+      });
+      return;
+    }
+
+    const updatedLeadDetails = { ...leadDetails, executive: transferredTo };
+
+    const updatedLeads = allLeads.map(l =>
+      l.leadId === leadDetails.leadId ? updatedLeadDetails : l
+    );
+    
+    saveLeadsToLocalStorage(updatedLeads as LeadFormData[]);
+    setAllLeads(updatedLeads as LeadFormData[]);
+    setLeadDetails(updatedLeadDetails);
+
+    toast({
+      title: 'Lead Transferred',
+      description: `Lead ${leadDetails.leadId} has been transferred to ${transferredTo}.`,
+    });
+
+    setTransferredTo('');
+  };
+
   const handleUpdateStatus = async () => {
     if (!selectedStatus) {
       toast({ variant: 'destructive', title: 'No Status Selected', description: 'Please select a status to update.' });
@@ -441,18 +477,29 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
           <CardContent className="space-y-4 p-4">
             <div className="space-y-2">
               <Label className="font-semibold shrink-0">TRANSFERRED LEAD</Label>
-              <div className="flex flex-col gap-2">
-                <Select value={transferredTo} onValueChange={setTransferredTo} disabled={isReadOnly}>
-                    <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select Executive..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">All</SelectItem>
-                        {executives.map(exec => (
-                            <SelectItem key={exec} value={exec}>{exec}</SelectItem>
-                        ))}
-                    </SelectContent>
+              <div className="flex items-center gap-2">
+                <Select
+                  value={transferredTo}
+                  onValueChange={setTransferredTo}
+                  disabled={isReadOnly || !leadDetails.leadId}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select Executive to transfer to..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {executives.map((exec) => (
+                      <SelectItem key={exec} value={exec}>
+                        {exec}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
                 </Select>
+                <Button
+                  onClick={handleTransferLead}
+                  disabled={isReadOnly || !leadDetails.leadId || !transferredTo}
+                >
+                  Transfer
+                </Button>
               </div>
             </div>
             <p className="font-semibold">Follow Up</p>
