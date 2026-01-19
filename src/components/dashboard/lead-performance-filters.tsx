@@ -80,9 +80,6 @@ const allIndianStates = [
 ];
 
 const stateDistrictMap: Record<string, string[]> = {
-    "Andaman and Nicobar Islands": [
-        "ANDAMAN NICOBAR IS", "Port Blair"
-    ],
     "Andhra Pradesh": [
         "ADILABAD",
         "ANANTAPUR",
@@ -107,51 +104,7 @@ const stateDistrictMap: Record<string, string[]> = {
         "VIZIANAGARAM",
         "WARANGAL",
         "WEST GODAVARI"
-    ],
-    "Arunachal Pradesh": [
-        "ANJAW", "CHANGLANG", "EAST KAMENG", "EAST SIANG", "KURUNG KUMEY", "LOHIT",
-        "LOWER DIBANG VALLEY", "LOWER SUBANSIRI", "PAPUM PARE", "TAWANG", "TIRAP",
-        "UPPER DIBANG VALLEY", "UPPER SIANG", "UPPER SUBANSIRI", "WEST KAMENG", "WEST SIANG", "Itanagar"
-    ],
-    "Assam": [
-        "BAKSA", "BARPETA", "BONGAIGAON", "CACHAR", "CHIRANG", "DARRANG", "DHEMAJI",
-        "DHUBRI", "DIBRUGARH", "GOALPARA", "GOLAGHAT", "HAILAKANDI", "JORHAT", "KAMRUP",
-        "KARBI ANGLONG", "KARIMGANJ", "Guwahati"
-    ],
-    "Karnataka": [
-        "Bangalore GPO / MG Road", "Shivajinagar", "Malleshwaram", "Rajajinagar", "Jayanagar", "Basavanagudi", "BTM Layout", "JP Nagar", "Yelahanka", "Hebbal", "Whitefield", "Marathahalli", "Electronic City", "KR Puram", "Banashankari", "HSR Layout"
-    ],
-    "Bihar": ["Patna"],
-    "Chhattisgarh": ["Raipur"],
-    "Goa": ["Panaji"],
-    "Gujarat": ["Ahmedabad"],
-    "Haryana": ["Gurugram"],
-    "Himachal Pradesh": ["Shimla"],
-    "Jharkhand": ["Ranchi"],
-    "Kerala": ["Thiruvananthapuram"],
-    "Madhya Pradesh": ["Bhopal"],
-    "Maharashtra": ["Mumbai"],
-    "Manipur": ["Imphal"],
-    "Meghalaya": ["Shillong"],
-    "Mizoram": ["Aizawl"],
-    "Nagaland": ["Kohima"],
-    "Odisha": ["Bhubaneswar"],
-    "Punjab": ["Chandigarh"],
-    "Rajasthan": ["Jaipur"],
-    "Sikkim": ["Gangtok"],
-    "Tamil Nadu": ["Chennai"],
-    "Telangana": ["Hyderabad"],
-    "Tripura": ["Agartala"],
-    "Uttar Pradesh": ["Lucknow"],
-    "Uttarakhand": ["Dehradun"],
-    "West Bengal": ["Kolkata"],
-    "Chandigarh": ["Chandigarh"],
-    "Dadra and Nagar Haveli and Daman and Diu": ["Daman"],
-    "Delhi": ["New Delhi"],
-    "Jammu and Kashmir": ["Srinagar"],
-    "Ladakh": ["Leh"],
-    "Lakshadweep": ["Kavaratti"],
-    "Puducherry": ["Puducherry"],
+    ]
 };
 
 
