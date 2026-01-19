@@ -81,7 +81,7 @@ const getLeadsFromLocalStorage = (): LeadFormData[] => {
 /* ---------------- COMPONENT ---------------- */
 
 export default function LeadsUpdatePage() {
-  const { user, isAuthenticated, isLoading, originalUser } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const pageTopRef = useRef<HTMLDivElement>(null);
 
@@ -127,10 +127,8 @@ export default function LeadsUpdatePage() {
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       router.replace('/login');
-    } else if (!isLoading && originalUser?.role === 'Sub Admin') {
-      router.replace('/users');
     }
-  }, [isAuthenticated, isLoading, router, originalUser]);
+  }, [isAuthenticated, isLoading, router]);
 
   useEffect(() => {
     const executiveUsers = users
@@ -145,8 +143,6 @@ export default function LeadsUpdatePage() {
         let leads = getLeadsFromLocalStorage();
         if (user?.role === 'Executive') {
           leads = leads.filter(lead => lead.executive === user.username);
-        } else if (user?.role === 'Sub Admin') {
-            // Future logic for Sub Admins can go here
         }
         setAllLeads(leads);
       };
@@ -412,7 +408,7 @@ export default function LeadsUpdatePage() {
   const totalPages = Math.ceil(filteredLeads.length / LEADS_PER_PAGE);
 
   /* ---------------- UI ---------------- */
-  if (isLoading || !isAuthenticated || originalUser?.role === 'Sub Admin') {
+  if (isLoading || !isAuthenticated) {
     return null; // or a loading skeleton
   }
 

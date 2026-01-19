@@ -27,16 +27,14 @@ const getLeadsFromLocalStorage = (): LeadFormData[] => {
 
 export default function LeadUpdateStatusReportPage() {
   const [allLeads, setAllLeads] = useState<LeadFormData[]>([]);
-  const { user, isAuthenticated, isLoading, originalUser } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       router.replace('/login');
-    } else if (!isLoading && originalUser?.role === 'Sub Admin') {
-      router.replace('/users');
     }
-  }, [isAuthenticated, isLoading, router, originalUser]);
+  }, [isAuthenticated, isLoading, router]);
 
   useEffect(() => {
     const leads = getLeadsFromLocalStorage();
@@ -61,7 +59,7 @@ export default function LeadUpdateStatusReportPage() {
     };
   }, [user]);
 
-  if (isLoading || !isAuthenticated || originalUser?.role === 'Sub Admin') {
+  if (isLoading || !isAuthenticated) {
     return null;
   }
 

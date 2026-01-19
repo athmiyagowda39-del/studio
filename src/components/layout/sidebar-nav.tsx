@@ -27,11 +27,6 @@ const links = [
 
 const adminLinks = [{ href: '/users', label: 'MANAGE USERS', icon: Users }];
 
-const subAdminLinks = [
-  { href: '/users', label: 'MANAGE USERS', icon: Users },
-  { href: '/profile', label: 'PROFILE', icon: User },
-];
-
 export default function SidebarNav() {
   const pathname = usePathname();
   const [isClient, setIsClient] = useState(false);
@@ -45,10 +40,8 @@ export default function SidebarNav() {
     pathname.startsWith(href) && (href !== '/' || pathname === '/');
 
   let allLinks = links;
-  if (originalUser?.role === 'Admin') {
+  if (originalUser?.role === 'Admin' || originalUser?.role === 'Sub Admin') {
     allLinks = [...links, ...adminLinks];
-  } else if (originalUser?.role === 'Sub Admin') {
-    allLinks = subAdminLinks;
   }
 
   return (

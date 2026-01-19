@@ -9,16 +9,14 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
 export default function ReportsPage() {
-  const { isAuthenticated, isLoading, originalUser } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       router.replace('/login');
-    } else if (!isLoading && originalUser?.role === 'Sub Admin') {
-      router.replace('/users');
     }
-  }, [isAuthenticated, isLoading, router, originalUser]);
+  }, [isAuthenticated, isLoading, router]);
 
   const reports = [
     { name: 'LEAD REPORT', href: '/reports/lead-report' },
@@ -27,7 +25,7 @@ export default function ReportsPage() {
     { name: 'LEAD UPLOAD STATUS REPORT', href: '/reports/lead-upload-status' },
   ];
 
-  if (isLoading || !isAuthenticated || originalUser?.role === 'Sub Admin') {
+  if (isLoading || !isAuthenticated) {
     return null;
   }
 

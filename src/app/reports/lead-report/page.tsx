@@ -109,16 +109,14 @@ const getLeadStatusesForFilters = (
 
 export default function LeadReportPage() {
   const [allLeads, setAllLeads] = useState<LeadFormData[]>([]);
-  const { user, isAuthenticated, isLoading, originalUser } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       router.replace('/login');
-    } else if (!isLoading && originalUser?.role === 'Sub Admin') {
-      router.replace('/users');
     }
-  }, [isAuthenticated, isLoading, router, originalUser]);
+  }, [isAuthenticated, isLoading, router]);
   
   useEffect(() => {
     let leads = getLeadsFromLocalStorage();
@@ -197,7 +195,7 @@ export default function LeadReportPage() {
 
   const shouldShowDetails = selectedStatus && selectedStatus !== 'all-statuses';
 
-  if (isLoading || !isAuthenticated || originalUser?.role === 'Sub Admin') {
+  if (isLoading || !isAuthenticated) {
     return null;
   }
 
