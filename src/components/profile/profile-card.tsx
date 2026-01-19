@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -21,34 +22,24 @@ import {
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { useState, useEffect } from 'react';
-import Image from 'next/image';
-import type { ImagePlaceholder } from '@/lib/placeholder-images.d';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { useState } from 'react';
 import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/context/auth-context';
-import { useRouter } from 'next/navigation';
-import { getAuth, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
+import { useUsers } from '@/context/users-context';
 
 export default function ProfileCard() {
   const { toast } = useToast();
-  const [userAvatar, setUserAvatar] = useState<ImagePlaceholder | undefined>();
-  const { user, firebaseUser, logout } = useAuth();
-  const router = useRouter();
+  const { user, logout } = useAuth();
+  const { users, updateUser } = useUsers();
 
   const userName = user?.username ? user.username.toUpperCase() : 'USER';
   const userEmail = user?.email || 'N/A';
+  const userInitial = user?.username ? user.username.charAt(0).toUpperCase() : 'U';
 
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
-
-  useEffect(() => {
-    setUserAvatar(
-      PlaceHolderImages.find((img) => img.id === 'user-avatar')
-    );
-  }, []);
 
   const handleLogout = () => {
     logout();
@@ -61,8 +52,8 @@ export default function ProfileCard() {
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!firebaseUser || !firebaseUser.email) {
-       toast({ variant: 'destructive', title: 'Error', description: 'Not logged in or user email is missing.' });
+    if (!user) {
+       toast({ variant: 'destructive', title: 'Error', description: 'Not logged in.' });
        return;
     }
 
@@ -83,14 +74,15 @@ export default function ProfileCard() {
       });
       return;
     }
+    
+    const currentUserData = users.find(u => u.id === user.id);
+    if (!currentUserData || currentUserData.password !== currentPassword) {
+        toast({ variant: 'destructive', title: 'Password Change Failed', description: 'The current password you entered is incorrect.' });
+        return;
+    }
 
     try {
-      // Re-authenticate the user before changing the password for security
-      const credential = EmailAuthProvider.credential(firebaseUser.email, currentPassword);
-      await reauthenticateWithCredential(firebaseUser, credential);
-
-      // If re-authentication is successful, update the password
-      await updatePassword(firebaseUser, newPassword);
+      updateUser(user.id, { password: newPassword });
       
       toast({
         title: 'Password Changed',
@@ -103,13 +95,7 @@ export default function ProfileCard() {
       setIsPasswordDialogOpen(false);
 
     } catch (error: any) {
-        let description = 'An error occurred.';
-        if (error.code === 'auth/wrong-password') {
-            description = 'The current password you entered is incorrect.';
-        } else if (error.code === 'auth/weak-password') {
-            description = 'The new password is too weak. It must be at least 6 characters long.';
-        }
-        toast({ variant: 'destructive', title: 'Password Change Failed', description: description });
+        toast({ variant: 'destructive', title: 'Password Change Failed', description: 'An unexpected error occurred.' });
     }
   };
 
@@ -118,20 +104,9 @@ export default function ProfileCard() {
       <Card className="w-full max-w-md">
         <CardHeader className="items-center text-center">
           <Avatar className="h-24 w-24 mb-4">
-            {userAvatar ? (
-              <Image
-                src={userAvatar.imageUrl}
-                alt={userAvatar.description}
-                width={96}
-                height={96}
-                className="rounded-full object-cover"
-                data-ai-hint={userAvatar.imageHint}
-              />
-            ) : (
-              <AvatarFallback>
-                <UserIcon className="h-16 w-16 text-muted-foreground" />
-              </AvatarFallback>
-            )}
+            <AvatarFallback className="text-4xl">
+              {userInitial}
+            </AvatarFallback>
           </Avatar>
           <CardTitle className="text-2xl">{userName}</CardTitle>
           <p className="text-sm text-muted-foreground">{userEmail}</p>

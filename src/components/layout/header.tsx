@@ -5,10 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { SidebarTrigger } from '@/components/ui/sidebar';
-import type { ImagePlaceholder } from '@/lib/placeholder-images.d';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Bell, User, LogOut } from 'lucide-react';
-import Image from 'next/image';
 import { useEffect, useState, useRef } from 'react';
 import {
   DropdownMenu,
@@ -24,7 +21,6 @@ import { format } from 'date-fns';
 import { useAuth } from '@/context/auth-context';
 
 export default function Header() {
-  const [userAvatar, setUserAvatar] = useState<ImagePlaceholder | undefined>();
   const pathname = usePathname();
   const showLoginDetails = pathname !== '/leads-upload';
   const { toast } = useToast();
@@ -37,7 +33,6 @@ export default function Header() {
 
   useEffect(() => {
     setIsClient(true);
-    setUserAvatar(PlaceHolderImages.find((img) => img.id === 'user-avatar'));
     
     if (loginTimeProcessed.current) return;
 
@@ -116,16 +111,6 @@ export default function Header() {
                 className="relative h-10 w-16 rounded-full p-0"
               >
                 <Avatar className="h-10 w-10 overflow-hidden rounded-full">
-                  {userAvatar && (
-                    <Image
-                      src={userAvatar.imageUrl}
-                      alt={userAvatar.description}
-                      width={64}
-                      height={40}
-                      data-ai-hint={userAvatar.imageHint}
-                      className="object-cover"
-                    />
-                  )}
                   <AvatarFallback>
                     {user?.username.charAt(0).toUpperCase()}
                   </AvatarFallback>
