@@ -4,14 +4,32 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppContent from '@/components/layout/app-content';
 import Link from 'next/link';
+import { useAuth } from '@/context/auth-context';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 export default function ReportsPage() {
+  const { isAuthenticated, isLoading, originalUser } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.replace('/login');
+    } else if (!isLoading && originalUser?.role === 'Sub Admin') {
+      router.replace('/users');
+    }
+  }, [isAuthenticated, isLoading, router, originalUser]);
+
   const reports = [
     { name: 'LEAD REPORT', href: '/reports/lead-report' },
     { name: 'CONVERSION FUNNEL REPORT', href: '/reports/conversion-funnel' },
     { name: 'LEAD UPDATE STATUS REPORT', href: '/reports/lead-update-status' },
     { name: 'LEAD UPLOAD STATUS REPORT', href: '/reports/lead-upload-status' },
   ];
+
+  if (isLoading || !isAuthenticated || originalUser?.role === 'Sub Admin') {
+    return null;
+  }
 
   return (
     <AppContent>

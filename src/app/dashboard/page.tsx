@@ -34,7 +34,7 @@ const getLeadsFromLocalStorage = (): LeadFormData[] => {
 };
 
 export default function DashboardPage() {
-    const { isAuthenticated, isLoading, user } = useAuth();
+    const { isAuthenticated, isLoading, user, originalUser } = useAuth();
     const { users } = useUsers();
     const router = useRouter();
     const [allLeads, setAllLeads] = useState<LeadFormData[]>([]);
@@ -49,8 +49,10 @@ export default function DashboardPage() {
     useEffect(() => {
         if (!isLoading && !isAuthenticated) {
             router.replace('/login');
+        } else if (!isLoading && originalUser?.role === 'Sub Admin') {
+            router.replace('/users');
         }
-    }, [isAuthenticated, isLoading, router]);
+    }, [isAuthenticated, isLoading, router, originalUser]);
 
     useEffect(() => {
         const executiveUsers = users
@@ -138,7 +140,7 @@ export default function DashboardPage() {
       return Object.values(dailyLeads);
     }, [filteredLeads, selectedPeriod, selectedState, selectedDistrict]);
   
-    if (isLoading || isDataLoading || !isAuthenticated) {
+    if (isLoading || isDataLoading || !isAuthenticated || originalUser?.role === 'Sub Admin') {
         return null; // or a loading skeleton
     }
 

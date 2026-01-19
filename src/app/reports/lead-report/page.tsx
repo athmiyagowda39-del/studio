@@ -27,6 +27,7 @@ import AppContent from '@/components/layout/app-content';
 import { useAuth } from '@/context/auth-context';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import dynamic from 'next/dynamic';
+import { useRouter } from 'next/navigation';
 
 const LeadStatusChart = dynamic(
   () => import('@/components/reports/lead-status-chart'),
@@ -108,7 +109,16 @@ const getLeadStatusesForFilters = (
 
 export default function LeadReportPage() {
   const [allLeads, setAllLeads] = useState<LeadFormData[]>([]);
-  const { user } = useAuth();
+  const { user, isAuthenticated, isLoading, originalUser } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.replace('/login');
+    } else if (!isLoading && originalUser?.role === 'Sub Admin') {
+      router.replace('/users');
+    }
+  }, [isAuthenticated, isLoading, router, originalUser]);
   
   useEffect(() => {
     let leads = getLeadsFromLocalStorage();
@@ -186,6 +196,10 @@ export default function LeadReportPage() {
   }
 
   const shouldShowDetails = selectedStatus && selectedStatus !== 'all-statuses';
+
+  if (isLoading || !isAuthenticated || originalUser?.role === 'Sub Admin') {
+    return null;
+  }
 
   return (
     <AppContent>

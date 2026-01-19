@@ -9,16 +9,18 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
 export default function LeadsUploadPage() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, originalUser } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       router.replace('/login');
+    } else if (!isLoading && originalUser?.role === 'Sub Admin') {
+      router.replace('/users');
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [isAuthenticated, isLoading, router, originalUser]);
 
-  if (isLoading || !isAuthenticated) {
+  if (isLoading || !isAuthenticated || originalUser?.role === 'Sub Admin') {
     return null; // or a loading skeleton
   }
   

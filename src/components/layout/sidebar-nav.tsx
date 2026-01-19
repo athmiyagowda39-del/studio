@@ -25,8 +25,11 @@ const links = [
   { href: '/profile', label: 'PROFILE', icon: User },
 ];
 
-const adminLinks = [
+const adminLinks = [{ href: '/users', label: 'MANAGE USERS', icon: Users }];
+
+const subAdminLinks = [
   { href: '/users', label: 'MANAGE USERS', icon: Users },
+  { href: '/profile', label: 'PROFILE', icon: User },
 ];
 
 export default function SidebarNav() {
@@ -38,46 +41,49 @@ export default function SidebarNav() {
     setIsClient(true);
   }, []);
 
-  const isActive = (href: string) => pathname.startsWith(href) && (href !== '/' || pathname === '/');
-  
-  const allLinks = originalUser?.role === 'Admin' ? [...links, ...adminLinks] : links;
+  const isActive = (href: string) =>
+    pathname.startsWith(href) && (href !== '/' || pathname === '/');
+
+  let allLinks = links;
+  if (originalUser?.role === 'Admin') {
+    allLinks = [...links, ...adminLinks];
+  } else if (originalUser?.role === 'Sub Admin') {
+    allLinks = subAdminLinks;
+  }
 
   return (
     <SidebarMenu>
-      {isClient && allLinks.map((link) => {
-        // Special handling for dashboard/home
-        if (link.href === '/dashboard' && pathname === '/') {
-             return (
-                <SidebarMenuItem key={link.href}>
-                <SidebarMenuButton
-                    asChild
-                    isActive={true}
-                    tooltip={link.label}
-                >
-                    <a href="/" className="flex items-center gap-2">
+      {isClient &&
+        allLinks.map((link) => {
+          // Special handling for dashboard/home
+          if (link.href === '/dashboard' && pathname === '/') {
+            return (
+              <SidebarMenuItem key={link.href}>
+                <SidebarMenuButton asChild isActive={true} tooltip={link.label}>
+                  <a href="/" className="flex items-center gap-2">
                     <link.icon />
                     <span>{link.label}</span>
-                    </a>
+                  </a>
                 </SidebarMenuButton>
-                </SidebarMenuItem>
-            )
-        }
+              </SidebarMenuItem>
+            );
+          }
 
-        return (
+          return (
             <SidebarMenuItem key={link.href}>
-            <SidebarMenuButton
+              <SidebarMenuButton
                 asChild
                 isActive={isActive(link.href)}
                 tooltip={link.label}
-            >
+              >
                 <a href={link.href} className="flex items-center gap-2">
-                <link.icon />
-                <span>{link.label}</span>
+                  <link.icon />
+                  <span>{link.label}</span>
                 </a>
-            </SidebarMenuButton>
+              </SidebarMenuButton>
             </SidebarMenuItem>
-        )
-      })}
+          );
+        })}
     </SidebarMenu>
   );
 }

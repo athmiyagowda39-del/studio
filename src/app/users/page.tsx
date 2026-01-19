@@ -59,12 +59,12 @@ export default function UsersPage() {
   const [userToDelete, setUserToDelete] = useState<AppUser | null>(null);
 
   useEffect(() => {
-    if (!isLoading && (!isAuthenticated || originalUser?.role !== 'Admin')) {
+    if (!isLoading && (!isAuthenticated || !['Admin', 'Sub Admin'].includes(originalUser?.role as string))) {
       router.replace('/dashboard');
     }
   }, [isAuthenticated, originalUser, isLoading, router]);
 
-  if (isLoading || !isAuthenticated || originalUser?.role !== 'Admin') {
+  if (isLoading || !isAuthenticated || !['Admin', 'Sub Admin'].includes(originalUser?.role as string)) {
     return null; // or a loading skeleton
   }
 
@@ -83,6 +83,15 @@ export default function UsersPage() {
         variant: 'destructive',
         title: 'Validation Error',
         description: 'All fields are required.',
+      });
+      return;
+    }
+    
+    if (originalUser?.role === 'Sub Admin' && newRole !== 'Executive') {
+      toast({
+        variant: 'destructive',
+        title: 'Permission Denied',
+        description: 'You can only create Executive users.',
       });
       return;
     }
@@ -217,7 +226,7 @@ export default function UsersPage() {
             {/* Add/Edit User Form */}
             <div className="space-y-4">
               <h2 className="text-lg font-semibold">
-                {editingUserId ? `Editing: ${newUsername}` : 'Add New User'}
+                {editingUserId && originalUser?.role === 'Admin' ? `Editing: ${newUsername}` : 'Add New User'}
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
                 <div className="space-y-2">
@@ -239,7 +248,7 @@ export default function UsersPage() {
                     onChange={(e) => setNewEmail(e.target.value)}
                     placeholder="Enter email"
                     autoComplete="off"
-                    disabled={!!editingUserId}
+                    disabled={!!editingUserId && originalUser?.role === 'Admin'}
                   />
                 </div>
                 <div className="space-y-2 relative">
@@ -279,16 +288,20 @@ export default function UsersPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="Executive">Executive</SelectItem>
-                      <SelectItem value="Sub Admin">Sub Admin</SelectItem>
-                      <SelectItem value="Admin">Admin</SelectItem>
+                      {originalUser?.role === 'Admin' && (
+                        <>
+                          <SelectItem value="Sub Admin">Sub Admin</SelectItem>
+                          <SelectItem value="Admin">Admin</SelectItem>
+                        </>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="flex gap-2">
                     <Button onClick={handleSaveUser} className="w-full">
-                      {editingUserId ? 'Update User' : 'Add User'}
+                      {editingUserId && originalUser?.role === 'Admin' ? 'Update User' : 'Add User'}
                     </Button>
-                    {editingUserId && (
+                    {editingUserId && originalUser?.role === 'Admin' && (
                       <Button onClick={resetForm} variant="outline">
                         Cancel
                       </Button>
@@ -298,88 +311,90 @@ export default function UsersPage() {
             </div>
 
             {/* Users Table */}
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold">Existing Users</h2>
-              <p className="text-sm text-muted-foreground">
-                Click on a username to view their dashboard. Click the pencil icon to edit their details in the form above.
-              </p>
-              <Card>
-                <CardContent className="p-0">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Username</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Role</TableHead>
-                        <TableHead>Password (Last Known)</TableHead>
-                        <TableHead className="text-right w-[120px]">
-                          Actions
-                        </TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {users.map((user) => (
-                        <TableRow key={user.id}>
-                          <TableCell>
-                            <Button
-                              variant="link"
-                              className="p-0 h-auto font-medium"
-                              onClick={() => handleImpersonate(user)}
-                            >
-                              {user.username}
-                            </Button>
-                          </TableCell>
-                          <TableCell>{user.email}</TableCell>
-                          <TableCell>{user.role}</TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <span>
-                                {passwordVisibility[user.id]
-                                  ? user.password
-                                  : '••••••••'}
-                              </span>
+            {originalUser?.role === 'Admin' && (
+              <div className="space-y-4">
+                <h2 className="text-lg font-semibold">Existing Users</h2>
+                <p className="text-sm text-muted-foreground">
+                  Click on a username to view their dashboard. Click the pencil icon to edit their details in the form above.
+                </p>
+                <Card>
+                  <CardContent className="p-0">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Username</TableHead>
+                          <TableHead>Email</TableHead>
+                          <TableHead>Role</TableHead>
+                          <TableHead>Password (Last Known)</TableHead>
+                          <TableHead className="text-right w-[120px]">
+                            Actions
+                          </TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {users.map((user) => (
+                          <TableRow key={user.id}>
+                            <TableCell>
+                              <Button
+                                variant="link"
+                                className="p-0 h-auto font-medium"
+                                onClick={() => handleImpersonate(user)}
+                              >
+                                {user.username}
+                              </Button>
+                            </TableCell>
+                            <TableCell>{user.email}</TableCell>
+                            <TableCell>{user.role}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <span>
+                                  {passwordVisibility[user.id]
+                                    ? user.password
+                                    : '••••••••'}
+                                </span>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7 text-muted-foreground"
+                                  onClick={() =>
+                                    togglePasswordVisibility(user.id)
+                                  }
+                                >
+                                  {passwordVisibility[user.id] ? (
+                                    <EyeOff className="h-4 w-4" />
+                                  ) : (
+                                    <Eye className="h-4 w-4" />
+                                  )}
+                                </Button>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right">
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-7 w-7 text-muted-foreground"
-                                onClick={() =>
-                                  togglePasswordVisibility(user.id)
-                                }
+                                onClick={() => handleEditClick(user)}
                               >
-                                {passwordVisibility[user.id] ? (
-                                  <EyeOff className="h-4 w-4" />
-                                ) : (
-                                  <Eye className="h-4 w-4" />
-                                )}
+                                <Pencil className="h-4 w-4" />
+                                <span className="sr-only">Edit User</span>
                               </Button>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleEditClick(user)}
-                            >
-                              <Pencil className="h-4 w-4" />
-                              <span className="sr-only">Edit User</span>
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => setUserToDelete(user)}
-                              disabled={originalUser?.id === user.id}
-                            >
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                              <span className="sr-only">Delete User</span>
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
-            </div>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setUserToDelete(user)}
+                                disabled={originalUser?.id === user.id}
+                              >
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                                <span className="sr-only">Delete User</span>
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

@@ -81,7 +81,7 @@ const getLeadsFromLocalStorage = (): LeadFormData[] => {
 /* ---------------- COMPONENT ---------------- */
 
 export default function LeadsUpdatePage() {
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading, originalUser } = useAuth();
   const router = useRouter();
   const pageTopRef = useRef<HTMLDivElement>(null);
 
@@ -127,8 +127,10 @@ export default function LeadsUpdatePage() {
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       router.replace('/login');
+    } else if (!isLoading && originalUser?.role === 'Sub Admin') {
+      router.replace('/users');
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [isAuthenticated, isLoading, router, originalUser]);
 
   useEffect(() => {
     const executiveUsers = users
@@ -410,7 +412,7 @@ export default function LeadsUpdatePage() {
   const totalPages = Math.ceil(filteredLeads.length / LEADS_PER_PAGE);
 
   /* ---------------- UI ---------------- */
-  if (isLoading || !isAuthenticated) {
+  if (isLoading || !isAuthenticated || originalUser?.role === 'Sub Admin') {
     return null; // or a loading skeleton
   }
 
@@ -655,6 +657,26 @@ export default function LeadsUpdatePage() {
 
                   {/* ROW 5 */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     <div className="space-y-1">
+                      <Label>Status of Lead</Label>
+                      <Select value={selectedStatus} onValueChange={(value) => setSelectedStatus(value)}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="--All--" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <ScrollArea className="h-48">
+                                {leadStatusOptions.map(status => (
+                                <SelectItem key={status} value={status}>
+                                    {status}
+                                </SelectItem>
+                                ))}
+                                {!leadStatusOptions.includes(selectedStatus) && selectedStatus !== 'all' && (
+                                    <SelectItem value={selectedStatus}>{selectedStatus}</SelectItem>
+                                )}
+                            </ScrollArea>
+                        </SelectContent>
+                      </Select>
+                    </div>
                     <div className="space-y-1">
                       <Label>Sub Status of Lead</Label>
                       <Select value={selectedSubStatus} onValueChange={(value) => setSelectedSubStatus(value)}>
@@ -792,7 +814,7 @@ export default function LeadsUpdatePage() {
                     List of Leads &gt;&gt; [All Leads ({filteredLeads.length} Records)]
                   </CardTitle>
                 </CardHeader>
-                <div className="w-full overflow-x-auto rounded-md border">
+                 <ScrollArea className="h-[600px] w-full whitespace-nowrap rounded-md border">
                   <Table className="min-w-[2800px]">
                     <TableHeader className="bg-muted">
                       <TableRow>
@@ -865,7 +887,7 @@ export default function LeadsUpdatePage() {
                       )})}
                     </TableBody>
                   </Table>
-                </div>
+                </ScrollArea>
                  {/* PAGINATION */}
                 {totalPages > 1 && (
                   <div className="flex justify-end gap-2 p-4">
@@ -901,5 +923,3 @@ export default function LeadsUpdatePage() {
     </AppContent>
   );
 }
-
-    
