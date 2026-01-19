@@ -85,7 +85,7 @@ export type LeadFormData = {
 
 const sectors = ['All', 'IT', 'Finance', 'Healthcare', 'Manufacturing', 'Education', 'Retail', 'Hospitality', 'Telecommunication', 'Construction', 'Real Estate', 'Media & Entertainment', 'Government', 'Non-profit', 'Other'];
 const references = [
-    "Website", "Social Media", "Google Ads", "Facebook Ads", "LinkedIn", "Referral", "Cold Call",
+    "All", "Website", "Social Media", "Google Ads", "Facebook Ads", "LinkedIn", "Referral", "Cold Call",
     "Telecalling", "Walk-in", "Email Campaign", "WhatsApp Campaign", "IndiaMART", "Channel Partner",
     "Existing Customer", "Upselling", "Cross-selling", "Events / Trade Shows", "Demo Request", "Trial Signup", "Other"
 ];
@@ -279,13 +279,19 @@ export default function LeadUploadForm() {
     ];
     
     for (const field of requiredFields) {
-      if (!lead[field] || lead[field] === 'Other') {
+      if (!lead[field] || (field === 'reference' && lead[field] === 'Other')) {
         let fieldName = field.replace(/([A-Z])/g, ' $1');
         fieldName = fieldName.charAt(0).toUpperCase() + fieldName.slice(1);
+        
+        let message = `Please fill all required fields before saving. Missing or incomplete: ${fieldName}`;
+        if(field === 'reference' && lead[field] === 'Other') {
+            message = "Please specify a value for 'Other' reference.";
+        }
+
         toast({
           variant: 'destructive',
           title: 'Missing Information',
-          description: `Please fill all required fields before saving. Missing or incomplete: ${fieldName}`,
+          description: message,
         });
         return false;
       }
@@ -546,7 +552,7 @@ export default function LeadUploadForm() {
             <Label htmlFor="reference">Reference</Label>
              <Select value={formData.reference} onValueChange={(value) => handleSelectChange('reference', value)} disabled={isReadOnly}>
                 <SelectTrigger id="reference">
-                  {formData.reference && formData.reference !== 'Other' ? (
+                  {formData.reference && !references.includes(formData.reference) ? (
                     <span className="truncate">{formData.reference}</span>
                   ) : (
                     <SelectValue placeholder="Select Reference..." />
@@ -790,9 +796,3 @@ export default function LeadUploadForm() {
     </div>
   );
 }
-
-    
-
-    
-
-    
