@@ -624,6 +624,14 @@ export default function LeadsUpdatePage() {
                                       </button>
                                     </CollapsibleTrigger>
                                     <CollapsibleContent className="space-y-1 pt-1 pl-4">
+                                      <Button
+                                        variant="ghost"
+                                        className="w-full justify-start text-sm"
+                                        key="Attendance Management"
+                                        onClick={() => handleProductSelect("Attendance Management")}
+                                      >
+                                        Attendance Management
+                                      </Button>
                                       {attendanceProducts.map((product) => (
                                         <Button
                                           variant="ghost"
