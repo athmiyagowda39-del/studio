@@ -75,18 +75,26 @@ export default function DashboardPage() {
     }, [isAuthenticated]);
 
     const filteredLeads = useMemo(() => {
-        if (!allLeads) return [];
-        let leads = allLeads;
+        if (!allLeads || !user) return [];
 
-        if (user?.role === 'Executive') {
-            return leads.filter(lead => lead.executive === user.username);
+        // For Executives, they always see leads assigned to them.
+        if (user.role === 'Executive') {
+            return allLeads.filter(lead => lead.executive === user.username);
         }
 
-        if ((user?.role === 'Admin' || user?.role === 'Sub Admin') && selectedExecutive !== 'all') {
-            return leads.filter(lead => lead.executive === selectedExecutive);
+        // For Admins/Sub Admins, their view depends on the executive filter.
+        if (user.role === 'Admin' || user.role === 'Sub Admin') {
+            if (selectedExecutive !== 'all') {
+                // If a specific executive is selected, show their leads.
+                return allLeads.filter(lead => lead.executive === selectedExecutive);
+            } else {
+                // If 'all' is selected (default), show leads created by the logged-in admin.
+                return allLeads.filter(lead => lead.givenBy === user.username);
+            }
         }
         
-        return leads;
+        // Fallback for any other roles or if user is null
+        return [];
     }, [allLeads, user, selectedExecutive]);
 
 
