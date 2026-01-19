@@ -19,19 +19,20 @@ type PerformanceDataPoint = {
   day?: string;
   hour?: string;
   month?: string;
+  date?: string;
   leads: number;
 };
 
 type LeadPerformanceChartProps = {
   performanceData: PerformanceDataPoint[];
   xAxisLabel?: string;
-  dataKey?: 'day' | 'month' | 'hour';
+  dataKey?: 'day' | 'month' | 'hour' | 'date';
 };
 
 export default function LeadPerformanceChart({
   performanceData,
-  xAxisLabel = 'Number of Days',
-  dataKey = 'day',
+  xAxisLabel = 'Date',
+  dataKey = 'date',
 }: LeadPerformanceChartProps) {
   const maxLeads = Math.max(...performanceData.map((d) => d.leads), 0);
   const yAxisMax = Math.ceil((maxLeads * 1.2) / 10) * 10 || 10;
@@ -54,7 +55,6 @@ export default function LeadPerformanceChart({
             tickLine={false}
             tickMargin={10}
             axisLine={false}
-            interval={0}
           >
             <Label value={xAxisLabel} position="insideBottom" offset={-15} />
           </XAxis>

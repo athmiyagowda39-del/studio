@@ -119,66 +119,42 @@ export default function DashboardPage() {
 
       const year = getYear(new Date());
 
-      // Daily view for single month selection
-      if (selectedPeriod.length === 1) {
-        const month = parseInt(selectedPeriod[0], 10) - 1;
-        const startDate = startOfMonth(new Date(year, month));
-        const endDate = endOfMonth(new Date(year, month));
-        
-        const days = eachDayOfInterval({ start: startDate, end: endDate });
+      // If no months are selected, default to all months of the year.
+      const selectedMonthIndexes = selectedPeriod.length > 0
+        ? selectedPeriod.map(m => parseInt(m, 10) - 1)
+        : Array.from(Array(12).keys());
 
-        const dailyLeads: { [key: string]: { day: string; leads: number } } = {};
-        days.forEach(date => {
-            const dayOfMonth = formatDate(date, 'd');
-            dailyLeads[dayOfMonth] = { day: dayOfMonth, leads: 0 };
-        });
-        
-        const monthlyLeads = leads.filter(lead => {
-          const leadDate = new Date(lead.creationDate);
-          return getMonth(leadDate) === month && getYear(leadDate) === year;
-        });
-
-        monthlyLeads.forEach((lead) => {
-          const leadDate = new Date(lead.creationDate);
-          const dayOfMonth = formatDate(leadDate, 'd');
-          if (dailyLeads[dayOfMonth]) {
-            dailyLeads[dayOfMonth].leads += 1;
-          }
-        });
-      
-        return Object.values(dailyLeads);
-      }
-      
-      // Monthly view for 'all' or multi-select
-      const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      
-      const allMonthlyLeads: { [key: number]: { month: string; leads: number } } = {};
-      monthLabels.forEach((label, index) => {
-          allMonthlyLeads[index] = { month: label, leads: 0 };
+      const dateRanges = selectedMonthIndexes.map(monthIndex => {
+        const monthDate = new Date(year, monthIndex);
+        return {
+          start: startOfMonth(monthDate),
+          end: endOfMonth(monthDate)
+        };
       });
 
-      const yearlyLeads = leads.filter(lead => {
-          const leadDate = new Date(lead.creationDate);
-          return getYear(leadDate) === year;
-      });
-
-      yearlyLeads.forEach(lead => {
-          const leadDate = new Date(lead.creationDate);
-          const monthIndex = getMonth(leadDate);
-          if (allMonthlyLeads[monthIndex]) {
-              allMonthlyLeads[monthIndex].leads += 1;
-          }
+      const allDays: Date[] = dateRanges.flatMap(range => eachDayOfInterval(range)).sort((a, b) => a.getTime() - b.getTime());
+      
+      const dailyLeads: { [key: string]: { date: string; leads: number } } = {};
+      
+      allDays.forEach(date => {
+          const formattedDate = formatDate(date, 'd MMM');
+          dailyLeads[formattedDate] = { date: formattedDate, leads: 0 };
       });
       
-      const allMonthsData = Object.values(allMonthlyLeads);
+      const relevantLeads = leads.filter(lead => {
+        const leadDate = new Date(lead.creationDate);
+        return getYear(leadDate) === year && selectedMonthIndexes.includes(getMonth(leadDate));
+      });
 
-      if (selectedPeriod.length === 0) { // 'All' months
-        return allMonthsData;
-      }
-
-      // Filter for selected months
-      const selectedMonthIndexes = selectedPeriod.map(m => parseInt(m, 10) - 1);
-      return allMonthsData.filter((_, index) => selectedMonthIndexes.includes(index));
+      relevantLeads.forEach((lead) => {
+        const leadDate = new Date(lead.creationDate);
+        const formattedDate = formatDate(leadDate, 'd MMM');
+        if (dailyLeads[formattedDate]) {
+          dailyLeads[formattedDate].leads += 1;
+        }
+      });
+    
+      return Object.values(dailyLeads);
 
     }, [filteredLeads, selectedPeriod, selectedState, selectedDistrict]);
   
@@ -232,8 +208,8 @@ export default function DashboardPage() {
                     <CardContent>
                       <LeadPerformanceChart 
                         performanceData={performanceData} 
-                        xAxisLabel={selectedPeriod.length === 1 ? "Date" : "Month"} 
-                        dataKey={selectedPeriod.length === 1 ? 'day' : 'month'}
+                        xAxisLabel={"Date"} 
+                        dataKey={'date'}
                       />
                     </CardContent>
                 </Card>
