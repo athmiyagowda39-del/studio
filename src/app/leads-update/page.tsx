@@ -131,12 +131,6 @@ export default function LeadsUpdatePage() {
   }, [isAuthenticated, isLoading, router]);
 
   useEffect(() => {
-    if (originalUser?.role === 'Sub Admin') {
-      router.replace('/users');
-    }
-  }, [originalUser, router]);
-
-  useEffect(() => {
     const executiveUsers = users
       .filter(user => user.role === 'Executive')
       .map(user => user.username);
@@ -413,7 +407,7 @@ export default function LeadsUpdatePage() {
   const totalPages = Math.ceil(filteredLeads.length / LEADS_PER_PAGE);
 
   /* ---------------- UI ---------------- */
-  if (isLoading || !isAuthenticated || originalUser?.role === 'Sub Admin') {
+  if (isLoading || !isAuthenticated) {
     return null; // or a loading skeleton
   }
 
@@ -924,5 +918,5 @@ export default function LeadsUpdatePage() {
         </Card>
       </div>
     </AppContent>
-
-    
+  );
+}
