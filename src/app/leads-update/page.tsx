@@ -620,7 +620,7 @@ export default function LeadsUpdatePage() {
                                   </Button>
                                   <Collapsible>
                                     <CollapsibleTrigger asChild>
-                                      <button className="flex w-full items-center justify-between rounded-sm px-2 py-1.5 text-left text-sm font-normal hover:bg-accent [&[data-state=open]>svg]:rotate-180">
+                                      <button className="flex w-full items-center justify-between rounded-sm px-2 py-1.5 text-left text-sm font-bold hover:bg-accent [&[data-state=open]>svg]:rotate-180">
                                         <span>Attendance Management</span>
                                         <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
                                       </button>
