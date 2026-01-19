@@ -40,7 +40,7 @@ export default function DashboardPage() {
     const [allLeads, setAllLeads] = useState<LeadFormData[]>([]);
     const [isDataLoading, setIsDataLoading] = useState(true);
 
-    const [selectedPeriod, setSelectedPeriod] = useState<string>('all');
+    const [selectedPeriod, setSelectedPeriod] = useState<string[]>([]);
     const [selectedState, setSelectedState] = useState<string>('all');
     const [selectedDistrict, setSelectedDistrict] = useState<string>('all');
     const [selectedExecutive, setSelectedExecutive] = useState<string>('all');
@@ -119,31 +119,9 @@ export default function DashboardPage() {
 
       const year = getYear(new Date());
 
-      if (selectedPeriod === 'all') {
-        const monthlyLeads: { [key: string]: { month: string; leads: number } } = {};
-        const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        
-        monthLabels.forEach((label, index) => {
-            monthlyLeads[index] = { month: label, leads: 0 };
-        });
-
-        const yearlyLeads = leads.filter(lead => {
-            const leadDate = new Date(lead.creationDate);
-            return getYear(leadDate) === year;
-        });
-
-        yearlyLeads.forEach(lead => {
-            const leadDate = new Date(lead.creationDate);
-            const monthIndex = getMonth(leadDate);
-            if (monthlyLeads[monthIndex]) {
-                monthlyLeads[monthIndex].leads += 1;
-            }
-        });
-
-        return Object.values(monthlyLeads);
-
-      } else {
-        const month = parseInt(selectedPeriod, 10) - 1;
+      // Daily view for single month selection
+      if (selectedPeriod.length === 1) {
+        const month = parseInt(selectedPeriod[0], 10) - 1;
         const startDate = startOfMonth(new Date(year, month));
         const endDate = endOfMonth(new Date(year, month));
         
@@ -170,6 +148,38 @@ export default function DashboardPage() {
       
         return Object.values(dailyLeads);
       }
+      
+      // Monthly view for 'all' or multi-select
+      const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      
+      const allMonthlyLeads: { [key: number]: { month: string; leads: number } } = {};
+      monthLabels.forEach((label, index) => {
+          allMonthlyLeads[index] = { month: label, leads: 0 };
+      });
+
+      const yearlyLeads = leads.filter(lead => {
+          const leadDate = new Date(lead.creationDate);
+          return getYear(leadDate) === year;
+      });
+
+      yearlyLeads.forEach(lead => {
+          const leadDate = new Date(lead.creationDate);
+          const monthIndex = getMonth(leadDate);
+          if (allMonthlyLeads[monthIndex]) {
+              allMonthlyLeads[monthIndex].leads += 1;
+          }
+      });
+      
+      const allMonthsData = Object.values(allMonthlyLeads);
+
+      if (selectedPeriod.length === 0) { // 'All' months
+        return allMonthsData;
+      }
+
+      // Filter for selected months
+      const selectedMonthIndexes = selectedPeriod.map(m => parseInt(m, 10) - 1);
+      return allMonthsData.filter((_, index) => selectedMonthIndexes.includes(index));
+
     }, [filteredLeads, selectedPeriod, selectedState, selectedDistrict]);
   
     if (isLoading || isDataLoading || !isAuthenticated) {
@@ -222,8 +232,8 @@ export default function DashboardPage() {
                     <CardContent>
                       <LeadPerformanceChart 
                         performanceData={performanceData} 
-                        xAxisLabel={selectedPeriod === 'all' ? "Month" : "Date"} 
-                        dataKey={selectedPeriod === 'all' ? 'month' : 'day'}
+                        xAxisLabel={selectedPeriod.length === 1 ? "Date" : "Month"} 
+                        dataKey={selectedPeriod.length === 1 ? 'day' : 'month'}
                       />
                     </CardContent>
                 </Card>

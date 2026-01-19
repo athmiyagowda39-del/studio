@@ -1,15 +1,22 @@
 
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import { ScrollArea } from '../ui/scroll-area';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
+import { Check, ChevronsUpDown } from 'lucide-react';
+import { Command, CommandEmpty, CommandGroup, CommandItem, CommandList } from '@/components/ui/command';
+import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
+
 
 type LeadPerformanceFiltersProps = {
     allLeads: LeadFormData[];
-    selectedPeriod: string;
-    setSelectedPeriod: (value: string) => void;
+    selectedPeriod: string[];
+    setSelectedPeriod: (value: string[]) => void;
     selectedState: string;
     setSelectedState: (value: string) => void;
     selectedDistrict: string;
@@ -17,7 +24,6 @@ type LeadPerformanceFiltersProps = {
 };
 
 const months = [
-    { value: 'all', label: 'All' },
     { value: '1', label: 'January' },
     { value: '2', label: 'February' },
     { value: '3', label: 'March' },
@@ -105,6 +111,7 @@ export default function LeadPerformanceFilters({
     selectedDistrict,
     setSelectedDistrict,
 }: LeadPerformanceFiltersProps) {
+    const [open, setOpen] = useState(false);
     
     const districts = useMemo(() => {
         if (selectedState === 'all') {
@@ -128,18 +135,59 @@ export default function LeadPerformanceFilters({
         <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2">
                 <span className="text-sm font-medium">Period:</span>
-                <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-                    <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Select Period" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {months.map(month => (
-                            <SelectItem key={month.value} value={month.value}>
-                                {month.label}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
+                <Popover open={open} onOpenChange={setOpen}>
+                    <PopoverTrigger asChild>
+                        <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={open}
+                            className="w-[180px] justify-between"
+                        >
+                            <span className="truncate">
+                                {selectedPeriod.length === 0 && "All Months"}
+                                {selectedPeriod.length === 1 && months.find(m => m.value === selectedPeriod[0])?.label}
+                                {selectedPeriod.length > 1 && `${selectedPeriod.length} months selected`}
+                            </span>
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[180px] p-0">
+                        <Command>
+                            <CommandList>
+                                <CommandEmpty>No month found.</CommandEmpty>
+                                <CommandGroup>
+                                    {months.map((month) => {
+                                        const isSelected = selectedPeriod.includes(month.value);
+                                        return (
+                                            <CommandItem
+                                                key={month.value}
+                                                onSelect={() => {
+                                                    if (isSelected) {
+                                                        setSelectedPeriod(selectedPeriod.filter((p) => p !== month.value));
+                                                    } else {
+                                                        setSelectedPeriod([...selectedPeriod, month.value]);
+                                                    }
+                                                }}
+                                            >
+                                                <div
+                                                    className={cn(
+                                                        "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                                                        isSelected
+                                                            ? "bg-primary text-primary-foreground"
+                                                            : "opacity-50 [&_svg]:invisible"
+                                                    )}
+                                                >
+                                                    <Check className={cn("h-4 w-4")} />
+                                                </div>
+                                                {month.label}
+                                            </CommandItem>
+                                        );
+                                    })}
+                                </CommandGroup>
+                            </CommandList>
+                        </Command>
+                    </PopoverContent>
+                </Popover>
             </div>
             <div className="flex items-center gap-2">
                 <span className="text-sm font-medium">State:</span>
