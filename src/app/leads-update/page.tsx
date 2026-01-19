@@ -562,7 +562,7 @@ export default function LeadsUpdatePage() {
                       <Input type="date" value={toDate} onChange={e => setToDate(e.target.value)}/>
                     </div>
                     <div className="space-y-1">
-                      <Label>Product Name</Label>
+                      <Label>ModuleName</Label>
                       <Popover
                         open={productPopoverOpen}
                         onOpenChange={setProductPopoverOpen}
@@ -576,7 +576,7 @@ export default function LeadsUpdatePage() {
                             <span className="truncate">
                               {selectedProduct === 'all'
                                 ? 'All'
-                                : selectedProduct || 'Select Product...'}
+                                : selectedProduct || 'Select Module...'}
                             </span>
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
