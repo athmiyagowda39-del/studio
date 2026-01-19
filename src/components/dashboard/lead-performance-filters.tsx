@@ -1,25 +1,9 @@
 
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
-import { Button } from '@/components/ui/button';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command';
-import { Check, ChevronsUpDown } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { ScrollArea } from '../ui/scroll-area';
 
 type LeadPerformanceFiltersProps = {
@@ -120,9 +104,7 @@ export default function LeadPerformanceFilters({
     selectedDistrict,
     setSelectedDistrict,
 }: LeadPerformanceFiltersProps) {
-    const [stateOpen, setStateOpen] = useState(false);
-    const [districtOpen, setDistrictOpen] = useState(false);
-
+    
     const districts = useMemo(() => {
         if (selectedState === 'all') {
             const allDistricts = Object.values(stateDistrictMap).flat();
@@ -133,16 +115,12 @@ export default function LeadPerformanceFilters({
     }, [selectedState]);
 
     const handleStateChange = (value: string) => {
-        const state = allIndianStates.find(s => s.toLowerCase() === value) || 'all';
-        setSelectedState(state);
+        setSelectedState(value);
         setSelectedDistrict('all');
-        setStateOpen(false);
     }
     
     const handleDistrictChange = (value: string) => {
-        const district = districts.find(c => c.toLowerCase() === value) || 'all';
-        setSelectedDistrict(district);
-        setDistrictOpen(false);
+        setSelectedDistrict(value);
     }
 
     return (
@@ -164,90 +142,37 @@ export default function LeadPerformanceFilters({
             </div>
             <div className="flex items-center gap-2">
                 <span className="text-sm font-medium">State:</span>
-                <Popover open={stateOpen} onOpenChange={setStateOpen}>
-                    <PopoverTrigger asChild>
-                        <Button
-                            variant="outline"
-                            role="combobox"
-                            aria-expanded={stateOpen}
-                            className="w-[180px] justify-between font-normal"
-                        >
-                            {selectedState === 'all' ? 'All States' : selectedState}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-[180px] p-0">
-                        <Command>
-                            <CommandInput placeholder="Search state..." />
-                            <CommandList>
-                                <CommandEmpty>No state found.</CommandEmpty>
-                                <CommandGroup>
-                                    <ScrollArea className="h-48">
-                                        {allIndianStates.map((state) => (
-                                            <CommandItem
-                                                key={state}
-                                                value={state.toLowerCase()}
-                                                onSelect={handleStateChange}
-                                            >
-                                                <Check
-                                                    className={cn(
-                                                        'mr-2 h-4 w-4',
-                                                        selectedState === state ? 'opacity-100' : 'opacity-0'
-                                                    )}
-                                                />
-                                                {state === 'all' ? 'All States' : state}
-                                            </CommandItem>
-                                        ))}
-                                    </ScrollArea>
-                                </CommandGroup>
-                            </CommandList>
-                        </Command>
-                    </PopoverContent>
-                </Popover>
+                <Select value={selectedState} onValueChange={handleStateChange}>
+                    <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Select State" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <ScrollArea className="h-48">
+                            {allIndianStates.map((state) => (
+                                <SelectItem key={state} value={state}>
+                                    {state === 'all' ? 'All States' : state}
+                                </SelectItem>
+                            ))}
+                        </ScrollArea>
+                    </SelectContent>
+                </Select>
             </div>
             <div className="flex items-center gap-2">
                 <span className="text-sm font-medium">District:</span>
-                <Popover open={districtOpen} onOpenChange={setDistrictOpen}>
-                    <PopoverTrigger asChild>
-                         <Button
-                            variant="outline"
-                            role="combobox"
-                            aria-expanded={districtOpen}
-                            className="w-[180px] justify-between font-normal"
-                            disabled={districts.length <= 1}
-                        >
-                            {selectedDistrict === 'all' ? 'All Districts' : selectedDistrict}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-[180px] p-0">
-                        <Command>
-                            <CommandInput placeholder="Search district..." />
-                            <CommandList>
-                                <CommandEmpty>No district found.</CommandEmpty>
-                                <CommandGroup>
-                                    <ScrollArea className="h-48">
-                                        {districts.map((district) => (
-                                            <CommandItem
-                                                key={district}
-                                                value={district.toLowerCase()}
-                                                onSelect={handleDistrictChange}
-                                            >
-                                                <Check
-                                                    className={cn(
-                                                        'mr-2 h-4 w-4',
-                                                        selectedDistrict === district ? 'opacity-100' : 'opacity-0'
-                                                    )}
-                                                />
-                                                {district === 'all' ? 'All Districts' : district}
-                                            </CommandItem>
-                                        ))}
-                                    </ScrollArea>
-                                </CommandGroup>
-                            </CommandList>
-                        </Command>
-                    </PopoverContent>
-                </Popover>
+                <Select value={selectedDistrict} onValueChange={handleDistrictChange} disabled={selectedState === 'all'}>
+                    <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Select District" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <ScrollArea className="h-48">
+                            {districts.map((district) => (
+                                <SelectItem key={district} value={district}>
+                                    {district === 'all' ? 'All Districts' : district}
+                                </SelectItem>
+                            ))}
+                        </ScrollArea>
+                    </SelectContent>
+                </Select>
             </div>
         </div>
     );
