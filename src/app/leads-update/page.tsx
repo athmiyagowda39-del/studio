@@ -146,10 +146,11 @@ export default function LeadsUpdatePage() {
 
     loadLeads(); // Initial load
 
-    window.addEventListener('leadsUpdated', loadLeads);
+    const handleLeadsUpdated = () => loadLeads();
+    window.addEventListener('leadsUpdated', handleLeadsUpdated);
     
     return () => {
-      window.removeEventListener('leadsUpdated', loadLeads);
+      window.removeEventListener('leadsUpdated', handleLeadsUpdated);
     };
   }, [isAuthenticated]);
 

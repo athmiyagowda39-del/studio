@@ -77,7 +77,7 @@ const references = [
 ];
 
 
-const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId' | 'givenBy'> = {
+const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate'> = {
     pincode: '',
     state: '',
     district: '',
@@ -95,6 +95,7 @@ const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdmin
     dealer: '',
     executive: '',
     manager: '',
+    givenBy: '',
 };
 
 const saveLeadsToLocalStorage = (leads: LeadFormData[]) => {
@@ -126,7 +127,7 @@ const getNextLeadId = (): string => {
 
 
 export default function LeadUploadForm() {
-  const [formData, setFormData] = useState<Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId' | 'givenBy'>>(initialFormState);
+  const [formData, setFormData] = useState<Omit<LeadFormData, 'leadId' | 'creationDate'>>(initialFormState);
   const [toExecutiveSelection, setToExecutiveSelection] = useState('');
   
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -206,7 +207,7 @@ export default function LeadUploadForm() {
     handleCancel();
   };
 
-  const validateLead = (lead: Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId' | 'givenBy'>) => {
+  const validateLead = (lead: Omit<LeadFormData, 'leadId' | 'creationDate'>) => {
     const requiredFields: (keyof typeof lead)[] = [
       'pincode', 'company', 'contactPerson', 'address', 'state', 'district', 
       'contactNumber', 'email', 'reference', 'headcount', 'sector', 
@@ -318,7 +319,7 @@ export default function LeadUploadForm() {
         });
 
         // Create a new form state from the parsed lead object
-        const newFormData: Omit<LeadFormData, 'leadId' | 'creationDate' | 'subAdminId' | 'givenBy'> = {
+        const newFormData: Omit<LeadFormData, 'leadId' | 'creationDate'> = {
             ...initialFormState,
             pincode: String(leadObject.pincode || ''),
             state: String(leadObject.state || ''),
@@ -334,6 +335,7 @@ export default function LeadUploadForm() {
             selectedModule: String(leadObject.selectedModule || ''),
             manager: String(leadObject.manager || ''),
             toExecutive: !!leadObject.executive,
+            givenBy: originalUser?.username || user?.username || 'File Upload',
         };
         
         setFormData(newFormData);
