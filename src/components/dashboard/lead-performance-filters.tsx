@@ -161,11 +161,18 @@ export default function LeadPerformanceFilters({
                                         return (
                                             <CommandItem
                                                 key={month.value}
-                                                onSelect={() => {
-                                                    if (isSelected) {
-                                                        setSelectedPeriod(selectedPeriod.filter((p) => p !== month.value));
+                                                value={month.value}
+                                                onMouseDown={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                }}
+                                                onSelect={(currentValue) => {
+                                                    if (selectedPeriod.includes(currentValue)) {
+                                                        setSelectedPeriod(
+                                                            selectedPeriod.filter((p) => p !== currentValue)
+                                                        );
                                                     } else {
-                                                        setSelectedPeriod([...selectedPeriod, month.value]);
+                                                        setSelectedPeriod([...selectedPeriod, currentValue]);
                                                     }
                                                 }}
                                             >
