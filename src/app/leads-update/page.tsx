@@ -2,7 +2,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Table,
   TableBody,
@@ -97,26 +97,30 @@ export default function LeadsUpdatePage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchCategory, setSearchCategory] = useState('leadId');
   const [activeTab, setActiveTab] = useState<TabValue>('recent');
+
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+  const [selectedProduct, setSelectedProduct] = useState('all');
   const [selectedExecutive, setSelectedExecutive] = useState('all');
   const [otherExecutiveInput, setOtherExecutiveInput] = useState('');
   
-  const [selectedLeadSource, setSelectedLeadSource] = useState('all');
-  const [otherLeadSourceInput, setOtherLeadSourceInput] = useState('');
-
-  const [selectedProduct, setSelectedProduct] = useState('all');
   const [givenBy, setGivenBy] = useState('all');
   const [otherGivenByInput, setOtherGivenByInput] = useState('');
-
+  const [selectedStatus, setSelectedStatus] = useState('all');
   const [selectedSubStatus, setSelectedSubStatus] = useState('all');
   const [otherSubStatusInput, setOtherSubStatusInput] = useState('');
+  const [selectedLeadSource, setSelectedLeadSource] = useState('all');
+  const [otherLeadSourceInput, setOtherLeadSourceInput] = useState('');
+  const [considerStatus, setConsiderStatus] = useState(false); // This is the "Do not consider..." checkbox
 
   // ✅ FOLLOW-UP FILTER STATE
-  const [considerStatus, setConsiderStatus] = useState(false);
+  const [considerFollowUps, setConsiderFollowUps] = useState(false);
   const [followUpStatus, setFollowUpStatus] = useState('pending');
   const [followUpFromDate, setFollowUpFromDate] = useState('');
   const [followUpToDate, setFollowUpToDate] = useState('');
-  const [followUpGivenBy, setFollowUpGivenBy] = useState('all');
-  const [otherFollowUpGivenByInput, setOtherFollowUpGivenByInput] = useState('');
+  const [followUpEnteredBy, setFollowUpEnteredBy] = useState('all');
+  const [otherFollowUpEnteredByInput, setOtherFollowUpEnteredByInput] = useState('');
+  const [followUpRemarks, setFollowUpRemarks] = useState('');
 
 
   /* ---------------- EFFECT ---------------- */
@@ -138,15 +142,14 @@ export default function LeadsUpdatePage() {
   
   // Load all leads from storage and set up listener for updates
   useEffect(() => {
-    const loadLeads = () => {
+    const handleLeadsUpdated = () => {
       if (isAuthenticated) {
         setAllLeads(getLeadsFromLocalStorage());
       }
     };
 
-    loadLeads(); // Initial load
+    handleLeadsUpdated(); // Initial load
 
-    const handleLeadsUpdated = () => loadLeads();
     window.addEventListener('leadsUpdated', handleLeadsUpdated);
     
     return () => {
@@ -181,31 +184,43 @@ export default function LeadsUpdatePage() {
       });
     }
 
-    // Filter panel filtering
-    if (selectedExecutive !== 'all' && selectedExecutive !== 'Other') {
-        tempLeads = tempLeads.filter(lead => lead.executive === selectedExecutive);
+    // Main filters
+    if (fromDate) {
+        try {
+            tempLeads = tempLeads.filter(lead => lead.creationDate >= startOfDay(new Date(fromDate)).getTime());
+        } catch {}
     }
-
-    if (selectedLeadSource !== 'all' && selectedLeadSource !== 'Other') {
-        tempLeads = tempLeads.filter(lead => lead.reference === selectedLeadSource);
+    if (toDate) {
+        try {
+            tempLeads = tempLeads.filter(lead => lead.creationDate <= endOfDay(new Date(toDate)).getTime());
+        } catch {}
     }
-
     if (selectedProduct !== 'all') {
         tempLeads = tempLeads.filter(lead => lead.selectedModule === selectedProduct);
     }
-    
+    if (selectedExecutive !== 'all' && selectedExecutive !== 'Other') {
+        tempLeads = tempLeads.filter(lead => lead.executive === selectedExecutive);
+    }
     if (givenBy !== 'all' && givenBy !== 'Other') {
         tempLeads = tempLeads.filter(lead => lead.givenBy === givenBy);
     }
-
+     if (selectedStatus !== 'all') {
+        tempLeads = tempLeads.filter(lead => lead.status === selectedStatus);
+    }
     if (selectedSubStatus !== 'all' && selectedSubStatus !== 'Other') {
         tempLeads = tempLeads.filter(lead => lead.leadSubStatus === selectedSubStatus);
+    }
+    if (selectedLeadSource !== 'all' && selectedLeadSource !== 'Other') {
+        tempLeads = tempLeads.filter(lead => lead.reference === selectedLeadSource);
     }
     
     if (considerStatus) {
         const excludedStatuses = ['Order closed', 'Fake', 'Existing Users', 'Not interested'];
         tempLeads = tempLeads.filter(lead => !excludedStatuses.includes(lead.status || ''));
-        
+    }
+    
+    // Follow-up filters
+    if (considerFollowUps) {
         if (followUpStatus === 'pending') {
             tempLeads = tempLeads.filter(lead => {
                 if (!lead.nextFollowUpDate) return false;
@@ -239,11 +254,13 @@ export default function LeadsUpdatePage() {
                             inDateRange = inDateRange && followUpDate <= endOfDay(new Date(followUpToDate));
                         }
                         if (!inDateRange) isMatch = false;
-                    } catch(e) {
+                    } catch(e) { isMatch = false; }
+
+                    if (followUpEnteredBy !== 'all' && followUpEnteredBy !== 'Other' && followUp.enteredBy !== followUpEnteredBy) {
                         isMatch = false;
                     }
-
-                    if (followUpGivenBy !== 'all' && followUpGivenBy !== 'Other' && followUp.enteredBy !== followUpGivenBy) {
+                    
+                    if (followUpRemarks && !followUp.remarks.toLowerCase().includes(followUpRemarks.toLowerCase())) {
                         isMatch = false;
                     }
 
@@ -288,20 +305,11 @@ export default function LeadsUpdatePage() {
     setFilteredLeads(tempLeads);
     setCurrentPage(1);
   }, [
-    visibleLeads,
-    activeTab, 
-    searchTerm,
-    searchCategory,
-    selectedExecutive, 
-    selectedLeadSource, 
-    selectedProduct, 
-    givenBy,
-    selectedSubStatus,
-    considerStatus,
-    followUpStatus,
-    followUpFromDate,
-    followUpToDate,
-    followUpGivenBy,
+    visibleLeads, activeTab, searchTerm, searchCategory, fromDate, toDate, 
+    selectedProduct, selectedExecutive, givenBy, selectedStatus, 
+    selectedSubStatus, selectedLeadSource, considerStatus, considerFollowUps,
+    followUpStatus, followUpFromDate, followUpToDate, followUpEnteredBy,
+    followUpRemarks
   ]);
 
   const handleShowButtonClick = () => {
@@ -313,21 +321,28 @@ export default function LeadsUpdatePage() {
     setSearchTerm('');
     setSearchCategory('leadId');
     setActiveTab('recent');
+    
+    setFromDate('');
+    setToDate('');
+    setSelectedProduct('all');
     setSelectedExecutive('all');
     setOtherExecutiveInput('');
-    setSelectedLeadSource('all');
-    setOtherLeadSourceInput('');
-    setSelectedProduct('all');
     setGivenBy('all');
     setOtherGivenByInput('');
+    setSelectedStatus('all');
+    setSelectedSubStatus('all');
     setOtherSubStatusInput('');
-    
+    setSelectedLeadSource('all');
+    setOtherLeadSourceInput('');
     setConsiderStatus(false);
+    
+    setConsiderFollowUps(false);
     setFollowUpStatus('pending');
     setFollowUpFromDate('');
     setFollowUpToDate('');
-    setFollowUpGivenBy('all');
-    setOtherFollowUpGivenByInput('');
+    setFollowUpEnteredBy('all');
+    setOtherFollowUpEnteredByInput('');
+    setFollowUpRemarks('');
 
     setCurrentPage(1);
   };
@@ -369,11 +384,11 @@ export default function LeadsUpdatePage() {
     }
   };
 
-  const handleSetOtherFollowUpGivenBy = () => {
-    if(otherFollowUpGivenByInput.trim()){
-      const newGivenBy = otherFollowUpGivenByInput.trim();
-      setFollowUpGivenBy(newGivenBy);
-      setOtherFollowUpGivenByInput('');
+  const handleSetOtherFollowUpEnteredBy = () => {
+    if(otherFollowUpEnteredByInput.trim()){
+      const newGivenBy = otherFollowUpEnteredByInput.trim();
+      setFollowUpEnteredBy(newGivenBy);
+      setOtherFollowUpEnteredByInput('');
     }
   };
 
@@ -449,7 +464,7 @@ export default function LeadsUpdatePage() {
                   {/* ROW 1 */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="flex items-center gap-2">
-                        <Label htmlFor="search" className="font-medium">Search</Label>
+                        <Label htmlFor="search" className="font-medium shrink-0">Search</Label>
                         <Input 
                           id="search" 
                           placeholder="Leave empty for all" 
@@ -461,13 +476,13 @@ export default function LeadsUpdatePage() {
                         <Label className="font-medium">From:</Label>
                         <RadioGroup defaultValue="both" className="flex gap-4">
                           <div className="flex items-center gap-2">
-                            <RadioGroupItem value="web" /> Web Downloads
+                            <RadioGroupItem value="web" id="web"/> <Label htmlFor='web'>Web Downloads</Label>
                           </div>
                           <div className="flex items-center gap-2">
-                            <RadioGroupItem value="manual" /> Manual Uploads
+                            <RadioGroupItem value="manual" id="manual"/> <Label htmlFor='manual'>Manual Uploads</Label>
                           </div>
                           <div className="flex items-center gap-2">
-                            <RadioGroupItem value="both" /> Both
+                            <RadioGroupItem value="both" id="both"/> <Label htmlFor='both'>Both</Label>
                           </div>
                         </RadioGroup>
                     </div>
@@ -503,48 +518,13 @@ export default function LeadsUpdatePage() {
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="space-y-1">
                       <Label>From Date</Label>
-                      <Input type="date" />
+                      <Input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)}/>
                     </div>
                     <div className="space-y-1">
                       <Label>To Date</Label>
-                      <Input type="date" />
+                      <Input type="date" value={toDate} onChange={e => setToDate(e.target.value)}/>
                     </div>
-                    <div className="space-y-1">
-                      <Label htmlFor="givenBy">Given by</Label>
-                       <Select value={givenBy} onValueChange={(value) => setGivenBy(value)}>
-                        <SelectTrigger id="givenBy">
-                          <SelectValue placeholder="--All--" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All</SelectItem>
-                          {executives.map((exec) => (
-                            <SelectItem key={exec} value={exec}>
-                              {exec}
-                            </SelectItem>
-                          ))}
-                          {!executives.includes(givenBy) && givenBy !== 'all' && givenBy !== 'Other' && (
-                              <SelectItem value={givenBy}>{givenBy}</SelectItem>
-                          )}
-                          <SelectItem value="Other">Other</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      {givenBy === 'Other' && (
-                        <div className="mt-2">
-                           <div className="flex items-center gap-2">
-                              <Input
-                                placeholder="Specify who gave it"
-                                value={otherGivenByInput}
-                                onChange={(e) => setOtherGivenByInput(e.target.value)}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter') handleSetOtherGivenBy();
-                                }}
-                              />
-                              <Button size="sm" onClick={handleSetOtherGivenBy}>OK</Button>
-                            </div>
-                        </div>
-                      )}
-                    </div>
-                    <div className="space-y-1">
+                     <div className="space-y-1">
                       <Label>Product Name</Label>
                       <Select value={selectedProduct} onValueChange={setSelectedProduct}>
                         <SelectTrigger><SelectValue placeholder="--All--" /></SelectTrigger>
@@ -557,11 +537,7 @@ export default function LeadsUpdatePage() {
                         </SelectContent>
                       </Select>
                     </div>
-                  </div>
-
-                  {/* ROW 4 */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                     <div className="space-y-1">
+                    <div className="space-y-1">
                       <Label>Executive Name</Label>
                       <Select value={selectedExecutive} onValueChange={(value) => setSelectedExecutive(value)}>
                         <SelectTrigger>
@@ -596,43 +572,57 @@ export default function LeadsUpdatePage() {
                         </div>
                       )}
                     </div>
-                    <div className="space-y-1">
-                      <Label htmlFor="leadSource">Lead Source</Label>
-                      <Select value={selectedLeadSource} onValueChange={(value) => setSelectedLeadSource(value)}>
-                        <SelectTrigger id="leadSource">
+                  </div>
+
+                  {/* ROW 4 */}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                     <div className="space-y-1">
+                      <Label htmlFor="givenBy">Given by</Label>
+                       <Select value={givenBy} onValueChange={(value) => setGivenBy(value)}>
+                        <SelectTrigger id="givenBy">
                           <SelectValue placeholder="--All--" />
                         </SelectTrigger>
                         <SelectContent>
-                          {references.map((source) => (
-                            <SelectItem key={source} value={source}>
-                              {source}
+                          <SelectItem value="all">All</SelectItem>
+                          {executives.map((exec) => (
+                            <SelectItem key={exec} value={exec}>
+                              {exec}
                             </SelectItem>
                           ))}
-                          {!references.includes(selectedLeadSource) && selectedLeadSource !== 'all' && selectedLeadSource !== 'Other' && (
-                            <SelectItem value={selectedLeadSource}>{selectedLeadSource}</SelectItem>
+                          {!executives.includes(givenBy) && givenBy !== 'all' && givenBy !== 'Other' && (
+                              <SelectItem value={givenBy}>{givenBy}</SelectItem>
                           )}
+                          <SelectItem value="Other">Other</SelectItem>
                         </SelectContent>
                       </Select>
-                      {selectedLeadSource === 'Other' && (
+                      {givenBy === 'Other' && (
                         <div className="mt-2">
-                            <div className="flex items-center gap-2">
-                                <Input
-                                placeholder="Specify other source"
-                                value={otherLeadSourceInput}
-                                onChange={(e) => setOtherLeadSourceInput(e.target.value)}
+                           <div className="flex items-center gap-2">
+                              <Input
+                                placeholder="Specify who gave it"
+                                value={otherGivenByInput}
+                                onChange={(e) => setOtherGivenByInput(e.target.value)}
                                 onKeyDown={(e) => {
-                                    if (e.key === 'Enter') handleSetOtherLeadSource();
+                                    if (e.key === 'Enter') handleSetOtherGivenBy();
                                 }}
-                                />
-                                <Button size="sm" onClick={handleSetOtherLeadSource}>OK</Button>
+                              />
+                              <Button size="sm" onClick={handleSetOtherGivenBy}>OK</Button>
                             </div>
                         </div>
                       )}
                     </div>
-                  </div>
-
-                  {/* ROW 5 */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     <div className="space-y-1">
+                        <Label>Status of Lead</Label>
+                        <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                            <SelectTrigger><SelectValue placeholder="--All--" /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All</SelectItem>
+                                {leadStatusOptions.map(status => (
+                                    <SelectItem key={status} value={status}>{status}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
                     <div className="space-y-1">
                       <Label>Sub Status of Lead</Label>
                       <Select value={selectedSubStatus} onValueChange={(value) => setSelectedSubStatus(value)}>
@@ -668,19 +658,65 @@ export default function LeadsUpdatePage() {
                         </div>
                       )}
                     </div>
-                     <div className="flex items-center gap-2 pt-6">
-                        <Checkbox
-                        checked={considerStatus}
-                        onCheckedChange={(checked) => setConsiderStatus(checked as boolean)}
-                        /> Do not consider Order Closed/Fake/Existing Users/Not Interested
+                     <div className="space-y-1">
+                      <Label htmlFor="leadSource">Lead Source</Label>
+                      <Select value={selectedLeadSource} onValueChange={(value) => setSelectedLeadSource(value)}>
+                        <SelectTrigger id="leadSource">
+                          <SelectValue placeholder="--All--" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {references.map((source) => (
+                            <SelectItem key={source} value={source}>
+                              {source}
+                            </SelectItem>
+                          ))}
+                          {!references.includes(selectedLeadSource) && selectedLeadSource !== 'all' && selectedLeadSource !== 'Other' && (
+                            <SelectItem value={selectedLeadSource}>{selectedLeadSource}</SelectItem>
+                          )}
+                        </SelectContent>
+                      </Select>
+                      {selectedLeadSource === 'Other' && (
+                        <div className="mt-2">
+                            <div className="flex items-center gap-2">
+                                <Input
+                                placeholder="Specify other source"
+                                value={otherLeadSourceInput}
+                                onChange={(e) => setOtherLeadSourceInput(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') handleSetOtherLeadSource();
+                                }}
+                                />
+                                <Button size="sm" onClick={handleSetOtherLeadSource}>OK</Button>
+                            </div>
+                        </div>
+                      )}
                     </div>
                   </div>
-                  
 
-                  {/* CONDITIONAL ROWS */}
-                  {considerStatus && (
+                  {/* ROW 5 */}
+                  <div className="flex items-center gap-2 pt-2">
+                    <Checkbox
+                    id="considerStatus"
+                    checked={considerStatus}
+                    onCheckedChange={(checked) => setConsiderStatus(checked as boolean)}
+                    />
+                    <Label htmlFor="considerStatus">Do not consider Order Closed/Fake/Existing Users/Not Interested</Label>
+                  </div>
+                  
+                  <hr className="my-2" />
+
+                  {/* ROW 6 & CONDITIONAL */}
+                   <div className="flex items-center gap-2">
+                        <Checkbox
+                        id="considerFollowUps"
+                        checked={considerFollowUps}
+                        onCheckedChange={(checked) => setConsiderFollowUps(checked as boolean)}
+                        /> 
+                        <Label htmlFor="considerFollowUps">consider Follow Ups</Label>
+                    </div>
+
+                  {considerFollowUps && (
                     <>
-                      {/* ROW 6 */}
                       <RadioGroup value={followUpStatus} onValueChange={setFollowUpStatus} className="flex gap-4">
                         <div className="flex items-center gap-2">
                           <RadioGroupItem value="pending" id="pending" />
@@ -692,8 +728,7 @@ export default function LeadsUpdatePage() {
                         </div>
                       </RadioGroup>
 
-                      {/* ROW 7 */}
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <div className="space-y-1">
                             <Label>From Date</Label>
                             <Input type="date" value={followUpFromDate} onChange={(e) => setFollowUpFromDate(e.target.value)} />
@@ -703,9 +738,9 @@ export default function LeadsUpdatePage() {
                             <Input type="date" value={followUpToDate} onChange={(e) => setFollowUpToDate(e.target.value)} />
                         </div>
                         <div className="space-y-1">
-                            <Label htmlFor="givenByFollowUp">Given by</Label>
-                            <Select value={followUpGivenBy} onValueChange={(value) => setFollowUpGivenBy(value)}>
-                                <SelectTrigger id="givenByFollowUp">
+                            <Label htmlFor="enteredByFollowUp">Enter by</Label>
+                            <Select value={followUpEnteredBy} onValueChange={(value) => setFollowUpEnteredBy(value)}>
+                                <SelectTrigger id="enteredByFollowUp">
                                     <SelectValue placeholder="--All--" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -715,27 +750,31 @@ export default function LeadsUpdatePage() {
                                         {exec}
                                     </SelectItem>
                                     ))}
-                                    {!executives.includes(followUpGivenBy) && followUpGivenBy !== 'all' && followUpGivenBy !== 'Other' && (
-                                        <SelectItem value={followUpGivenBy}>{followUpGivenBy}</SelectItem>
+                                    {!executives.includes(followUpEnteredBy) && followUpEnteredBy !== 'all' && followUpEnteredBy !== 'Other' && (
+                                        <SelectItem value={followUpEnteredBy}>{followUpEnteredBy}</SelectItem>
                                     )}
                                     <SelectItem value="Other">Other</SelectItem>
                                 </SelectContent>
                             </Select>
-                            {followUpGivenBy === 'Other' && (
+                            {followUpEnteredBy === 'Other' && (
                                 <div className="mt-2">
                                     <div className="flex items-center gap-2">
                                         <Input
-                                            placeholder="Specify who gave it"
-                                            value={otherFollowUpGivenByInput}
-                                            onChange={(e) => setOtherFollowUpGivenByInput(e.target.value)}
+                                            placeholder="Specify who entered it"
+                                            value={otherFollowUpEnteredByInput}
+                                            onChange={(e) => setOtherFollowUpEnteredByInput(e.target.value)}
                                             onKeyDown={(e) => {
-                                                if (e.key === 'Enter') handleSetOtherFollowUpGivenBy();
+                                                if (e.key === 'Enter') handleSetOtherFollowUpEnteredBy();
                                             }}
                                         />
-                                        <Button size="sm" onClick={handleSetOtherFollowUpGivenBy}>OK</Button>
+                                        <Button size="sm" onClick={handleSetOtherFollowUpEnteredBy}>OK</Button>
                                     </div>
                                 </div>
                             )}
+                        </div>
+                         <div className="space-y-1">
+                            <Label>Remarks</Label>
+                            <Input placeholder="Search in remarks..." value={followUpRemarks} onChange={e => setFollowUpRemarks(e.target.value)}/>
                         </div>
                       </div>
                     </>
