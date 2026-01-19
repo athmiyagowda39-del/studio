@@ -30,7 +30,7 @@ const adminLinks = [{ href: '/users', label: 'MANAGE USERS', icon: Users }];
 export default function SidebarNav() {
   const pathname = usePathname();
   const [isClient, setIsClient] = useState(false);
-  const { originalUser } = useAuth();
+  const { user } = useAuth();
 
   useEffect(() => {
     setIsClient(true);
@@ -40,7 +40,7 @@ export default function SidebarNav() {
     pathname.startsWith(href) && (href !== '/' || pathname === '/');
 
   let allLinks = links;
-  if (originalUser?.role === 'Admin' || originalUser?.role === 'Sub Admin') {
+  if (user?.role === 'Admin' || user?.role === 'Sub Admin') {
     allLinks = [...links, ...adminLinks];
   }
 
