@@ -137,6 +137,8 @@ export default function LeadUploadForm() {
   const { users } = useUsers();
   const { user } = useAuth();
   const [executives, setExecutives] = useState<string[]>([]);
+  
+  const isExecutiveContext = user?.role === 'Executive';
 
   useEffect(() => {
     const executiveUsers = users
@@ -145,6 +147,17 @@ export default function LeadUploadForm() {
     setExecutives(executiveUsers);
   }, [users]);
   
+  useEffect(() => {
+    if (user?.role === 'Executive') {
+      setFormData(prev => ({ ...prev, toExecutive: true }));
+      setToExecutiveSelection(user.username);
+    } else {
+      // Reset when not in an executive context (e.g., admin logs in or stops impersonating)
+      setFormData(prev => ({ ...prev, toExecutive: false }));
+      setToExecutiveSelection('');
+    }
+  }, [user]);
+
   useEffect(() => {
     if (formData.pincode.length === 6) {
       fetch(`https://api.postalpincode.in/pincode/${formData.pincode}`)
@@ -203,7 +216,9 @@ export default function LeadUploadForm() {
 
   const resetForm = () => {
     setFormData(initialFormState);
-    setToExecutiveSelection('');
+    if (!isExecutiveContext) {
+      setToExecutiveSelection('');
+    }
     handleCancel();
   };
 
@@ -525,25 +540,34 @@ export default function LeadUploadForm() {
               id="toExecutive"
               checked={formData.toExecutive}
               onCheckedChange={handleCheckboxChange}
+              disabled={isExecutiveContext}
             />
             <Label htmlFor="toExecutive">To Executive</Label>
           </div>
           {formData.toExecutive && (
               <div className="w-full md:w-auto">
-                <Select
-                  value={toExecutiveSelection}
-                  onValueChange={setToExecutiveSelection}
-                >
-                  <SelectTrigger className="w-[200px]">
-                    <SelectValue placeholder="As per mapping" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All</SelectItem>
-                    {executives.map((name) => (
-                      <SelectItem key={name} value={name}>{name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {isExecutiveContext ? (
+                  <Input
+                    value={toExecutiveSelection}
+                    readOnly
+                    className="w-[200px] bg-muted"
+                  />
+                ) : (
+                  <Select
+                    value={toExecutiveSelection}
+                    onValueChange={setToExecutiveSelection}
+                  >
+                    <SelectTrigger className="w-[200px]">
+                      <SelectValue placeholder="As per mapping" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All</SelectItem>
+                      {executives.map((name) => (
+                        <SelectItem key={name} value={name}>{name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
           )}
         </div>
