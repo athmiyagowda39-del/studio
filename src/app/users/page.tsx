@@ -86,15 +86,6 @@ export default function UsersPage() {
       });
       return;
     }
-    
-    if (originalUser?.role === 'Sub Admin' && newRole !== 'Executive') {
-      toast({
-        variant: 'destructive',
-        title: 'Permission Denied',
-        description: 'You can only create Executive users.',
-      });
-      return;
-    }
 
     if (editingUserId) {
       // Update existing user
@@ -288,12 +279,8 @@ export default function UsersPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="Executive">Executive</SelectItem>
-                      {originalUser?.role === 'Admin' && (
-                        <>
-                          <SelectItem value="Sub Admin">Sub Admin</SelectItem>
-                          <SelectItem value="Admin">Admin</SelectItem>
-                        </>
-                      )}
+                      <SelectItem value="Sub Admin">Sub Admin</SelectItem>
+                      <SelectItem value="Admin">Admin</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
