@@ -120,7 +120,6 @@ export default function LeadsUpdatePage() {
   const [followUpToDate, setFollowUpToDate] = useState('');
   const [followUpEnteredBy, setFollowUpEnteredBy] = useState('all');
   const [otherFollowUpEnteredByInput, setOtherFollowUpEnteredByInput] = useState('');
-  const [followUpRemarks, setFollowUpRemarks] = useState('');
 
 
   /* ---------------- EFFECT ---------------- */
@@ -259,10 +258,6 @@ export default function LeadsUpdatePage() {
                     if (followUpEnteredBy !== 'all' && followUpEnteredBy !== 'Other' && followUp.enteredBy !== followUpEnteredBy) {
                         isMatch = false;
                     }
-                    
-                    if (followUpRemarks && !followUp.remarks.toLowerCase().includes(followUpRemarks.toLowerCase())) {
-                        isMatch = false;
-                    }
 
                     return isMatch;
                 });
@@ -308,8 +303,7 @@ export default function LeadsUpdatePage() {
     visibleLeads, activeTab, searchTerm, searchCategory, fromDate, toDate, 
     selectedProduct, selectedExecutive, givenBy, selectedStatus, 
     selectedSubStatus, selectedLeadSource, considerStatus, considerFollowUps,
-    followUpStatus, followUpFromDate, followUpToDate, followUpEnteredBy,
-    followUpRemarks
+    followUpStatus, followUpFromDate, followUpToDate, followUpEnteredBy
   ]);
 
   const handleShowButtonClick = () => {
@@ -342,7 +336,6 @@ export default function LeadsUpdatePage() {
     setFollowUpToDate('');
     setFollowUpEnteredBy('all');
     setOtherFollowUpEnteredByInput('');
-    setFollowUpRemarks('');
 
     setCurrentPage(1);
   };
@@ -715,68 +708,66 @@ export default function LeadsUpdatePage() {
                           /> 
                           <Label htmlFor="considerFollowUps">Consider Follow Ups</Label>
                         </div>
-                        <>
-                          <RadioGroup value={followUpStatus} onValueChange={setFollowUpStatus} className="flex gap-4">
-                            <div className="flex items-center gap-2">
-                              <RadioGroupItem value="pending" id="pending" />
-                              <Label htmlFor="pending">Follow Up Pending</Label>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <RadioGroupItem value="made" id="made" />
-                              <Label htmlFor="made">Follow Up Made</Label>
-                            </div>
-                          </RadioGroup>
+                        {considerFollowUps && (
+                          <>
+                            <RadioGroup value={followUpStatus} onValueChange={setFollowUpStatus} className="flex gap-4">
+                              <div className="flex items-center gap-2">
+                                <RadioGroupItem value="pending" id="pending" />
+                                <Label htmlFor="pending">Follow Up Pending</Label>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <RadioGroupItem value="made" id="made" />
+                                <Label htmlFor="made">Follow Up Made</Label>
+                              </div>
+                            </RadioGroup>
 
-                          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <div className="space-y-1">
-                                <Label>From Date</Label>
-                                <Input type="date" value={followUpFromDate} onChange={(e) => setFollowUpFromDate(e.target.value)} />
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <div className="space-y-1">
+                                  <Label>From Date</Label>
+                                  <Input type="date" value={followUpFromDate} onChange={(e) => setFollowUpFromDate(e.target.value)} />
+                              </div>
+                              <div className="space-y-1">
+                                  <Label>To Date</Label>
+                                  <Input type="date" value={followUpToDate} onChange={(e) => setFollowUpToDate(e.target.value)} />
+                              </div>
+                              <div className="space-y-1">
+                                  <Label htmlFor="enteredByFollowUp">Enter by</Label>
+                                  <Select value={followUpEnteredBy} onValueChange={(value) => setFollowUpEnteredBy(value)}>
+                                      <SelectTrigger id="enteredByFollowUp">
+                                          <SelectValue placeholder="--All--" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                          <SelectItem value="all">All</SelectItem>
+                                          {executives.map((exec) => (
+                                          <SelectItem key={exec} value={exec}>
+                                              {exec}
+                                          </SelectItem>
+                                          ))}
+                                          {!executives.includes(followUpEnteredBy) && followUpEnteredBy !== 'all' && followUpEnteredBy !== 'Other' && (
+                                              <SelectItem value={followUpEnteredBy}>{followUpEnteredBy}</SelectItem>
+                                          )}
+                                          <SelectItem value="Other">Other</SelectItem>
+                                      </SelectContent>
+                                  </Select>
+                                  {followUpEnteredBy === 'Other' && (
+                                      <div className="mt-2">
+                                          <div className="flex items-center gap-2">
+                                              <Input
+                                                  placeholder="Specify who entered it"
+                                                  value={otherFollowUpEnteredByInput}
+                                                  onChange={(e) => setOtherFollowUpEnteredByInput(e.target.value)}
+                                                  onKeyDown={(e) => {
+                                                      if (e.key === 'Enter') handleSetOtherFollowUpEnteredBy();
+                                                  }}
+                                              />
+                                              <Button size="sm" onClick={handleSetOtherFollowUpEnteredBy}>OK</Button>
+                                          </div>
+                                      </div>
+                                  )}
+                              </div>
                             </div>
-                            <div className="space-y-1">
-                                <Label>To Date</Label>
-                                <Input type="date" value={followUpToDate} onChange={(e) => setFollowUpToDate(e.target.value)} />
-                            </div>
-                            <div className="space-y-1">
-                                <Label htmlFor="enteredByFollowUp">Enter by</Label>
-                                <Select value={followUpEnteredBy} onValueChange={(value) => setFollowUpEnteredBy(value)}>
-                                    <SelectTrigger id="enteredByFollowUp">
-                                        <SelectValue placeholder="--All--" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="all">All</SelectItem>
-                                        {executives.map((exec) => (
-                                        <SelectItem key={exec} value={exec}>
-                                            {exec}
-                                        </SelectItem>
-                                        ))}
-                                        {!executives.includes(followUpEnteredBy) && followUpEnteredBy !== 'all' && followUpEnteredBy !== 'Other' && (
-                                            <SelectItem value={followUpEnteredBy}>{followUpEnteredBy}</SelectItem>
-                                        )}
-                                        <SelectItem value="Other">Other</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                {followUpEnteredBy === 'Other' && (
-                                    <div className="mt-2">
-                                        <div className="flex items-center gap-2">
-                                            <Input
-                                                placeholder="Specify who entered it"
-                                                value={otherFollowUpEnteredByInput}
-                                                onChange={(e) => setOtherFollowUpEnteredByInput(e.target.value)}
-                                                onKeyDown={(e) => {
-                                                    if (e.key === 'Enter') handleSetOtherFollowUpEnteredBy();
-                                                }}
-                                            />
-                                            <Button size="sm" onClick={handleSetOtherFollowUpEnteredBy}>OK</Button>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                            <div className="space-y-1">
-                                <Label>Remarks</Label>
-                                <Input placeholder="Search in remarks..." value={followUpRemarks} onChange={e => setFollowUpRemarks(e.target.value)}/>
-                            </div>
-                          </div>
-                        </>
+                          </>
+                        )}
                       </div>
                     )}
                   </div>
