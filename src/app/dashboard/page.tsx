@@ -88,8 +88,8 @@ export default function DashboardPage() {
                 // If a specific executive is selected, show their leads.
                 return allLeads.filter(lead => lead.executive === selectedExecutive);
             } else {
-                // If 'all' is selected (default), show leads created by the logged-in admin.
-                return allLeads.filter(lead => lead.givenBy === user.username);
+                // If 'all' is selected (default), show all leads.
+                return allLeads;
             }
         }
         
