@@ -142,7 +142,7 @@ export default function LeadPerformanceFilters({
                             className="w-[180px] justify-between"
                         >
                             <span className="truncate">
-                                {selectedPeriod.length === 0 && "All Months"}
+                                {selectedPeriod.length === 0 && "Current Month"}
                                 {selectedPeriod.length === 1 && months.find(m => m.value === selectedPeriod[0])?.label}
                                 {selectedPeriod.length > 1 && `${selectedPeriod.length} months selected`}
                             </span>
@@ -206,7 +206,7 @@ export default function LeadPerformanceFilters({
             </div>
             <div className="flex items-center gap-2">
                 <span className="text-sm font-medium">District:</span>
-                <Select value={selectedDistrict} onValueChange={handleDistrictChange}>
+                <Select value={selectedDistrict} onValueChange={handleDistrictChange} disabled={!selectedState}>
                     <SelectTrigger className="w-[180px]">
                         <SelectValue placeholder="Select District" />
                     </SelectTrigger>

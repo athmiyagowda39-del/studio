@@ -118,46 +118,79 @@ export default function DashboardPage() {
       }
 
       const year = getYear(new Date());
+      const isSingleMonthView = selectedPeriod.length === 1 || selectedPeriod.length === 0;
 
-      // If no months are selected, default to all months of the year.
-      const selectedMonthIndexes = selectedPeriod.length > 0
-        ? selectedPeriod.map(m => parseInt(m, 10) - 1)
-        : Array.from(Array(12).keys());
+      let monthIndexesToShow: number[];
+      if (selectedPeriod.length > 0) {
+        monthIndexesToShow = selectedPeriod.map(m => parseInt(m, 10) - 1);
+      } else {
+        // Default to current month if no selection
+        monthIndexesToShow = [getMonth(new Date())];
+      }
 
-      const dateRanges = selectedMonthIndexes.map(monthIndex => {
+      if (isSingleMonthView) {
+        const monthIndex = monthIndexesToShow[0];
         const monthDate = new Date(year, monthIndex);
-        return {
-          start: startOfMonth(monthDate),
-          end: endOfMonth(monthDate)
-        };
-      });
+        const daysInMonth = eachDayOfInterval({
+            start: startOfMonth(monthDate),
+            end: endOfMonth(monthDate)
+        });
 
-      const allDays: Date[] = dateRanges.flatMap(range => eachDayOfInterval(range)).sort((a, b) => a.getTime() - b.getTime());
-      
-      const dailyLeads: { [key: string]: { date: string; leads: number } } = {};
-      
-      allDays.forEach(date => {
-          const formattedDate = formatDate(date, 'd MMM');
-          dailyLeads[formattedDate] = { date: formattedDate, leads: 0 };
-      });
-      
-      const relevantLeads = leads.filter(lead => {
-        const leadDate = new Date(lead.creationDate);
-        return getYear(leadDate) === year && selectedMonthIndexes.includes(getMonth(leadDate));
-      });
+        const dailyData = daysInMonth.map(day => ({
+            day: formatDate(day, 'dd'),
+            leads: 0,
+        }));
 
-      relevantLeads.forEach((lead) => {
-        const leadDate = new Date(lead.creationDate);
-        const formattedDate = formatDate(leadDate, 'd MMM');
-        if (dailyLeads[formattedDate]) {
-          dailyLeads[formattedDate].leads += 1;
-        }
-      });
-    
-      return Object.values(dailyLeads);
+        const relevantLeads = leads.filter(lead => {
+            const leadDate = new Date(lead.creationDate);
+            return getYear(leadDate) === year && getMonth(leadDate) === monthIndex;
+        });
 
+        relevantLeads.forEach(lead => {
+            const dayOfMonth = new Date(lead.creationDate).getDate() - 1; // 0-indexed
+            if (dailyData[dayOfMonth]) {
+                dailyData[dayOfMonth].leads++;
+            }
+        });
+        
+        return dailyData;
+      } else { // Multiple months selected
+        const dateRanges = monthIndexesToShow.map(monthIndex => {
+            const monthDate = new Date(year, monthIndex);
+            return {
+                start: startOfMonth(monthDate),
+                end: endOfMonth(monthDate)
+            };
+        });
+
+        const allDays: Date[] = dateRanges.flatMap(range => eachDayOfInterval(range)).sort((a, b) => a.getTime() - b.getTime());
+        
+        const dailyLeads: { [key: string]: { date: string; leads: number } } = {};
+        
+        allDays.forEach(date => {
+            const formattedDate = formatDate(date, 'd MMM');
+            dailyLeads[formattedDate] = { date: formattedDate, leads: 0 };
+        });
+        
+        const relevantLeads = leads.filter(lead => {
+            const leadDate = new Date(lead.creationDate);
+            return getYear(leadDate) === year && monthIndexesToShow.includes(getMonth(leadDate));
+        });
+
+        relevantLeads.forEach((lead) => {
+            const leadDate = new Date(lead.creationDate);
+            const formattedDate = formatDate(leadDate, 'd MMM');
+            if (dailyLeads[formattedDate]) {
+                dailyLeads[formattedDate].leads += 1;
+            }
+        });
+        
+        return Object.values(dailyLeads);
+      }
     }, [filteredLeads, selectedPeriod, selectedState, selectedDistrict]);
   
+    const isSingleMonthView = selectedPeriod.length === 1 || selectedPeriod.length === 0;
+
     if (isLoading || isDataLoading || !isAuthenticated) {
         return null; // or a loading skeleton
     }
@@ -208,8 +241,8 @@ export default function DashboardPage() {
                     <CardContent>
                       <LeadPerformanceChart 
                         performanceData={performanceData} 
-                        xAxisLabel={"Date"} 
-                        dataKey={'date'}
+                        xAxisLabel={isSingleMonthView ? "Number of Days" : "Date"} 
+                        dataKey={isSingleMonthView ? 'day' : 'date'}
                       />
                     </CardContent>
                 </Card>
