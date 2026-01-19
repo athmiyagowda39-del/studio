@@ -926,7 +926,7 @@ export default function LeadsUpdatePage() {
                   </CardTitle>
                 </CardHeader>
                  <ScrollArea className="w-full whitespace-nowrap rounded-md border">
-                  <Table className="min-w-[2800px]">
+                  <Table className="min-w-[2700px]">
                     <TableHeader className="bg-muted">
                       <TableRow>
                         <TableHead>Sl No</TableHead>
@@ -949,7 +949,6 @@ export default function LeadsUpdatePage() {
                         <TableHead>Next followup Date</TableHead>
                         <TableHead>Last Followup Remarks</TableHead>
                         <TableHead>Lead Status</TableHead>
-                        <TableHead>Lead Sub Status</TableHead>
                         <TableHead>Lead Status Remarks</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -992,7 +991,6 @@ export default function LeadsUpdatePage() {
                           <TableCell>{nextFollowupDate}</TableCell>
                           <TableCell>{lastFollowUp ? lastFollowUp.remarks : 'N/A'}</TableCell>
                           <TableCell>{lead.status}</TableCell>
-                          <TableCell>{lead.leadSubStatus}</TableCell>
                           <TableCell>{lead.initialRemarks}</TableCell>
                         </TableRow>
                       )})}
