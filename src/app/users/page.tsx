@@ -310,7 +310,7 @@ export default function UsersPage() {
               </div>
             </div>
 
-            {/* Users Table */}
+            {/* Users Table - Only visible to Admins */}
             {originalUser?.role === 'Admin' && (
               <div className="space-y-4">
                 <h2 className="text-lg font-semibold">Existing Users</h2>
