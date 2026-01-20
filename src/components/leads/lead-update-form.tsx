@@ -17,7 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '../ui/textarea';
 import { Calendar } from '../ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
-import { CalendarIcon, CircleDot, Info, ChevronsUpDown, ChevronDown } from 'lucide-react';
+import { CalendarIcon, Info, ChevronsUpDown, ChevronDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
@@ -275,9 +275,17 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
       return;
     }
     
+    let updatedViewDate = leadDetails.executiveViewDate;
+    if (user?.role === 'Executive') {
+        updatedViewDate = new Date().getTime();
+    } else if (!leadDetails.executiveViewDate) {
+        updatedViewDate = new Date().getTime();
+    }
+
     const updatedLeadDetailsWithStatus = {
         ...leadDetails, 
         status: selectedStatus,
+        executiveViewDate: updatedViewDate,
     };
     
     const updatedLeads = allLeads.map(l => l.leadId === leadDetails.leadId ? updatedLeadDetailsWithStatus : l);
@@ -322,6 +330,8 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
   };
   
   const isOrderClosedRemark = remarks.trim().toLowerCase() === 'order closed';
+
+  const executiveForLead = leadDetails.executive ? users.find(u => u.username === leadDetails.executive) : null;
 
 
   return (
@@ -432,35 +442,31 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
               <div className="space-y-2 relative">
                 <Label htmlFor="executive">Executive</Label>
                 <Input id="executive" value={leadDetails.executive || ''} readOnly className="bg-muted" />
-                 {leadDetails.leadId && (
+                 {leadDetails.leadId && executiveForLead && (
                    <Popover>
                     <PopoverTrigger asChild>
-                      <CircleDot className="absolute right-3 top-9 h-5 w-5 text-black cursor-pointer" />
+                      <Info className="absolute right-3 top-9 h-5 w-5 text-muted-foreground cursor-pointer" />
                     </PopoverTrigger>
                     <PopoverContent className="w-80">
                       <div className="grid gap-4">
                         <div className="space-y-2">
-                          <h4 className="font-medium leading-none">Lead Details</h4>
+                          <h4 className="font-medium leading-none">Executive Details</h4>
                           <p className="text-sm text-muted-foreground">
-                            Quick contact information for this lead.
+                            Contact information for the assigned executive.
                           </p>
                         </div>
                         <div className="grid gap-2">
                           <div className="grid grid-cols-3 items-center gap-4">
-                            <Label>Company</Label>
-                            <span className="col-span-2 h-8">{leadDetails.company}</span>
+                            <Label>Name</Label>
+                            <span className="col-span-2 h-8 flex items-center">{executiveForLead.username}</span>
                           </div>
                            <div className="grid grid-cols-3 items-center gap-4">
-                            <Label>Contact</Label>
-                            <span className="col-span-2 h-8">{leadDetails.contactPerson}</span>
-                          </div>
-                          <div className="grid grid-cols-3 items-center gap-4">
-                            <Label>Phone</Label>
-                             <span className="col-span-2 h-8">{leadDetails.contactNumber}</span>
-                          </div>
-                          <div className="grid grid-cols-3 items-center gap-4">
                             <Label>Email</Label>
-                             <span className="col-span-2 h-8 truncate">{leadDetails.email}</span>
+                            <span className="col-span-2 h-8 flex items-center truncate">{executiveForLead.email}</span>
+                          </div>
+                          <div className="grid grid-cols-3 items-center gap-4">
+                            <Label>Role</Label>
+                             <span className="col-span-2 h-8 flex items-center">{executiveForLead.role}</span>
                           </div>
                         </div>
                       </div>
