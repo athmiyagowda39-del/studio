@@ -21,6 +21,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuth();
   const { toast } = useToast();
+  const [isFormInteractive, setIsFormInteractive] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,7 +54,11 @@ export default function LoginPage() {
           <CardTitle className="text-2xl text-center">Login</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleLogin} className="grid gap-4">
+          <form
+            onSubmit={handleLogin}
+            className="grid gap-4"
+            onFocus={() => setIsFormInteractive(true)}
+          >
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -64,6 +69,7 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 autoComplete="username"
+                readOnly={!isFormInteractive}
               />
             </div>
             <div className="grid gap-2">
@@ -77,6 +83,7 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   autoComplete="current-password"
+                  readOnly={!isFormInteractive}
                 />
                 <Button
                   type="button"
