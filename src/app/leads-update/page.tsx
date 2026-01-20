@@ -223,14 +223,18 @@ export default function LeadsUpdatePage() {
 
     // Main filters
     if (fromDate) {
-        try {
-            tempLeads = tempLeads.filter(lead => lead.creationDate >= startOfDay(new Date(fromDate)).getTime());
-        } catch {}
+        const from = new Date(fromDate);
+        if (!isNaN(from.getTime())) {
+            const fromTimestamp = startOfDay(from).getTime();
+            tempLeads = tempLeads.filter(lead => lead.creationDate >= fromTimestamp);
+        }
     }
     if (toDate) {
-        try {
-            tempLeads = tempLeads.filter(lead => lead.creationDate <= endOfDay(new Date(toDate)).getTime());
-        } catch {}
+        const to = new Date(toDate);
+        if (!isNaN(to.getTime())) {
+            const toTimestamp = endOfDay(to).getTime();
+            tempLeads = tempLeads.filter(lead => lead.creationDate <= toTimestamp);
+        }
     }
     if (selectedProduct !== 'all') {
         tempLeads = tempLeads.filter(lead => lead.selectedModule === selectedProduct);
@@ -262,57 +266,66 @@ export default function LeadsUpdatePage() {
             tempLeads = tempLeads.filter(lead => {
                 if (!lead.nextFollowUpDate) return false;
 
-                // A lead's pending follow-up is the responsibility of the assigned executive.
-                // Filter by executive if one is selected in the "Enter by" field.
                 const executiveMatch = 
                     followUpEnteredBy === 'all' || 
                     followUpEnteredBy === 'Other' || 
                     lead.executive === followUpEnteredBy;
-
                 if (!executiveMatch) return false;
 
-                // Now, check if the pending date is within the selected date range.
-                try {
-                    const nextFollowUp = startOfDay(new Date(lead.nextFollowUpDate));
-                    let inDateRange = true;
-                    if (followUpFromDate) {
-                        inDateRange = inDateRange && nextFollowUp >= startOfDay(new Date(followUpFromDate));
+                const nextFollowUp = new Date(lead.nextFollowUpDate);
+                if (isNaN(nextFollowUp.getTime())) return false;
+                
+                let inDateRange = true;
+                if (followUpFromDate) {
+                    const fromDateObj = new Date(followUpFromDate);
+                    if (!isNaN(fromDateObj.getTime())) {
+                        if (startOfDay(nextFollowUp) < startOfDay(fromDateObj)) {
+                            inDateRange = false;
+                        }
                     }
-                    if (followUpToDate) {
-                        inDateRange = inDateRange && nextFollowUp <= endOfDay(new Date(followUpToDate));
-                    }
-                    return inDateRange;
-                } catch(e) {
-                    return false;
                 }
+                if (inDateRange && followUpToDate) {
+                    const toDateObj = new Date(followUpToDate);
+                    if (!isNaN(toDateObj.getTime())) {
+                        if (startOfDay(nextFollowUp) > endOfDay(toDateObj)) {
+                            inDateRange = false;
+                        }
+                    }
+                }
+                return inDateRange;
             });
         } else if (followUpStatus === 'made') {
             tempLeads = tempLeads.filter(lead => {
                 if (!lead.followUps || lead.followUps.length === 0) return false;
 
-                // A "made" follow-up must have been entered by the selected person.
                 return lead.followUps.some(followUp => {
                     const personMatch = 
                         followUpEnteredBy === 'all' || 
                         followUpEnteredBy === 'Other' || 
                         followUp.enteredBy === followUpEnteredBy;
-
                     if (!personMatch) return false;
                     
-                    // Now, check if the follow-up date is within the selected date range.
-                    try {
-                        const followUpDate = startOfDay(new Date(followUp.date));
-                        let inDateRange = true;
-                        if (followUpFromDate) {
-                            inDateRange = inDateRange && followUpDate >= startOfDay(new Date(followUpFromDate));
+                    const followUpDate = new Date(followUp.date);
+                    if (isNaN(followUpDate.getTime())) return false;
+
+                    let inDateRange = true;
+                    if (followUpFromDate) {
+                        const fromDateObj = new Date(followUpFromDate);
+                        if (!isNaN(fromDateObj.getTime())) {
+                            if (startOfDay(followUpDate) < startOfDay(fromDateObj)) {
+                                inDateRange = false;
+                            }
                         }
-                        if (followUpToDate) {
-                            inDateRange = inDateRange && followUpDate <= endOfDay(new Date(followUpToDate));
-                        }
-                        return inDateRange;
-                    } catch(e) { 
-                        return false; 
                     }
+                    if (inDateRange && followUpToDate) {
+                        const toDateObj = new Date(followUpToDate);
+                        if (!isNaN(toDateObj.getTime())) {
+                            if (startOfDay(followUpDate) > endOfDay(toDateObj)) {
+                                inDateRange = false;
+                            }
+                        }
+                    }
+                    return inDateRange;
                 });
             });
         }
