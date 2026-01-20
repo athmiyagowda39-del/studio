@@ -253,6 +253,18 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
     setTransferredTo('');
   };
 
+  const handleStatusSelection = (newStatus: string) => {
+    setSelectedStatus(newStatus);
+    
+    // Instantly update the view date in the UI if it's the first time and a lead is loaded
+    if (leadDetails.leadId && !leadDetails.executiveViewDate) {
+      setLeadDetails(prev => ({
+        ...prev,
+        executiveViewDate: new Date().getTime(),
+      }));
+    }
+  };
+
   const handleUpdateStatus = async () => {
     if (!selectedStatus) {
       toast({ variant: 'destructive', title: 'No Status Selected', description: 'Please select a status to update.' });
@@ -265,11 +277,7 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
     
     const updatedLeadDetailsWithStatus = {
         ...leadDetails, 
-        status: selectedStatus, 
-        // Update executiveViewDate if an executive changes the status, or if it's not set yet.
-        executiveViewDate: (user?.role === 'Executive' || !leadDetails.executiveViewDate) 
-            ? new Date().getTime() 
-            : leadDetails.executiveViewDate,
+        status: selectedStatus,
     };
     
     const updatedLeads = allLeads.map(l => l.leadId === leadDetails.leadId ? updatedLeadDetailsWithStatus : l);
@@ -729,7 +737,7 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
                     <Label>Current Status</Label>
                     <div className="flex items-center gap-2">
                         <span className="font-semibold shrink-0 text-muted-foreground">({currentStatus})</span>
-                        <Select value={selectedStatus} onValueChange={setSelectedStatus} disabled={!leadDetails.leadId || isReadOnly}>
+                        <Select value={selectedStatus} onValueChange={handleStatusSelection} disabled={!leadDetails.leadId || isReadOnly}>
                           <SelectTrigger className="w-full min-w-[200px]">
                               <SelectValue placeholder="-- Select --" />
                           </SelectTrigger>
