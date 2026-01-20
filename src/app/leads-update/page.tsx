@@ -262,11 +262,16 @@ export default function LeadsUpdatePage() {
             tempLeads = tempLeads.filter(lead => {
                 if (!lead.nextFollowUpDate) return false;
 
-                // Condition 1: Check if the lead's executive matches the 'entered by' filter
-                const executiveMatch = (followUpEnteredBy === 'all' || followUpEnteredBy === 'Other') || lead.executive === followUpEnteredBy;
+                // A lead's pending follow-up is the responsibility of the assigned executive.
+                // Filter by executive if one is selected in the "Enter by" field.
+                const executiveMatch = 
+                    followUpEnteredBy === 'all' || 
+                    followUpEnteredBy === 'Other' || 
+                    lead.executive === followUpEnteredBy;
+
                 if (!executiveMatch) return false;
 
-                // Condition 2: Check date range
+                // Now, check if the pending date is within the selected date range.
                 try {
                     const nextFollowUp = startOfDay(new Date(lead.nextFollowUpDate));
                     let inDateRange = true;
@@ -285,17 +290,16 @@ export default function LeadsUpdatePage() {
             tempLeads = tempLeads.filter(lead => {
                 if (!lead.followUps || lead.followUps.length === 0) return false;
 
+                // A "made" follow-up must have been entered by the selected person.
                 return lead.followUps.some(followUp => {
-                    let isMatch = true;
+                    const personMatch = 
+                        followUpEnteredBy === 'all' || 
+                        followUpEnteredBy === 'Other' || 
+                        followUp.enteredBy === followUpEnteredBy;
+
+                    if (!personMatch) return false;
                     
-                    // Condition 1: Check 'entered by'
-                    if (followUpEnteredBy !== 'all' && followUpEnteredBy !== 'Other' && followUp.enteredBy !== followUpEnteredBy) {
-                        isMatch = false;
-                    }
-
-                    if (!isMatch) return false; // Early exit if person doesn't match
-
-                    // Condition 2: Check date range
+                    // Now, check if the follow-up date is within the selected date range.
                     try {
                         const followUpDate = startOfDay(new Date(followUp.date));
                         let inDateRange = true;
@@ -305,10 +309,10 @@ export default function LeadsUpdatePage() {
                         if (followUpToDate) {
                             inDateRange = inDateRange && followUpDate <= endOfDay(new Date(followUpToDate));
                         }
-                        if (!inDateRange) isMatch = false;
-                    } catch(e) { isMatch = false; }
-
-                    return isMatch;
+                        return inDateRange;
+                    } catch(e) { 
+                        return false; 
+                    }
                 });
             });
         }
@@ -1044,5 +1048,7 @@ export default function LeadsUpdatePage() {
     </AppContent>
   );
 }
+
+    
 
     
