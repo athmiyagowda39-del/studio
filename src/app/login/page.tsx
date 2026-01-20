@@ -21,7 +21,6 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuth();
   const { toast } = useToast();
-  const [isFormInteractive, setIsFormInteractive] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,14 +39,6 @@ export default function LoginPage() {
     }
   };
   
-  // This function makes the form inputs writable upon user interaction,
-  // preventing aggressive autofill while allowing browser suggestions on focus.
-  const makeFormInteractive = () => {
-    if (!isFormInteractive) {
-      setIsFormInteractive(true);
-    }
-  };
-
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
       <div className="mb-8 flex items-center gap-3 text-2xl font-bold text-primary">
@@ -73,8 +64,6 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 autoComplete="username"
-                readOnly={!isFormInteractive} 
-                onFocus={makeFormInteractive} 
               />
             </div>
             <div className="grid gap-2">
@@ -88,8 +77,6 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   autoComplete="new-password"
-                  readOnly={!isFormInteractive} 
-                  onFocus={makeFormInteractive} 
                 />
                 <Button
                   type="button"
