@@ -266,8 +266,10 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
     const updatedLeadDetailsWithStatus = {
         ...leadDetails, 
         status: selectedStatus, 
-        // Only set executiveViewDate if it's not already set
-        executiveViewDate: leadDetails.executiveViewDate || new Date().getTime(),
+        // Update executiveViewDate if an executive changes the status, or if it's not set yet.
+        executiveViewDate: (user?.role === 'Executive' || !leadDetails.executiveViewDate) 
+            ? new Date().getTime() 
+            : leadDetails.executiveViewDate,
     };
     
     const updatedLeads = allLeads.map(l => l.leadId === leadDetails.leadId ? updatedLeadDetailsWithStatus : l);
