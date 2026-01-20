@@ -38,6 +38,12 @@ export default function LoginPage() {
       });
     }
   };
+  
+  // This is a common workaround to prevent aggressive browser autofill
+  // while still allowing password manager suggestions.
+  const preventAutofill = (e: React.FocusEvent<HTMLInputElement>) => {
+    e.target.readOnly = false;
+  };
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
@@ -64,6 +70,8 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 autoComplete="username"
+                readOnly 
+                onFocus={preventAutofill} 
               />
             </div>
             <div className="grid gap-2">
@@ -77,6 +85,8 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   autoComplete="current-password"
+                  readOnly 
+                  onFocus={preventAutofill} 
                 />
                 <Button
                   type="button"
