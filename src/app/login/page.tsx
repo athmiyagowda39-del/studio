@@ -21,6 +21,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuth();
   const { toast } = useToast();
+  const [isFormInteractive, setIsFormInteractive] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,10 +40,12 @@ export default function LoginPage() {
     }
   };
   
-  // This is a common workaround to prevent aggressive browser autofill
-  // while still allowing password manager suggestions.
-  const preventAutofill = (e: React.FocusEvent<HTMLInputElement>) => {
-    e.target.readOnly = false;
+  // This function makes the form inputs writable upon user interaction,
+  // preventing aggressive autofill while allowing browser suggestions on focus.
+  const makeFormInteractive = () => {
+    if (!isFormInteractive) {
+      setIsFormInteractive(true);
+    }
   };
 
   return (
@@ -70,8 +73,8 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 autoComplete="username"
-                readOnly 
-                onFocus={preventAutofill} 
+                readOnly={!isFormInteractive} 
+                onFocus={makeFormInteractive} 
               />
             </div>
             <div className="grid gap-2">
@@ -85,8 +88,8 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   autoComplete="current-password"
-                  readOnly 
-                  onFocus={preventAutofill} 
+                  readOnly={!isFormInteractive} 
+                  onFocus={makeFormInteractive} 
                 />
                 <Button
                   type="button"
