@@ -69,7 +69,7 @@ const otherProducts = [
 /* ---------------- CONSTANTS ---------------- */
 
 const LEADS_PER_PAGE = 10;
-type TabValue = 'recent' | 'not-viewed' | 'follow-ups-due' | 'zero-follow-ups' | 'search-result';
+type TabValue = 'all' | 'not-viewed' | 'follow-ups-due' | 'zero-follow-ups' | 'search-result';
 
 const leadStatusOptions = [
     'Attended',
@@ -134,7 +134,7 @@ export default function LeadsUpdatePage() {
   // ✅ MAIN FILTER STATE
   const [searchTerm, setSearchTerm] = useState('');
   const [searchCategory, setSearchCategory] = useState('leadId');
-  const [activeTab, setActiveTab] = useState<TabValue>('recent');
+  const [activeTab, setActiveTab] = useState<TabValue>('all');
 
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
@@ -344,8 +344,9 @@ export default function LeadsUpdatePage() {
             break;
         case 'search-result':
             break;
-        case 'recent':
+        case 'all':
         default:
+            // Sort by creation date ascending
             tempLeads.sort((a,b) => a.creationDate - b.creationDate);
             break;
     }
@@ -367,7 +368,7 @@ export default function LeadsUpdatePage() {
   const handleResetFilters = () => {
     setSearchTerm('');
     setSearchCategory('leadId');
-    setActiveTab('recent');
+    setActiveTab('all');
     
     setFromDate('');
     setToDate('');
@@ -928,7 +929,7 @@ export default function LeadsUpdatePage() {
               <CardContent className="p-4 space-y-4">
                 <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as TabValue)}>
                   <TabsList>
-                    <TabsTrigger value="recent">All Leads</TabsTrigger>
+                    <TabsTrigger value="all">All Leads</TabsTrigger>
                     <TabsTrigger value="not-viewed">Leads not Viewed</TabsTrigger>
                     <TabsTrigger value="follow-ups-due">Follow Ups Due</TabsTrigger>
                     <TabsTrigger value="zero-follow-ups">Zero Follow Ups!</TabsTrigger>
@@ -947,7 +948,7 @@ export default function LeadsUpdatePage() {
                         <TableHead>Sl No</TableHead>
                         <TableHead>Lead Id</TableHead>
                         <TableHead>Lead Date</TableHead>
-                        <TableHead>Product</TableHead>
+                        <TableHead>Module</TableHead>
                         <TableHead>Company</TableHead>
                         <TableHead>Contact</TableHead>
                         <TableHead>Phone</TableHead>
@@ -1048,6 +1049,8 @@ export default function LeadsUpdatePage() {
     </AppContent>
   );
 }
+
+    
 
     
 
