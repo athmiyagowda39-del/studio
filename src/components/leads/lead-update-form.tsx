@@ -17,7 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '../ui/textarea';
 import { Calendar } from '../ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
-import { CalendarIcon, CircleDot, Info } from 'lucide-react';
+import { CalendarIcon, CircleDot, Info, ChevronsUpDown, ChevronDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
@@ -27,6 +27,7 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '.
 import { useUsers } from '@/context/users-context';
 import { useAuth } from '@/context/auth-context';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
 
 
 type FollowUp = {
@@ -36,6 +37,32 @@ type FollowUp = {
   nextFollowUp: string;
   enteredBy: string;
 };
+
+/* ---------------- NEW PRODUCT OPTIONS ---------------- */
+const mainProducts = [
+  'Manpower Resource Planning',
+  'Recruitment and Requisition Management',
+  'Onboarding',
+  'Letter Generation',
+];
+const attendanceProducts = [
+  'Desktop Attendance Marking Only',
+  'Integration with Attendance Machine',
+  'Mobile Attendance Marking without Location',
+  'Geo Fencing',
+  'Geo Tracking',
+];
+const otherProducts = [
+  'Shift Roaster Management',
+  'Timesheet Management',
+  'Performance Management',
+  'Training Management',
+  'Employee Movement / Transfer',
+  'Probation to Confirmation',
+  'Employee Database Management',
+  'Mobile App',
+  'Employee Self Service',
+];
 
 const leadStatusOptions = [
     'All',
@@ -68,6 +95,7 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
   const [followUps, setFollowUps] = useState<FollowUp[]>([]);
   const [currentStatus, setCurrentStatus] = useState('Initial');
   const [selectedStatus, setSelectedStatus] = useState('');
+  const [productPopoverOpen, setProductPopoverOpen] = useState(false);
   
   const [transferredTo, setTransferredTo] = useState('');
   const [isReadyToUpdate, setIsReadyToUpdate] = useState(false);
@@ -116,6 +144,11 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
   const handleLeadDetailChange = (field: keyof LeadFormData, value: string | boolean | number | Date | undefined) => {
     setLeadDetails(prev => ({...prev, [field]: value}));
   }
+
+  const handleProductSelect = (product: string) => {
+    handleLeadDetailChange('selectedModule', product);
+    setProductPopoverOpen(false);
+  };
 
   const handleAddFollowUp = () => {
     const isOrderClosedRemark = remarks.trim().toLowerCase() === 'order closed';
@@ -426,24 +459,108 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="module">Module</Label>
-                <Select 
-                  value={leadDetails.selectedModule || ''} 
-                  onValueChange={(value) => handleLeadDetailChange('selectedModule', value)}
-                  disabled
-                >
-                  <SelectTrigger id="module">
-                    <SelectValue placeholder="Select Module" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All</SelectItem>
-                    <SelectItem value="ar">AR</SelectItem>
-                    <SelectItem value="all-hrms">All HRMS</SelectItem>
-                    <SelectItem value="module1">Module 1</SelectItem>
-                    <SelectItem value="module2">Module 2</SelectItem>
-                    <SelectItem value="module3">Module 3</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="selectedModule">Module</Label>
+                 <Popover
+                    open={productPopoverOpen}
+                    onOpenChange={setProductPopoverOpen}
+                    >
+                    <PopoverTrigger asChild>
+                        <Button
+                        variant="outline"
+                        role="combobox"
+                        className="w-full justify-between font-normal"
+                        disabled={isReadOnly}
+                        >
+                        <span className="truncate">
+                            {leadDetails.selectedModule || 'Select Module...'}
+                        </span>
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                        <ScrollArea className="h-72">
+                        <div className="space-y-1 p-1">
+                            <Button
+                            variant="ghost"
+                            className="w-full justify-start"
+                            onClick={() => handleProductSelect('All')}
+                            >
+                            All
+                            </Button>
+                            {mainProducts.map((product) => (
+                            <Button
+                                variant="ghost"
+                                className="w-full justify-start"
+                                key={product}
+                                onClick={() => handleProductSelect(product)}
+                            >
+                                {product}
+                            </Button>
+                            ))}
+
+                            <Collapsible>
+                            <CollapsibleTrigger asChild>
+                                <button className="flex w-full items-center justify-between rounded-sm px-2 py-1.5 text-left text-sm font-bold hover:bg-accent [&[data-state=open]>svg]:rotate-180">
+                                <span>Leave Management</span>
+                                <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
+                                </button>
+                            </CollapsibleTrigger>
+                            <CollapsibleContent className="space-y-1 pt-1 pl-4">
+                                <Button
+                                variant="ghost"
+                                className="w-full justify-start text-sm"
+                                key="Leave Management"
+                                onClick={() => handleProductSelect('Leave Management')}
+                                >
+                                Leave Management
+                                </Button>
+                                <Collapsible>
+                                <CollapsibleTrigger asChild>
+                                    <button className="flex w-full items-center justify-between rounded-sm px-2 py-1.5 text-left text-sm font-bold hover:bg-accent [&[data-state=open]>svg]:rotate-180">
+                                    <span>Attendance Management</span>
+                                    <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
+                                    </button>
+                                </CollapsibleTrigger>
+                                <CollapsibleContent className="space-y-1 pt-1 pl-4">
+                                    <Button
+                                    variant="ghost"
+                                    className="w-full justify-start text-sm"
+                                    key="Attendance Management"
+                                    onClick={() =>
+                                        handleProductSelect('Attendance Management')
+                                    }
+                                    >
+                                    Attendance Management
+                                    </Button>
+                                    {attendanceProducts.map((product) => (
+                                    <Button
+                                        variant="ghost"
+                                        className="w-full justify-start text-xs"
+                                        key={product}
+                                        onClick={() => handleProductSelect(product)}
+                                    >
+                                        {product}
+                                    </Button>
+                                    ))}
+                                </CollapsibleContent>
+                                </Collapsible>
+                            </CollapsibleContent>
+                            </Collapsible>
+
+                            {otherProducts.map((product) => (
+                            <Button
+                                variant="ghost"
+                                className="w-full justify-start"
+                                key={product}
+                                onClick={() => handleProductSelect(product)}
+                            >
+                                {product}
+                            </Button>
+                            ))}
+                        </div>
+                        </ScrollArea>
+                    </PopoverContent>
+                    </Popover>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="manager">Manager</Label>
