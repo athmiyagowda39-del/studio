@@ -52,7 +52,7 @@ export default function LoginPage() {
           <CardTitle className="text-2xl text-center">Login</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleLogin} className="grid gap-4">
+          <form onSubmit={handleLogin} className="grid gap-4" autoComplete="off">
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
               <Input
