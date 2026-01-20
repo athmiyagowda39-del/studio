@@ -22,6 +22,17 @@ export default function LoginPage() {
   const { login } = useAuth();
   const { toast } = useToast();
 
+  // State to manage form interaction to prevent aggressive autofill on page load.
+  const [formInteracted, setFormInteracted] = useState(false);
+  const isReadOnly = !formInteracted;
+
+  const handleFormFocus = () => {
+    if (!formInteracted) {
+      setFormInteracted(true);
+    }
+  };
+
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -67,6 +78,8 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 autoComplete="username"
+                readOnly={isReadOnly}
+                onFocus={handleFormFocus}
               />
             </div>
             <div className="grid gap-2">
@@ -80,6 +93,8 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   autoComplete="current-password"
+                  readOnly={isReadOnly}
+                  onFocus={handleFormFocus}
                 />
                 <Button
                   type="button"
