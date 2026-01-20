@@ -439,40 +439,42 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
                 <Label htmlFor="givenBy">Given By</Label>
                 <Input id="givenBy" value={leadDetails.givenBy || ''} readOnly className="bg-muted" />
               </div>
-              <div className="space-y-2 relative">
+              <div className="space-y-2">
                 <Label htmlFor="executive">Executive</Label>
-                <Input id="executive" value={leadDetails.executive || ''} readOnly className="bg-muted" />
-                 {leadDetails.leadId && executiveForLead && (
-                   <Popover>
-                    <PopoverTrigger asChild>
-                      <Info className="absolute right-3 top-9 h-5 w-5 text-muted-foreground cursor-pointer" />
-                    </PopoverTrigger>
-                    <PopoverContent className="w-80">
-                      <div className="grid gap-4">
-                        <div className="space-y-2">
-                          <h4 className="font-medium leading-none">Executive Details</h4>
-                          <p className="text-sm text-muted-foreground">
-                            Contact information for the assigned executive.
-                          </p>
+                <div className="relative">
+                  <Input id="executive" value={leadDetails.executive || ''} readOnly className="bg-muted pr-10" />
+                  {leadDetails.leadId && executiveForLead && (
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Info className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground cursor-pointer" />
+                      </PopoverTrigger>
+                      <PopoverContent className="w-80">
+                        <div className="grid gap-4">
+                          <div className="space-y-2">
+                            <h4 className="font-medium leading-none">Executive Details</h4>
+                            <p className="text-sm text-muted-foreground">
+                              Contact information for the assigned executive.
+                            </p>
+                          </div>
+                          <div className="grid gap-2">
+                            <div className="grid grid-cols-3 items-center gap-4">
+                              <Label>Name</Label>
+                              <span className="col-span-2 h-8 flex items-center">{executiveForLead.username}</span>
+                            </div>
+                            <div className="grid grid-cols-3 items-center gap-4">
+                              <Label>Email</Label>
+                              <span className="col-span-2 h-8 flex items-center truncate">{executiveForLead.email}</span>
+                            </div>
+                            <div className="grid grid-cols-3 items-center gap-4">
+                              <Label>Role</Label>
+                              <span className="col-span-2 h-8 flex items-center">{executiveForLead.role}</span>
+                            </div>
+                          </div>
                         </div>
-                        <div className="grid gap-2">
-                          <div className="grid grid-cols-3 items-center gap-4">
-                            <Label>Name</Label>
-                            <span className="col-span-2 h-8 flex items-center">{executiveForLead.username}</span>
-                          </div>
-                           <div className="grid grid-cols-3 items-center gap-4">
-                            <Label>Email</Label>
-                            <span className="col-span-2 h-8 flex items-center truncate">{executiveForLead.email}</span>
-                          </div>
-                          <div className="grid grid-cols-3 items-center gap-4">
-                            <Label>Role</Label>
-                             <span className="col-span-2 h-8 flex items-center">{executiveForLead.role}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                )}
+                      </PopoverContent>
+                    </Popover>
+                  )}
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="selectedModule">Module</Label>
