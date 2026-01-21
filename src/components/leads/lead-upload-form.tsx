@@ -213,6 +213,7 @@ export default function LeadUploadForm() {
   const [otherReferenceInput, setOtherReferenceInput] = useState('');
   const [otherSectorInput, setOtherSectorInput] = useState('');
   const [otherGivenByInput, setOtherGivenByInput] = useState('');
+  const [otherToExecutiveInput, setOtherToExecutiveInput] = useState('');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -382,6 +383,14 @@ export default function LeadUploadForm() {
         variant: 'destructive',
         title: 'Executive Not Assigned',
         description: 'You must select an executive when "To Executive" is checked.',
+      });
+      return false;
+    }
+    if (formData.toExecutive && toExecutiveSelection === 'Other') {
+      toast({
+        variant: 'destructive',
+        title: 'Missing Information',
+        description: "Please specify a value for 'Other' in the 'To Executive' field.",
       });
       return false;
     }
@@ -675,6 +684,14 @@ export default function LeadUploadForm() {
       const newGivenBy = otherGivenByInput.trim();
       handleSelectChange('givenBy', newGivenBy);
       setOtherGivenByInput('');
+    }
+  };
+
+  const handleSetOtherToExecutive = () => {
+    if (otherToExecutiveInput.trim()) {
+      const newExec = otherToExecutiveInput.trim();
+      setToExecutiveSelection(newExec);
+      setOtherToExecutiveInput('');
     }
   };
 
@@ -1057,23 +1074,56 @@ export default function LeadUploadForm() {
                   className="w-[200px] bg-muted"
                 />
               ) : (
-                <Select
-                  value={toExecutiveSelection}
-                  onValueChange={setToExecutiveSelection}
-                  disabled={isReadOnly}
-                >
-                  <SelectTrigger className="w-[200px]">
-                    <SelectValue placeholder="As per mapping" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All</SelectItem>
-                    {executives.map((name) => (
-                      <SelectItem key={name} value={name}>
-                        {name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex flex-col gap-2">
+                  <Select
+                    value={toExecutiveSelection}
+                    onValueChange={setToExecutiveSelection}
+                    disabled={isReadOnly}
+                  >
+                    <SelectTrigger className="w-[200px]">
+                      <SelectValue placeholder="As per mapping" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All</SelectItem>
+                      {executives.map((name) => (
+                        <SelectItem key={name} value={name}>
+                          {name}
+                        </SelectItem>
+                      ))}
+                      {!executives.includes(toExecutiveSelection) &&
+                        toExecutiveSelection !== 'all' &&
+                        toExecutiveSelection !== 'Other' &&
+                        toExecutiveSelection && (
+                          <SelectItem value={toExecutiveSelection}>
+                            {toExecutiveSelection}
+                          </SelectItem>
+                        )}
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {toExecutiveSelection === 'Other' && (
+                    <div className="flex items-center gap-2">
+                      <Input
+                        placeholder="Specify other executive"
+                        value={otherToExecutiveInput}
+                        onChange={(e) =>
+                          setOtherToExecutiveInput(e.target.value)
+                        }
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') handleSetOtherToExecutive();
+                        }}
+                        disabled={isReadOnly}
+                      />
+                      <Button
+                        size="sm"
+                        onClick={handleSetOtherToExecutive}
+                        disabled={isReadOnly}
+                      >
+                        OK
+                      </Button>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           )}
