@@ -151,7 +151,7 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
   };
 
   const handleAddFollowUp = () => {
-    const isOrderClosedRemark = remarks.trim().toLowerCase() === 'order closed';
+    const isOrderClosedRemark = ['closed', 'order closed'].includes(remarks.trim().toLowerCase());
     
     if (!remarks) {
       toast({
@@ -276,7 +276,7 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
     }
     
     let updatedViewDate = leadDetails.executiveViewDate;
-    if (user?.role === 'Executive') {
+    if (user?.role === 'Executive' && !leadDetails.executiveViewDate) {
         updatedViewDate = new Date().getTime();
     } else if (!leadDetails.executiveViewDate) {
         updatedViewDate = new Date().getTime();
@@ -329,7 +329,7 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
     setIsReadyToUpdate(false);
   };
   
-  const isOrderClosedRemark = remarks.trim().toLowerCase() === 'order closed';
+  const isOrderClosedRemark = ['closed', 'order closed'].includes(remarks.trim().toLowerCase());
 
   const executiveForLead = leadDetails.executive ? users.find(u => u.username === leadDetails.executive) : null;
 
