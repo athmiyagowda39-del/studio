@@ -967,7 +967,6 @@ export default function LeadsUpdatePage() {
                         <TableHead>Phone</TableHead>
                         <TableHead>Emailid</TableHead>
                         <TableHead>Address</TableHead>
-                        <TableHead>Place</TableHead>
                         <TableHead>District</TableHead>
                         <TableHead>State</TableHead>
                         <TableHead>Reference</TableHead>
@@ -1009,7 +1008,6 @@ export default function LeadsUpdatePage() {
                           <TableCell>{lead.contactNumber}</TableCell>
                           <TableCell>{lead.email}</TableCell>
                           <TableCell>{lead.address}</TableCell>
-                          <TableCell>{lead.district}</TableCell>
                           <TableCell>{lead.district}</TableCell>
                           <TableCell>{lead.state}</TableCell>
                           <TableCell>{lead.reference}</TableCell>

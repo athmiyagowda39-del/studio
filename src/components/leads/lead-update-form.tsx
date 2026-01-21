@@ -446,7 +446,7 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
                   {leadDetails.leadId && executiveForLead && (
                     <Popover>
                       <PopoverTrigger asChild>
-                        <Info className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground cursor-pointer" />
+                        <Info className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-primary cursor-pointer" />
                       </PopoverTrigger>
                       <PopoverContent className="w-80">
                         <div className="grid gap-4">

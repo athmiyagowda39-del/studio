@@ -88,7 +88,6 @@ export default function LeadUpdateStatusReportPage() {
                         <TableHead>Phone</TableHead>
                         <TableHead>Email</TableHead>
                         <TableHead>Address</TableHead>
-                        <TableHead>Place</TableHead>
                         <TableHead>District</TableHead>
                         <TableHead>State</TableHead>
                         <TableHead>Reference</TableHead>
@@ -140,7 +139,6 @@ export default function LeadUpdateStatusReportPage() {
                               <TableCell>{lead.email || 'N/A'}</TableCell>
                               <TableCell>{lead.address || 'N/A'}</TableCell>
                               <TableCell>{lead.district || 'N/A'}</TableCell>
-                              <TableCell>{lead.district || 'N/A'}</TableCell>
                               <TableCell>{lead.state || 'N/A'}</TableCell>
                               <TableCell>{lead.reference || 'N/A'}</TableCell>
                               <TableCell>{lead.manager || 'N/A'}</TableCell>
@@ -168,7 +166,7 @@ export default function LeadUpdateStatusReportPage() {
                       ) : (
                         <TableRow>
                           <TableCell
-                            colSpan={22}
+                            colSpan={21}
                             className="h-24 text-center"
                           >
                             No leads found.

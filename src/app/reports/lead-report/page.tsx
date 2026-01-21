@@ -319,7 +319,6 @@ export default function LeadReportPage() {
                                 <TableHead>Phone</TableHead>
                                 <TableHead>Emailid</TableHead>
                                 <TableHead>Address</TableHead>
-                                <TableHead>Place</TableHead>
                                 <TableHead>District</TableHead>
                                 <TableHead>State</TableHead>
                                 <TableHead>Reference</TableHead>
@@ -356,7 +355,6 @@ export default function LeadReportPage() {
                                     <TableCell>{lead.email || 'N/A'}</TableCell>
                                     <TableCell>{lead.address || 'N/A'}</TableCell>
                                     <TableCell>{lead.district || 'N/A'}</TableCell>
-                                    <TableCell>{lead.district || 'N/A'}</TableCell>
                                     <TableCell>{lead.state || 'N/A'}</TableCell>
                                     <TableCell>{lead.reference || 'N/A'}</TableCell>
                                     <TableCell>{lead.manager || 'N/A'}</TableCell>
@@ -373,7 +371,7 @@ export default function LeadReportPage() {
                                 })
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={22} className="text-center h-24">
+                                    <TableCell colSpan={21} className="text-center h-24">
                                         No leads found for the selected criteria.
                                     </TableCell>
                                 </TableRow>
