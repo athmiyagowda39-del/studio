@@ -338,6 +338,7 @@ export default function LeadUploadForm() {
       'headcount',
       'sector',
       'manager',
+      'givenBy',
     ];
 
     for (const field of requiredFields) {
@@ -364,6 +365,14 @@ export default function LeadUploadForm() {
         variant: 'destructive',
         title: 'Missing Information',
         description: "Please specify a value for 'Other' sector.",
+      });
+      return false;
+    }
+    if (lead.givenBy === 'Other') {
+      toast({
+        variant: 'destructive',
+        title: 'Missing Information',
+        description: "Please specify a value for 'Other' in the 'Given By' field.",
       });
       return false;
     }
