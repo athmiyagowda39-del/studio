@@ -465,6 +465,10 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
                               <Label>Email</Label>
                               <span className="col-span-3 h-8 flex items-center">{executiveForLead.email}</span>
                             </div>
+                             <div className="grid grid-cols-4 items-center gap-4">
+                              <Label>Phone</Label>
+                              <span className="col-span-3 h-8 flex items-center">{executiveForLead.phoneNumber || 'N/A'}</span>
+                            </div>
                             <div className="grid grid-cols-4 items-center gap-4">
                               <Label>Role</Label>
                               <span className="col-span-3 h-8 flex items-center">{executiveForLead.role}</span>
