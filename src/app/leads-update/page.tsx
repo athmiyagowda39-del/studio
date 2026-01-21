@@ -277,18 +277,22 @@ export default function LeadsUpdatePage() {
         if (selectedLeadSource !== 'all' && selectedLeadSource !== 'Other') {
           tempLeads = tempLeads.filter(lead => lead.reference === selectedLeadSource);
         }
+
         if (considerStatus) {
           const excludedStatuses = ['Order closed', 'Fake', 'Existing Users', 'Not interested'];
           tempLeads = tempLeads.filter(lead => !excludedStatuses.includes(lead.status || ''));
-        }
-        if (considerStatus) {
+
           if (followUpStatus === 'pending') {
             tempLeads = tempLeads.filter(lead => {
-              if (!lead.nextFollowUpDate) return false;
-              const executiveMatch = followUpEnteredBy === 'all' || followUpEnteredBy === 'Other' || lead.executive === followUpEnteredBy;
+              // Check executive match for pending follow-ups
+              const executiveMatch = followUpEnteredBy === 'all' || lead.executive === followUpEnteredBy;
               if (!executiveMatch) return false;
+
+              // Check date range for pending follow-ups (nextFollowUpDate)
+              if (!lead.nextFollowUpDate) return false;
               const nextFollowUp = new Date(lead.nextFollowUpDate);
               if (isNaN(nextFollowUp.getTime())) return false;
+              
               let inDateRange = true;
               if (followUpFromDate) {
                 const fromDateObj = new Date(followUpFromDate);
@@ -311,11 +315,17 @@ export default function LeadsUpdatePage() {
           } else if (followUpStatus === 'made') {
             tempLeads = tempLeads.filter(lead => {
               if (!lead.followUps || lead.followUps.length === 0) return false;
+              
+              // Check if any follow-up matches the criteria
               return lead.followUps.some(followUp => {
-                const personMatch = followUpEnteredBy === 'all' || followUpEnteredBy === 'Other' || followUp.enteredBy === followUpEnteredBy;
+                // Check person match for made follow-ups
+                const personMatch = followUpEnteredBy === 'all' || followUp.enteredBy === followUpEnteredBy;
                 if (!personMatch) return false;
+
+                // Check date range for made follow-ups (followUp.date)
                 const followUpDate = new Date(followUp.date);
                 if (isNaN(followUpDate.getTime())) return false;
+
                 let inDateRange = true;
                 if (followUpFromDate) {
                   const fromDateObj = new Date(followUpFromDate);
