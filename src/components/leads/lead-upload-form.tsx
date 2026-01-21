@@ -212,6 +212,7 @@ export default function LeadUploadForm() {
   const [toExecutiveSelection, setToExecutiveSelection] = useState('');
   const [otherReferenceInput, setOtherReferenceInput] = useState('');
   const [otherSectorInput, setOtherSectorInput] = useState('');
+  const [otherGivenByInput, setOtherGivenByInput] = useState('');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -367,12 +368,11 @@ export default function LeadUploadForm() {
       return false;
     }
 
-    if (!lead.toExecutive || !toExecutiveSelection) {
+    if (lead.toExecutive && !toExecutiveSelection) {
       toast({
         variant: 'destructive',
         title: 'Executive Not Assigned',
-        description:
-          'You must check "To Executive" and select an executive before saving.',
+        description: 'You must select an executive when "To Executive" is checked.',
       });
       return false;
     }
@@ -388,9 +388,9 @@ export default function LeadUploadForm() {
     const allLeads = getLeadsFromLocalStorage();
     const newLead: LeadFormData = {
       ...formData,
+      givenBy: formData.givenBy || user?.username || 'Manual',
       leadId: getNextLeadId(),
       creationDate: new Date().getTime(),
-      givenBy: user?.username || 'Manual',
       status: 'Not viewed',
       executive: formData.toExecutive ? toExecutiveSelection : undefined,
     };
@@ -661,6 +661,14 @@ export default function LeadUploadForm() {
     }
   };
 
+  const handleSetOtherGivenBy = () => {
+    if (otherGivenByInput.trim()) {
+      const newGivenBy = otherGivenByInput.trim();
+      handleSelectChange('givenBy', newGivenBy);
+      setOtherGivenByInput('');
+    }
+  };
+
   const handleProductSelect = (product: string) => {
     handleSelectChange('selectedModule', product);
     setProductPopoverOpen(false);
@@ -800,6 +808,46 @@ export default function LeadUploadForm() {
               </div>
             )}
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="givenBy">Given By</Label>
+            <Select
+              value={formData.givenBy}
+              onValueChange={(value) => handleSelectChange('givenBy', value)}
+              disabled={isReadOnly}
+            >
+              <SelectTrigger id="givenBy">
+                {formData.givenBy && !executives.includes(formData.givenBy) && formData.givenBy !== 'Other' ? (
+                  <span className="truncate">{formData.givenBy}</span>
+                ) : (
+                  <SelectValue placeholder="Select who gave lead..." />
+                )}
+              </SelectTrigger>
+              <SelectContent>
+                {executives.map((name) => (
+                  <SelectItem key={name} value={name}>
+                    {name}
+                  </SelectItem>
+                ))}
+                 <SelectItem value="Other">Other</SelectItem>
+              </SelectContent>
+            </Select>
+             {formData.givenBy === 'Other' && (
+              <div className="mt-2 flex items-center gap-2">
+                <Input
+                  placeholder="Specify who gave it"
+                  value={otherGivenByInput}
+                  onChange={(e) => setOtherGivenByInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleSetOtherGivenBy();
+                  }}
+                  disabled={isReadOnly}
+                />
+                <Button size="sm" onClick={handleSetOtherGivenBy} disabled={isReadOnly}>OK</Button>
+              </div>
+            )}
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="headcount">Company headcount</Label>
             <Input
