@@ -251,11 +251,11 @@ export default function LeadsUpdatePage() {
         
         // Main Date Filter
         if (fromDate) {
-          const fromTimestamp = startOfDay(new Date(fromDate)).getTime();
+          const fromTimestamp = startOfDay(new Date(`${fromDate}T00:00:00`)).getTime();
           intermediateLeads = intermediateLeads.filter(lead => lead.creationDate >= fromTimestamp);
         }
         if (toDate) {
-          const toTimestamp = endOfDay(new Date(toDate)).getTime();
+          const toTimestamp = endOfDay(new Date(`${toDate}T00:00:00`)).getTime();
           intermediateLeads = intermediateLeads.filter(lead => lead.creationDate <= toTimestamp);
         }
         
@@ -291,10 +291,10 @@ export default function LeadsUpdatePage() {
               // Check date range for the pending follow-up.
               try {
                 const nextFollowUp = new Date(lead.nextFollowUpDate);
-                if (followUpFromDate && startOfDay(nextFollowUp) < startOfDay(new Date(followUpFromDate))) {
+                if (followUpFromDate && startOfDay(nextFollowUp) < startOfDay(new Date(`${followUpFromDate}T00:00:00`))) {
                   return false;
                 }
-                if (followUpToDate && startOfDay(nextFollowUp) > endOfDay(new Date(followUpToDate))) {
+                if (followUpToDate && startOfDay(nextFollowUp) > endOfDay(new Date(`${followUpToDate}T00:00:00`))) {
                   return false;
                 }
               } catch {
@@ -324,10 +324,10 @@ export default function LeadsUpdatePage() {
                 
                 try {
                   const followUpDateObj = new Date(followUp.date);
-                   if (followUpFromDate && startOfDay(followUpDateObj) < startOfDay(new Date(followUpFromDate))) {
+                   if (followUpFromDate && startOfDay(followUpDateObj) < startOfDay(new Date(`${followUpFromDate}T00:00:00`))) {
                     return false;
                   }
-                  if (followUpToDate && startOfDay(followUpDateObj) > endOfDay(new Date(followUpToDate))) {
+                  if (followUpToDate && startOfDay(followUpDateObj) > endOfDay(new Date(`${followUpToDate}T00:00:00`))) {
                     return false;
                   }
                   return true;
@@ -1048,3 +1048,4 @@ export default function LeadsUpdatePage() {
 }
 
     
+
