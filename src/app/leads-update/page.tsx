@@ -286,11 +286,9 @@ export default function LeadsUpdatePage() {
 
           if (followUpStatus === 'pending') {
             intermediateLeads = intermediateLeads.filter(lead => {
-              const executiveMatch = followUpEnteredBy === 'all' || lead.executive === followUpEnteredBy;
-              if (!executiveMatch) return false;
-
               if (!lead.nextFollowUpDate) return false;
-              
+
+              // Check date range for the pending follow-up.
               try {
                 const nextFollowUp = new Date(lead.nextFollowUpDate);
                 if (followUpFromDate && startOfDay(nextFollowUp) < startOfDay(new Date(followUpFromDate))) {
@@ -299,10 +297,22 @@ export default function LeadsUpdatePage() {
                 if (followUpToDate && startOfDay(nextFollowUp) > endOfDay(new Date(followUpToDate))) {
                   return false;
                 }
-                return true;
               } catch {
                 return false;
               }
+
+              // If "Enter by" filter is active, check who created the last follow-up.
+              if (followUpEnteredBy !== 'all') {
+                const lastFollowUp = lead.followUps && lead.followUps.length > 0
+                  ? lead.followUps[lead.followUps.length - 1]
+                  : null;
+
+                if (!lastFollowUp || lastFollowUp.enteredBy !== followUpEnteredBy) {
+                  return false;
+                }
+              }
+              
+              return true;
             });
           } else if (followUpStatus === 'made') {
             intermediateLeads = intermediateLeads.filter(lead => {
