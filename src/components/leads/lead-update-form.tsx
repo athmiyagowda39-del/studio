@@ -448,7 +448,7 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
                       <PopoverTrigger asChild>
                         <Info className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-primary cursor-pointer" />
                       </PopoverTrigger>
-                      <PopoverContent className="w-80">
+                      <PopoverContent className="w-96">
                         <div className="grid gap-4">
                           <div className="space-y-2">
                             <h4 className="font-medium leading-none">Executive Details</h4>
@@ -457,17 +457,17 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
                             </p>
                           </div>
                           <div className="grid gap-2">
-                            <div className="grid grid-cols-3 items-center gap-4">
+                            <div className="grid grid-cols-4 items-center gap-4">
                               <Label>Name</Label>
-                              <span className="col-span-2 h-8 flex items-center">{executiveForLead.username}</span>
+                              <span className="col-span-3 h-8 flex items-center">{executiveForLead.username}</span>
                             </div>
-                            <div className="grid grid-cols-3 items-center gap-4">
+                            <div className="grid grid-cols-4 items-center gap-4">
                               <Label>Email</Label>
-                              <span className="col-span-2 h-8 flex items-center">{executiveForLead.email}</span>
+                              <span className="col-span-3 h-8 flex items-center">{executiveForLead.email}</span>
                             </div>
-                            <div className="grid grid-cols-3 items-center gap-4">
+                            <div className="grid grid-cols-4 items-center gap-4">
                               <Label>Role</Label>
-                              <span className="col-span-2 h-8 flex items-center">{executiveForLead.role}</span>
+                              <span className="col-span-3 h-8 flex items-center">{executiveForLead.role}</span>
                             </div>
                           </div>
                         </div>
