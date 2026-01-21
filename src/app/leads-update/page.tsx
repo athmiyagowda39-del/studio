@@ -146,6 +146,7 @@ export default function LeadsUpdatePage() {
   const [givenBy, setGivenBy] = useState('all');
   const [otherGivenByInput, setOtherGivenByInput] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('all');
+  const [otherStatusInput, setOtherStatusInput] = useState('');
   const [selectedSubStatus, setSelectedSubStatus] = useState('all');
   const [otherSubStatusInput, setOtherSubStatusInput] = useState('');
   const [selectedLeadSource, setSelectedLeadSource] = useState('all');
@@ -375,6 +376,7 @@ export default function LeadsUpdatePage() {
     setGivenBy('all');
     setOtherGivenByInput('');
     setSelectedStatus('all');
+    setOtherStatusInput('');
     setSelectedSubStatus('all');
     setOtherSubStatusInput('');
     setSelectedLeadSource('all');
@@ -416,6 +418,14 @@ export default function LeadsUpdatePage() {
       const newGivenBy = otherGivenByInput.trim();
       setGivenBy(newGivenBy);
       setOtherGivenByInput('');
+    }
+  };
+
+  const handleSetOtherStatus = () => {
+    if(otherStatusInput.trim()){
+      const newStatus = otherStatusInput.trim();
+      setSelectedStatus(newStatus);
+      setOtherStatusInput('');
     }
   };
 
@@ -760,8 +770,27 @@ export default function LeadsUpdatePage() {
                                 {leadStatusOptions.map(status => (
                                     <SelectItem key={status} value={status}>{status}</SelectItem>
                                 ))}
+                                {!leadStatusOptions.includes(selectedStatus) && selectedStatus !== 'all' && selectedStatus !== 'Other' && (
+                                    <SelectItem value={selectedStatus}>{selectedStatus}</SelectItem>
+                                )}
+                                <SelectItem value="Other">Other</SelectItem>
                             </SelectContent>
                         </Select>
+                        {selectedStatus === 'Other' && (
+                        <div className="mt-2">
+                           <div className="flex items-center gap-2">
+                              <Input
+                                placeholder="Specify other status"
+                                value={otherStatusInput}
+                                onChange={(e) => setOtherStatusInput(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') handleSetOtherStatus();
+                                }}
+                              />
+                              <Button size="sm" onClick={handleSetOtherStatus}>OK</Button>
+                            </div>
+                        </div>
+                      )}
                     </div>
                     <div className="space-y-1">
                       <Label>Sub Status of Lead</Label>
@@ -1048,4 +1077,3 @@ export default function LeadsUpdatePage() {
 }
 
     
-
