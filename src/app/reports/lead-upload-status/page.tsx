@@ -89,6 +89,7 @@ export default function LeadUploadStatusReportPage() {
                         <TableHead>Contact Number</TableHead>
                         <TableHead>Email</TableHead>
                         <TableHead>Reference</TableHead>
+                        <TableHead>Given By</TableHead>
                         <TableHead>Company headcount</TableHead>
                         <TableHead>Sector</TableHead>
                         <TableHead>Modules</TableHead>
@@ -113,6 +114,7 @@ export default function LeadUploadStatusReportPage() {
                               </TableCell>
                               <TableCell>{lead.email || 'N/A'}</TableCell>
                               <TableCell>{lead.reference || 'N/A'}</TableCell>
+                              <TableCell>{lead.givenBy || 'N/A'}</TableCell>
                               <TableCell>{lead.headcount || 'N/A'}</TableCell>
                               <TableCell>{lead.sector || 'N/A'}</TableCell>
                               <TableCell>
@@ -124,7 +126,7 @@ export default function LeadUploadStatusReportPage() {
                       ) : (
                         <TableRow>
                           <TableCell
-                            colSpan={13}
+                            colSpan={14}
                             className="h-24 text-center"
                           >
                             No uploaded leads found.

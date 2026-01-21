@@ -954,6 +954,7 @@ export default function LeadsUpdatePage() {
                         <TableHead>Reference</TableHead>
                         <TableHead>Executive</TableHead>
                         <TableHead>Manager</TableHead>
+                        <TableHead>Given By</TableHead>
                         <TableHead>Last Followed Date</TableHead>
                         <TableHead>Last Followed By</TableHead>
                         <TableHead>Next followup Date</TableHead>
@@ -995,6 +996,7 @@ export default function LeadsUpdatePage() {
                           <TableCell>{lead.reference}</TableCell>
                           <TableCell>{lead.executive}</TableCell>
                           <TableCell>{lead.manager}</TableCell>
+                          <TableCell>{lead.givenBy || 'N/A'}</TableCell>
                           <TableCell>{lastFollowUp ? format(new Date(lastFollowUp.date), 'PPP') : 'N/A'}</TableCell>
                           <TableCell>{lastFollowUp ? lastFollowUp.enteredBy : 'N/A'}</TableCell>
                           <TableCell>{nextFollowupDate}</TableCell>
