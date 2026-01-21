@@ -239,115 +239,97 @@ export default function LeadsUpdatePage() {
         break;
       case 'search-result':
         // Apply all filters from the panel ONLY for search results
+        let intermediateLeads = [...visibleLeads];
+
+        // Main Search & Text Filters
         if (searchTerm.trim() !== '') {
-          tempLeads = tempLeads.filter(lead => {
+          intermediateLeads = intermediateLeads.filter(lead => {
             const leadValue = (lead[searchCategory as keyof LeadFormData] as string)?.toString().toLowerCase() || '';
             return leadValue.startsWith(searchTerm.toLowerCase());
           });
         }
+        
+        // Main Date Filter
         if (fromDate) {
-          const from = new Date(fromDate);
-          if (!isNaN(from.getTime())) {
-            const fromTimestamp = startOfDay(from).getTime();
-            tempLeads = tempLeads.filter(lead => lead.creationDate >= fromTimestamp);
-          }
+          const fromTimestamp = startOfDay(new Date(fromDate)).getTime();
+          intermediateLeads = intermediateLeads.filter(lead => lead.creationDate >= fromTimestamp);
         }
         if (toDate) {
-          const to = new Date(toDate);
-          if (!isNaN(to.getTime())) {
-            const toTimestamp = endOfDay(to).getTime();
-            tempLeads = tempLeads.filter(lead => lead.creationDate <= toTimestamp);
-          }
+          const toTimestamp = endOfDay(new Date(toDate)).getTime();
+          intermediateLeads = intermediateLeads.filter(lead => lead.creationDate <= toTimestamp);
         }
+        
+        // Other Main Filters
         if (selectedProduct !== 'all') {
-          tempLeads = tempLeads.filter(lead => lead.selectedModule === selectedProduct);
+          intermediateLeads = intermediateLeads.filter(lead => lead.selectedModule === selectedProduct);
         }
         if (selectedExecutive !== 'all' && selectedExecutive !== 'Other') {
-          tempLeads = tempLeads.filter(lead => lead.executive === selectedExecutive);
+          intermediateLeads = intermediateLeads.filter(lead => lead.executive === selectedExecutive);
         }
         if (givenBy !== 'all' && givenBy !== 'Other') {
-          tempLeads = tempLeads.filter(lead => lead.givenBy === givenBy);
+          intermediateLeads = intermediateLeads.filter(lead => lead.givenBy === givenBy);
         }
         if (selectedStatus !== 'all') {
-          tempLeads = tempLeads.filter(lead => lead.status === selectedStatus);
+          intermediateLeads = intermediateLeads.filter(lead => lead.status === selectedStatus);
         }
         if (selectedSubStatus !== 'all' && selectedSubStatus !== 'Other') {
-          tempLeads = tempLeads.filter(lead => lead.leadSubStatus === selectedSubStatus);
+          intermediateLeads = intermediateLeads.filter(lead => lead.leadSubStatus === selectedSubStatus);
         }
         if (selectedLeadSource !== 'all' && selectedLeadSource !== 'Other') {
-          tempLeads = tempLeads.filter(lead => lead.reference === selectedLeadSource);
+          intermediateLeads = intermediateLeads.filter(lead => lead.reference === selectedLeadSource);
         }
 
+        // Follow-up Filters
         if (considerStatus) {
           const excludedStatuses = ['Order closed', 'Fake', 'Existing Users', 'Not interested'];
-          tempLeads = tempLeads.filter(lead => !excludedStatuses.includes(lead.status || ''));
+          intermediateLeads = intermediateLeads.filter(lead => !excludedStatuses.includes(lead.status || ''));
 
           if (followUpStatus === 'pending') {
-            tempLeads = tempLeads.filter(lead => {
-              // Check executive match for pending follow-ups
+            intermediateLeads = intermediateLeads.filter(lead => {
               const executiveMatch = followUpEnteredBy === 'all' || lead.executive === followUpEnteredBy;
               if (!executiveMatch) return false;
 
-              // Check date range for pending follow-ups (nextFollowUpDate)
               if (!lead.nextFollowUpDate) return false;
-              const nextFollowUp = new Date(lead.nextFollowUpDate);
-              if (isNaN(nextFollowUp.getTime())) return false;
               
-              let inDateRange = true;
-              if (followUpFromDate) {
-                const fromDateObj = new Date(followUpFromDate);
-                if (!isNaN(fromDateObj.getTime())) {
-                  if (startOfDay(nextFollowUp) < startOfDay(fromDateObj)) {
-                    inDateRange = false;
-                  }
+              try {
+                const nextFollowUp = new Date(lead.nextFollowUpDate);
+                if (followUpFromDate && startOfDay(nextFollowUp) < startOfDay(new Date(followUpFromDate))) {
+                  return false;
                 }
-              }
-              if (inDateRange && followUpToDate) {
-                const toDateObj = new Date(followUpToDate);
-                if (!isNaN(toDateObj.getTime())) {
-                  if (startOfDay(nextFollowUp) > endOfDay(toDateObj)) {
-                    inDateRange = false;
-                  }
+                if (followUpToDate && startOfDay(nextFollowUp) > endOfDay(new Date(followUpToDate))) {
+                  return false;
                 }
+                return true;
+              } catch {
+                return false;
               }
-              return inDateRange;
             });
           } else if (followUpStatus === 'made') {
-            tempLeads = tempLeads.filter(lead => {
+            intermediateLeads = intermediateLeads.filter(lead => {
               if (!lead.followUps || lead.followUps.length === 0) return false;
               
-              // Check if any follow-up matches the criteria
               return lead.followUps.some(followUp => {
-                // Check person match for made follow-ups
                 const personMatch = followUpEnteredBy === 'all' || followUp.enteredBy === followUpEnteredBy;
                 if (!personMatch) return false;
-
-                // Check date range for made follow-ups (followUp.date)
-                const followUpDate = new Date(followUp.date);
-                if (isNaN(followUpDate.getTime())) return false;
-
-                let inDateRange = true;
-                if (followUpFromDate) {
-                  const fromDateObj = new Date(followUpFromDate);
-                  if (!isNaN(fromDateObj.getTime())) {
-                    if (startOfDay(followUpDate) < startOfDay(fromDateObj)) {
-                      inDateRange = false;
-                    }
+                
+                try {
+                  const followUpDateObj = new Date(followUp.date);
+                   if (followUpFromDate && startOfDay(followUpDateObj) < startOfDay(new Date(followUpFromDate))) {
+                    return false;
                   }
-                }
-                if (inDateRange && followUpToDate) {
-                  const toDateObj = new Date(followUpToDate);
-                  if (!isNaN(toDateObj.getTime())) {
-                    if (startOfDay(followUpDate) > endOfDay(toDateObj)) {
-                      inDateRange = false;
-                    }
+                  if (followUpToDate && startOfDay(followUpDateObj) > endOfDay(new Date(followUpToDate))) {
+                    return false;
                   }
+                  return true;
+                } catch {
+                   return false;
                 }
-                return inDateRange;
               });
             });
           }
         }
+        
+        tempLeads = intermediateLeads;
         break;
       case 'all':
       default:
