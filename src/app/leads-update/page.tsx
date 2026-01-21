@@ -958,7 +958,7 @@ export default function LeadsUpdatePage() {
                         <TableHead>Manager</TableHead>
                         <TableHead>Given By</TableHead>
                         <TableHead>Last Followed Date</TableHead>
-                        <TableHead>Last Followed By</TableHead>
+                        <TableHead>Enter by</TableHead>
                         <TableHead>Next followup Date</TableHead>
                         <TableHead>Last Followup Remarks</TableHead>
                         <TableHead>Lead Status</TableHead>
