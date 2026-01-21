@@ -26,6 +26,7 @@ export default function Header() {
   const { toast } = useToast();
   const [isClient, setIsClient] = useState(false);
   const [lastLoginDate, setLastLoginDate] = useState('N/A');
+  const [currentDate, setCurrentDate] = useState(new Date());
   const { user, logout } = useAuth();
   const router = useRouter();
   const loginTimeProcessed = useRef(false);
@@ -34,17 +35,25 @@ export default function Header() {
   useEffect(() => {
     setIsClient(true);
     
-    if (loginTimeProcessed.current) return;
-
-    const storedLastLogin = localStorage.getItem('lastLoginDate');
-    if (storedLastLogin) {
-      setLastLoginDate(storedLastLogin);
+    if (!loginTimeProcessed.current) {
+        const storedLastLogin = localStorage.getItem('lastLoginDate');
+        if (storedLastLogin) {
+        setLastLoginDate(storedLastLogin);
+        }
+        
+        const currentLoginDate = format(new Date(), 'EEEE, MMMM d, yyyy p');
+        localStorage.setItem('lastLoginDate', currentLoginDate);
+        
+        loginTimeProcessed.current = true;
     }
-    
-    const currentLoginDate = format(new Date(), 'EEEE, MMMM d, yyyy p');
-    localStorage.setItem('lastLoginDate', currentLoginDate);
-    
-    loginTimeProcessed.current = true;
+
+    const timer = setInterval(() => {
+        setCurrentDate(new Date());
+    }, 60000); // Update every minute
+
+    return () => {
+        clearInterval(timer);
+    };
 
   }, []);
 
@@ -100,6 +109,10 @@ export default function Header() {
         </div>
 
         <div className="flex items-center gap-4">
+          <div className="text-right text-sm">
+              <p className="font-medium">{format(currentDate, 'p')}</p>
+              <p className="text-muted-foreground">{format(currentDate, 'E, MMM d, yyyy')}</p>
+          </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
