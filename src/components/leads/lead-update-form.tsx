@@ -332,7 +332,13 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
   const isOrderClosedRemark = ['closed', 'order closed'].includes(remarks.trim().toLowerCase());
 
   const executiveForLead = leadDetails.executive ? users.find(u => u.username.toLowerCase() === leadDetails.executive?.toLowerCase()) : null;
-  const managerForLead = leadDetails.manager ? users.find(u => u.username.toLowerCase().includes(leadDetails.manager!.toLowerCase())) : null;
+  const managerForLead = leadDetails.manager
+    ? users.find(
+        (u) =>
+          (u.role === 'Admin' || u.role === 'Sub Admin') &&
+          u.username.toLowerCase().includes(leadDetails.manager!.toLowerCase())
+      )
+    : null;
 
 
   return (
