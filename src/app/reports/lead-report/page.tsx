@@ -10,7 +10,7 @@ import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import { format } from 'date-fns';
 import AppContent from '@/components/layout/app-content';
 import { useAuth } from '@/context/auth-context';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
@@ -378,6 +378,7 @@ export default function LeadReportPage() {
                             )}
                             </TableBody>
                         </Table>
+                        <ScrollBar orientation="horizontal" />
                     </ScrollArea>
                 </div>
             ) : (
