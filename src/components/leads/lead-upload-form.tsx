@@ -224,6 +224,14 @@ export default function LeadUploadForm() {
 
   const isExecutiveContext = user?.role === 'Executive';
 
+  const managerForLead = formData.manager
+    ? users.find(
+        (u) =>
+          u.username.toLowerCase().includes(formData.manager!.toLowerCase()) &&
+          (u.role === 'Admin' || u.role === 'Sub Admin')
+      )
+    : null;
+
   useEffect(() => {
     const executiveUsers = users
       .filter((user) => user.role === 'Executive')
@@ -977,12 +985,60 @@ export default function LeadUploadForm() {
 
           <div className="space-y-2">
             <Label htmlFor="manager">Manager</Label>
-            <Input
-              id="manager"
-              value={formData.manager || ''}
-              onChange={handleInputChange}
-              readOnly={isReadOnly}
-            />
+            <div className="relative">
+              <Input
+                id="manager"
+                value={formData.manager || ''}
+                onChange={handleInputChange}
+                readOnly={isReadOnly}
+                className="pr-10"
+              />
+              {managerForLead && (
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Info className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-primary cursor-pointer" />
+                  </PopoverTrigger>
+                  <PopoverContent className="w-96">
+                    <div className="grid gap-4">
+                      <div className="space-y-2">
+                        <h4 className="font-medium leading-none">
+                          Manager Details
+                        </h4>
+                        <p className="text-sm text-muted-foreground">
+                          Contact information for the assigned manager.
+                        </p>
+                      </div>
+                      <div className="grid gap-2">
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label>Name</Label>
+                          <span className="col-span-3 h-8 flex items-center">
+                            {managerForLead.username}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label>Email</Label>
+                          <span className="col-span-3 h-8 flex items-center">
+                            {managerForLead.email}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label>Phone</Label>
+                          <span className="col-span-3 h-8 flex items-center">
+                            {managerForLead.phoneNumber || 'N/A'}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label>Role</Label>
+                          <span className="col-span-3 h-8 flex items-center">
+                            {managerForLead.role}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              )}
+            </div>
           </div>
 
           <div className="space-y-2 md:col-span-2">
