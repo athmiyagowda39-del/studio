@@ -39,20 +39,23 @@ type FollowUp = {
 };
 
 /* ---------------- NEW PRODUCT OPTIONS ---------------- */
-const mainProducts = [
+const hrCoreModules = [
   'Manpower Resource Planning',
   'Recruitment and Requisition Management',
   'Onboarding',
   'Letter Generation',
+  'Leave Management',
 ];
-const attendanceProducts = [
+
+const attendanceSubModules = [
   'Desktop Attendance Marking Only',
   'Integration with Attendance Machine',
   'Mobile Attendance Marking without Location',
   'Geo Fencing',
   'Geo Tracking',
 ];
-const otherProducts = [
+
+const hrExtendedModules = [
   'Shift Roaster Management',
   'Timesheet Management',
   'Performance Management',
@@ -512,87 +515,77 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
                         </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                        <ScrollArea className="h-72">
+                      <ScrollArea className="h-72">
                         <div className="space-y-1 p-1">
-                            <Button
+                          <Button
                             variant="ghost"
                             className="w-full justify-start"
                             onClick={() => handleProductSelect('All')}
-                            >
+                          >
                             All
-                            </Button>
-                            {mainProducts.map((product) => (
-                            <Button
-                                variant="ghost"
-                                className="w-full justify-start"
-                                key={product}
-                                onClick={() => handleProductSelect(product)}
-                            >
-                                {product}
-                            </Button>
-                            ))}
-
-                            <Collapsible>
+                          </Button>
+                          <Collapsible>
                             <CollapsibleTrigger asChild>
-                                <button className="flex w-full items-center justify-between rounded-sm px-2 py-1.5 text-left text-sm font-bold hover:bg-accent [&[data-state=open]>svg]:rotate-180">
-                                <span>Leave Management</span>
+                              <button className="flex w-full items-center justify-between rounded-sm px-2 py-1.5 text-left text-sm font-bold hover:bg-accent [&[data-state=open]>svg]:rotate-180">
+                                <span>HR Modules</span>
                                 <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
-                                </button>
+                              </button>
                             </CollapsibleTrigger>
                             <CollapsibleContent className="space-y-1 pt-1 pl-4">
+                              {hrCoreModules.map((product) => (
                                 <Button
-                                variant="ghost"
-                                className="w-full justify-start text-sm"
-                                key="Leave Management"
-                                onClick={() => handleProductSelect('Leave Management')}
+                                  variant="ghost"
+                                  className="w-full justify-start text-sm"
+                                  key={product}
+                                  onClick={() => handleProductSelect(product)}
                                 >
-                                Leave Management
+                                  {product}
                                 </Button>
-                                <Collapsible>
+                              ))}
+                              <Collapsible>
                                 <CollapsibleTrigger asChild>
-                                    <button className="flex w-full items-center justify-between rounded-sm px-2 py-1.5 text-left text-sm font-bold hover:bg-accent [&[data-state=open]>svg]:rotate-180">
+                                  <button className="flex w-full items-center justify-between rounded-sm px-2 py-1.5 text-left text-sm font-bold hover:bg-accent [&[data-state=open]>svg]:rotate-180">
                                     <span>Attendance Management</span>
                                     <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
-                                    </button>
+                                  </button>
                                 </CollapsibleTrigger>
                                 <CollapsibleContent className="space-y-1 pt-1 pl-4">
-                                    <Button
+                                  <Button
                                     variant="ghost"
                                     className="w-full justify-start text-sm"
                                     key="Attendance Management"
                                     onClick={() =>
-                                        handleProductSelect('Attendance Management')
+                                      handleProductSelect('Attendance Management')
                                     }
-                                    >
+                                  >
                                     Attendance Management
-                                    </Button>
-                                    {attendanceProducts.map((product) => (
+                                  </Button>
+                                  {attendanceSubModules.map((product) => (
                                     <Button
-                                        variant="ghost"
-                                        className="w-full justify-start text-xs"
-                                        key={product}
-                                        onClick={() => handleProductSelect(product)}
+                                      variant="ghost"
+                                      className="w-full justify-start text-xs"
+                                      key={product}
+                                      onClick={() => handleProductSelect(product)}
                                     >
-                                        {product}
+                                      {product}
                                     </Button>
-                                    ))}
+                                  ))}
                                 </CollapsibleContent>
-                                </Collapsible>
+                              </Collapsible>
+                              {hrExtendedModules.map((product) => (
+                                <Button
+                                  variant="ghost"
+                                  className="w-full justify-start text-sm"
+                                  key={product}
+                                  onClick={() => handleProductSelect(product)}
+                                >
+                                  {product}
+                                </Button>
+                              ))}
                             </CollapsibleContent>
-                            </Collapsible>
-
-                            {otherProducts.map((product) => (
-                            <Button
-                                variant="ghost"
-                                className="w-full justify-start"
-                                key={product}
-                                onClick={() => handleProductSelect(product)}
-                            >
-                                {product}
-                            </Button>
-                            ))}
+                          </Collapsible>
                         </div>
-                        </ScrollArea>
+                      </ScrollArea>
                     </PopoverContent>
                     </Popover>
               </div>
@@ -821,4 +814,5 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
     
 
     
+
 

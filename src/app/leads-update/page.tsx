@@ -40,20 +40,23 @@ import { ChevronsUpDown, ChevronDown } from 'lucide-react';
 
 
 /* ---------------- NEW PRODUCT OPTIONS ---------------- */
-const mainProducts = [
+const hrCoreModules = [
   'Manpower Resource Planning',
   'Recruitment and Requisition Management',
   'Onboarding',
   'Letter Generation',
+  'Leave Management',
 ];
-const attendanceProducts = [
+
+const attendanceSubModules = [
   'Desktop Attendance Marking Only',
   'Integration with Attendance Machine',
   'Mobile Attendance Marking without Location',
   'Geo Fencing',
   'Geo Tracking',
 ];
-const otherProducts = [
+
+const hrExtendedModules = [
   'Shift Roaster Management',
   'Timesheet Management',
   'Performance Management',
@@ -622,33 +625,26 @@ export default function LeadsUpdatePage() {
                               >
                                 All
                               </Button>
-                              {mainProducts.map((product) => (
-                                <Button
-                                  variant="ghost"
-                                  className="w-full justify-start"
-                                  key={product}
-                                  onClick={() => handleProductSelect(product)}
-                                >
-                                  {product}
-                                </Button>
-                              ))}
 
                               <Collapsible>
                                 <CollapsibleTrigger asChild>
                                   <button className="flex w-full items-center justify-between rounded-sm px-2 py-1.5 text-left text-sm font-bold hover:bg-accent [&[data-state=open]>svg]:rotate-180">
-                                    <span>Leave Management</span>
+                                    <span>HR Modules</span>
                                     <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
                                   </button>
                                 </CollapsibleTrigger>
                                 <CollapsibleContent className="space-y-1 pt-1 pl-4">
-                                  <Button
-                                    variant="ghost"
-                                    className="w-full justify-start text-sm"
-                                    key="Leave Management"
-                                    onClick={() => handleProductSelect("Leave Management")}
-                                  >
-                                    Leave Management
-                                  </Button>
+                                  {hrCoreModules.map((product) => (
+                                    <Button
+                                      variant="ghost"
+                                      className="w-full justify-start text-sm"
+                                      key={product}
+                                      onClick={() => handleProductSelect(product)}
+                                    >
+                                      {product}
+                                    </Button>
+                                  ))}
+                                  
                                   <Collapsible>
                                     <CollapsibleTrigger asChild>
                                       <button className="flex w-full items-center justify-between rounded-sm px-2 py-1.5 text-left text-sm font-bold hover:bg-accent [&[data-state=open]>svg]:rotate-180">
@@ -665,33 +661,32 @@ export default function LeadsUpdatePage() {
                                       >
                                         Attendance Management
                                       </Button>
-                                      {attendanceProducts.map((product) => (
+                                      {attendanceSubModules.map((product) => (
                                         <Button
                                           variant="ghost"
                                           className="w-full justify-start text-xs"
                                           key={product}
-                                          onClick={() =>
-                                            handleProductSelect(product)
-                                          }
+                                          onClick={() => handleProductSelect(product)}
                                         >
                                           {product}
                                         </Button>
                                       ))}
                                     </CollapsibleContent>
                                   </Collapsible>
+                                  
+                                  {hrExtendedModules.map((product) => (
+                                    <Button
+                                      variant="ghost"
+                                      className="w-full justify-start text-sm"
+                                      key={product}
+                                      onClick={() => handleProductSelect(product)}
+                                    >
+                                      {product}
+                                    </Button>
+                                  ))}
                                 </CollapsibleContent>
                               </Collapsible>
 
-                              {otherProducts.map((product) => (
-                                <Button
-                                  variant="ghost"
-                                  className="w-full justify-start"
-                                  key={product}
-                                  onClick={() => handleProductSelect(product)}
-                                >
-                                  {product}
-                                </Button>
-                              ))}
                             </div>
                           </ScrollArea>
                         </PopoverContent>
