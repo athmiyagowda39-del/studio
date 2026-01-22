@@ -336,7 +336,12 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
     ? users.find(
         (u) =>
           (u.role === 'Admin' || u.role === 'Sub Admin') &&
-          u.username.toLowerCase().includes(leadDetails.manager!.toLowerCase())
+          u.username
+            .toLowerCase()
+            .replace(/[\s.]+/g, '')
+            .includes(
+              leadDetails.manager!.toLowerCase().replace(/[\s.]+/g, '')
+            )
       )
     : null;
 
@@ -816,3 +821,4 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
     
 
     
+

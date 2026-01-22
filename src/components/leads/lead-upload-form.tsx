@@ -227,7 +227,10 @@ export default function LeadUploadForm() {
   const managerForLead = formData.manager
     ? users.find(
         (u) =>
-          u.username.toLowerCase().includes(formData.manager!.toLowerCase()) &&
+          u.username
+            .toLowerCase()
+            .replace(/[\s.]+/g, '')
+            .includes(formData.manager!.toLowerCase().replace(/[\s.]+/g, '')) &&
           (u.role === 'Admin' || u.role === 'Sub Admin')
       )
     : null;
