@@ -114,7 +114,7 @@ export default function LeadReportPage() {
     setAllLeads(leads);
   }, [user]);
 
-  const [selectedState, setSelectedState] = useState('Karnataka');
+  const [selectedState, setSelectedState] = useState('All');
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedSector, setSelectedSector] = useState('All');
   const [selectedHeadcount, setSelectedHeadcount] = useState('All');
@@ -304,7 +304,7 @@ export default function LeadReportPage() {
             {shouldShowDetails ? (
                 <div>
                     <h2 className="text-xl font-semibold mb-4">
-                        Leads with status "{selectedStatus}" in {selectedState}: <span className="text-primary font-bold">{filteredLeads.length}</span>
+                        Leads with status "{selectedStatus}" in {selectedState === 'All' ? 'All States' : selectedState}: <span className="text-primary font-bold">{filteredLeads.length}</span>
                     </h2>
                     <ScrollArea className="w-full whitespace-nowrap rounded-md border">
                         <Table className="min-w-[2900px]">
@@ -360,7 +360,7 @@ export default function LeadReportPage() {
                                     <TableCell>{lead.reference || 'N/A'}</TableCell>
                                     <TableCell>{lead.sector || 'N/A'}</TableCell>
                                     <TableCell>{lead.manager || 'N/A'}</TableCell>
-                                    <TableCell>{lastFollowUp ? lastFollowUp.date : 'N/A'}</TableCell>
+                                    <TableCell>{lastFollowUp ? format(new Date(lastFollowUp.date), 'PPP') : 'N/A'}</TableCell>
                                     <TableCell>{lastFollowUp ? lastFollowUp.enteredBy : 'N/A'}</TableCell>
                                     <TableCell>{nextFollowupDate}</TableCell>
                                     <TableCell>{lastFollowUp ? lastFollowUp.remarks : 'N/A'}</TableCell>
@@ -386,7 +386,7 @@ export default function LeadReportPage() {
             ) : (
                 <>
                 <h2 className="text-xl font-semibold mb-4">
-                    Lead Status Breakdown for {selectedState}
+                    Lead Status Breakdown for {selectedState === 'All' ? 'All States' : selectedState}
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
                     <div className="space-y-2">
