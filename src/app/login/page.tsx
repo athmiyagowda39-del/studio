@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
@@ -20,15 +20,9 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const { login, isAuthenticated, isLoading } = useAuth();
+  const { login } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
-
-  useEffect(() => {
-    if (!isLoading && isAuthenticated) {
-      router.replace('/dashboard');
-    }
-  }, [isAuthenticated, isLoading, router]);
 
   // State to manage form interaction to prevent aggressive autofill on page load.
   const [formInteracted, setFormInteracted] = useState(false);
@@ -57,10 +51,6 @@ export default function LoginPage() {
       });
     }
   };
-  
-  if (isLoading || isAuthenticated) {
-    return null;
-  }
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
