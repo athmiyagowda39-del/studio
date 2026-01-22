@@ -155,7 +155,7 @@ const otherProducts = [
   'Employee Self Service',
 ];
 
-const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate'> = {
+const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate' | 'givenBy'> = {
   pincode: '',
   state: '',
   district: '',
@@ -173,7 +173,6 @@ const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate'> = {
   dealer: '',
   executive: '',
   manager: '',
-  givenBy: '',
 };
 
 const saveLeadsToLocalStorage = (leads: LeadFormData[]) => {
@@ -205,14 +204,13 @@ const getNextLeadId = (): string => {
 
 export default function LeadUploadForm() {
   const [formData, setFormData] = useState<
-    Omit<LeadFormData, 'leadId' | 'creationDate'>
+    Omit<LeadFormData, 'leadId' | 'creationDate' | 'givenBy'>
   >(initialFormState);
   const [parsedLeads, setParsedLeads] = useState<Partial<LeadFormData>[]>([]);
   const [showPreview, setShowPreview] = useState(false);
   const [toExecutiveSelection, setToExecutiveSelection] = useState('');
   const [otherReferenceInput, setOtherReferenceInput] = useState('');
   const [otherSectorInput, setOtherSectorInput] = useState('');
-  const [otherGivenByInput, setOtherGivenByInput] = useState('');
   const [otherToExecutiveInput, setOtherToExecutiveInput] = useState('');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -314,7 +312,7 @@ export default function LeadUploadForm() {
   };
 
   const validateLead = (
-    lead: Omit<LeadFormData, 'leadId' | 'creationDate'>
+    lead: Omit<LeadFormData, 'leadId' | 'creationDate' | 'givenBy'>
   ) => {
     // Specific check for module
     if (!lead.selectedModule) {
@@ -339,7 +337,6 @@ export default function LeadUploadForm() {
       'headcount',
       'sector',
       'manager',
-      'givenBy',
     ];
 
     for (const field of requiredFields) {
@@ -366,14 +363,6 @@ export default function LeadUploadForm() {
         variant: 'destructive',
         title: 'Missing Information',
         description: "Please specify a value for 'Other' sector.",
-      });
-      return false;
-    }
-    if (lead.givenBy === 'Other') {
-      toast({
-        variant: 'destructive',
-        title: 'Missing Information',
-        description: "Please specify a value for 'Other' in the 'Given By' field.",
       });
       return false;
     }
@@ -406,7 +395,7 @@ export default function LeadUploadForm() {
     const allLeads = getLeadsFromLocalStorage();
     const newLead: LeadFormData = {
       ...formData,
-      givenBy: formData.givenBy || user?.username || 'Manual',
+      givenBy: user?.username || 'Manual',
       leadId: getNextLeadId(),
       creationDate: new Date().getTime(),
       status: 'Not viewed',
@@ -679,14 +668,6 @@ export default function LeadUploadForm() {
     }
   };
 
-  const handleSetOtherGivenBy = () => {
-    if (otherGivenByInput.trim()) {
-      const newGivenBy = otherGivenByInput.trim();
-      handleSelectChange('givenBy', newGivenBy);
-      setOtherGivenByInput('');
-    }
-  };
-
   const handleSetOtherToExecutive = () => {
     if (otherToExecutiveInput.trim()) {
       const newExec = otherToExecutiveInput.trim();
@@ -831,45 +812,6 @@ export default function LeadUploadForm() {
                 >
                   OK
                 </Button>
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="givenBy">Given By</Label>
-            <Select
-              value={formData.givenBy}
-              onValueChange={(value) => handleSelectChange('givenBy', value)}
-              disabled={isReadOnly}
-            >
-              <SelectTrigger id="givenBy">
-                {formData.givenBy && !executives.includes(formData.givenBy) && formData.givenBy !== 'Other' ? (
-                  <span className="truncate">{formData.givenBy}</span>
-                ) : (
-                  <SelectValue placeholder="Select who gave lead..." />
-                )}
-              </SelectTrigger>
-              <SelectContent>
-                {executives.map((name) => (
-                  <SelectItem key={name} value={name}>
-                    {name}
-                  </SelectItem>
-                ))}
-                 <SelectItem value="Other">Other</SelectItem>
-              </SelectContent>
-            </Select>
-             {formData.givenBy === 'Other' && (
-              <div className="mt-2 flex items-center gap-2">
-                <Input
-                  placeholder="Specify who gave it"
-                  value={otherGivenByInput}
-                  onChange={(e) => setOtherGivenByInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleSetOtherGivenBy();
-                  }}
-                  disabled={isReadOnly}
-                />
-                <Button size="sm" onClick={handleSetOtherGivenBy} disabled={isReadOnly}>OK</Button>
               </div>
             )}
           </div>
