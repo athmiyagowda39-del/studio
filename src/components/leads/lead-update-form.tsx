@@ -517,13 +517,6 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
                     <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
                       <ScrollArea className="h-72">
                         <div className="space-y-1 p-1">
-                          <Button
-                            variant="ghost"
-                            className="w-full justify-start"
-                            onClick={() => handleProductSelect('All')}
-                          >
-                            All
-                          </Button>
                           <Collapsible>
                             <CollapsibleTrigger asChild>
                               <button className="flex w-full items-center justify-between rounded-sm px-2 py-1.5 text-left text-sm font-bold hover:bg-accent [&[data-state=open]>svg]:rotate-180">
@@ -814,5 +807,3 @@ export default function LeadUpdateForm({ leadId, allLeads, setAllLeads }: { lead
     
 
     
-
-
