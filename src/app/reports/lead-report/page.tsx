@@ -307,7 +307,7 @@ export default function LeadReportPage() {
                         Leads with status "{selectedStatus}" in {selectedState === 'All' ? 'All States' : selectedState}: <span className="text-primary font-bold">{filteredLeads.length}</span>
                     </h2>
                     <ScrollArea className="w-full whitespace-nowrap rounded-md border">
-                        <Table className="min-w-[2900px]">
+                        <Table className="min-w-[3000px]">
                             <TableHeader>
                             <TableRow>
                                 <TableHead>Sl No</TableHead>
@@ -323,6 +323,7 @@ export default function LeadReportPage() {
                                 <TableHead>State</TableHead>
                                 <TableHead>Reference</TableHead>
                                 <TableHead>Sector</TableHead>
+                                <TableHead>Headcount</TableHead>
                                 <TableHead>Manager</TableHead>
                                 <TableHead>Last Followed Date</TableHead>
                                 <TableHead>Last Followed By</TableHead>
@@ -359,6 +360,7 @@ export default function LeadReportPage() {
                                     <TableCell>{lead.state || 'N/A'}</TableCell>
                                     <TableCell>{lead.reference || 'N/A'}</TableCell>
                                     <TableCell>{lead.sector || 'N/A'}</TableCell>
+                                    <TableCell>{lead.headcount || 'N/A'}</TableCell>
                                     <TableCell>{lead.manager || 'N/A'}</TableCell>
                                     <TableCell>{lastFollowUp ? format(new Date(lastFollowUp.date), 'PPP') : 'N/A'}</TableCell>
                                     <TableCell>{lastFollowUp ? lastFollowUp.enteredBy : 'N/A'}</TableCell>
@@ -373,7 +375,7 @@ export default function LeadReportPage() {
                                 })
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={22} className="text-center h-24">
+                                    <TableCell colSpan={23} className="text-center h-24">
                                         No leads found for the selected criteria.
                                     </TableCell>
                                 </TableRow>
