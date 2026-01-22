@@ -39,7 +39,13 @@ import {
 } from '@/components/ui/alert-dialog';
 
 export default function UsersPage() {
-  const { originalUser, isAuthenticated, isLoading, impersonate } = useAuth();
+  const {
+    originalUser,
+    isAuthenticated,
+    isLoading,
+    impersonate,
+    isImpersonating,
+  } = useAuth();
   const router = useRouter();
   const { users, addUser, updateUser, deleteUser } = useUsers();
   const { toast } = useToast();
@@ -49,19 +55,29 @@ export default function UsersPage() {
   const [newUsername, setNewUsername] = useState('');
   const [newEmail, setNewEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
-  const [newRole, setNewRole] = useState<'Admin' | 'Sub Admin' | 'Executive' | ''>('');
+  const [newRole, setNewRole] = useState<
+    'Admin' | 'Sub Admin' | 'Executive' | ''
+  >('');
   const [showNewPassword, setShowNewPassword] = useState(false);
 
   // State for delete confirmation
   const [userToDelete, setUserToDelete] = useState<AppUser | null>(null);
 
   useEffect(() => {
-    if (!isLoading && (!isAuthenticated || !['Admin', 'Sub Admin'].includes(originalUser?.role as string))) {
+    if (
+      !isLoading &&
+      (!isAuthenticated ||
+        !['Admin', 'Sub Admin'].includes(originalUser?.role as string))
+    ) {
       router.replace('/dashboard');
     }
   }, [isAuthenticated, originalUser, isLoading, router]);
 
-  if (isLoading || !isAuthenticated || !['Admin', 'Sub Admin'].includes(originalUser?.role as string)) {
+  if (
+    isLoading ||
+    !isAuthenticated ||
+    !['Admin', 'Sub Admin'].includes(originalUser?.role as string)
+  ) {
     return null; // or a loading skeleton
   }
 
@@ -86,7 +102,7 @@ export default function UsersPage() {
         return;
       }
 
-       if (
+      if (
         users.some(
           (u) =>
             (u.username.toLowerCase() === newUsername.toLowerCase() ||
@@ -101,7 +117,7 @@ export default function UsersPage() {
         });
         return;
       }
-      
+
       const updates: Partial<Omit<AppUser, 'id'>> = {
         username: newUsername,
         email: newEmail,
@@ -119,7 +135,12 @@ export default function UsersPage() {
       });
     } else {
       // Add new user
-      if (!newUsername.trim() || !newPassword.trim() || !newEmail.trim() || !newRole) {
+      if (
+        !newUsername.trim() ||
+        !newPassword.trim() ||
+        !newEmail.trim() ||
+        !newRole
+      ) {
         toast({
           variant: 'destructive',
           title: 'Validation Error',
@@ -171,7 +192,7 @@ export default function UsersPage() {
     setNewRole(user.role);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-  
+
   const handleDeleteUser = () => {
     if (!userToDelete) return;
 
@@ -202,7 +223,7 @@ export default function UsersPage() {
       });
       return;
     }
-     if (userToImpersonate.role === 'Admin') {
+    if (userToImpersonate.role === 'Admin') {
       toast({
         variant: 'destructive',
         title: 'Action Forbidden',
@@ -231,7 +252,9 @@ export default function UsersPage() {
             {/* Add/Edit User Form */}
             <div className="space-y-4">
               <h2 className="text-lg font-semibold">
-                {editingUserId && originalUser?.role === 'Admin' ? `Editing: ${newUsername}` : 'Add New User'}
+                {editingUserId && originalUser?.role === 'Admin'
+                  ? `Editing: ${newUsername}`
+                  : 'Add New User'}
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
                 <div className="space-y-2">
@@ -263,7 +286,11 @@ export default function UsersPage() {
                     type={showNewPassword ? 'text' : 'password'}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder={editingUserId ? 'Leave blank to keep password' : 'Enter password'}
+                    placeholder={
+                      editingUserId
+                        ? 'Leave blank to keep password'
+                        : 'Enter password'
+                    }
                     autoComplete="new-password"
                   />
                   <Button
@@ -294,29 +321,34 @@ export default function UsersPage() {
                     <SelectContent>
                       <SelectItem value="Executive">Executive</SelectItem>
                       <SelectItem value="Sub Admin">Sub Admin</SelectItem>
-                       {originalUser?.role === 'Admin' && <SelectItem value="Admin">Admin</SelectItem>}
+                      {originalUser?.role === 'Admin' && (
+                        <SelectItem value="Admin">Admin</SelectItem>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="flex gap-2">
-                    <Button onClick={handleSaveUser} className="w-full">
-                      {editingUserId && originalUser?.role === 'Admin' ? 'Update User' : 'Add User'}
+                  <Button onClick={handleSaveUser} className="w-full">
+                    {editingUserId && originalUser?.role === 'Admin'
+                      ? 'Update User'
+                      : 'Add User'}
+                  </Button>
+                  {editingUserId && originalUser?.role === 'Admin' && (
+                    <Button onClick={resetForm} variant="outline">
+                      Cancel
                     </Button>
-                    {editingUserId && originalUser?.role === 'Admin' && (
-                      <Button onClick={resetForm} variant="outline">
-                        Cancel
-                      </Button>
-                    )}
+                  )}
                 </div>
               </div>
             </div>
 
-            {/* Users Table - Only visible to Admins */}
-            {originalUser?.role === 'Admin' && (
+            {/* Users Table - Only visible to Admins when not impersonating */}
+            {originalUser?.role === 'Admin' && !isImpersonating && (
               <div className="space-y-4">
                 <h2 className="text-lg font-semibold">Existing Users</h2>
                 <p className="text-sm text-muted-foreground">
-                  Click on a username to view their dashboard. Click the pencil icon to edit their details in the form above.
+                  Click on a username to view their dashboard. Click the pencil
+                  icon to edit their details in the form above.
                 </p>
                 <Card>
                   <CardContent className="p-0">
@@ -334,9 +366,11 @@ export default function UsersPage() {
                       <TableBody>
                         {users.map((user) => (
                           <TableRow key={user.id}>
-                             <TableCell>
+                            <TableCell>
                               {user.role === 'Admin' ? (
-                                <span className="font-medium px-1">{user.username}</span>
+                                <span className="font-medium px-1">
+                                  {user.username}
+                                </span>
                               ) : (
                                 <Button
                                   variant="link"
