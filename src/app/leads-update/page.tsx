@@ -252,11 +252,11 @@ export default function LeadsUpdatePage() {
         
         // Main Date Filter
         if (fromDate) {
-          const fromTimestamp = startOfDay(new Date(`${fromDate}T00:00:00`)).getTime();
+          const fromTimestamp = new Date(`${fromDate}T00:00:00`).getTime();
           intermediateLeads = intermediateLeads.filter(lead => lead.creationDate >= fromTimestamp);
         }
         if (toDate) {
-          const toTimestamp = endOfDay(new Date(`${toDate}T00:00:00`)).getTime();
+          const toTimestamp = new Date(`${toDate}T23:59:59`).getTime();
           intermediateLeads = intermediateLeads.filter(lead => lead.creationDate <= toTimestamp);
         }
         
@@ -421,11 +421,19 @@ export default function LeadsUpdatePage() {
     }
   };
 
+  const handleStatusFilterChange = (value: string) => {
+    setSelectedStatus(value);
+    if (value !== 'Other') {
+      setActiveTab('search-result');
+    }
+  };
+
   const handleSetOtherStatus = () => {
     if(otherStatusInput.trim()){
       const newStatus = otherStatusInput.trim();
       setSelectedStatus(newStatus);
       setOtherStatusInput('');
+      setActiveTab('search-result');
     }
   };
 
@@ -763,7 +771,7 @@ export default function LeadsUpdatePage() {
                     </div>
                      <div className="space-y-1">
                         <Label>Status of Lead</Label>
-                        <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                        <Select value={selectedStatus} onValueChange={handleStatusFilterChange}>
                             <SelectTrigger><SelectValue placeholder="--All--" /></SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all">All</SelectItem>
@@ -1075,5 +1083,7 @@ export default function LeadsUpdatePage() {
     </AppContent>
   );
 }
+
+    
 
     
