@@ -282,9 +282,6 @@ export default function LeadsUpdatePage() {
 
         // Follow-up Filters
         if (considerStatus) {
-          const excludedStatuses = ['Order closed', 'Fake', 'Existing Users', 'Not interested'];
-          intermediateLeads = intermediateLeads.filter(lead => !excludedStatuses.includes(lead.status || ''));
-
           if (followUpStatus === 'pending') {
             intermediateLeads = intermediateLeads.filter(lead => {
               if (!lead.nextFollowUpDate) return false;
@@ -347,6 +344,11 @@ export default function LeadsUpdatePage() {
         // 'All' tab shows all visible leads, sorted
         tempLeads.sort((a,b) => a.creationDate - b.creationDate);
         break;
+    }
+
+    if (considerStatus) {
+        const excludedStatuses = ['Order closed', 'Fake', 'Existing Users', 'Not interested'];
+        tempLeads = tempLeads.filter(lead => !excludedStatuses.includes(lead.status || ''));
     }
 
     setFilteredLeads(tempLeads);
@@ -1083,6 +1085,8 @@ export default function LeadsUpdatePage() {
     </AppContent>
   );
 }
+
+    
 
     
 
