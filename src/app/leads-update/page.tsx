@@ -68,6 +68,7 @@ const hrExtendedModules = [
   'Employee Self Service',
 ];
 
+const financeModules = ['Payroll', 'Separation', 'Travel and Expense'];
 
 /* ---------------- CONSTANTS ---------------- */
 
@@ -687,6 +688,27 @@ export default function LeadsUpdatePage() {
                                 </CollapsibleContent>
                               </Collapsible>
 
+                              <Collapsible>
+                                <CollapsibleTrigger asChild>
+                                  <button className="flex w-full items-center justify-between rounded-sm px-2 py-1.5 text-left text-sm font-bold hover:bg-accent [&[data-state=open]>svg]:rotate-180">
+                                    <span>Finance Modules</span>
+                                    <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
+                                  </button>
+                                </CollapsibleTrigger>
+                                <CollapsibleContent className="space-y-1 pt-1 pl-4">
+                                  {financeModules.map((product) => (
+                                    <Button
+                                      variant="ghost"
+                                      className="w-full justify-start text-sm"
+                                      key={product}
+                                      onClick={() => handleProductSelect(product)}
+                                    >
+                                      {product}
+                                    </Button>
+                                  ))}
+                                </CollapsibleContent>
+                              </Collapsible>
+
                             </div>
                           </ScrollArea>
                         </PopoverContent>
@@ -1080,9 +1102,3 @@ export default function LeadsUpdatePage() {
     </AppContent>
   );
 }
-
-    
-
-    
-
-    
