@@ -759,6 +759,20 @@ export default function LeadUploadForm() {
     return 'indeterminate';
   };
 
+  const getModuleButtonText = () => {
+    const selectionCount = selectedModulesArray.length;
+    if (selectionCount === 0) {
+      return 'Select Module(s)...';
+    }
+    if (selectionCount === allModules.length) {
+      return 'All Modules Selected';
+    }
+    if (selectionCount === 1) {
+      return selectedModulesArray[0];
+    }
+    return `${selectionCount} modules selected`;
+  };
+
   const ModuleSelectItem = ({ moduleName }: { moduleName: string }) => (
     <div
         key={moduleName}
@@ -984,11 +998,7 @@ export default function LeadUploadForm() {
                   disabled={isReadOnly}
                 >
                   <span className="truncate">
-                    {selectedModulesArray.length === 0
-                      ? 'Select Module(s)...'
-                      : selectedModulesArray.length === 1
-                      ? selectedModulesArray[0]
-                      : `${selectedModulesArray.length} modules selected`}
+                    {getModuleButtonText()}
                   </span>
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
