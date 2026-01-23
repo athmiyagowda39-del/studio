@@ -395,19 +395,22 @@ export default function LeadUploadForm() {
       return false;
     }
 
-    if (lead.toExecutive && !toExecutiveSelection) {
+    if (!toExecutiveSelection || toExecutiveSelection === 'all') {
       toast({
         variant: 'destructive',
         title: 'Executive Not Assigned',
-        description: 'You must select an executive when "To Executive" is checked.',
+        description:
+          'You must assign a specific executive before saving the lead.',
       });
       return false;
     }
-    if (formData.toExecutive && toExecutiveSelection === 'Other') {
+
+    if (toExecutiveSelection === 'Other') {
       toast({
         variant: 'destructive',
-        title: 'Missing Information',
-        description: "Please specify a value for 'Other' in the 'To Executive' field.",
+        title: 'Executive Not Specified',
+        description:
+          "Please provide a name for the 'Other' executive and click OK.",
       });
       return false;
     }
