@@ -768,7 +768,7 @@ export default function LeadUploadForm() {
       return 'All Modules Selected';
     }
     if (selectionCount === 1) {
-      return selectedModulesArray[0];
+      return 'Module selected';
     }
     return `${selectionCount} modules selected`;
   };
