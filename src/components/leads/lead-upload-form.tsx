@@ -767,6 +767,25 @@ export default function LeadUploadForm() {
     if (selectionCount === allModules.length) {
       return 'All Modules Selected';
     }
+
+    const areSetsEqual = (a: Set<string>, b: Set<string>) =>
+      a.size === b.size && [...a].every((value) => b.has(value));
+
+    const selectedSet = new Set(selectedModulesArray);
+    const hrSet = new Set(allHrModules);
+    const financeSet = new Set(allFinanceModules);
+    const generalSet = new Set(allGeneralModules);
+
+    if (areSetsEqual(selectedSet, hrSet)) {
+      return "HR Modules Selected";
+    }
+    if (areSetsEqual(selectedSet, financeSet)) {
+      return "Finance Modules Selected";
+    }
+    if (areSetsEqual(selectedSet, generalSet)) {
+      return "General Modules Selected";
+    }
+
     if (selectionCount === 1) {
       return 'Module selected';
     }
