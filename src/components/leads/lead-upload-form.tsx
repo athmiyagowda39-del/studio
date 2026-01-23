@@ -180,6 +180,8 @@ const allHrModules = [
 const allFinanceModules = [...financeModules];
 const allGeneralModules = [...generalModules];
 const allAttendanceModules = ['Attendance Management', ...attendanceSubModules];
+const allModules = [...new Set([...allHrModules, ...allFinanceModules, ...allGeneralModules])];
+
 
 const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate' | 'givenBy'> = {
   pincode: '',
@@ -740,6 +742,23 @@ export default function LeadUploadForm() {
     return 'indeterminate';
   };
   
+  const handleAllToggle = (isAdding: boolean) => {
+    if (isAdding) {
+      handleSelectChange('selectedModule', allModules.join(', '));
+    } else {
+      handleSelectChange('selectedModule', '');
+    }
+  };
+
+  const getAllCheckedState = (): boolean | 'indeterminate' => {
+    const selectionCount = allModules.filter((m) =>
+      selectedModulesArray.includes(m)
+    ).length;
+    if (selectionCount === 0) return false;
+    if (selectionCount === allModules.length) return true;
+    return 'indeterminate';
+  };
+
   const ModuleSelectItem = ({ moduleName }: { moduleName: string }) => (
     <div
         key={moduleName}
@@ -977,6 +996,17 @@ export default function LeadUploadForm() {
               <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
                 <ScrollArea className="h-72">
                   <div className="space-y-1 p-1">
+                    <div className="flex items-center space-x-3 rounded-md p-2 pr-4 font-bold border-b">
+                      <Checkbox
+                          id="all-modules-category"
+                          checked={getAllCheckedState()}
+                          onCheckedChange={(checked) => handleAllToggle(!!checked)}
+                          className="ml-1"
+                      />
+                      <label htmlFor="all-modules-category" className="w-full cursor-pointer">
+                          All Modules
+                      </label>
+                    </div>
                     <Collapsible>
                       <div className="flex items-center space-x-3 rounded-md p-2 pr-4 font-semibold">
                           <Checkbox
