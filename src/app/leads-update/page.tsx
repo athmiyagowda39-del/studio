@@ -80,6 +80,10 @@ const generalModules = [
   'Ex-Employee Portal',
 ];
 
+const allHrModules = [...hrCoreModules, 'Attendance Management', ...attendanceSubModules, ...hrExtendedModules];
+const allFinanceModules = [...financeModules];
+const allGeneralModules = [...generalModules];
+
 /* ---------------- CONSTANTS ---------------- */
 
 const LEADS_PER_PAGE = 10;
@@ -121,6 +125,39 @@ const references = [
 
 
 /* ---------------- HELPERS ---------------- */
+
+const getDisplayModule = (selectedModuleString: string): string => {
+  if (!selectedModuleString) return 'N/A';
+
+  const selected = new Set(selectedModuleString.split(', ').filter(Boolean));
+  const display = [];
+
+  const hrSet = new Set(allHrModules);
+  const financeSet = new Set(allFinanceModules);
+  const generalSet = new Set(allGeneralModules);
+
+  let hasAllHr = hrSet.size > 0 && [...hrSet].every(m => selected.has(m));
+  let hasAllFinance = financeSet.size > 0 && [...financeSet].every(m => selected.has(m));
+  let hasAllGeneral = generalSet.size > 0 && [...generalSet].every(m => selected.has(m));
+
+  if (hasAllHr) {
+    display.push('HR Module');
+    [...hrSet].forEach(m => selected.delete(m));
+  }
+  if (hasAllFinance) {
+    display.push('Finance Module');
+    [...financeSet].forEach(m => selected.delete(m));
+  }
+  if (hasAllGeneral) {
+    display.push('General Module');
+    [...generalSet].forEach(m => selected.delete(m));
+  }
+
+  // Push remaining individual modules
+  display.push(...Array.from(selected));
+  
+  return display.length > 0 ? display.join(', ') : 'N/A';
+};
 
 const getLeadsFromLocalStorage = (): LeadFormData[] => {
   if (typeof window !== 'undefined') {
@@ -1073,7 +1110,7 @@ export default function LeadsUpdatePage() {
                           <TableCell>{(currentPage - 1) * LEADS_PER_PAGE + index + 1}</TableCell>
                           <TableCell>{lead.leadId}</TableCell>
                           <TableCell>{format(new Date(lead.creationDate), 'PPP')}</TableCell>
-                          <TableCell>{lead.selectedModule}</TableCell>
+                          <TableCell>{getDisplayModule(lead.selectedModule)}</TableCell>
                           <TableCell>{lead.company}</TableCell>
                           <TableCell>{lead.contactPerson}</TableCell>
                           <TableCell>{lead.contactNumber}</TableCell>
@@ -1131,4 +1168,5 @@ export default function LeadsUpdatePage() {
       </div>
     </AppContent>
   );
-}
+
+    
