@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, {
@@ -103,8 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (
       originalUser &&
       (originalUser.role === 'Admin' ||
-        originalUser.role === 'Sub Admin' ||
-        originalUser.role === 'Super Admin')
+        originalUser.role === 'Sub Admin')
     ) {
       localStorage.setItem(
         'impersonatedUser',
