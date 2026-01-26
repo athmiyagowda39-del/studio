@@ -10,7 +10,7 @@ export type AppUser = {
   id: string;
   username: string;
   email: string;
-  role: 'Admin' | 'Sub Admin' | 'Executive';
+  role: 'Super Admin' | 'Admin' | 'Sub Admin' | 'Executive';
   password?: string;
   phoneNumber?: string;
 };
