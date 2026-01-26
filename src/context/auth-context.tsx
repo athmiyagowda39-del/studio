@@ -100,7 +100,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const impersonate = (userToImpersonate: User) => {
-    if (originalUser && (originalUser.role === 'Admin' || originalUser.role === 'Sub Admin')) {
+    if (
+      originalUser &&
+      (originalUser.role === 'Admin' ||
+        originalUser.role === 'Sub Admin' ||
+        originalUser.role === 'Super Admin')
+    ) {
       localStorage.setItem(
         'impersonatedUser',
         JSON.stringify(userToImpersonate)

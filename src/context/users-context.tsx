@@ -11,7 +11,7 @@ export type AppUser = {
   id: string;
   username: string;
   email: string;
-  role: 'Admin' | 'Sub Admin' | 'Executive';
+  role: 'Admin' | 'Sub Admin' | 'Executive' | 'Super Admin';
   password?: string;
   phoneNumber?: string;
 };
@@ -26,7 +26,7 @@ type UsersContextType = {
 const UsersContext = createContext<UsersContextType | undefined>(undefined);
 
 const defaultUsers: AppUser[] = [
-    { id: 'user-1', username: 'Athmiya.ag', email: 'athmiya.ag@peopleworks.in', role: 'Admin', password: 'Welcome123#' },
+    { id: 'user-1', username: 'Athmiya.ag', email: 'athmiya.ag@peopleworks.in', role: 'Super Admin', password: 'Welcome123#' },
     { id: 'user-3', username: 'Varghese Vincent', email: 'Varghese@peopleworks.in', role: 'Admin', password: 'Varghese@123', phoneNumber: 'N/A' },
     { id: 'user-4', username: 'sam.devasia', email: 'sam.devasia@peopleworks.in', role: 'Admin', password: 'SamDev@456', phoneNumber: 'N/A' },
     { id: 'user-6', username: 'Mandanna N', email: 'mandanna.n@peopleworks.in', role: 'Executive', password: 'Mandanna@101', phoneNumber: '9845622777' },

@@ -56,7 +56,7 @@ export default function UsersPage() {
   const [newEmail, setNewEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newRole, setNewRole] = useState<
-    'Admin' | 'Sub Admin' | 'Executive' | ''
+    'Admin' | 'Sub Admin' | 'Executive' | 'Super Admin' | ''
   >('');
   const [showNewPassword, setShowNewPassword] = useState(false);
 
@@ -67,7 +67,9 @@ export default function UsersPage() {
     if (
       !isLoading &&
       (!isAuthenticated ||
-        !['Admin', 'Sub Admin'].includes(originalUser?.role as string))
+        !['Admin', 'Sub Admin', 'Super Admin'].includes(
+          originalUser?.role as string
+        ))
     ) {
       router.replace('/dashboard');
     }
@@ -76,7 +78,9 @@ export default function UsersPage() {
   if (
     isLoading ||
     !isAuthenticated ||
-    !['Admin', 'Sub Admin'].includes(originalUser?.role as string)
+    !['Admin', 'Sub Admin', 'Super Admin'].includes(
+      originalUser?.role as string
+    )
   ) {
     return null; // or a loading skeleton
   }
@@ -223,7 +227,20 @@ export default function UsersPage() {
       });
       return;
     }
-    if (userToImpersonate.role === 'Admin') {
+
+    if (userToImpersonate.role === 'Super Admin') {
+      toast({
+        variant: 'destructive',
+        title: 'Action Forbidden',
+        description: 'You cannot impersonate a Super Admin.',
+      });
+      return;
+    }
+
+    if (
+      userToImpersonate.role === 'Admin' &&
+      originalUser?.role === 'Admin'
+    ) {
       toast({
         variant: 'destructive',
         title: 'Action Forbidden',
@@ -231,6 +248,7 @@ export default function UsersPage() {
       });
       return;
     }
+
     impersonate({
       id: userToImpersonate.id,
       username: userToImpersonate.username,
@@ -312,7 +330,7 @@ export default function UsersPage() {
                   <Select
                     value={newRole}
                     onValueChange={(
-                      value: 'Admin' | 'Sub Admin' | 'Executive'
+                      value: 'Admin' | 'Sub Admin' | 'Executive' | 'Super Admin'
                     ) => setNewRole(value)}
                   >
                     <SelectTrigger id="role">
@@ -321,8 +339,12 @@ export default function UsersPage() {
                     <SelectContent>
                       <SelectItem value="Executive">Executive</SelectItem>
                       <SelectItem value="Sub Admin">Sub Admin</SelectItem>
-                      {originalUser?.role === 'Admin' && (
+                      {(originalUser?.role === 'Admin' ||
+                        originalUser?.role === 'Super Admin') && (
                         <SelectItem value="Admin">Admin</SelectItem>
+                      )}
+                      {originalUser?.role === 'Super Admin' && (
+                        <SelectItem value="Super Admin">Super Admin</SelectItem>
                       )}
                     </SelectContent>
                   </Select>
