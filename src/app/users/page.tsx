@@ -218,6 +218,14 @@ export default function UsersPage() {
   };
 
   const handleImpersonate = (userToImpersonate: AppUser) => {
+    if (userToImpersonate.role === 'Super Admin') {
+      toast({
+        variant: 'destructive',
+        title: 'Action Forbidden',
+        description: 'Super Admins cannot be impersonated.',
+      });
+      return;
+    }
     if (originalUser?.email === userToImpersonate.email) {
       toast({
         variant: 'destructive',
@@ -376,7 +384,7 @@ export default function UsersPage() {
                         {users.map((user) => (
                           <TableRow key={user.id}>
                             <TableCell>
-                              {user.role === 'Admin' ? (
+                              {user.role === 'Admin' || user.role === 'Super Admin' ? (
                                 <span className="font-medium px-1">
                                   {user.username}
                                 </span>
