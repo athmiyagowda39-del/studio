@@ -669,9 +669,10 @@ export default function LeadsUpdatePage() {
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                          <div className="p-2 font-bold text-center border-b">Modules</div>
                           <ScrollArea className="h-72">
                             <div className="space-y-1 p-1">
-                              <div className="flex items-center space-x-3 rounded-md p-2 pr-4 font-bold border-b">
+                              <div className="flex items-center space-x-3 rounded-md p-2 pr-4 font-semibold">
                                 <Checkbox id="all-modules-category-filter" checked={getAllCheckedState()} onCheckedChange={(checked) => handleAllToggle(!!checked)} className="ml-1" />
                                 <label htmlFor="all-modules-category-filter" className="w-full cursor-pointer">All Modules</label>
                               </div>
