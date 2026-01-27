@@ -20,6 +20,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isFormInteractive, setIsFormInteractive] = useState(false);
   const { login } = useApp();
   const router = useRouter();
   const { toast } = useToast();
@@ -45,6 +46,12 @@ export default function LoginPage() {
     }
   };
 
+  const makeFormInteractive = () => {
+    if (!isFormInteractive) {
+      setIsFormInteractive(true);
+    }
+  };
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
       <div className="mb-8 flex items-center gap-3 text-2xl font-bold text-primary">
@@ -59,7 +66,11 @@ export default function LoginPage() {
           <CardTitle className="text-2xl text-center">Login</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleLogin} className="grid gap-4">
+          <form
+            onSubmit={handleLogin}
+            onFocus={makeFormInteractive}
+            className="grid gap-4"
+          >
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -71,8 +82,7 @@ export default function LoginPage() {
                 required
                 autoComplete="email"
                 disabled={isSubmitting}
-                readOnly
-                onFocus={(e) => e.target.removeAttribute('readonly')}
+                readOnly={!isFormInteractive}
               />
             </div>
             <div className="grid gap-2">
@@ -87,8 +97,7 @@ export default function LoginPage() {
                   required
                   autoComplete="current-password"
                   disabled={isSubmitting}
-                  readOnly
-                  onFocus={(e) => e.target.removeAttribute('readonly')}
+                  readOnly={!isFormInteractive}
                 />
                 <Button
                   type="button"
