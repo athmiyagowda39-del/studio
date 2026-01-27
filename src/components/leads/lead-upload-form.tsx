@@ -787,23 +787,7 @@ export default function LeadUploadForm() {
                           </CollapsibleTrigger>
                       </div>
                       <CollapsibleContent className="space-y-1 pt-1 pl-6">
-                        {hrCoreModules.map((product) => (<ModuleSelectItem key={product} moduleName={product} />))}
-                        <Collapsible>
-                          <div className="flex items-center space-x-3 rounded-md p-2 pr-4 font-semibold">
-                              <Checkbox id="attendance-category" checked={getCategoryCheckedState(allAttendanceModules)} onCheckedChange={(checked) => handleCategoryToggle(allAttendanceModules, !!checked)} className="ml-1" />
-                               <CollapsibleTrigger asChild>
-                                  <label htmlFor="attendance-category" className="flex w-full items-center justify-between cursor-pointer">
-                                    <span>Attendance Management</span>
-                                    <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
-                                  </label>
-                              </CollapsibleTrigger>
-                          </div>
-                          <CollapsibleContent className="space-y-1 pt-1 pl-6">
-                            <ModuleSelectItem moduleName="Attendance Management" />
-                            {attendanceSubModules.map((product) => (<ModuleSelectItem key={product} moduleName={product} />))}
-                          </CollapsibleContent>
-                        </Collapsible>
-                        {hrExtendedModules.map((product) => (<ModuleSelectItem key={product} moduleName={product} />))}
+                        {allHrModules.map((product) => (<ModuleSelectItem key={product} moduleName={product} />))}
                       </CollapsibleContent>
                     </Collapsible>
                     <Collapsible>
