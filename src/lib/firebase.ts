@@ -26,7 +26,7 @@ const firestore = getFirestore(firebaseApp);
 
 // Check for development environment and connect to emulators if available.
 // Note: The emulators must be running for this to work.
-if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+if (typeof window !== 'undefined') {
   // Point to the emulators for local development.
   connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
   connectFirestoreEmulator(firestore, 'localhost', 8080);
