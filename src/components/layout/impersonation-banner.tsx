@@ -1,12 +1,12 @@
 
 'use client';
 
-import { useAuth } from '@/context/auth-context';
+import { useApp } from '@/context/app-context';
 import { Button } from '@/components/ui/button';
 import { UserCheck } from 'lucide-react';
 
 export default function ImpersonationBanner() {
-  const { user, isImpersonating, stopImpersonation } = useAuth();
+  const { user, isImpersonating, stopImpersonation } = useApp();
 
   if (!isImpersonating) {
     return null;

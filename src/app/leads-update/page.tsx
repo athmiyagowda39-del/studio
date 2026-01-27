@@ -22,8 +22,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useUsers } from '@/context/users-context';
-import { useAuth } from '@/context/auth-context';
+import { useApp } from '@/context/app-context';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { useRouter } from 'next/navigation';
 import {
@@ -37,11 +36,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { ChevronsUpDown, ChevronDown } from 'lucide-react';
-import { firestore as db } from '@/lib/firebase';
-import { collection, onSnapshot, query, where } from 'firebase/firestore';
 
-
-/* ---------------- NEW PRODUCT OPTIONS ---------------- */
 const hrCoreModules = [
   'Manpower Resource Planning',
   'Recruitment and Requisition Management',
@@ -86,8 +81,6 @@ const allHrModules = [...hrCoreModules, 'Attendance Management', ...attendanceSu
 const allFinanceModules = [...financeModules];
 const allGeneralModules = [...generalModules];
 
-/* ---------------- CONSTANTS ---------------- */
-
 const LEADS_PER_PAGE = 10;
 type TabValue = 'all' | 'not-viewed' | 'follow-ups-due' | 'zero-follow-ups' | 'search-result';
 
@@ -125,9 +118,6 @@ const references = [
     "Existing Customer", "Upselling", "Cross-selling", "Events / Trade Shows", "Demo Request", "Trial Signup", "Other"
 ];
 
-
-/* ---------------- HELPERS ---------------- */
-
 const getDisplayModule = (selectedModuleString: string): string => {
   if (!selectedModuleString) return 'N/A';
 
@@ -155,30 +145,21 @@ const getDisplayModule = (selectedModuleString: string): string => {
     [...generalSet].forEach(m => selected.delete(m));
   }
 
-  // Push remaining individual modules
   display.push(...Array.from(selected));
   
   return display.length > 0 ? display.join(', ') : 'N/A';
 };
 
-
-/* ---------------- COMPONENT ---------------- */
-
 export default function LeadsUpdatePage() {
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading, leads: allLeads, users } = useApp();
   const router = useRouter();
   const pageTopRef = useRef<HTMLDivElement>(null);
 
-  const [allLeads, setAllLeads] = useState<LeadFormData[]>([]);
-  const [isDataLoading, setIsDataLoading] = useState(true);
   const [filteredLeads, setFilteredLeads] = useState<LeadFormData[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
 
-  // ✅ FILTER TOGGLE
   const [showFilters, setShowFilters] = useState(false);
-  
-  // ✅ MAIN FILTER STATE
   const [searchTerm, setSearchTerm] = useState('');
   const [searchCategory, setSearchCategory] = useState('leadId');
   const [activeTab, setActiveTab] = useState<TabValue>('all');
@@ -198,18 +179,14 @@ export default function LeadsUpdatePage() {
   const [otherSubStatusInput, setOtherSubStatusInput] = useState('');
   const [selectedLeadSource, setSelectedLeadSource] = useState('all');
   const [otherLeadSourceInput, setOtherLeadSourceInput] = useState('');
-  const [considerStatus, setConsiderStatus] = useState(false); // This is the "Do not consider..." checkbox
+  const [considerStatus, setConsiderStatus] = useState(false);
 
-  // ✅ FOLLOW-UP FILTER STATE
   const [followUpStatus, setFollowUpStatus] = useState('pending');
   const [followUpFromDate, setFollowUpFromDate] = useState('');
   const [followUpToDate, setFollowUpToDate] = useState('');
   const [followUpEnteredBy, setFollowUpEnteredBy] = useState('all');
   const [otherFollowUpEnteredByInput, setOtherFollowUpEnteredByInput] = useState('');
 
-
-  /* ---------------- EFFECT ---------------- */
-  const { users } = useUsers();
   const [executives, setExecutives] = useState<string[]>([]);
 
   useEffect(() => {
@@ -225,49 +202,19 @@ export default function LeadsUpdatePage() {
     setExecutives(executiveUsers);
   }, [users]);
   
-  // Load all leads from Firestore and listen for real-time updates
-  useEffect(() => {
-    if (!isAuthenticated) {
-      setAllLeads([]);
-      setIsDataLoading(false);
-      return;
-    };
-    
-    setIsDataLoading(true);
-    const leadsCollection = collection(db, 'leads');
-    
-    const unsubscribe = onSnapshot(leadsCollection, (snapshot) => {
-      const leadsData = snapshot.docs.map(doc => ({ ...doc.data(), leadId: doc.id }) as LeadFormData);
-      setAllLeads(leadsData);
-      setIsDataLoading(false);
-    }, (error) => {
-      console.error("Error fetching leads:", error);
-      setIsDataLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, [isAuthenticated]);
-
-
-  // Base list of leads a user is allowed to see, based on their role.
   const visibleLeads = useMemo(() => {
     if (!user) return [];
 
-    // Executives can only see leads assigned to them.
     if (user.role === 'Executive') {
       return allLeads.filter(lead => lead.executive === user.username);
     }
 
-    // Admins and Sub Admins can see all leads. Filters will narrow it down.
     return allLeads;
   }, [allLeads, user]);
 
-
-  // Centralized filtering logic
   useEffect(() => {
     let tempLeads = [...visibleLeads];
 
-    // Tab-based filtering applies first
     switch (activeTab) {
       case 'not-viewed':
         tempLeads = tempLeads.filter(lead => !lead.executiveViewDate);
@@ -292,10 +239,8 @@ export default function LeadsUpdatePage() {
         tempLeads = tempLeads.filter(lead => !lead.followUps || lead.followUps.length === 0);
         break;
       case 'search-result':
-        // Apply all filters from the panel ONLY for search results
         let intermediateLeads = [...visibleLeads];
 
-        // Main Search & Text Filters
         if (searchTerm.trim() !== '') {
           intermediateLeads = intermediateLeads.filter(lead => {
             const leadValue = (lead[searchCategory as keyof LeadFormData] as string)?.toString().toLowerCase() || '';
@@ -303,7 +248,6 @@ export default function LeadsUpdatePage() {
           });
         }
         
-        // Main Date Filter
         if (fromDate) {
           const fromTimestamp = new Date(`${fromDate}T00:00:00`).getTime();
           intermediateLeads = intermediateLeads.filter(lead => lead.creationDate >= fromTimestamp);
@@ -313,7 +257,6 @@ export default function LeadsUpdatePage() {
           intermediateLeads = intermediateLeads.filter(lead => lead.creationDate <= toTimestamp);
         }
         
-        // Other Main Filters
         if (selectedProduct !== 'all') {
           intermediateLeads = intermediateLeads.filter(lead => lead.selectedModule === selectedProduct);
         }
@@ -333,13 +276,11 @@ export default function LeadsUpdatePage() {
           intermediateLeads = intermediateLeads.filter(lead => lead.reference === selectedLeadSource);
         }
 
-        // Follow-up Filters
         if (considerStatus) {
           if (followUpStatus === 'pending') {
             intermediateLeads = intermediateLeads.filter(lead => {
               if (!lead.nextFollowUpDate) return false;
 
-              // Check date range for the pending follow-up.
               try {
                 const nextFollowUp = new Date(lead.nextFollowUpDate);
                 if (followUpFromDate && startOfDay(nextFollowUp) < startOfDay(new Date(`${followUpFromDate}T00:00:00`))) {
@@ -352,7 +293,6 @@ export default function LeadsUpdatePage() {
                 return false;
               }
 
-              // If "Enter by" filter is active, check who created the last follow-up.
               if (followUpEnteredBy !== 'all') {
                 const lastFollowUp = lead.followUps && lead.followUps.length > 0
                   ? lead.followUps[lead.followUps.length - 1]
@@ -394,7 +334,6 @@ export default function LeadsUpdatePage() {
         break;
       case 'all':
       default:
-        // 'All' tab shows all visible leads, sorted
         tempLeads.sort((a,b) => a.creationDate - b.creationDate);
         break;
     }
@@ -416,7 +355,6 @@ export default function LeadsUpdatePage() {
   const handleShowButtonClick = () => {
     setActiveTab('search-result');
   };
-
 
   const handleResetFilters = () => {
     setSearchTerm('');
@@ -513,9 +451,6 @@ export default function LeadsUpdatePage() {
     setProductPopoverOpen(false);
   };
 
-
-  /* ---------------- PAGINATION ---------------- */
-
   const paginatedLeads = useMemo(() => {
     const start = (currentPage - 1) * LEADS_PER_PAGE;
     return filteredLeads.slice(start, start + LEADS_PER_PAGE);
@@ -523,16 +458,14 @@ export default function LeadsUpdatePage() {
 
   const totalPages = Math.ceil(filteredLeads.length / LEADS_PER_PAGE);
 
-  /* ---------------- UI ---------------- */
-  if (isLoading || !isAuthenticated || isDataLoading) {
-    return null; // or a loading skeleton
+  if (isLoading || !isAuthenticated) {
+    return null;
   }
 
   return (
     <AppContent>
       <div className="flex flex-col gap-6" ref={pageTopRef}>
 
-        {/* PAGE CARD */}
         <Card>
           <CardHeader className="bg-primary/10">
             <CardTitle className="text-center text-primary">
@@ -542,13 +475,10 @@ export default function LeadsUpdatePage() {
 
           <CardContent className="p-6 space-y-6">
 
-            {/* LEAD STATUS */}
             <LeadUpdateForm
               leadId={selectedLeadId}
-              allLeads={allLeads}
             />
 
-            {/* ================= FILTER TOGGLE (CLICK ANYWHERE) ================= */}
             <div
               role="button"
               tabIndex={0}
@@ -576,12 +506,9 @@ export default function LeadsUpdatePage() {
               </span>
             </div>
 
-            {/* ================= FILTER PANEL ================= */}
             {showFilters && (
               <Card>
                 <CardContent className="p-4 space-y-4">
-
-                  {/* ROW 1 */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="flex items-center gap-2">
                         <Label htmlFor="search" className="font-medium shrink-0">Search</Label>
@@ -608,7 +535,6 @@ export default function LeadsUpdatePage() {
                     </div>
                   </div>
 
-                  {/* ROW 2 */}
                   <div className="flex items-center gap-4">
                     <Label className="font-medium shrink-0">Search for:</Label>
                     <RadioGroup 
@@ -634,7 +560,6 @@ export default function LeadsUpdatePage() {
                     </RadioGroup>
                   </div>
 
-                  {/* ROW 3 */}
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="space-y-1">
                       <Label>From Date</Label>
@@ -819,7 +744,6 @@ export default function LeadsUpdatePage() {
                     </div>
                   </div>
 
-                  {/* ROW 4 */}
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                      <div className="space-y-1">
                       <Label htmlFor="givenBy">Given by</Label>
@@ -958,7 +882,6 @@ export default function LeadsUpdatePage() {
                     </div>
                   </div>
 
-                  {/* ROW 5 & CONDITIONAL FOLLOW-UP */}
                   <div className="space-y-4 pt-2">
                     <div className="flex items-center gap-2">
                       <Checkbox
@@ -969,7 +892,6 @@ export default function LeadsUpdatePage() {
                       <Label htmlFor="considerStatus">Do not consider Order Closed/Fake/Existing Users/Not Interested</Label>
                     </div>
 
-                    {/* NESTED FOLLOW-UP SECTION */}
                     {considerStatus && (
                       <div className="space-y-4 pl-6 border-l-2 border-muted ml-2 pt-2">
                         
@@ -1033,8 +955,6 @@ export default function LeadsUpdatePage() {
                     )}
                   </div>
 
-
-                  {/* ACTION BUTTONS */}
                   <div className="flex justify-end gap-3 pt-4 border-t">
                     <Button onClick={handleShowButtonClick}>SHOW</Button>
                     <Button variant="secondary">TO EXCEL</Button>
@@ -1045,7 +965,6 @@ export default function LeadsUpdatePage() {
               </Card>
             )}
 
-            {/* ================= TABLE ================= */}
             <Card>
               <CardContent className="p-4 space-y-4">
                 <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as TabValue)}>
@@ -1135,7 +1054,6 @@ export default function LeadsUpdatePage() {
                   </Table>
                   <ScrollBar orientation="horizontal" />
                 </ScrollArea>
-                 {/* PAGINATION */}
                 {totalPages > 1 && (
                   <div className="flex justify-end gap-2 p-4">
                     <Button

@@ -9,21 +9,17 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import { format } from 'date-fns';
 import AppContent from '@/components/layout/app-content';
-import { useAuth } from '@/context/auth-context';
+import { useApp } from '@/context/app-context';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
-import { firestore as db } from '@/lib/firebase';
-import { collection, onSnapshot, query, where } from 'firebase/firestore';
-
 
 const LeadStatusChart = dynamic(
   () => import('@/components/reports/lead-status-chart'),
   { ssr: false, loading: () => <div className="h-[400px] w-full flex items-center justify-center"><p>Loading Chart...</p></div> }
 );
 
-/* ---------------- MODULES ---------------- */
 const hrCoreModules = [
   'Manpower Resource Planning',
   'Recruitment and Requisition Management',
@@ -95,7 +91,6 @@ const getDisplayModule = (selectedModuleString: string): string => {
     [...generalSet].forEach(m => selected.delete(m));
   }
 
-  // Push remaining individual modules
   display.push(...Array.from(selected));
   
   return display.length > 0 ? display.join(', ') : 'N/A';
@@ -169,8 +164,7 @@ const getLeadStatusesForFilters = (
 
 
 export default function LeadReportPage() {
-  const [allLeads, setAllLeads] = useState<LeadFormData[]>([]);
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading, leads: allLeads } = useApp();
   const router = useRouter();
 
   useEffect(() => {
@@ -178,24 +172,14 @@ export default function LeadReportPage() {
       router.replace('/login');
     }
   }, [isAuthenticated, isLoading, router]);
-  
-  useEffect(() => {
-    if (!isAuthenticated || !user) return;
-    
-    const leadsCollection = collection(db, 'leads');
-    let q = query(leadsCollection);
 
+  const visibleLeads = useMemo(() => {
+    if (!user || !allLeads) return [];
     if (user.role === 'Executive') {
-      q = query(leadsCollection, where('executive', '==', user.username));
+      return allLeads.filter(lead => lead.executive === user.username);
     }
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const leadsData = snapshot.docs.map(doc => ({ ...doc.data(), leadId: doc.id }) as LeadFormData);
-      setAllLeads(leadsData);
-    });
-
-    return () => unsubscribe();
-  }, [user, isAuthenticated]);
+    return allLeads;
+  }, [allLeads, user]);
 
   const [selectedState, setSelectedState] = useState('All');
   const [selectedStatus, setSelectedStatus] = useState('');
@@ -206,13 +190,13 @@ export default function LeadReportPage() {
   const [otherSectorInput, setOtherSectorInput] = useState('');
 
   const leadStatuses = useMemo(() => {
-    if (!allLeads) return [];
-    return getLeadStatusesForFilters(allLeads, selectedState, selectedSector, selectedHeadcount);
-  }, [allLeads, selectedState, selectedSector, selectedHeadcount]);
+    if (!visibleLeads) return [];
+    return getLeadStatusesForFilters(visibleLeads, selectedState, selectedSector, selectedHeadcount);
+  }, [visibleLeads, selectedState, selectedSector, selectedHeadcount]);
   
   const filteredLeads = useMemo(() => {
-    if (!allLeads) return [];
-    let leads = [...allLeads];
+    if (!visibleLeads) return [];
+    let leads = [...visibleLeads];
     
     if (selectedState && selectedState !== 'All') {
         leads = leads.filter(lead => lead.state === selectedState);
@@ -234,14 +218,13 @@ export default function LeadReportPage() {
         if (max) {
           return headcount >= min && headcount <= max;
         }
-        // For '1000+' case
         return headcount >= min;
       });
     }
     
     return leads;
 
-  }, [selectedState, selectedStatus, selectedSector, selectedHeadcount, allLeads]);
+  }, [selectedState, selectedStatus, selectedSector, selectedHeadcount, visibleLeads]);
 
 
   const chartData = useMemo(() => {

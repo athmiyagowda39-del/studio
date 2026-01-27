@@ -4,12 +4,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppContent from '@/components/layout/app-content';
 import LeadUploadForm from '@/components/leads/lead-upload-form';
-import { useAuth } from '@/context/auth-context';
+import { useApp } from '@/context/app-context';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
 export default function LeadsUploadPage() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading } = useApp();
   const router = useRouter();
 
   useEffect(() => {
@@ -19,7 +19,7 @@ export default function LeadsUploadPage() {
   }, [isAuthenticated, isLoading, router]);
 
   if (isLoading || !isAuthenticated) {
-    return null; // or a loading skeleton
+    return null;
   }
   
   return (

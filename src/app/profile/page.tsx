@@ -24,19 +24,11 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { Separator } from '@/components/ui/separator';
-import { useAuth } from '@/context/auth-context';
-import { useUsers } from '@/context/users-context';
-import {
-  EmailAuthProvider,
-  reauthenticateWithCredential,
-  updatePassword,
-} from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { useApp } from '@/context/app-context';
 
-export default function ProfileCard() {
+export default function ProfilePage() {
   const { toast } = useToast();
-  const { user, logout } = useAuth();
-  const { updateUser } = useUsers();
+  const { user, logout, updateUser, users } = useApp();
 
   const userName = user?.username ? user.username.toUpperCase() : 'USER';
   const userEmail = user?.email || 'N/A';
@@ -57,16 +49,10 @@ export default function ProfileCard() {
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    const firebaseUser = auth.currentUser;
-
-    if (!firebaseUser || !user?.email) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Not logged in or user email is missing.',
-      });
-      return;
+    
+    if (!user) {
+       toast({ variant: 'destructive', title: 'Error', description: 'Not logged in.' });
+       return;
     }
 
     if (newPassword !== confirmPassword) {
@@ -79,28 +65,23 @@ export default function ProfileCard() {
     }
 
     if (newPassword.length < 6) {
-      toast({
+       toast({
         variant: 'destructive',
         title: 'Error',
         description: 'Password must be at least 6 characters long.',
       });
       return;
     }
+    
+    const currentUserData = users.find(u => u.id === user.id);
+    if (!currentUserData || currentUserData.password !== currentPassword) {
+        toast({ variant: 'destructive', title: 'Password Change Failed', description: 'The current password you entered is incorrect.' });
+        return;
+    }
 
     try {
-      const credential = EmailAuthProvider.credential(
-        user.email,
-        currentPassword
-      );
-      await reauthenticateWithCredential(firebaseUser, credential);
-      await updatePassword(firebaseUser, newPassword);
-
-      // Also update the password in our Firestore 'users' record if you store it there
-      // (though it is not recommended to store plain passwords).
-      // If you are using passwords in your context for initial login, you must update it.
-      // This implementation assumes the password in firestore is for the initial non-firebase login.
       updateUser(user.id, { password: newPassword });
-
+      
       toast({
         title: 'Password Changed',
         description: 'Your password has been successfully updated.',
@@ -110,17 +91,9 @@ export default function ProfileCard() {
       setNewPassword('');
       setConfirmPassword('');
       setIsPasswordDialogOpen(false);
+
     } catch (error: any) {
-      console.error(error);
-      let description = 'An unexpected error occurred.';
-      if (error.code === 'auth/invalid-credential') {
-        description = 'The current password you entered is incorrect.';
-      }
-      toast({
-        variant: 'destructive',
-        title: 'Password Change Failed',
-        description,
-      });
+        toast({ variant: 'destructive', title: 'Password Change Failed', description: 'An unexpected error occurred.' });
     }
   };
 

@@ -18,7 +18,7 @@ import {
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import { useAuth } from '@/context/auth-context';
+import { useApp } from '@/context/app-context';
 
 export default function Header() {
   const pathname = usePathname();
@@ -27,10 +27,9 @@ export default function Header() {
   const [isClient, setIsClient] = useState(false);
   const [lastLoginDate, setLastLoginDate] = useState('N/A');
   const [currentDate, setCurrentDate] = useState(new Date());
-  const { user, logout } = useAuth();
+  const { user, logout } = useApp();
   const router = useRouter();
   const loginTimeProcessed = useRef(false);
-
 
   useEffect(() => {
     setIsClient(true);
@@ -49,7 +48,7 @@ export default function Header() {
 
     const timer = setInterval(() => {
         setCurrentDate(new Date());
-    }, 60000); // Update every minute
+    }, 60000);
 
     return () => {
         clearInterval(timer);
@@ -65,7 +64,6 @@ export default function Header() {
     });
     router.push('/login');
   };
-
 
   if (!isClient) {
     return (

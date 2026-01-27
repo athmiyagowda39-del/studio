@@ -11,17 +11,13 @@ import {
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import { useState, useMemo, useEffect } from 'react';
 import { startOfDay, endOfDay, getDay, format as formatDate, eachDayOfInterval, getMonth, getYear, startOfMonth, endOfMonth, eachMonthOfInterval } from 'date-fns';
-import { useAuth } from '@/context/auth-context';
+import { useApp } from '@/context/app-context';
 import { useRouter } from 'next/navigation';
 import AppContent from '@/components/layout/app-content';
 import LeadPerformanceFilters from '@/components/dashboard/lead-performance-filters';
 import dynamic from 'next/dynamic';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useUsers } from '@/context/users-context';
 import { Label } from '@/components/ui/label';
-import { firestore as db } from '@/lib/firebase';
-import { collection, onSnapshot, query, where } from 'firebase/firestore';
-
 
 const LeadPerformanceChart = dynamic(
   () => import('@/components/dashboard/lead-performance-chart'),
@@ -29,11 +25,8 @@ const LeadPerformanceChart = dynamic(
 );
 
 export default function DashboardPage() {
-    const { isAuthenticated, isLoading, user } = useAuth();
-    const { users } = useUsers();
+    const { isAuthenticated, isLoading, user, leads: allLeads, users } = useApp();
     const router = useRouter();
-    const [allLeads, setAllLeads] = useState<LeadFormData[]>([]);
-    const [isDataLoading, setIsDataLoading] = useState(true);
 
     const [selectedPeriod, setSelectedPeriod] = useState<string[]>([]);
     const [selectedState, setSelectedState] = useState<string>('all');
@@ -54,43 +47,16 @@ export default function DashboardPage() {
         }
     }, [users, user]);
 
-
-    useEffect(() => {
-      if (!isAuthenticated || !user) return;
-
-      setIsDataLoading(true);
-      const leadsCollection = collection(db, 'leads');
-      let leadsQuery = query(leadsCollection);
-
-      // If the user is an executive, only fetch their leads.
-      if (user.role === 'Executive') {
-          leadsQuery = query(leadsCollection, where('executive', '==', user.username));
-      }
-      
-      const unsubscribe = onSnapshot(leadsQuery, (snapshot) => {
-          const leadsData = snapshot.docs.map(doc => ({ ...doc.data(), leadId: doc.id }) as LeadFormData);
-          setAllLeads(leadsData);
-          setIsDataLoading(false);
-      }, (error) => {
-          console.error("Error fetching leads:", error);
-          setIsDataLoading(false);
-      });
-
-      return () => unsubscribe();
-  }, [isAuthenticated, user]);
-
     const filteredLeads = useMemo(() => {
         if (!allLeads || !user) return [];
 
-        // For Admins/Sub Admins, their view is global.
         if (user.role === 'Admin' || user.role === 'Sub Admin') {
             if (selectedExecutive !== 'all') {
                 return allLeads.filter(lead => lead.executive === selectedExecutive);
             }
-            return allLeads; // Show all leads for admin by default
+            return allLeads;
         }
 
-        // For Executives, they only see leads assigned to them.
         if (user.role === 'Executive') {
             return allLeads.filter(lead => lead.executive === user.username);
         }
@@ -148,7 +114,6 @@ export default function DashboardPage() {
       if (selectedPeriod.length > 0) {
         monthIndexesToShow = selectedPeriod.map(m => parseInt(m, 10) - 1);
       } else {
-        // Default to current month if no selection
         monthIndexesToShow = [getMonth(new Date())];
       }
 
@@ -171,14 +136,14 @@ export default function DashboardPage() {
         });
 
         relevantLeads.forEach(lead => {
-            const dayOfMonth = new Date(lead.creationDate).getDate() - 1; // 0-indexed
+            const dayOfMonth = new Date(lead.creationDate).getDate() - 1;
             if (dailyData[dayOfMonth]) {
                 dailyData[dayOfMonth].leads++;
             }
         });
         
         return dailyData;
-      } else { // Multiple months selected
+      } else { 
         const dateRanges = monthIndexesToShow.map(monthIndex => {
             const monthDate = new Date(year, monthIndex);
             return {
@@ -216,8 +181,8 @@ export default function DashboardPage() {
     const isAllYearView = selectedPeriod.includes('all');
     const isSingleMonthView = !isAllYearView && (selectedPeriod.length === 1 || selectedPeriod.length === 0);
 
-    if (isLoading || isDataLoading || !isAuthenticated) {
-        return null; // or a loading skeleton
+    if (isLoading || !isAuthenticated) {
+        return null;
     }
 
     return (

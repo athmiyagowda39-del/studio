@@ -5,12 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useMemo, useState, useEffect } from 'react';
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import AppContent from '@/components/layout/app-content';
-import { useAuth } from '@/context/auth-context';
+import { useApp } from '@/context/app-context';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
-import { firestore as db } from '@/lib/firebase';
-import { collection, onSnapshot, query, where } from 'firebase/firestore';
-
 
 const ConversionFunnelChart = dynamic(
   () => import('@/components/reports/conversion-funnel-chart'),
@@ -26,30 +23,19 @@ const funnelStages = [
 ];
 
 const getFunnelData = (leads: LeadFormData[]) => {
-  // Define the order of progression through the funnel. Each status is assigned a level.
   const stageOrder: { [key: string]: number } = {
-    // PRE-FUNNEL
     'Not viewed': 0,
     'Unattended': 0,
-    
-    // FUNNEL STAGE 1: Attended
     'Attended': 1,
     'Not interested': 1,
     'Do Not Contact': 1,
-    
-    // FUNNEL STAGE 2: Demo Given (includes quote/proposal as equivalent effort)
     'Demo Given': 2,
     'Quote Sent': 2,
     'Proposal Sent': 2,
-
-    // FUNNEL STAGE 3: Pursuing to Purchase
     'Pursuing to Purchase': 3,
-    
-    // FUNNEL STAGE 4: Order closed
     'Order closed': 4,
   };
 
-  // Calculate the counts for each funnel stage cumulatively.
   const statusCounts = {
     'Total Leads': leads.length,
     'Attended': leads.filter(l => (stageOrder[l.status || ''] || 0) >= 1).length,
@@ -66,8 +52,7 @@ const getFunnelData = (leads: LeadFormData[]) => {
 
 
 export default function ConversionFunnelReportPage() {
-  const [allLeads, setAllLeads] = useState<LeadFormData[]>([]);
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading, leads: allLeads } = useApp();
   const router = useRouter();
 
   useEffect(() => {
@@ -76,29 +61,18 @@ export default function ConversionFunnelReportPage() {
     }
   }, [isAuthenticated, isLoading, router]);
 
-  useEffect(() => {
-    if (!isAuthenticated || !user) return;
-    
-    const leadsCollection = collection(db, 'leads');
-    let q = query(leadsCollection);
-
+  const visibleLeads = useMemo(() => {
+    if (!user || !allLeads) return [];
     if (user.role === 'Executive') {
-      q = query(leadsCollection, where('executive', '==', user.username));
+      return allLeads.filter(lead => lead.executive === user.username);
     }
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const leadsData = snapshot.docs.map(doc => ({ ...doc.data(), leadId: doc.id }) as LeadFormData);
-      setAllLeads(leadsData);
-    });
-
-    return () => unsubscribe();
-  }, [user, isAuthenticated]);
-
+    return allLeads;
+  }, [allLeads, user]);
 
   const funnelData = useMemo(() => {
-    if (!allLeads) return [];
-    return getFunnelData(allLeads);
-  }, [allLeads]);
+    if (!visibleLeads) return [];
+    return getFunnelData(visibleLeads);
+  }, [visibleLeads]);
 
   if (isLoading || !isAuthenticated) {
     return null;

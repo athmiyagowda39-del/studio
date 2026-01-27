@@ -10,17 +10,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import { format } from 'date-fns';
 import AppContent from '@/components/layout/app-content';
-import { useAuth } from '@/context/auth-context';
+import { useApp } from '@/context/app-context';
 import { useRouter } from 'next/navigation';
-import { firestore as db } from '@/lib/firebase';
-import { collection, onSnapshot, query, where } from 'firebase/firestore';
 
-
-/* ---------------- MODULES ---------------- */
 const hrCoreModules = [
   'Manpower Resource Planning',
   'Recruitment and Requisition Management',
@@ -92,15 +88,13 @@ const getDisplayModule = (selectedModuleString: string): string => {
     [...generalSet].forEach(m => selected.delete(m));
   }
 
-  // Push remaining individual modules
   display.push(...Array.from(selected));
   
   return display.length > 0 ? display.join(', ') : 'N/A';
 };
 
 export default function LeadUpdateStatusReportPage() {
-  const [allLeads, setAllLeads] = useState<LeadFormData[]>([]);
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading, leads: allLeads } = useApp();
   const router = useRouter();
 
   useEffect(() => {
@@ -109,23 +103,13 @@ export default function LeadUpdateStatusReportPage() {
     }
   }, [isAuthenticated, isLoading, router]);
 
-  useEffect(() => {
-    if (!isAuthenticated || !user) return;
-    
-    const leadsCollection = collection(db, 'leads');
-    let q = query(leadsCollection);
-
+  const visibleLeads = useMemo(() => {
+    if (!user || !allLeads) return [];
     if (user.role === 'Executive') {
-      q = query(leadsCollection, where('executive', '==', user.username));
+      return allLeads.filter(lead => lead.executive === user.username);
     }
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const leadsData = snapshot.docs.map(doc => ({ ...doc.data(), leadId: doc.id }) as LeadFormData);
-      setAllLeads(leadsData);
-    });
-
-    return () => unsubscribe();
-  }, [user, isAuthenticated]);
+    return allLeads;
+  }, [allLeads, user]);
 
   if (isLoading || !isAuthenticated) {
     return null;
@@ -171,8 +155,8 @@ export default function LeadUpdateStatusReportPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {allLeads.length > 0 ? (
-                        allLeads.map((lead, index) => {
+                      {visibleLeads.length > 0 ? (
+                        visibleLeads.map((lead, index) => {
                           const date = new Date(lead.creationDate);
                           const isValidDate = !isNaN(date.getTime());
                           const lastFollowUp =

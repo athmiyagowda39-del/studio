@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { useAuth } from '@/context/auth-context';
+import { useApp } from '@/context/app-context';
 
 const links = [
   { href: '/dashboard', label: 'DASHBOARD', icon: LayoutDashboard },
@@ -30,7 +30,7 @@ const adminLinks = [{ href: '/users', label: 'MANAGE USERS', icon: Users }];
 export default function SidebarNav() {
   const pathname = usePathname();
   const [isClient, setIsClient] = useState(false);
-  const { user } = useAuth();
+  const { user } = useApp();
 
   useEffect(() => {
     setIsClient(true);
@@ -40,7 +40,7 @@ export default function SidebarNav() {
     pathname.startsWith(href) && (href !== '/' || pathname === '/');
 
   let allLinks = links;
-  if (user?.role === 'Admin' || user?.role === 'Sub Admin') {
+  if (user?.role === 'Admin' || user?.role === 'Sub Admin' || user?.role === 'Super Admin') {
     allLinks = [...links, ...adminLinks];
   }
 
@@ -48,7 +48,6 @@ export default function SidebarNav() {
     <SidebarMenu>
       {isClient &&
         allLinks.map((link) => {
-          // Special handling for dashboard/home
           if (link.href === '/dashboard' && pathname === '/') {
             return (
               <SidebarMenuItem key={link.href}>

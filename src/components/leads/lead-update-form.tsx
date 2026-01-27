@@ -24,13 +24,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import type { LeadFormData } from './lead-upload-form';
 import { ScrollArea } from '../ui/scroll-area';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '../ui/table';
-import { useUsers } from '@/context/users-context';
-import { useAuth } from '@/context/auth-context';
+import { useApp } from '@/context/app-context';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
-import { firestore as db } from '@/lib/firebase';
-import { doc, updateDoc } from 'firebase/firestore';
-
 
 type FollowUp = {
   id: number;
@@ -40,7 +36,6 @@ type FollowUp = {
   enteredBy: string;
 };
 
-/* ---------------- NEW PRODUCT OPTIONS ---------------- */
 const hrCoreModules = [
   'Manpower Resource Planning',
   'Recruitment and Requisition Management',
@@ -95,7 +90,7 @@ const leadStatusOptions = [
     'Demo Given',
 ];
 
-export default function LeadUpdateForm({ leadId, allLeads }: { leadId: string | null, allLeads: LeadFormData[] }) {
+export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
   const [leadDetails, setLeadDetails] = useState<Partial<LeadFormData>>({});
   
   const [remarks, setRemarks] = useState('');
@@ -109,8 +104,7 @@ export default function LeadUpdateForm({ leadId, allLeads }: { leadId: string | 
   const [isReadyToUpdate, setIsReadyToUpdate] = useState(false);
   
   const { toast } = useToast();
-  const { users } = useUsers();
-  const { user, isReadOnly } = useAuth();
+  const { users, user, isReadOnly, leads: allLeads, updateLead } = useApp();
   const [executives, setExecutives] = useState<string[]>([]);
 
    useEffect(() => {
@@ -128,7 +122,6 @@ export default function LeadUpdateForm({ leadId, allLeads }: { leadId: string | 
     }
   }, [leadId, allLeads]);
 
-
   const findLeadAndSetDetails = (id: string) => {
      if (!id || !allLeads) {
         setLeadDetails({});
@@ -136,14 +129,12 @@ export default function LeadUpdateForm({ leadId, allLeads }: { leadId: string | 
     }
     const foundLead = allLeads.find(lead => lead.leadId === id);
     if (foundLead) {
-        const leadData = {...foundLead};
-        setLeadDetails(leadData);
-        setFollowUps(leadData.followUps || []);
-        setCurrentStatus(leadData.status || 'Initial');
+        setLeadDetails(foundLead);
+        setFollowUps(foundLead.followUps || []);
+        setCurrentStatus(foundLead.status || 'Initial');
         setRemarks('');
         setNextFollowUpDate(undefined);
         setIsReadyToUpdate(false);
-        
     } else {
         handleResetLeadDetails();
     }
@@ -162,29 +153,17 @@ export default function LeadUpdateForm({ leadId, allLeads }: { leadId: string | 
     const isOrderClosedRemark = ['closed', 'order closed'].includes(remarks.trim().toLowerCase());
     
     if (!remarks) {
-      toast({
-        variant: 'destructive',
-        title: 'Missing Information',
-        description: 'Please fill in the Remarks field.',
-      });
+      toast({ variant: 'destructive', title: 'Missing Information', description: 'Please fill in the Remarks field.' });
       return;
     }
     
     if (!isOrderClosedRemark && !nextFollowUpDate) {
-       toast({
-        variant: 'destructive',
-        title: 'Missing Information',
-        description: 'Please provide a Next Follow-up Date.',
-      });
+       toast({ variant: 'destructive', title: 'Missing Information', description: 'Please provide a Next Follow-up Date.'});
       return;
     }
 
     if (!leadDetails.leadId) {
-      toast({
-        variant: 'destructive',
-        title: 'No Lead Loaded',
-        description: 'Please load a lead before adding follow-ups.',
-      });
+      toast({ variant: 'destructive', title: 'No Lead Loaded', description: 'Please load a lead before adding follow-ups.' });
       return;
     }
 
@@ -198,74 +177,44 @@ export default function LeadUpdateForm({ leadId, allLeads }: { leadId: string | 
     
     const updatedFollowups = [...(followUps || []), newFollowUp];
     
-    const updatedLeadPayload = {
+    const updatedLeadPayload: Partial<LeadFormData> = {
       followUps: updatedFollowups,
-      nextFollowUpDate: isOrderClosedRemark ? null : nextFollowUpDate?.toISOString(),
+      nextFollowUpDate: isOrderClosedRemark ? undefined : nextFollowUpDate?.toISOString(),
       status: isOrderClosedRemark ? 'Order closed' : leadDetails.status,
     };
 
-    try {
-      const leadDocRef = doc(db, 'leads', leadDetails.leadId);
-      await updateDoc(leadDocRef, updatedLeadPayload);
+    updateLead(leadDetails.leadId, updatedLeadPayload);
 
-      setRemarks('');
-      if(isOrderClosedRemark) {
-        setCurrentStatus('Order closed');
-      }
-      setNextFollowUpDate(undefined);
-      
-      toast({
-          title: "Follow-up added",
-          description: "Your follow-up has been recorded.",
-      });
-    } catch (error) {
-      console.error("Error adding follow up:", error);
-      toast({ variant: 'destructive', title: "Error", description: "Could not add follow-up." });
+    setRemarks('');
+    if(isOrderClosedRemark) {
+      setCurrentStatus('Order closed');
     }
+    setNextFollowUpDate(undefined);
+    
+    toast({ title: "Follow-up added", description: "Your follow-up has been recorded." });
   };
 
   const handleTransferLead = async () => {
     if (!leadDetails.leadId) {
-      toast({
-        variant: 'destructive',
-        title: 'No Lead Selected',
-        description: 'Please select a lead to transfer.',
-      });
+      toast({ variant: 'destructive', title: 'No Lead Selected', description: 'Please select a lead to transfer.' });
       return;
     }
     if (!transferredTo) {
-      toast({
-        variant: 'destructive',
-        title: 'No Executive Selected',
-        description: 'Please select an executive to transfer the lead to.',
-      });
+      toast({ variant: 'destructive', title: 'No Executive Selected', description: 'Please select an executive to transfer the lead to.' });
       return;
     }
 
-    try {
-      const leadDocRef = doc(db, 'leads', leadDetails.leadId);
-      await updateDoc(leadDocRef, { executive: transferredTo });
-      
-      toast({
-        title: 'Lead Transferred',
-        description: `Lead ${leadDetails.leadId} has been transferred to ${transferredTo}.`,
-      });
-      setTransferredTo('');
-    } catch (error) {
-      console.error("Error transferring lead:", error);
-      toast({ variant: 'destructive', title: "Error", description: "Could not transfer lead." });
-    }
+    updateLead(leadDetails.leadId, { executive: transferredTo });
+    
+    toast({ title: 'Lead Transferred', description: `Lead ${leadDetails.leadId} has been transferred to ${transferredTo}.` });
+    setTransferredTo('');
   };
 
   const handleStatusSelection = (newStatus: string) => {
     setSelectedStatus(newStatus);
     
-    // Instantly update the view date in the UI if it's the first time and a lead is loaded
     if (leadDetails.leadId && !leadDetails.executiveViewDate) {
-      setLeadDetails(prev => ({
-        ...prev,
-        executiveViewDate: new Date().getTime(),
-      }));
+      setLeadDetails(prev => ({ ...prev, executiveViewDate: new Date().getTime() }));
     }
   };
 
@@ -290,19 +239,13 @@ export default function LeadUpdateForm({ leadId, allLeads }: { leadId: string | 
         status: selectedStatus,
         executiveViewDate: updatedViewDate,
     };
-    
-    try {
-      const leadDocRef = doc(db, 'leads', leadDetails.leadId);
-      await updateDoc(leadDocRef, payload);
 
-      toast({ title: 'Status Updated', description: `Lead ${leadDetails.leadId} status updated to ${selectedStatus}.` });
-      
-      setCurrentStatus(selectedStatus);
-      setSelectedStatus('');
-    } catch (error) {
-      console.error("Error updating status:", error);
-      toast({ variant: 'destructive', title: "Error", description: "Could not update status." });
-    }
+    updateLead(leadDetails.leadId, payload);
+
+    toast({ title: 'Status Updated', description: `Lead ${leadDetails.leadId} status updated to ${selectedStatus}.` });
+    
+    setCurrentStatus(selectedStatus);
+    setSelectedStatus('');
   };
   
   const handleResetLeadDetails = () => {
@@ -327,20 +270,13 @@ export default function LeadUpdateForm({ leadId, allLeads }: { leadId: string | 
       return;
     }
 
-    try {
-      const leadDocRef = doc(db, 'leads', leadDetails.leadId);
-      // Create a payload with only the fields that can be edited in this form
-      const { contactPerson, contactNumber, email, selectedModule, initialRemarks } = leadDetails;
-      const payload = { contactPerson, contactNumber, email, selectedModule, initialRemarks };
+    const { contactPerson, contactNumber, email, selectedModule, initialRemarks } = leadDetails;
+    const payload = { contactPerson, contactNumber, email, selectedModule, initialRemarks };
 
-      await updateDoc(leadDocRef, payload);
+    updateLead(leadDetails.leadId, payload);
 
-      toast({ title: 'Lead Updated', description: `Lead ${leadDetails.leadId} has been successfully updated.` });
-      setIsReadyToUpdate(false);
-    } catch (error) {
-       console.error("Error saving lead details:", error);
-       toast({ variant: 'destructive', title: "Error", description: "Could not save lead details." });
-    }
+    toast({ title: 'Lead Updated', description: `Lead ${leadDetails.leadId} has been successfully updated.` });
+    setIsReadyToUpdate(false);
   };
   
   const isOrderClosedRemark = ['closed', 'order closed'].includes(remarks.trim().toLowerCase());
@@ -358,7 +294,6 @@ export default function LeadUpdateForm({ leadId, allLeads }: { leadId: string | 
             )
       )
     : null;
-
 
   return (
     <div className="space-y-6">

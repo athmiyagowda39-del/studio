@@ -22,8 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { useUsers, type AppUser } from '@/context/users-context';
-import { useAuth } from '@/context/auth-context';
+import { useApp, type AppUser } from '@/context/app-context';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { Eye, EyeOff, Pencil, Trash2 } from 'lucide-react';
@@ -45,12 +44,14 @@ export default function UsersPage() {
     isLoading,
     impersonate,
     isImpersonating,
-  } = useAuth();
+    users,
+    addUser,
+    updateUser,
+    deleteUser,
+  } = useApp();
   const router = useRouter();
-  const { users, addUser, updateUser, deleteUser } = useUsers();
   const { toast } = useToast();
 
-  // State for the Add/Edit form
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [newUsername, setNewUsername] = useState('');
   const [newEmail, setNewEmail] = useState('');
@@ -60,7 +61,6 @@ export default function UsersPage() {
   >('');
   const [showNewPassword, setShowNewPassword] = useState(false);
 
-  // State for delete confirmation
   const [userToDelete, setUserToDelete] = useState<AppUser | null>(null);
 
   useEffect(() => {
@@ -77,7 +77,7 @@ export default function UsersPage() {
     !isAuthenticated ||
     !['Admin', 'Sub Admin', 'Super Admin'].includes(originalUser?.role as string)
   ) {
-    return null; // or a loading skeleton
+    return null;
   }
 
   const resetForm = () => {
@@ -91,7 +91,6 @@ export default function UsersPage() {
 
   const handleSaveUser = async () => {
     if (editingUserId) {
-      // Update existing user
       if (!newUsername.trim() || !newEmail.trim() || !newRole) {
         toast({
           variant: 'destructive',
@@ -107,16 +106,8 @@ export default function UsersPage() {
         role: newRole,
       };
 
-      // Password update for other users is a sensitive operation and
-      // generally requires backend logic (e.g., Cloud Functions) for security.
-      // We are only updating Firestore data here. Password changes should be
-      // done by the user themselves via their profile page.
       if (newPassword.trim()) {
-        toast({
-          variant: 'destructive',
-          title: 'Password Not Changed',
-          description: 'Admin cannot change another user\'s password directly.',
-        });
+        updates.password = newPassword;
       }
 
       await updateUser(editingUserId, updates);
@@ -125,7 +116,6 @@ export default function UsersPage() {
         description: `User "${newUsername}"'s details have been updated.`,
       });
     } else {
-      // Add new user
       if (
         !newUsername.trim() ||
         !newPassword.trim() ||
@@ -162,13 +152,13 @@ export default function UsersPage() {
         });
         toast({
           title: 'User Added',
-          description: `User "${newUsername}" has been created and added to the list.`,
+          description: `User "${newUsername}" has been created.`,
         });
       } catch (error: any) {
         toast({
           variant: 'destructive',
           title: 'Error creating user',
-          description: error.code === 'auth/email-already-in-use' ? 'This email is already in use.' : 'Could not create user.',
+          description: error.message || 'Could not create user.',
         });
       }
     }
@@ -179,7 +169,7 @@ export default function UsersPage() {
     setEditingUserId(user.id);
     setNewUsername(user.username);
     setNewEmail(user.email);
-    setNewPassword(''); // Don't pre-fill password
+    setNewPassword('');
     setNewRole(user.role);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -200,7 +190,7 @@ export default function UsersPage() {
     await deleteUser(userToDelete.id);
     toast({
       title: 'User Deleted',
-      description: `User "${userToDelete.username}" has been removed. Note: The auth record may persist.`,
+      description: `User "${userToDelete.username}" has been removed.`,
     });
     setUserToDelete(null);
   };
@@ -233,12 +223,7 @@ export default function UsersPage() {
       });
       return;
     }
-    impersonate({
-      id: userToImpersonate.id,
-      username: userToImpersonate.username,
-      email: userToImpersonate.email,
-      role: userToImpersonate.role,
-    });
+    impersonate(userToImpersonate);
   };
 
   return (
@@ -251,7 +236,6 @@ export default function UsersPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6 space-y-8">
-            {/* Add/Edit User Form */}
             <div className="space-y-4">
               <h2 className="text-lg font-semibold">
                 {editingUserId
@@ -278,7 +262,6 @@ export default function UsersPage() {
                     onChange={(e) => setNewEmail(e.target.value)}
                     placeholder="Enter email"
                     autoComplete="off"
-                    disabled={!!editingUserId}
                   />
                 </div>
                 <div className="space-y-2 relative">
@@ -290,11 +273,10 @@ export default function UsersPage() {
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder={
                       editingUserId
-                        ? 'Cannot change password'
+                        ? 'Leave blank to keep same'
                         : 'Enter password'
                     }
                     autoComplete="new-password"
-                    disabled={!!editingUserId}
                   />
                   <Button
                     type="button"
@@ -346,8 +328,7 @@ export default function UsersPage() {
               </div>
             </div>
 
-            {/* Users Table */}
-             {!isImpersonating && (
+            {!isImpersonating && (
               <div className="space-y-4">
                 <h2 className="text-lg font-semibold">Existing Users</h2>
                 <p className="text-sm text-muted-foreground">
@@ -368,7 +349,7 @@ export default function UsersPage() {
                       </TableHeader>
                       <TableBody>
                         {users.map((user) => {
-                          const canImpersonate = originalUser?.role === 'Super Admin' || (originalUser?.role === 'Admin' && user.role !== 'Admin' && user.role !== 'Super Admin') || (originalUser?.role === 'Sub Admin' && user.role === 'Executive');
+                          const canImpersonate = (originalUser?.role === 'Super Admin' && user.role !== 'Super Admin') || (originalUser?.role === 'Admin' && user.role !== 'Admin' && user.role !== 'Super Admin') || (originalUser?.role === 'Sub Admin' && user.role === 'Executive');
                           
                           return (
                             <TableRow key={user.id}>
@@ -421,7 +402,6 @@ export default function UsersPage() {
         </Card>
       </div>
 
-      {/* Delete User Dialog */}
       <AlertDialog
         open={!!userToDelete}
         onOpenChange={(open) => !open && setUserToDelete(null)}
@@ -430,8 +410,8 @@ export default function UsersPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete the user record for{' '}
-              <span className="font-semibold">{userToDelete?.username}</span> from Firestore. It will not delete the Firebase Authentication user, which must be done from the Firebase console.
+              This will permanently delete the user account for{' '}
+              <span className="font-semibold">{userToDelete?.username}</span>.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
