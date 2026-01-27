@@ -36,7 +36,6 @@ type AppContextType = {
 };
 
 const defaultUsers: AppUser[] = [
-  { id: 'super-1', username: 'Super Admin', email: 'superadmin@example.com', role: 'Super Admin', password: 'super' },
   { id: 'user-1', username: 'Athmiya.ag', email: 'athmiya.ag@peopleworks.in', role: 'Admin', password: 'Welcome123#' },
   { id: 'user-3', username: 'Varghese Vincent', email: 'Varghese@peopleworks.in', role: 'Admin', password: 'Varghese@123', phoneNumber: 'N/A' },
   { id: 'user-4', username: 'sam.devasia', email: 'sam.devasia@peopleworks.in', role: 'Admin', password: 'SamDev@456', phoneNumber: 'N/A' },
