@@ -688,11 +688,51 @@ export default function LeadUploadForm() {
   };
 
   const getModuleButtonText = () => {
-    const selectionCount = selectedModulesArray.length;
-    if (selectionCount === 0) return 'Select Module(s)...';
-    if (selectionCount === allModules.length) return 'All Modules Selected';
-    if (selectionCount === 1) return selectedModulesArray[0];
-    return `${selectionCount} modules selected`;
+    if (!formData.selectedModule) {
+      return 'Select Module(s)...';
+    }
+
+    const selected = new Set(formData.selectedModule.split(', ').filter(Boolean));
+    if (selected.size === 0) {
+      return 'Select Module(s)...';
+    }
+    if (selected.size === allModules.length) {
+      return 'All Modules Selected';
+    }
+    
+    const display = [];
+    const remainingSelected = new Set(selected);
+
+    const hrSet = new Set(allHrModules);
+    const hasAllHr = hrSet.size > 0 && [...hrSet].every(m => selected.has(m));
+    if (hasAllHr) {
+      display.push('HR Module');
+      [...hrSet].forEach(m => remainingSelected.delete(m));
+    }
+
+    const financeSet = new Set(allFinanceModules);
+    const hasAllFinance = financeSet.size > 0 && [...financeSet].every(m => selected.has(m));
+    if (hasAllFinance) {
+      display.push('Finance Module');
+      [...financeSet].forEach(m => remainingSelected.delete(m));
+    }
+
+    const generalSet = new Set(allGeneralModules);
+    const hasAllGeneral = generalSet.size > 0 && [...generalSet].every(m => selected.has(m));
+    if (hasAllGeneral) {
+      display.push('General Module');
+      [...generalSet].forEach(m => remainingSelected.delete(m));
+    }
+    
+    display.push(...Array.from(remainingSelected));
+    
+    const buttonText = display.join(', ');
+
+    if(buttonText.endsWith(" Module") && !buttonText.includes(',')) {
+        return `${buttonText} Selected`;
+    }
+    
+    return buttonText;
   };
 
   const ModuleSelectItem = ({ moduleName }: { moduleName: string }) => (
