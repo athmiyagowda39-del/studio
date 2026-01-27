@@ -121,6 +121,8 @@ const references = [
     "Existing Customer", "Upselling", "Cross-selling", "Events / Trade Shows", "Demo Request", "Trial Signup", "Other"
 ];
 
+const normalizeString = (str: string) => (str || '').toLowerCase().replace(/[\s.]+/g, '');
+
 const getDisplayModule = (selectedModuleString: string): string => {
   if (!selectedModuleString) return 'N/A';
 
@@ -304,7 +306,7 @@ export default function LeadsUpdatePage() {
               }
 
               if (followUpEnteredBy !== 'all') {
-                if (!lead.followUps || !lead.followUps.some(fu => fu.enteredBy === followUpEnteredBy)) {
+                if (!lead.followUps || !lead.followUps.some(fu => normalizeString(fu.enteredBy) === normalizeString(followUpEnteredBy))) {
                   return false;
                 }
               }
@@ -316,7 +318,7 @@ export default function LeadsUpdatePage() {
               if (!lead.followUps || lead.followUps.length === 0) return false;
               
               return lead.followUps.some(followUp => {
-                const personMatch = followUpEnteredBy === 'all' || followUp.enteredBy === followUpEnteredBy;
+                const personMatch = followUpEnteredBy === 'all' || normalizeString(followUp.enteredBy) === normalizeString(followUpEnteredBy);
                 if (!personMatch) return false;
                 
                 try {
@@ -665,7 +667,7 @@ export default function LeadsUpdatePage() {
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                          <div className="p-2 font-bold text-center border-b">Modules</div>
+                           <div className="p-2 font-bold text-center border-b">Modules</div>
                           <ScrollArea className="h-72">
                             <div className="space-y-1 p-1">
                               <div className="flex items-center space-x-3 rounded-md p-2 pr-4 font-semibold">
@@ -683,23 +685,7 @@ export default function LeadsUpdatePage() {
                                     </CollapsibleTrigger>
                                 </div>
                                 <CollapsibleContent className="space-y-1 pt-1 pl-6">
-                                  {hrCoreModules.map((product) => (<ModuleSelectItem key={product} moduleName={product} />))}
-                                  <Collapsible>
-                                    <div className="flex items-center space-x-3 rounded-md p-2 pr-4 font-semibold">
-                                        <Checkbox id="attendance-category-filter" checked={getCategoryCheckedState(allAttendanceModules)} onCheckedChange={(checked) => handleCategoryToggle(allAttendanceModules, !!checked)} className="ml-1" />
-                                        <CollapsibleTrigger asChild>
-                                            <label htmlFor="attendance-category-filter" className="flex w-full items-center justify-between cursor-pointer">
-                                              <span>Attendance Management</span>
-                                              <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
-                                            </label>
-                                        </CollapsibleTrigger>
-                                    </div>
-                                    <CollapsibleContent className="space-y-1 pt-1 pl-6">
-                                      <ModuleSelectItem moduleName="Attendance Management" />
-                                      {attendanceSubModules.map((product) => (<ModuleSelectItem key={product} moduleName={product} />))}
-                                    </CollapsibleContent>
-                                  </Collapsible>
-                                  {hrExtendedModules.map((product) => (<ModuleSelectItem key={product} moduleName={product} />))}
+                                  {allHrModules.map((product) => (<ModuleSelectItem key={product} moduleName={product} />))}
                                 </CollapsibleContent>
                               </Collapsible>
                               <Collapsible>
