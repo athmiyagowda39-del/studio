@@ -464,17 +464,18 @@ export default function LeadUploadForm() {
           .slice(1)
           .map((row) => {
             const leadObject: Partial<LeadFormData> = {};
-            if (Array.isArray(row) && row.length > 0) {
+            if (Array.isArray(row)) {
               headers.forEach((header, index) => {
                 const formKey = keyMap[header];
                 if (formKey) {
-                  (leadObject as any)[formKey] = row[index];
+                  const value = row[index];
+                   (leadObject as any)[formKey] = value !== null && value !== undefined ? String(value) : '';
                 }
               });
             }
             return leadObject;
           })
-          .filter((lead) => Object.keys(lead).length > 0);
+          .filter((lead) => Object.values(lead).some(val => val !== ''));
 
         if (leadsData.length === 0) {
           toast({
@@ -485,14 +486,41 @@ export default function LeadUploadForm() {
           });
           return;
         }
+        
+        if (leadsData.length > 0) {
+          const firstLead = leadsData[0];
+          setFormData({
+            ...initialFormState,
+            pincode: firstLead.pincode || '',
+            state: firstLead.state || '',
+            district: firstLead.district || '',
+            address: firstLead.address || '',
+            contactPerson: firstLead.contactPerson || '',
+            contactNumber: firstLead.contactNumber || '',
+            reference: firstLead.reference || '',
+            email: firstLead.email || '',
+            company: firstLead.company || '',
+            headcount: firstLead.headcount || '',
+            sector: firstLead.sector || '',
+            selectedModule: firstLead.selectedModule || '',
+            manager: firstLead.manager || '',
+            toExecutive: !!firstLead.executive,
+          });
 
+          if (firstLead.executive) {
+            setToExecutiveSelection(firstLead.executive);
+          } else {
+             setToExecutiveSelection('');
+          }
+        }
+        
         setParsedLeads(leadsData);
         setShowPreview(false);
 
         toast({
           title: `File Processed: ${leadsData.length} leads found.`,
           description:
-            "Review the data below and click 'Confirm Upload' to save.",
+            "The first lead's data has populated the form. Review the data below and click 'Confirm Upload' to save.",
         });
       } catch (error) {
         console.error(error);
@@ -948,3 +976,5 @@ export default function LeadUploadForm() {
     </div>
   );
 }
+
+    
