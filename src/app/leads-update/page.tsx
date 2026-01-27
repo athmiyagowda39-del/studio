@@ -304,11 +304,7 @@ export default function LeadsUpdatePage() {
               }
 
               if (followUpEnteredBy !== 'all') {
-                const lastFollowUp = lead.followUps && lead.followUps.length > 0
-                  ? lead.followUps[lead.followUps.length - 1]
-                  : null;
-
-                if (!lastFollowUp || lastFollowUp.enteredBy !== followUpEnteredBy) {
+                if (!lead.followUps || !lead.followUps.some(fu => fu.enteredBy === followUpEnteredBy)) {
                   return false;
                 }
               }
