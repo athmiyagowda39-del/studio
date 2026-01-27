@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
@@ -60,7 +59,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {
       // Load users, ensuring defaults are always present
-      const storedUsersJSON = localStorage.getItem('users');
+      const storedUsersJSON = localStorage.getItem('appUsers');
       let usersFromStorage: AppUser[] = [];
       if (storedUsersJSON) {
         try {
@@ -78,7 +77,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       
       const mergedUsers = Array.from(usersMap.values());
       setUsers(mergedUsers);
-      localStorage.setItem('users', JSON.stringify(mergedUsers));
+      localStorage.setItem('appUsers', JSON.stringify(mergedUsers));
 
       // Load leads
       const storedLeads = localStorage.getItem('allLeads');
@@ -105,7 +104,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const persistUsers = (newUsers: AppUser[]) => {
     setUsers(newUsers);
-    localStorage.setItem('users', JSON.stringify(newUsers));
+    localStorage.setItem('appUsers', JSON.stringify(newUsers));
   };
 
   const persistLeads = (newLeads: LeadFormData[]) => {
