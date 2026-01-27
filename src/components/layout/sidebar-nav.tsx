@@ -39,47 +39,50 @@ const links: SidebarLink[] = [
 
 export default function SidebarNav() {
   const pathname = usePathname();
-  const [isClient, setIsClient] = useState(false);
   const { originalUser } = useApp();
+
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
-  // ✅ Active route check
+  // ✅ Prevent rendering before client + user load
+  if (!isClient) return null;
+
+  // ✅ Active link check
   const isActive = (href: string) =>
     pathname === href || pathname.startsWith(href + '/');
 
-  // ✅ Normalize role to avoid case mismatch
-  const role = originalUser?.role?.toLowerCase();
+  // ✅ Normalize role safely
+  const role = (originalUser?.role || '').toLowerCase();
 
   const isAdmin =
     role === 'admin' ||
     role === 'sub admin' ||
     role === 'super admin';
 
-  // ✅ Filter links based on admin access
+  // ✅ Filter links based on role
   const visibleLinks = links.filter(
     (link) => !link.adminOnly || isAdmin
   );
 
   return (
     <SidebarMenu>
-      {isClient &&
-        visibleLinks.map((link) => (
-          <SidebarMenuItem key={link.href}>
-            <SidebarMenuButton
-              asChild
-              isActive={isActive(link.href)}
-              tooltip={link.label}
-            >
-              <a href={link.href} className="flex items-center gap-2">
-                <link.icon className="h-4 w-4" />
-                <span>{link.label}</span>
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        ))}
+      {visibleLinks.map((link) => (
+        <SidebarMenuItem key={link.href}>
+          <SidebarMenuButton
+            asChild
+            isActive={isActive(link.href)}
+            tooltip={link.label}
+          >
+            <a href={link.href} className="flex items-center gap-2">
+              <link.icon className="h-4 w-4" />
+              <span>{link.label}</span>
+            </a>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      ))}
     </SidebarMenu>
   );
 }
