@@ -37,12 +37,14 @@ type AppContextType = {
 
 const defaultUsers: AppUser[] = [
   { id: '1', username: 'Super Admin', email: 'superadmin@example.com', password: 'password', role: 'Super Admin' },
-  { id: '2', username: 'Yathish G', email: 'yathish.g@peopleworks.in', password: 'password', role: 'Admin' },
-  { id: '3', username: 'Priyanka', email: 'priyanka.s@peopleworks.in', password: 'password', role: 'Sub Admin' },
-  { id: '4', username: 'Sathisha H', email: 'sathisha.h@peopleworks.in', password: 'password', role: 'Executive' },
-  { id: '5', username: 'Keerthi Taduru', email: 'keerth.taduru@peopleworks.in', password: 'keerthi789', role: 'Executive' },
-  { id: '6', username: 'Akshay', email: 'Akshay.azariah@peopleworks.in', password: 'akshay123', role: 'Executive' },
-  { id: '7', username: 'Athmiya AG', email: 'Athmiya.ag@peopleworks.in', password: 'Welcome123#', role: 'Executive' },
+  { id: 'user-1', username: 'Athmiya.ag', email: 'athmiya.ag@peopleworks.in', role: 'Admin', password: 'Welcome123#' },
+  { id: 'user-3', username: 'Varghese Vincent', email: 'Varghese@peopleworks.in', role: 'Admin', password: 'Varghese@123', phoneNumber: 'N/A' },
+  { id: 'user-4', username: 'sam.devasia', email: 'sam.devasia@peopleworks.in', role: 'Admin', password: 'SamDev@456', phoneNumber: 'N/A' },
+  { id: 'user-6', username: 'Mandanna N', email: 'mandanna.n@peopleworks.in', role: 'Executive', password: 'Mandanna@101', phoneNumber: '9845622777' },
+  { id: 'user-2', username: 'Luke Rajkumar', email: 'Luke.rajkumar@peopleworks.in', role: 'Admin', password: 'Luke@123', phoneNumber: '9500038277' },
+  { id: 'user-5', username: 'Yathish G', email: 'yathish.g@peopleworks.in', role: 'Sub Admin', password: 'Yathish@789', phoneNumber: '8553309892' },
+  { id: 'user-7', username: 'Hukum Chand Kewat', email: 'hukum@peopleworks.in', role: 'Executive', password: 'Hukum@112', phoneNumber: '9036010968' },
+  { id: 'user-8', username: 'Hemant Sharma', email: 'hemant.sharma@peopleworks.in', role: 'Executive', password: 'Password123' },
 ];
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
