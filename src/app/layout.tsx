@@ -4,7 +4,6 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/context/auth-context';
 import { UsersProvider } from '@/context/users-context';
-import LeadMigrator from '@/components/layout/lead-migrator';
 
 export const metadata: Metadata = {
   title: 'Sales Lead Tracking Dashboard',
@@ -33,7 +32,6 @@ export default function RootLayout({
       <body className="font-body antialiased">
         <UsersProvider>
           <AuthProvider>
-            <LeadMigrator />
             {children}
           </AuthProvider>
         </UsersProvider>
