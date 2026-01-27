@@ -220,6 +220,11 @@ export default function LeadsUpdatePage() {
   useEffect(() => {
     let tempLeads = [...visibleLeads];
 
+    if (considerStatus) {
+      const excludedStatuses = ['Order closed', 'Fake', 'Existing Users', 'Not interested'];
+      tempLeads = tempLeads.filter(lead => !excludedStatuses.includes(lead.status || ''));
+    }
+
     switch (activeTab) {
       case 'not-viewed':
         tempLeads = tempLeads.filter(lead => !lead.executiveViewDate);
@@ -244,10 +249,8 @@ export default function LeadsUpdatePage() {
         tempLeads = tempLeads.filter(lead => !lead.followUps || lead.followUps.length === 0);
         break;
       case 'search-result':
-        let intermediateLeads = [...visibleLeads];
-
         if (searchTerm.trim() !== '') {
-          intermediateLeads = intermediateLeads.filter(lead => {
+          tempLeads = tempLeads.filter(lead => {
             const leadValue = (lead[searchCategory as keyof LeadFormData] as string)?.toString().toLowerCase() || '';
             return leadValue.startsWith(searchTerm.toLowerCase());
           });
@@ -255,17 +258,17 @@ export default function LeadsUpdatePage() {
         
         if (fromDate) {
           const fromTimestamp = new Date(`${fromDate}T00:00:00`).getTime();
-          intermediateLeads = intermediateLeads.filter(lead => lead.creationDate >= fromTimestamp);
+          tempLeads = tempLeads.filter(lead => lead.creationDate >= fromTimestamp);
         }
         if (toDate) {
           const toTimestamp = new Date(`${toDate}T23:59:59`).getTime();
-          intermediateLeads = intermediateLeads.filter(lead => lead.creationDate <= toTimestamp);
+          tempLeads = tempLeads.filter(lead => lead.creationDate <= toTimestamp);
         }
         
         if (selectedModules) {
             const modulesToFilter = selectedModules.split(', ').filter(Boolean);
             if (modulesToFilter.length > 0) {
-                intermediateLeads = intermediateLeads.filter(lead => {
+                tempLeads = tempLeads.filter(lead => {
                     if (!lead.selectedModule) return false;
                     const leadModules = lead.selectedModule.split(', ').filter(Boolean);
                     return modulesToFilter.some(m => leadModules.includes(m));
@@ -273,24 +276,24 @@ export default function LeadsUpdatePage() {
             }
         }
         if (selectedExecutive !== 'all' && selectedExecutive !== 'Other') {
-          intermediateLeads = intermediateLeads.filter(lead => lead.executive === selectedExecutive);
+          tempLeads = tempLeads.filter(lead => lead.executive === selectedExecutive);
         }
         if (givenBy !== 'all' && givenBy !== 'Other') {
-          intermediateLeads = intermediateLeads.filter(lead => lead.givenBy === givenBy);
+          tempLeads = tempLeads.filter(lead => lead.givenBy === givenBy);
         }
         if (selectedStatus !== 'all') {
-          intermediateLeads = intermediateLeads.filter(lead => lead.status === selectedStatus);
+          tempLeads = tempLeads.filter(lead => lead.status === selectedStatus);
         }
         if (selectedSubStatus !== 'all' && selectedSubStatus !== 'Other') {
-          intermediateLeads = intermediateLeads.filter(lead => lead.leadSubStatus === selectedSubStatus);
+          tempLeads = tempLeads.filter(lead => lead.leadSubStatus === selectedSubStatus);
         }
         if (selectedLeadSource !== 'all' && selectedLeadSource !== 'Other') {
-          intermediateLeads = intermediateLeads.filter(lead => lead.reference === selectedLeadSource);
+          tempLeads = tempLeads.filter(lead => lead.reference === selectedLeadSource);
         }
 
         if (considerStatus) {
           if (followUpStatus === 'pending') {
-            intermediateLeads = intermediateLeads.filter(lead => {
+            tempLeads = tempLeads.filter(lead => {
               if (!lead.nextFollowUpDate) return false;
 
               try {
@@ -314,7 +317,7 @@ export default function LeadsUpdatePage() {
               return true;
             });
           } else if (followUpStatus === 'made') {
-            intermediateLeads = intermediateLeads.filter(lead => {
+            tempLeads = tempLeads.filter(lead => {
               if (!lead.followUps || lead.followUps.length === 0) return false;
               
               return lead.followUps.some(followUp => {
@@ -337,18 +340,11 @@ export default function LeadsUpdatePage() {
             });
           }
         }
-        
-        tempLeads = intermediateLeads;
         break;
       case 'all':
       default:
         tempLeads.sort((a,b) => a.creationDate - b.creationDate);
         break;
-    }
-
-    if (considerStatus) {
-        const excludedStatuses = ['Order closed', 'Fake', 'Existing Users', 'Not interested'];
-        tempLeads = tempLeads.filter(lead => !excludedStatuses.includes(lead.status || ''));
     }
 
     setFilteredLeads(tempLeads);
@@ -494,44 +490,40 @@ export default function LeadsUpdatePage() {
   };
 
   const getModuleButtonText = () => {
-    const selectionCount = selectedModulesArray.length;
-    if (selectionCount === 0) return 'All Modules';
-    if (selectionCount === allModules.length) return 'All Modules Selected';
+    if (!selectedModules) {
+        return 'All Modules';
+    }
 
-    const selected = new Set(selectedModulesArray);
+    const selected = new Set(selectedModules.split(', ').filter(Boolean));
+    if (selected.size === 0) {
+        return 'All Modules';
+    }
+    if (selected.size === allModules.length) {
+        return 'All Modules Selected';
+    }
+    
     const display = [];
-
-    const hrSet = new Set(allHrModules);
-    const financeSet = new Set(allFinanceModules);
-    const generalSet = new Set(allGeneralModules);
-
     const remainingSelected = new Set(selected);
 
+    const hrSet = new Set(allHrModules);
     const hasAllHr = hrSet.size > 0 && [...hrSet].every(m => selected.has(m));
     if (hasAllHr) {
       display.push('HR Module');
       [...hrSet].forEach(m => remainingSelected.delete(m));
     }
 
+    const financeSet = new Set(allFinanceModules);
     const hasAllFinance = financeSet.size > 0 && [...financeSet].every(m => selected.has(m));
     if (hasAllFinance) {
       display.push('Finance Module');
       [...financeSet].forEach(m => remainingSelected.delete(m));
     }
 
+    const generalSet = new Set(allGeneralModules);
     const hasAllGeneral = generalSet.size > 0 && [...generalSet].every(m => selected.has(m));
     if (hasAllGeneral) {
       display.push('General Module');
       [...generalSet].forEach(m => remainingSelected.delete(m));
-    }
-
-    if (!hasAllHr) {
-        const attendanceSet = new Set(allAttendanceModules);
-        const hasAllAttendance = attendanceSet.size > 0 && [...attendanceSet].every(m => remainingSelected.has(m));
-        if(hasAllAttendance){
-            display.push('Attendance Management');
-            [...attendanceSet].forEach(m => remainingSelected.delete(m));
-        }
     }
     
     display.push(...Array.from(remainingSelected));
