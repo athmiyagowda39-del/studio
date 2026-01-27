@@ -56,9 +56,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     try {
-      const storedUsers = localStorage.getItem('users');
-      if (storedUsers) {
-        setUsers(JSON.parse(storedUsers));
+      const storedUsersJSON = localStorage.getItem('users');
+      let usersFromStorage: AppUser[] = [];
+      if (storedUsersJSON) {
+        usersFromStorage = JSON.parse(storedUsersJSON);
+      }
+
+      if (usersFromStorage.length > 0) {
+        setUsers(usersFromStorage);
       } else {
         setUsers(defaultUsers);
         localStorage.setItem('users', JSON.stringify(defaultUsers));
