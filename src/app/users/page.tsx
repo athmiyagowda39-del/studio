@@ -311,9 +311,7 @@ export default function UsersPage() {
                       <SelectItem value="Executive">Executive</SelectItem>
                       <SelectItem value="Sub Admin">Sub Admin</SelectItem>
                       <SelectItem value="Admin">Admin</SelectItem>
-                      {originalUser?.role === 'Super Admin' && (
-                        <SelectItem value="Super Admin">Super Admin</SelectItem>
-                      )}
+                      <SelectItem value="Super Admin">Super Admin</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
