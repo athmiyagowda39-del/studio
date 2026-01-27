@@ -42,6 +42,7 @@ const defaultUsers: AppUser[] = [
   { id: '4', username: 'Sathisha H', email: 'sathisha.h@peopleworks.in', password: 'password', role: 'Executive' },
   { id: '5', username: 'Keerthi Taduru', email: 'keerth.taduru@peopleworks.in', password: 'keerthi789', role: 'Executive' },
   { id: '6', username: 'Akshay', email: 'Akshay.azariah@peopleworks.in', password: 'akshay123', role: 'Executive' },
+  { id: '7', username: 'Athmiya AG', email: 'Athmiya.ag@peopleworks.in', password: 'Welcome123#', role: 'Executive' },
 ];
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
