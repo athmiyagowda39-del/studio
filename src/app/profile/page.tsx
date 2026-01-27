@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -8,7 +9,7 @@ import {
 } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Lock, LogOut, User as UserIcon, Mail } from 'lucide-react';
+import { Lock, LogOut, User as UserIcon, Mail, Eye, EyeOff } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -36,6 +37,9 @@ export default function ProfilePage() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -158,40 +162,70 @@ export default function ProfilePage() {
                       <Label htmlFor="current-password" className="text-right">
                         Current
                       </Label>
-                      <Input
-                        id="current-password"
-                        type="password"
-                        className="col-span-3"
-                        value={currentPassword}
-                        onChange={(e) => setCurrentPassword(e.target.value)}
-                        required
-                      />
+                      <div className="col-span-3 relative">
+                        <Input
+                          id="current-password"
+                          type={showCurrentPassword ? 'text' : 'password'}
+                          value={currentPassword}
+                          onChange={(e) => setCurrentPassword(e.target.value)}
+                          required
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
+                          onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                        >
+                          {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </Button>
+                      </div>
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                       <Label htmlFor="new-password" className="text-right">
                         New
                       </Label>
-                      <Input
-                        id="new-password"
-                        type="password"
-                        className="col-span-3"
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        required
-                      />
+                       <div className="col-span-3 relative">
+                        <Input
+                          id="new-password"
+                          type={showNewPassword ? 'text' : 'password'}
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          required
+                        />
+                         <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
+                          onClick={() => setShowNewPassword(!showNewPassword)}
+                        >
+                          {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </Button>
+                      </div>
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                       <Label htmlFor="confirm-password" className="text-right">
                         Confirm
                       </Label>
-                      <Input
-                        id="confirm-password"
-                        type="password"
-                        className="col-span-3"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        required
-                      />
+                       <div className="col-span-3 relative">
+                        <Input
+                          id="confirm-password"
+                          type={showConfirmPassword ? 'text' : 'password'}
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          required
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        >
+                          {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </Button>
+                      </div>
                     </div>
                   </div>
                   <DialogFooter>
