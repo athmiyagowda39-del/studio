@@ -3,7 +3,13 @@
 
 import { useState, useEffect } from 'react';
 import AppContent from '@/components/layout/app-content';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -66,7 +72,10 @@ export default function UsersPage() {
   useEffect(() => {
     if (
       !isLoading &&
-      (!isAuthenticated || !['Admin', 'Sub Admin', 'Super Admin'].includes(originalUser?.role as string))
+      (!isAuthenticated ||
+        !['Admin', 'Sub Admin', 'Super Admin'].includes(
+          originalUser?.role as string
+        ))
     ) {
       router.replace('/dashboard');
     }
@@ -228,178 +237,179 @@ export default function UsersPage() {
 
   return (
     <AppContent>
-      <div className="flex flex-col gap-6">
-        <Card>
-          <CardHeader className="bg-primary/10">
-            <CardTitle className="text-center text-primary">
-              Manage Users
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-6 space-y-8">
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold">
-                {editingUserId
-                  ? `Editing: ${newUsername}`
-                  : 'Add New User'}
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
-                <div className="space-y-2">
-                  <Label htmlFor="username">Username</Label>
-                  <Input
-                    id="username"
-                    value={newUsername}
-                    onChange={(e) => setNewUsername(e.target.value)}
-                    placeholder="Enter username"
-                    autoComplete="off"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={newEmail}
-                    onChange={(e) => setNewEmail(e.target.value)}
-                    placeholder="Enter email"
-                    autoComplete="off"
-                  />
-                </div>
-                <div className="space-y-2 relative">
-                  <Label htmlFor="password">Password</Label>
-                  <Input
-                    id="password"
-                    type={showNewPassword ? 'text' : 'password'}
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder={
-                      editingUserId
-                        ? 'Leave blank to keep same'
-                        : 'Enter password'
-                    }
-                    autoComplete="new-password"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-1 bottom-1 h-7 w-7 text-muted-foreground"
-                    onClick={() => setShowNewPassword((prev) => !prev)}
-                  >
-                    {showNewPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </Button>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="role">Role</Label>
-                  <Select
-                    value={newRole}
-                    onValueChange={(
-                      value: 'Super Admin' | 'Admin' | 'Sub Admin' | 'Executive'
-                    ) => setNewRole(value)}
-                  >
-                    <SelectTrigger id="role">
-                      <SelectValue placeholder="Select a role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Executive">Executive</SelectItem>
-                      <SelectItem value="Sub Admin">Sub Admin</SelectItem>
-                      <SelectItem value="Admin">Admin</SelectItem>
-                      {originalUser?.role === 'Super Admin' && (
-                         <SelectItem value="Super Admin">Super Admin</SelectItem>
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex gap-2">
-                  <Button onClick={handleSaveUser} className="w-full">
-                    {editingUserId
-                      ? 'Update User'
-                      : 'Add User'}
-                  </Button>
-                  {editingUserId && (
-                    <Button onClick={resetForm} variant="outline">
-                      Cancel
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </div>
+      <div className="flex flex-col gap-8">
+        <h1 className="text-3xl font-bold text-primary text-center">
+          Manage Users
+        </h1>
 
-            {!isImpersonating && (
-              <div className="space-y-4">
-                <h2 className="text-lg font-semibold">Existing Users</h2>
-                <p className="text-sm text-muted-foreground">
-                  Click on a username to impersonate and view their dashboard.
-                </p>
-                <Card>
-                  <CardContent className="p-0">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Username</TableHead>
-                          <TableHead>Email</TableHead>
-                          <TableHead>Role</TableHead>
-                          <TableHead className="text-right w-[120px]">
-                            Actions
-                          </TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {users.map((user) => {
-                          const canImpersonate = (originalUser?.role === 'Super Admin' && user.role !== 'Super Admin') || (originalUser?.role === 'Admin' && user.role !== 'Admin' && user.role !== 'Super Admin') || (originalUser?.role === 'Sub Admin' && user.role === 'Executive');
-                          
-                          return (
-                            <TableRow key={user.id}>
-                              <TableCell>
-                                {canImpersonate ? (
-                                  <Button
-                                    variant="link"
-                                    className="p-0 h-auto font-medium"
-                                    onClick={() => handleImpersonate(user)}
-                                  >
-                                    {user.username}
-                                  </Button>
-                                ) : (
-                                  <span className="font-medium px-1">
-                                    {user.username}
-                                  </span>
-                                )}
-                              </TableCell>
-                              <TableCell>{user.email}</TableCell>
-                              <TableCell>{user.role}</TableCell>
-                              <TableCell className="text-right">
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => handleEditClick(user)}
-                                >
-                                  <Pencil className="h-4 w-4" />
-                                  <span className="sr-only">Edit User</span>
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => setUserToDelete(user)}
-                                  disabled={originalUser?.id === user.id}
-                                >
-                                  <Trash2 className="h-4 w-4 text-destructive" />
-                                  <span className="sr-only">Delete User</span>
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-                          )
-                        })}
-                      </TableBody>
-                    </Table>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold">
+            {editingUserId
+              ? `Editing User: ${
+                  users.find((u) => u.id === editingUserId)?.username
+                }`
+              : 'Add New User'}
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+            <div className="space-y-2">
+              <Label htmlFor="username">Username</Label>
+              <Input
+                id="username"
+                value={newUsername}
+                onChange={(e) => setNewUsername(e.target.value)}
+                placeholder="Enter username"
+                autoComplete="off"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+                placeholder="Enter email"
+                autoComplete="off"
+              />
+            </div>
+            <div className="space-y-2 relative">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type={showNewPassword ? 'text' : 'password'}
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder={
+                  editingUserId ? 'Leave blank to keep same' : 'Enter password'
+                }
+                autoComplete="new-password"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="absolute right-1 bottom-1 h-7 w-7 text-muted-foreground"
+                onClick={() => setShowNewPassword((prev) => !prev)}
+              >
+                {showNewPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="role">Role</Label>
+              <Select
+                value={newRole}
+                onValueChange={(
+                  value: 'Super Admin' | 'Admin' | 'Sub Admin' | 'Executive'
+                ) => setNewRole(value)}
+              >
+                <SelectTrigger id="role">
+                  <SelectValue placeholder="Select a role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Executive">Executive</SelectItem>
+                  <SelectItem value="Sub Admin">Sub Admin</SelectItem>
+                  <SelectItem value="Admin">Admin</SelectItem>
+                  {originalUser?.role === 'Super Admin' && (
+                    <SelectItem value="Super Admin">Super Admin</SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={handleSaveUser} className="w-full">
+                {editingUserId ? 'Update User' : 'Add User'}
+              </Button>
+              {editingUserId && (
+                <Button onClick={resetForm} variant="outline">
+                  Cancel
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {!isImpersonating && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Existing Users</CardTitle>
+              <CardDescription>
+                Click on a username to view their dashboard. Click the pencil
+                icon to edit their details in the form above.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Username</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead className="text-right w-[120px]">
+                      Actions
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {users.map((user) => {
+                    const canImpersonate =
+                      (originalUser?.role === 'Super Admin' &&
+                        user.role !== 'Super Admin') ||
+                      (originalUser?.role === 'Admin' &&
+                        user.role !== 'Admin' &&
+                        user.role !== 'Super Admin') ||
+                      (originalUser?.role === 'Sub Admin' &&
+                        user.role === 'Executive');
+
+                    return (
+                      <TableRow key={user.id}>
+                        <TableCell>
+                          {canImpersonate ? (
+                            <Button
+                              variant="link"
+                              className="p-0 h-auto font-medium"
+                              onClick={() => handleImpersonate(user)}
+                            >
+                              {user.username}
+                            </Button>
+                          ) : (
+                            <span className="font-medium px-1">
+                              {user.username}
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell>{user.email}</TableCell>
+                        <TableCell>{user.role}</TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEditClick(user)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                            <span className="sr-only">Edit User</span>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setUserToDelete(user)}
+                            disabled={originalUser?.id === user.id}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                            <span className="sr-only">Delete User</span>
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       <AlertDialog
