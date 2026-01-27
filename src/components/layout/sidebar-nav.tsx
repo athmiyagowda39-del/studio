@@ -21,8 +21,8 @@ const links = [
   { href: '/leads-upload', label: 'LEADS UPLOAD', icon: Upload },
   { href: '/leads-update', label: 'LEADS UPDATE', icon: FilePenLine },
   { href: '/profile', label: 'PROFILE', icon: User },
-  { href: '/users', label: 'MANAGE USERS', icon: Users, adminOnly: true },
   { href: '/reports', label: 'REPORTS', icon: FileText },
+  { href: '/users', label: 'MANAGE USERS', icon: Users, adminOnly: true },
 ];
 
 export default function SidebarNav() {
