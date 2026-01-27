@@ -23,9 +23,8 @@ const links = [
   { href: '/leads-update', label: 'LEADS UPDATE', icon: FilePenLine },
   { href: '/reports', label: 'REPORTS', icon: FileText },
   { href: '/profile', label: 'PROFILE', icon: User },
+  { href: '/users', label: 'MANAGE USERS', icon: Users, adminOnly: true },
 ];
-
-const adminLinks = [{ href: '/users', label: 'MANAGE USERS', icon: Users }];
 
 export default function SidebarNav() {
   const pathname = usePathname();
@@ -39,10 +38,12 @@ export default function SidebarNav() {
   const isActive = (href: string) =>
     pathname.startsWith(href) && (href !== '/' || pathname === '/');
 
-  let allLinks = links;
-  if (originalUser?.role === 'Admin' || originalUser?.role === 'Sub Admin' || originalUser?.role === 'Super Admin') {
-    allLinks = [...links, ...adminLinks];
-  }
+  const isAdmin =
+    originalUser?.role === 'Admin' ||
+    originalUser?.role === 'Sub Admin' ||
+    originalUser?.role === 'Super Admin';
+
+  const allLinks = links.filter((link) => !(link as any).adminOnly || isAdmin);
 
   return (
     <SidebarMenu>
