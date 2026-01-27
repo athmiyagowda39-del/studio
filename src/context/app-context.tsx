@@ -57,24 +57,34 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     try {
+      // Load users, ensuring defaults are always present
       const storedUsersJSON = localStorage.getItem('users');
       let usersFromStorage: AppUser[] = [];
       if (storedUsersJSON) {
-        usersFromStorage = JSON.parse(storedUsersJSON);
+        try {
+            usersFromStorage = JSON.parse(storedUsersJSON);
+        } catch (e) {
+            console.error("Failed to parse users from storage, resetting to defaults.", e);
+        }
       }
 
-      if (usersFromStorage.length > 0) {
-        setUsers(usersFromStorage);
-      } else {
-        setUsers(defaultUsers);
-        localStorage.setItem('users', JSON.stringify(defaultUsers));
-      }
+      const usersMap = new Map<string, AppUser>();
+      // Load default users first
+      defaultUsers.forEach(u => usersMap.set(u.email.toLowerCase(), u));
+      // Overwrite with any stored users, preserving changes
+      usersFromStorage.forEach(u => usersMap.set(u.email.toLowerCase(), u));
+      
+      const mergedUsers = Array.from(usersMap.values());
+      setUsers(mergedUsers);
+      localStorage.setItem('users', JSON.stringify(mergedUsers));
 
+      // Load leads
       const storedLeads = localStorage.getItem('allLeads');
       if (storedLeads) {
         setLeads(JSON.parse(storedLeads));
       }
 
+      // Load session
       const sessionUser = sessionStorage.getItem('user');
       const sessionOriginalUser = sessionStorage.getItem('originalUser');
 
@@ -85,7 +95,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setOriginalUser(JSON.parse(sessionOriginalUser));
       }
     } catch (e) {
-      console.error("Failed to parse from storage", e);
+      console.error("Failed to initialize app state from storage", e);
     } finally {
       setIsLoading(false);
     }
