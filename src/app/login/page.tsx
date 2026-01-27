@@ -20,6 +20,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isReadOnly, setIsReadOnly] = useState(true);
   const { login } = useApp();
   const router = useRouter();
   const { toast } = useToast();
@@ -45,6 +46,10 @@ export default function LoginPage() {
     }
   };
 
+  const handleFocus = () => {
+    setIsReadOnly(false);
+  };
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
       <div className="mb-8 flex items-center gap-3 text-2xl font-bold text-primary">
@@ -62,6 +67,7 @@ export default function LoginPage() {
           <form
             onSubmit={handleLogin}
             className="grid gap-4"
+            autoComplete="off"
           >
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
@@ -72,8 +78,10 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                autoComplete="email"
+                autoComplete="username"
                 disabled={isSubmitting}
+                readOnly={isReadOnly}
+                onFocus={handleFocus}
               />
             </div>
             <div className="grid gap-2">
@@ -88,6 +96,8 @@ export default function LoginPage() {
                   required
                   autoComplete="current-password"
                   disabled={isSubmitting}
+                  readOnly={isReadOnly}
+                  onFocus={handleFocus}
                 />
                 <Button
                   type="button"
