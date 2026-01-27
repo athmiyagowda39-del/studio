@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -59,7 +60,7 @@ export default function UsersPage() {
   const [newEmail, setNewEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newRole, setNewRole] = useState<
-    'Admin' | 'Sub Admin' | 'Executive' | ''
+    'Super Admin' | 'Admin' | 'Sub Admin' | 'Executive' | ''
   >('');
   const [showNewPassword, setShowNewPassword] = useState(false);
 
@@ -301,7 +302,7 @@ export default function UsersPage() {
                   <Select
                     value={newRole}
                     onValueChange={(
-                      value: 'Admin' | 'Sub Admin' | 'Executive'
+                      value: 'Super Admin' | 'Admin' | 'Sub Admin' | 'Executive'
                     ) => setNewRole(value)}
                   >
                     <SelectTrigger id="role">
@@ -311,6 +312,7 @@ export default function UsersPage() {
                       <SelectItem value="Executive">Executive</SelectItem>
                       <SelectItem value="Sub Admin">Sub Admin</SelectItem>
                       <SelectItem value="Admin">Admin</SelectItem>
+                      <SelectItem value="Super Admin">Super Admin</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -346,7 +348,7 @@ export default function UsersPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {users.filter(u => u.role !== 'Super Admin').map((user) => {
+                    {users.map((user) => {
                       const canImpersonate =
                         (originalUser?.role === 'Super Admin' &&
                           user.role !== 'Super Admin') ||
