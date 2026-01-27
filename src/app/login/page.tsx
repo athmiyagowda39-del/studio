@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -72,6 +71,8 @@ export default function LoginPage() {
                 required
                 autoComplete="off"
                 disabled={isSubmitting}
+                readOnly
+                onFocus={(e) => e.target.removeAttribute('readonly')}
               />
             </div>
             <div className="grid gap-2">
@@ -86,6 +87,8 @@ export default function LoginPage() {
                   required
                   autoComplete="off"
                   disabled={isSubmitting}
+                  readOnly
+                  onFocus={(e) => e.target.removeAttribute('readonly')}
                 />
                 <Button
                   type="button"
