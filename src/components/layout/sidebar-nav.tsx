@@ -20,9 +20,9 @@ const links = [
   { href: '/dashboard', label: 'DASHBOARD', icon: LayoutDashboard },
   { href: '/leads-upload', label: 'LEADS UPLOAD', icon: Upload },
   { href: '/leads-update', label: 'LEADS UPDATE', icon: FilePenLine },
-  { href: '/profile', label: 'PROFILE', icon: User },
   { href: '/reports', label: 'REPORTS', icon: FileText },
   { href: '/users', label: 'MANAGE USERS', icon: Users, adminOnly: true },
+  { href: '/profile', label: 'PROFILE', icon: User },
 ];
 
 export default function SidebarNav() {
