@@ -499,8 +499,46 @@ export default function LeadsUpdatePage() {
     const selectionCount = selectedModulesArray.length;
     if (selectionCount === 0) return 'All Modules';
     if (selectionCount === allModules.length) return 'All Modules Selected';
-    if (selectionCount === 1) return selectedModulesArray[0];
-    return `${selectionCount} modules selected`;
+
+    const selected = new Set(selectedModulesArray);
+    const display = [];
+
+    const hrSet = new Set(allHrModules);
+    const financeSet = new Set(allFinanceModules);
+    const generalSet = new Set(allGeneralModules);
+
+    const remainingSelected = new Set(selected);
+
+    const hasAllHr = hrSet.size > 0 && [...hrSet].every(m => selected.has(m));
+    if (hasAllHr) {
+      display.push('HR Module');
+      [...hrSet].forEach(m => remainingSelected.delete(m));
+    }
+
+    const hasAllFinance = financeSet.size > 0 && [...financeSet].every(m => selected.has(m));
+    if (hasAllFinance) {
+      display.push('Finance Module');
+      [...financeSet].forEach(m => remainingSelected.delete(m));
+    }
+
+    const hasAllGeneral = generalSet.size > 0 && [...generalSet].every(m => selected.has(m));
+    if (hasAllGeneral) {
+      display.push('General Module');
+      [...generalSet].forEach(m => remainingSelected.delete(m));
+    }
+
+    if (!hasAllHr) {
+        const attendanceSet = new Set(allAttendanceModules);
+        const hasAllAttendance = attendanceSet.size > 0 && [...attendanceSet].every(m => remainingSelected.has(m));
+        if(hasAllAttendance){
+            display.push('Attendance Management');
+            [...attendanceSet].forEach(m => remainingSelected.delete(m));
+        }
+    }
+    
+    display.push(...Array.from(remainingSelected));
+    
+    return display.join(', ');
   };
 
   const ModuleSelectItem = ({ moduleName }: { moduleName: string }) => (
