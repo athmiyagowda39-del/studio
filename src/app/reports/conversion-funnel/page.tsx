@@ -8,6 +8,9 @@ import AppContent from '@/components/layout/app-content';
 import { useAuth } from '@/context/auth-context';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
+import { firestore as db } from '@/lib/firebase';
+import { collection, onSnapshot, query, where } from 'firebase/firestore';
+
 
 const ConversionFunnelChart = dynamic(
   () => import('@/components/reports/conversion-funnel-chart'),
@@ -21,15 +24,6 @@ const funnelStages = [
   'Pursuing to Purchase',
   'Order closed',
 ];
-
-const getLeadsFromLocalStorage = (): LeadFormData[] => {
-  if (typeof window !== 'undefined') {
-    const leadsJson = localStorage.getItem('allLeads');
-    return leadsJson ? JSON.parse(leadsJson) : [];
-  }
-  return [];
-};
-
 
 const getFunnelData = (leads: LeadFormData[]) => {
   // Define the order of progression through the funnel. Each status is assigned a level.
@@ -83,12 +77,22 @@ export default function ConversionFunnelReportPage() {
   }, [isAuthenticated, isLoading, router]);
 
   useEffect(() => {
-    let leads = getLeadsFromLocalStorage();
-    if(user?.role === 'Executive') {
-      leads = leads.filter(lead => lead.executive === user.username);
+    if (!isAuthenticated || !user) return;
+    
+    const leadsCollection = collection(db, 'leads');
+    let q = query(leadsCollection);
+
+    if (user.role === 'Executive') {
+      q = query(leadsCollection, where('executive', '==', user.username));
     }
-    setAllLeads(leads);
-  }, [user]);
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const leadsData = snapshot.docs.map(doc => ({ ...doc.data(), leadId: doc.id }) as LeadFormData);
+      setAllLeads(leadsData);
+    });
+
+    return () => unsubscribe();
+  }, [user, isAuthenticated]);
 
 
   const funnelData = useMemo(() => {

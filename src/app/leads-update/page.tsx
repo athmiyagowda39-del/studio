@@ -37,6 +37,8 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { ChevronsUpDown, ChevronDown } from 'lucide-react';
+import { firestore as db } from '@/lib/firebase';
+import { collection, onSnapshot, query, where } from 'firebase/firestore';
 
 
 /* ---------------- NEW PRODUCT OPTIONS ---------------- */
@@ -159,13 +161,6 @@ const getDisplayModule = (selectedModuleString: string): string => {
   return display.length > 0 ? display.join(', ') : 'N/A';
 };
 
-const getLeadsFromLocalStorage = (): LeadFormData[] => {
-  if (typeof window !== 'undefined') {
-    const data = localStorage.getItem('allLeads');
-    return data ? JSON.parse(data) : [];
-  }
-  return [];
-};
 
 /* ---------------- COMPONENT ---------------- */
 
@@ -175,6 +170,7 @@ export default function LeadsUpdatePage() {
   const pageTopRef = useRef<HTMLDivElement>(null);
 
   const [allLeads, setAllLeads] = useState<LeadFormData[]>([]);
+  const [isDataLoading, setIsDataLoading] = useState(true);
   const [filteredLeads, setFilteredLeads] = useState<LeadFormData[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
@@ -229,21 +225,27 @@ export default function LeadsUpdatePage() {
     setExecutives(executiveUsers);
   }, [users]);
   
-  // Load all leads from storage and set up listener for updates
+  // Load all leads from Firestore and listen for real-time updates
   useEffect(() => {
-    const handleLeadsUpdated = () => {
-      if (isAuthenticated) {
-        setAllLeads(getLeadsFromLocalStorage());
-      }
+    if (!isAuthenticated) {
+      setAllLeads([]);
+      setIsDataLoading(false);
+      return;
     };
-
-    handleLeadsUpdated(); // Initial load
-
-    window.addEventListener('leadsUpdated', handleLeadsUpdated);
     
-    return () => {
-      window.removeEventListener('leadsUpdated', handleLeadsUpdated);
-    };
+    setIsDataLoading(true);
+    const leadsCollection = collection(db, 'leads');
+    
+    const unsubscribe = onSnapshot(leadsCollection, (snapshot) => {
+      const leadsData = snapshot.docs.map(doc => ({ ...doc.data(), leadId: doc.id }) as LeadFormData);
+      setAllLeads(leadsData);
+      setIsDataLoading(false);
+    }, (error) => {
+      console.error("Error fetching leads:", error);
+      setIsDataLoading(false);
+    });
+
+    return () => unsubscribe();
   }, [isAuthenticated]);
 
 
@@ -522,7 +524,7 @@ export default function LeadsUpdatePage() {
   const totalPages = Math.ceil(filteredLeads.length / LEADS_PER_PAGE);
 
   /* ---------------- UI ---------------- */
-  if (isLoading || !isAuthenticated) {
+  if (isLoading || !isAuthenticated || isDataLoading) {
     return null; // or a loading skeleton
   }
 
@@ -544,7 +546,6 @@ export default function LeadsUpdatePage() {
             <LeadUpdateForm
               leadId={selectedLeadId}
               allLeads={allLeads}
-              setAllLeads={setAllLeads}
             />
 
             {/* ================= FILTER TOGGLE (CLICK ANYWHERE) ================= */}
@@ -1168,5 +1169,3 @@ export default function LeadsUpdatePage() {
       </div>
     </AppContent>
   );
-
-    

@@ -2,93 +2,118 @@
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { createUserWithEmailAndPassword, updatePassword } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
-import { useAuth } from './auth-context';
-
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { auth, firestore as db } from '@/lib/firebase';
+import { collection, doc, getDocs, onSnapshot, setDoc, updateDoc, deleteDoc, writeBatch, query, limit } from 'firebase/firestore';
 
 export type AppUser = {
   id: string;
   username: string;
   email: string;
   role: 'Super Admin' | 'Admin' | 'Sub Admin' | 'Executive';
-  password?: string;
+  password?: string; // Only used for creation/migration, not stored in Firestore
   phoneNumber?: string;
 };
 
 type UsersContextType = {
   users: AppUser[];
   addUser: (user: Omit<AppUser, 'id'>) => Promise<void>;
-  updateUser: (id: string, updates: Partial<Omit<AppUser, 'id'>>) => void;
-  deleteUser: (id: string) => void;
+  updateUser: (id: string, updates: Partial<Omit<AppUser, 'id'>>) => Promise<void>;
+  deleteUser: (id: string) => Promise<void>;
 };
 
 const UsersContext = createContext<UsersContextType | undefined>(undefined);
 
-const defaultUsers: AppUser[] = [
-    { id: 'user-1', username: 'Athmiya.ag', email: 'athmiya.ag@peopleworks.in', role: 'Admin', password: 'Welcome123#' },
-    { id: 'user-3', username: 'Varghese Vincent', email: 'Varghese@peopleworks.in', role: 'Admin', password: 'Varghese@123', phoneNumber: 'N/A' },
-    { id: 'user-4', username: 'sam.devasia', email: 'sam.devasia@peopleworks.in', role: 'Admin', password: 'SamDev@456', phoneNumber: 'N/A' },
-    { id: 'user-6', username: 'Mandanna N', email: 'mandanna.n@peopleworks.in', role: 'Executive', password: 'Mandanna@101', phoneNumber: '9845622777' },
-    { id: 'user-2', username: 'Luke Rajkumar', email: 'Luke.rajkumar@peopleworks.in', role: 'Admin', password: 'Luke@123', phoneNumber: '9500038277' },
-    { id: 'user-5', username: 'Yathish G', email: 'yathish.g@peopleworks.in', role: 'Sub Admin', password: 'Yathish@789', phoneNumber: '8553309892' },
-    { id: 'user-7', username: 'Hukum Chand Kewat', email: 'hukum@peopleworks.in', role: 'Executive', password: 'Hukum@112', phoneNumber: '9036010968' },
-    { id: 'user-8', username: 'Hemant Sharma', email: 'hemant.sharma@peopleworks.in', role: 'Executive', password: 'Password123' },
-    { id: 'user-9', username: 'Keerthi Taduru', email: 'keerth.taduru@peopleworks.in', role: 'Executive', password: 'keerthi789' },
-    { id: 'user-10', username: 'Akshay Azariah', email: 'Akshay.azariah@peopleworks.in', role: 'Executive', password: 'Password123' },
+// The default users to seed the database with if it's empty
+const defaultUsers: Omit<AppUser, 'id'>[] = [
+    { username: 'Athmiya.ag', email: 'athmiya.ag@peopleworks.in', role: 'Super Admin', password: 'Welcome123#' },
+    { username: 'Varghese Vincent', email: 'Varghese@peopleworks.in', role: 'Admin', password: 'Varghese@123', phoneNumber: 'N/A' },
+    { username: 'sam.devasia', email: 'sam.devasia@peopleworks.in', role: 'Admin', password: 'SamDev@456', phoneNumber: 'N/A' },
+    { username: 'Luke Rajkumar', email: 'Luke.rajkumar@peopleworks.in', role: 'Admin', password: 'Luke@123', phoneNumber: '9500038277' },
+    { username: 'Yathish G', email: 'yathish.g@peopleworks.in', role: 'Sub Admin', password: 'Yathish@789', phoneNumber: '8553309892' },
+    { username: 'Mandanna N', email: 'mandanna.n@peopleworks.in', role: 'Executive', password: 'Mandanna@101', phoneNumber: '9845622777' },
+    { username: 'Hukum Chand Kewat', email: 'hukum@peopleworks.in', role: 'Executive', password: 'Hukum@112', phoneNumber: '9036010968' },
+    { username: 'Hemant Sharma', email: 'hemant.sharma@peopleworks.in', role: 'Executive', password: 'Password123' },
+    { username: 'Keerthi Taduru', email: 'keerth.taduru@peopleworks.in', role: 'Executive', password: 'keerthi789' },
+    { username: 'Akshay Azariah', email: 'Akshay.azariah@peopleworks.in', role: 'Executive', password: 'Password123' },
 ];
-
 
 export function UsersProvider({ children }: { children: ReactNode }) {
   const [users, setUsers] = useState<AppUser[]>([]);
 
+  // One-time check to seed the database with default users if it's empty
   useEffect(() => {
-    const initializeUsers = async () => {
-      try {
-        // Always start with default users to ensure the list is correct on load.
-        // This will overwrite any stale data in localStorage.
-        const currentUsers = defaultUsers;
-        setUsers(currentUsers);
-        localStorage.setItem('appUsers', JSON.stringify(currentUsers));
+    const seedUsers = async () => {
+      const usersCollection = collection(db, 'users');
+      const q = query(usersCollection, limit(1));
+      const snapshot = await getDocs(q);
+
+      if (snapshot.empty) {
+        console.log("Firestore 'users' collection is empty. Seeding default users...");
+        const tempAuth = auth; // Use a temporary auth instance for seeding
         
-      } catch (error) {
-        console.error('Failed to initialize users:', error);
-        setUsers(defaultUsers);
-        localStorage.setItem('appUsers', JSON.stringify(defaultUsers));
+        for (const user of defaultUsers) {
+            if (!user.password) continue;
+            try {
+                // Create user in Firebase Auth
+                const userCredential = await createUserWithEmailAndPassword(tempAuth, user.email, user.password);
+                const uid = userCredential.user.uid;
+                
+                // Create user profile in Firestore
+                const userDocRef = doc(db, 'users', uid);
+                const { password, ...profileData } = user; // Exclude password from Firestore doc
+                await setDoc(userDocRef, profileData);
+                 console.log(`Successfully created user: ${user.email}`);
+            } catch (error: any) {
+                if (error.code === 'auth/email-already-in-use') {
+                    console.warn(`User ${user.email} already exists in Auth. Skipping.`);
+                } else {
+                    console.error(`Failed to create user ${user.email}:`, error);
+                }
+            }
+        }
+        console.log("Default user seeding process complete.");
       }
     };
-    initializeUsers();
+    seedUsers();
+  }, []);
+
+  // Listen for real-time updates to the users collection
+  useEffect(() => {
+    const usersCollection = collection(db, 'users');
+    const unsubscribe = onSnapshot(usersCollection, (snapshot) => {
+      const userList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as AppUser));
+      setUsers(userList);
+    });
+    return () => unsubscribe();
   }, []);
 
   const addUser = async (userData: Omit<AppUser, 'id'>) => {
-    const newUser: AppUser = {
-      ...userData,
-      id: `user-${Date.now()}`,
-    };
-    const updatedUsers = [...users, newUser];
-    setUsers(updatedUsers);
-    localStorage.setItem('appUsers', JSON.stringify(updatedUsers));
-    window.dispatchEvent(new StorageEvent('storage', { key: 'appUsers' }));
+      if (!userData.password) throw new Error("Password is required to create a user.");
+      
+      // 1. Create user in Firebase Authentication
+      const userCredential = await createUserWithEmailAndPassword(auth, userData.email, userData.password);
+      const uid = userCredential.user.uid;
+
+      // 2. Create user profile document in Firestore
+      const { password, ...profileData } = userData; // Don't store password in Firestore
+      const userDocRef = doc(db, 'users', uid);
+      await setDoc(userDocRef, profileData);
   };
 
-  const updateUser = (id: string, updates: Partial<Omit<AppUser, 'id'>>) => {
-    const updatedUsers = users.map(user => {
-      if (user.id === id) {
-        return { ...user, ...updates };
-      }
-      return user;
-    });
-
-    setUsers(updatedUsers);
-    localStorage.setItem('appUsers', JSON.stringify(updatedUsers));
-    window.dispatchEvent(new StorageEvent('storage', { key: 'appUsers' }));
+  const updateUser = async (id: string, updates: Partial<Omit<AppUser, 'id'>>) => {
+    const { password, ...firestoreUpdates } = updates;
+    const userDocRef = doc(db, 'users', id);
+    await updateDoc(userDocRef, firestoreUpdates);
+    // Note: Password updates must be handled separately using updatePassword in Firebase Auth
   };
 
-  const deleteUser = (id: string) => {
-    const updatedUsers = users.filter(user => user.id !== id);
-    setUsers(updatedUsers);
-    localStorage.setItem('appUsers', JSON.stringify(updatedUsers));
-    window.dispatchEvent(new StorageEvent('storage', { key: 'appUsers' }));
+  const deleteUser = async (id: string) => {
+    // This only deletes the Firestore record, not the Firebase Auth user.
+    // Deleting an auth user from the client is a restricted operation.
+    // This effectively disables the user in the app, but their auth record remains.
+    const userDocRef = doc(db, 'users', id);
+    await deleteDoc(userDocRef);
   };
 
 

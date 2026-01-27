@@ -14,6 +14,9 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
+import { firestore as db } from '@/lib/firebase';
+import { collection, onSnapshot, query, where } from 'firebase/firestore';
+
 
 const LeadStatusChart = dynamic(
   () => import('@/components/reports/lead-status-chart'),
@@ -117,15 +120,6 @@ const filterLeadStatusOptions = [...chartLeadStatusOptions, 'Other'];
 const sectors = ['All', 'IT', 'Finance', 'Healthcare', 'Manufacturing', 'Education', 'Retail', 'Hospitality', 'Telecommunication', 'Construction', 'Real Estate', 'Media & Entertainment', 'Government', 'Non-profit', 'Other'];
 const headcounts = ['All', '1-50', '51-200', '201-500', '501-1000', '1000+'];
 
-const getLeadsFromLocalStorage = (): LeadFormData[] => {
-  if (typeof window !== 'undefined') {
-    const leadsJson = localStorage.getItem('allLeads');
-    return leadsJson ? JSON.parse(leadsJson) : [];
-  }
-  return [];
-};
-
-
 const getLeadStatusesForFilters = (
   leads: LeadFormData[],
   state: string,
@@ -186,12 +180,22 @@ export default function LeadReportPage() {
   }, [isAuthenticated, isLoading, router]);
   
   useEffect(() => {
-    let leads = getLeadsFromLocalStorage();
-    if (user?.role === 'Executive') {
-      leads = leads.filter(lead => lead.executive === user.username);
+    if (!isAuthenticated || !user) return;
+    
+    const leadsCollection = collection(db, 'leads');
+    let q = query(leadsCollection);
+
+    if (user.role === 'Executive') {
+      q = query(leadsCollection, where('executive', '==', user.username));
     }
-    setAllLeads(leads);
-  }, [user]);
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const leadsData = snapshot.docs.map(doc => ({ ...doc.data(), leadId: doc.id }) as LeadFormData);
+      setAllLeads(leadsData);
+    });
+
+    return () => unsubscribe();
+  }, [user, isAuthenticated]);
 
   const [selectedState, setSelectedState] = useState('All');
   const [selectedStatus, setSelectedStatus] = useState('');
@@ -493,5 +497,3 @@ export default function LeadReportPage() {
     </AppContent>
   );
 }
-
-    

@@ -19,19 +19,14 @@ import dynamic from 'next/dynamic';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useUsers } from '@/context/users-context';
 import { Label } from '@/components/ui/label';
+import { firestore as db } from '@/lib/firebase';
+import { collection, onSnapshot, query, where } from 'firebase/firestore';
+
 
 const LeadPerformanceChart = dynamic(
   () => import('@/components/dashboard/lead-performance-chart'),
   { ssr: false, loading: () => <div className="h-[300px] w-full flex items-center justify-center"><p>Loading Chart...</p></div> }
 );
-
-const getLeadsFromLocalStorage = (): LeadFormData[] => {
-  if (typeof window !== 'undefined') {
-    const leadsJson = localStorage.getItem('allLeads');
-    return leadsJson ? JSON.parse(leadsJson) : [];
-  }
-  return [];
-};
 
 export default function DashboardPage() {
     const { isAuthenticated, isLoading, user } = useAuth();
@@ -61,22 +56,28 @@ export default function DashboardPage() {
 
 
     useEffect(() => {
-        if (isAuthenticated) {
-            const leads = getLeadsFromLocalStorage();
-            setAllLeads(leads);
-            setIsDataLoading(false);
+      if (!isAuthenticated || !user) return;
 
-            const handleStorageChange = () => {
-              const updatedLeads = getLeadsFromLocalStorage();
-              setAllLeads(updatedLeads);
-            };
+      setIsDataLoading(true);
+      const leadsCollection = collection(db, 'leads');
+      let leadsQuery = query(leadsCollection);
 
-            window.addEventListener('leadsUpdated', handleStorageChange);
-            return () => {
-              window.removeEventListener('leadsUpdated', handleStorageChange);
-            };
-        }
-    }, [isAuthenticated]);
+      // If the user is an executive, only fetch their leads.
+      if (user.role === 'Executive') {
+          leadsQuery = query(leadsCollection, where('executive', '==', user.username));
+      }
+      
+      const unsubscribe = onSnapshot(leadsQuery, (snapshot) => {
+          const leadsData = snapshot.docs.map(doc => ({ ...doc.data(), leadId: doc.id }) as LeadFormData);
+          setAllLeads(leadsData);
+          setIsDataLoading(false);
+      }, (error) => {
+          console.error("Error fetching leads:", error);
+          setIsDataLoading(false);
+      });
+
+      return () => unsubscribe();
+  }, [isAuthenticated, user]);
 
     const filteredLeads = useMemo(() => {
         if (!allLeads || !user) return [];

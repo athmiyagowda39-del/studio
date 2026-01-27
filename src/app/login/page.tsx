@@ -20,35 +20,32 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { login } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
 
-  // State to manage form interaction to prevent aggressive autofill on page load.
-  const [formInteracted, setFormInteracted] = useState(false);
-  const isReadOnly = !formInteracted;
-
-  const handleFormFocus = () => {
-    if (!formInteracted) {
-      setFormInteracted(true);
-    }
-  };
-
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
     try {
       await login(email, password);
       toast({
         title: 'Login Successful',
         description: 'Welcome back!',
       });
+      // The auth context will handle redirection
     } catch (error: any) {
-       toast({
+      toast({
         variant: 'destructive',
         title: 'Login Failed',
-        description: 'Invalid email or password.',
+        description:
+          error.code === 'auth/invalid-credential'
+            ? 'Invalid email or password.'
+            : 'An unexpected error occurred. Please try again.',
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -66,10 +63,7 @@ export default function LoginPage() {
           <CardTitle className="text-2xl text-center">Login</CardTitle>
         </CardHeader>
         <CardContent>
-          <form
-            onSubmit={handleLogin}
-            className="grid gap-4"
-          >
+          <form onSubmit={handleLogin} className="grid gap-4">
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -79,9 +73,8 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                autoComplete="username"
-                readOnly={isReadOnly}
-                onFocus={handleFormFocus}
+                autoComplete="email"
+                disabled={isSubmitting}
               />
             </div>
             <div className="grid gap-2">
@@ -95,8 +88,7 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   autoComplete="current-password"
-                  readOnly={isReadOnly}
-                  onFocus={handleFormFocus}
+                  disabled={isSubmitting}
                 />
                 <Button
                   type="button"
@@ -104,6 +96,7 @@ export default function LoginPage() {
                   size="icon"
                   className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
                   onClick={() => setShowPassword(!showPassword)}
+                  disabled={isSubmitting}
                 >
                   {showPassword ? (
                     <EyeOff className="h-4 w-4" />
@@ -113,8 +106,8 @@ export default function LoginPage() {
                 </Button>
               </div>
             </div>
-            <Button type="submit" className="w-full">
-              Login
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? 'Logging in...' : 'Login'}
             </Button>
           </form>
         </CardContent>

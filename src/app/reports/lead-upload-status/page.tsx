@@ -15,6 +15,9 @@ import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import AppContent from '@/components/layout/app-content';
 import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
+import { firestore as db } from '@/lib/firebase';
+import { collection, onSnapshot, query, where } from 'firebase/firestore';
+
 
 /* ---------------- MODULES ---------------- */
 const hrCoreModules = [
@@ -94,15 +97,6 @@ const getDisplayModule = (selectedModuleString: string): string => {
   return display.length > 0 ? display.join(', ') : 'N/A';
 };
 
-
-const getLeadsFromLocalStorage = (): LeadFormData[] => {
-  if (typeof window !== 'undefined') {
-    const leadsJson = localStorage.getItem('allLeads');
-    return leadsJson ? JSON.parse(leadsJson) : [];
-  }
-  return [];
-};
-
 export default function LeadUploadStatusReportPage() {
   const [allLeads, setAllLeads] = useState<LeadFormData[]>([]);
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -116,27 +110,22 @@ export default function LeadUploadStatusReportPage() {
 
 
   useEffect(() => {
-    const leads = getLeadsFromLocalStorage();
-    let userLeads = leads;
-    if(user?.role === 'Executive') {
-      userLeads = leads.filter(lead => lead.executive === user.username);
-    }
-    setAllLeads(userLeads);
-
-     const handleStorageChange = () => {
-      let updatedLeads = getLeadsFromLocalStorage();
-      if(user?.role === 'Executive') {
-        updatedLeads = updatedLeads.filter(lead => lead.executive === user.username);
-      }
-      setAllLeads(updatedLeads);
-    };
-
-    window.addEventListener('storage', handleStorageChange);
+    if (!isAuthenticated || !user) return;
     
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
-  }, [user]);
+    const leadsCollection = collection(db, 'leads');
+    let q = query(leadsCollection);
+
+    if (user.role === 'Executive') {
+      q = query(leadsCollection, where('executive', '==', user.username));
+    }
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const leadsData = snapshot.docs.map(doc => ({ ...doc.data(), leadId: doc.id }) as LeadFormData);
+      setAllLeads(leadsData);
+    });
+
+    return () => unsubscribe();
+  }, [user, isAuthenticated]);
 
   if (isLoading || !isAuthenticated) {
     return null;
@@ -223,5 +212,3 @@ export default function LeadUploadStatusReportPage() {
     </AppContent>
   );
 }
-
-    

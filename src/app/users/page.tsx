@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -65,10 +66,7 @@ export default function UsersPage() {
   useEffect(() => {
     if (
       !isLoading &&
-      (!isAuthenticated ||
-        !['Admin', 'Sub Admin'].includes(
-          originalUser?.role as string
-        ))
+      (!isAuthenticated || !['Admin', 'Sub Admin', 'Super Admin'].includes(originalUser?.role as string))
     ) {
       router.replace('/dashboard');
     }
@@ -77,9 +75,7 @@ export default function UsersPage() {
   if (
     isLoading ||
     !isAuthenticated ||
-    !['Admin', 'Sub Admin'].includes(
-      originalUser?.role as string
-    )
+    !['Admin', 'Sub Admin', 'Super Admin'].includes(originalUser?.role as string)
   ) {
     return null; // or a loading skeleton
   }
@@ -105,33 +101,25 @@ export default function UsersPage() {
         return;
       }
 
-      if (
-        users.some(
-          (u) =>
-            (u.username.toLowerCase() === newUsername.toLowerCase() ||
-              u.email.toLowerCase() === newEmail.toLowerCase()) &&
-            u.id !== editingUserId
-        )
-      ) {
-        toast({
-          variant: 'destructive',
-          title: 'Validation Error',
-          description: 'Username or email already exists.',
-        });
-        return;
-      }
-
       const updates: Partial<Omit<AppUser, 'id'>> = {
         username: newUsername,
         email: newEmail,
         role: newRole,
       };
 
+      // Password update for other users is a sensitive operation and
+      // generally requires backend logic (e.g., Cloud Functions) for security.
+      // We are only updating Firestore data here. Password changes should be
+      // done by the user themselves via their profile page.
       if (newPassword.trim()) {
-        updates.password = newPassword;
+        toast({
+          variant: 'destructive',
+          title: 'Password Not Changed',
+          description: 'Admin cannot change another user\'s password directly.',
+        });
       }
 
-      updateUser(editingUserId, updates);
+      await updateUser(editingUserId, updates);
       toast({
         title: 'User Updated',
         description: `User "${newUsername}"'s details have been updated.`,
@@ -180,7 +168,7 @@ export default function UsersPage() {
         toast({
           variant: 'destructive',
           title: 'Error creating user',
-          description: 'Could not create user.',
+          description: error.code === 'auth/email-already-in-use' ? 'This email is already in use.' : 'Could not create user.',
         });
       }
     }
@@ -196,7 +184,7 @@ export default function UsersPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleDeleteUser = () => {
+  const handleDeleteUser = async () => {
     if (!userToDelete) return;
 
     if (originalUser?.id === userToDelete.id) {
@@ -209,10 +197,10 @@ export default function UsersPage() {
       return;
     }
 
-    deleteUser(userToDelete.id);
+    await deleteUser(userToDelete.id);
     toast({
       title: 'User Deleted',
-      description: `User "${userToDelete.username}" has been removed.`,
+      description: `User "${userToDelete.username}" has been removed. Note: The auth record may persist.`,
     });
     setUserToDelete(null);
   };
@@ -266,7 +254,7 @@ export default function UsersPage() {
             {/* Add/Edit User Form */}
             <div className="space-y-4">
               <h2 className="text-lg font-semibold">
-                {editingUserId && originalUser?.role === 'Admin'
+                {editingUserId
                   ? `Editing: ${newUsername}`
                   : 'Add New User'}
               </h2>
@@ -290,7 +278,7 @@ export default function UsersPage() {
                     onChange={(e) => setNewEmail(e.target.value)}
                     placeholder="Enter email"
                     autoComplete="off"
-                    disabled={!!editingUserId && originalUser?.role === 'Admin'}
+                    disabled={!!editingUserId}
                   />
                 </div>
                 <div className="space-y-2 relative">
@@ -302,10 +290,11 @@ export default function UsersPage() {
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder={
                       editingUserId
-                        ? 'Leave blank to keep password'
+                        ? 'Cannot change password'
                         : 'Enter password'
                     }
                     autoComplete="new-password"
+                    disabled={!!editingUserId}
                   />
                   <Button
                     type="button"
@@ -335,22 +324,20 @@ export default function UsersPage() {
                     <SelectContent>
                       <SelectItem value="Executive">Executive</SelectItem>
                       <SelectItem value="Sub Admin">Sub Admin</SelectItem>
-                      {originalUser?.role === 'Admin' && (
-                        <>
-                          <SelectItem value="Admin">Admin</SelectItem>
-                          <SelectItem value="Super Admin">Super Admin</SelectItem>
-                        </>
+                      <SelectItem value="Admin">Admin</SelectItem>
+                      {originalUser?.role === 'Super Admin' && (
+                         <SelectItem value="Super Admin">Super Admin</SelectItem>
                       )}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="flex gap-2">
                   <Button onClick={handleSaveUser} className="w-full">
-                    {editingUserId && originalUser?.role === 'Admin'
+                    {editingUserId
                       ? 'Update User'
                       : 'Add User'}
                   </Button>
-                  {editingUserId && originalUser?.role === 'Admin' && (
+                  {editingUserId && (
                     <Button onClick={resetForm} variant="outline">
                       Cancel
                     </Button>
@@ -359,13 +346,12 @@ export default function UsersPage() {
               </div>
             </div>
 
-            {/* Users Table - Only visible to Admins when not impersonating */}
-            {originalUser?.role === 'Admin' && !isImpersonating && (
+            {/* Users Table */}
+             {!isImpersonating && (
               <div className="space-y-4">
                 <h2 className="text-lg font-semibold">Existing Users</h2>
                 <p className="text-sm text-muted-foreground">
-                  Click on a username to view their dashboard. Click the pencil
-                  icon to edit their details in the form above.
+                  Click on a username to impersonate and view their dashboard.
                 </p>
                 <Card>
                   <CardContent className="p-0">
@@ -381,46 +367,50 @@ export default function UsersPage() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {users.map((user) => (
-                          <TableRow key={user.id}>
-                            <TableCell>
-                              {user.role === 'Admin' || user.role === 'Super Admin' ? (
-                                <span className="font-medium px-1">
-                                  {user.username}
-                                </span>
-                              ) : (
+                        {users.map((user) => {
+                          const canImpersonate = originalUser?.role === 'Super Admin' || (originalUser?.role === 'Admin' && user.role !== 'Admin' && user.role !== 'Super Admin') || (originalUser?.role === 'Sub Admin' && user.role === 'Executive');
+                          
+                          return (
+                            <TableRow key={user.id}>
+                              <TableCell>
+                                {canImpersonate ? (
+                                  <Button
+                                    variant="link"
+                                    className="p-0 h-auto font-medium"
+                                    onClick={() => handleImpersonate(user)}
+                                  >
+                                    {user.username}
+                                  </Button>
+                                ) : (
+                                  <span className="font-medium px-1">
+                                    {user.username}
+                                  </span>
+                                )}
+                              </TableCell>
+                              <TableCell>{user.email}</TableCell>
+                              <TableCell>{user.role}</TableCell>
+                              <TableCell className="text-right">
                                 <Button
-                                  variant="link"
-                                  className="p-0 h-auto font-medium"
-                                  onClick={() => handleImpersonate(user)}
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleEditClick(user)}
                                 >
-                                  {user.username}
+                                  <Pencil className="h-4 w-4" />
+                                  <span className="sr-only">Edit User</span>
                                 </Button>
-                              )}
-                            </TableCell>
-                            <TableCell>{user.email}</TableCell>
-                            <TableCell>{user.role}</TableCell>
-                            <TableCell className="text-right">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleEditClick(user)}
-                              >
-                                <Pencil className="h-4 w-4" />
-                                <span className="sr-only">Edit User</span>
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => setUserToDelete(user)}
-                                disabled={originalUser?.id === user.id}
-                              >
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                                <span className="sr-only">Delete User</span>
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))}
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => setUserToDelete(user)}
+                                  disabled={originalUser?.id === user.id}
+                                >
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                  <span className="sr-only">Delete User</span>
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          )
+                        })}
                       </TableBody>
                     </Table>
                   </CardContent>
@@ -440,9 +430,8 @@ export default function UsersPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the
-              user account for{' '}
-              <span className="font-semibold">{userToDelete?.username}</span>.
+              This will permanently delete the user record for{' '}
+              <span className="font-semibold">{userToDelete?.username}</span> from Firestore. It will not delete the Firebase Authentication user, which must be done from the Firebase console.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
