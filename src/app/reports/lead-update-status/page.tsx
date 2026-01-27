@@ -17,6 +17,85 @@ import AppContent from '@/components/layout/app-content';
 import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
 
+/* ---------------- MODULES ---------------- */
+const hrCoreModules = [
+  'Manpower Resource Planning',
+  'Recruitment and Requisition Management',
+  'Onboarding',
+  'Letter Generation',
+  'Leave Management',
+];
+
+const attendanceSubModules = [
+  'Desktop Attendance Marking Only',
+  'Integration with Attendance Machine',
+  'Mobile Attendance Marking without Location',
+  'Geo Fencing',
+  'Geo Tracking',
+];
+
+const hrExtendedModules = [
+  'Shift Roaster Management',
+  'Timesheet Management',
+  'Performance Management',
+  'Training Management',
+  'Employee Movement / Transfer',
+  'Probation to Confirmation',
+  'Employee Database Management',
+  'Mobile App',
+  'Employee Self Service',
+];
+
+const financeModules = ['Payroll', 'Separation', 'Travel and Expense'];
+
+const generalModules = [
+  'Broadcast | Survey',
+  'Query Management',
+  'Asset Tracking',
+  'Rewards Recognition',
+  'Organogram',
+  'Declaration | Reprimands',
+  'Ex-Employee Portal',
+];
+
+const allHrModules = [...hrCoreModules, 'Attendance Management', ...attendanceSubModules, ...hrExtendedModules];
+const allFinanceModules = [...financeModules];
+const allGeneralModules = [...generalModules];
+
+const getDisplayModule = (selectedModuleString: string): string => {
+  if (!selectedModuleString) return 'N/A';
+
+  const selected = new Set(selectedModuleString.split(', ').filter(Boolean));
+  const display = [];
+
+  const hrSet = new Set(allHrModules);
+  const financeSet = new Set(allFinanceModules);
+  const generalSet = new Set(allGeneralModules);
+
+  let hasAllHr = hrSet.size > 0 && [...hrSet].every(m => selected.has(m));
+  let hasAllFinance = financeSet.size > 0 && [...financeSet].every(m => selected.has(m));
+  let hasAllGeneral = generalSet.size > 0 && [...generalSet].every(m => selected.has(m));
+
+  if (hasAllHr) {
+    display.push('HR Module');
+    [...hrSet].forEach(m => selected.delete(m));
+  }
+  if (hasAllFinance) {
+    display.push('Finance Module');
+    [...financeSet].forEach(m => selected.delete(m));
+  }
+  if (hasAllGeneral) {
+    display.push('General Module');
+    [...generalSet].forEach(m => selected.delete(m));
+  }
+
+  // Push remaining individual modules
+  display.push(...Array.from(selected));
+  
+  return display.length > 0 ? display.join(', ') : 'N/A';
+};
+
+
 const getLeadsFromLocalStorage = (): LeadFormData[] => {
   if (typeof window !== 'undefined') {
     const leadsJson = localStorage.getItem('allLeads');
@@ -127,7 +206,7 @@ export default function LeadUpdateStatusReportPage() {
                                 {isValidDate ? format(date, 'PPP') : 'N/A'}
                               </TableCell>
                               <TableCell>
-                                {lead.selectedModule || 'N/A'}
+                                {getDisplayModule(lead.selectedModule)}
                               </TableCell>
                               <TableCell>{lead.company || 'N/A'}</TableCell>
                               <TableCell>
@@ -184,3 +263,5 @@ export default function LeadUpdateStatusReportPage() {
     </AppContent>
   );
 }
+
+    
