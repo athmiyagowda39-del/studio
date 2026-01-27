@@ -69,7 +69,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                autoComplete="off"
+                autoComplete="email"
                 disabled={isSubmitting}
                 readOnly
                 onFocus={(e) => e.target.removeAttribute('readonly')}
@@ -85,7 +85,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  autoComplete="off"
+                  autoComplete="current-password"
                   disabled={isSubmitting}
                   readOnly
                   onFocus={(e) => e.target.removeAttribute('readonly')}
