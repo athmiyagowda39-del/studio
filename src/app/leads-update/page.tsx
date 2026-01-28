@@ -646,12 +646,12 @@ export default function LeadsUpdatePage() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="all">All</SelectItem>
-                           {executives.map(exec => (
+                           {allUsernames.map(exec => (
                             <SelectItem key={exec} value={exec}>
                               {exec}
                             </SelectItem>
                           ))}
-                          {!executives.includes(selectedExecutive) && selectedExecutive !== 'all' && selectedExecutive !== 'Other' && (
+                          {!allUsernames.includes(selectedExecutive) && selectedExecutive !== 'all' && selectedExecutive !== 'Other' && (
                               <SelectItem value={selectedExecutive}>{selectedExecutive}</SelectItem>
                           )}
                           <SelectItem value="Other">Other</SelectItem>
