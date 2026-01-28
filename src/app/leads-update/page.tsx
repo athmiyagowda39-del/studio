@@ -210,7 +210,7 @@ export default function LeadsUpdatePage() {
                 }
             }
             if (selectedExecutive !== 'all' && selectedExecutive !== 'Other') {
-              tempLeads = tempLeads.filter(lead => lead.executive === selectedExecutive);
+              tempLeads = tempLeads.filter(lead => normalizeString(lead.executive || '') === normalizeString(selectedExecutive));
             }
             if (givenBy !== 'all' && givenBy !== 'Other') {
               tempLeads = tempLeads.filter(lead => lead.givenBy === givenBy);
