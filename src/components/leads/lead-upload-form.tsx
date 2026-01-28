@@ -49,6 +49,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import { getDisplayModule, allModules, allHrModules, allFinanceModules, allGeneralModules, financeModules, generalModules } from '@/lib/modules';
 
 type ParsedData = (string | number)[][];
 
@@ -129,58 +130,6 @@ const references = [
   'Other',
 ];
 
-const hrCoreModules = [
-  'Manpower Resource Planning',
-  'Recruitment and Requisition Management',
-  'Onboarding',
-  'Letter Generation',
-  'Leave Management',
-];
-
-const attendanceSubModules = [
-  'Desktop Attendance Marking Only',
-  'Integration with Attendance Machine',
-  'Mobile Attendance Marking without Location',
-  'Geo Fencing',
-  'Geo Tracking',
-];
-
-const hrExtendedModules = [
-  'Shift Roaster Management',
-  'Timesheet Management',
-  'Performance Management',
-  'Training Management',
-  'Employee Movement / Transfer',
-  'Probation to Confirmation',
-  'Employee Database Management',
-  'Mobile App',
-  'Employee Self Service',
-];
-
-const financeModules = ['Payroll', 'Separation', 'Travel and Expense'];
-
-const generalModules = [
-  'Broadcast | Survey',
-  'Query Management',
-  'Asset Tracking',
-  'Rewards Recognition',
-  'Organogram',
-  'Declaration | Reprimands',
-  'Ex-Employee Portal',
-];
-
-const allHrModules = [
-  ...hrCoreModules,
-  'Attendance Management',
-  ...attendanceSubModules,
-  ...hrExtendedModules,
-];
-const allFinanceModules = [...financeModules];
-const allGeneralModules = [...generalModules];
-const allAttendanceModules = ['Attendance Management', ...attendanceSubModules];
-const allModules = [...new Set([...allHrModules, ...allFinanceModules, ...allGeneralModules])];
-
-
 const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate' | 'givenBy'> = {
   pincode: '',
   state: '',
@@ -219,7 +168,7 @@ export default function LeadUploadForm() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const { toast } = useToast();
-  const managers = users.filter(u => ['Super Admin', 'Admin', 'Sub Admin'].includes(u.role));
+  const managers = users.filter(u => ['Varghese Vincent', 'Sam Devasia'].includes(u.username));
 
 
   useEffect(() => {
@@ -693,47 +642,14 @@ export default function LeadUploadForm() {
     if (!formData.selectedModule) {
       return 'Select Module(s)...';
     }
+    const buttonText = getDisplayModule(formData.selectedModule);
 
-    const selected = new Set(formData.selectedModule.split(', ').filter(Boolean));
-    if (selected.size === 0) {
+    if (buttonText === 'N/A') {
       return 'Select Module(s)...';
     }
-    if (selected.size === allModules.length) {
-      return 'All Modules Selected';
+    if (buttonText.endsWith('Module') && !buttonText.includes(',')) {
+      return `${buttonText} Selected`;
     }
-    
-    const display = [];
-    const remainingSelected = new Set(selected);
-
-    const hrSet = new Set(allHrModules);
-    const hasAllHr = hrSet.size > 0 && [...hrSet].every(m => selected.has(m));
-    if (hasAllHr) {
-      display.push('HR Module');
-      [...hrSet].forEach(m => remainingSelected.delete(m));
-    }
-
-    const financeSet = new Set(allFinanceModules);
-    const hasAllFinance = financeSet.size > 0 && [...financeSet].every(m => selected.has(m));
-    if (hasAllFinance) {
-      display.push('Finance Module');
-      [...financeSet].forEach(m => remainingSelected.delete(m));
-    }
-
-    const generalSet = new Set(allGeneralModules);
-    const hasAllGeneral = generalSet.size > 0 && [...generalSet].every(m => selected.has(m));
-    if (hasAllGeneral) {
-      display.push('General Module');
-      [...generalSet].forEach(m => remainingSelected.delete(m));
-    }
-    
-    display.push(...Array.from(remainingSelected));
-    
-    const buttonText = display.join(', ');
-
-    if(buttonText.endsWith(" Module") && !buttonText.includes(',')) {
-        return `${buttonText} Selected`;
-    }
-    
     return buttonText;
   };
 
@@ -1048,4 +964,5 @@ export default function LeadUploadForm() {
     
 
     
+
 
