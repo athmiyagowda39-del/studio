@@ -219,6 +219,8 @@ export default function LeadUploadForm() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const { toast } = useToast();
+  const managers = users.filter(u => ['Super Admin', 'Admin', 'Sub Admin'].includes(u.role));
+
 
   useEffect(() => {
     const executiveUsers = users
@@ -904,7 +906,23 @@ export default function LeadUploadForm() {
 
           <div className="space-y-2">
             <Label htmlFor="manager">Manager</Label>
-            <Input id="manager" value={formData.manager || ''} onChange={handleInputChange} readOnly={isReadOnly} />
+            <Select
+              value={formData.manager || ''}
+              onValueChange={(value) => handleSelectChange('manager', value)}
+              disabled={isReadOnly}
+            >
+              <SelectTrigger id="manager">
+                <SelectValue placeholder="Select Manager..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Select Manager</SelectItem>
+                {managers.map((manager) => (
+                  <SelectItem key={manager.id} value={manager.username}>
+                    {manager.username}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2 md:col-span-2">
