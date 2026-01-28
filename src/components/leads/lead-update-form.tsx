@@ -399,10 +399,8 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
                 <Input
                   id="selectedModule"
                   value={leadDetails.selectedModule || ''}
-                  onChange={(e) =>
-                    handleLeadDetailChange('selectedModule', e.target.value)
-                  }
-                  readOnly={isReadOnly}
+                  readOnly
+                  className="bg-muted"
                 />
               </div>
               <div className="space-y-2">
