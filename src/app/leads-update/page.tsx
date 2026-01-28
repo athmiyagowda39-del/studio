@@ -181,12 +181,12 @@ export default function LeadsUpdatePage() {
     setActiveTab('search-result');
     let tempLeads = [...visibleLeads];
     
-    const executiveFilterValue = selectedExecutive === 'Other' ? otherExecutiveInput : selectedExecutive;
-    const givenByFilterValue = givenBy === 'Other' ? otherGivenByInput : givenBy;
-    const statusFilterValue = selectedStatus === 'Other' ? otherStatusInput : selectedStatus;
-    const subStatusFilterValue = selectedSubStatus === 'Other' ? otherSubStatusInput : selectedSubStatus;
-    const leadSourceFilterValue = selectedLeadSource === 'Other' ? otherLeadSourceInput : selectedLeadSource;
-    const followUpByFilterValue = followUpEnteredBy === 'Other' ? otherFollowUpEnteredByInput : followUpEnteredBy;
+    const executiveFilterValue = selectedExecutive === 'Other' ? otherExecutiveInput.trim() : selectedExecutive;
+    const givenByFilterValue = givenBy === 'Other' ? otherGivenByInput.trim() : givenBy;
+    const statusFilterValue = selectedStatus === 'Other' ? otherStatusInput.trim() : selectedStatus;
+    const subStatusFilterValue = selectedSubStatus === 'Other' ? otherSubStatusInput.trim() : selectedSubStatus;
+    const leadSourceFilterValue = selectedLeadSource === 'Other' ? otherLeadSourceInput.trim() : selectedLeadSource;
+    const followUpByFilterValue = followUpEnteredBy === 'Other' ? otherFollowUpEnteredByInput.trim() : followUpEnteredBy;
 
     if (considerStatus) {
         const excludedStatuses = ['Order closed', 'Fake', 'Existing Users', 'Not interested'];
@@ -220,61 +220,56 @@ export default function LeadsUpdatePage() {
         }
     }
     
-    if (executiveFilterValue !== 'all' && executiveFilterValue.trim() !== '') {
-      tempLeads = tempLeads.filter(lead => (lead.executive || '').toLowerCase().includes(executiveFilterValue.trim().toLowerCase()));
+    if (executiveFilterValue !== 'all' && executiveFilterValue) {
+      tempLeads = tempLeads.filter(lead => (lead.executive || '').toLowerCase().includes(executiveFilterValue.toLowerCase()));
     }
-    if (givenByFilterValue !== 'all' && givenByFilterValue.trim() !== '') {
-      tempLeads = tempLeads.filter(lead => (lead.givenBy || '').toLowerCase().includes(givenByFilterValue.trim().toLowerCase()));
+    if (givenByFilterValue !== 'all' && givenByFilterValue) {
+      tempLeads = tempLeads.filter(lead => (lead.givenBy || '').toLowerCase().includes(givenByFilterValue.toLowerCase()));
     }
-    if (statusFilterValue !== 'all' && statusFilterValue.trim() !== '') {
-      tempLeads = tempLeads.filter(lead => lead.status === statusFilterValue.trim());
+    if (statusFilterValue !== 'all' && statusFilterValue) {
+      tempLeads = tempLeads.filter(lead => lead.status === statusFilterValue);
     }
-    if (subStatusFilterValue !== 'all' && subStatusFilterValue.trim() !== '') {
-      tempLeads = tempLeads.filter(lead => lead.leadSubStatus === subStatusFilterValue.trim());
+    if (subStatusFilterValue !== 'all' && subStatusFilterValue) {
+      tempLeads = tempLeads.filter(lead => lead.leadSubStatus === subStatusFilterValue);
     }
-    if (leadSourceFilterValue !== 'all' && leadSourceFilterValue.trim() !== '') {
-      tempLeads = tempLeads.filter(lead => lead.reference === leadSourceFilterValue.trim());
+    if (leadSourceFilterValue !== 'all' && leadSourceFilterValue) {
+      tempLeads = tempLeads.filter(lead => lead.reference === leadSourceFilterValue);
     }
 
     if (considerStatus) {
-      if (followUpStatus === 'pending') {
-        tempLeads = tempLeads.filter(lead => {
-          if (!lead.nextFollowUpDate) return false;
-
-          try {
-            const nextFollowUpDateObj = startOfDay(new Date(lead.nextFollowUpDate));
-            const today = endOfDay(new Date());
-
-            if (nextFollowUpDateObj > today) {
-              return false;
-            }
-
-            if (followUpFromDate && nextFollowUpDateObj < startOfDay(new Date(followUpFromDate))) {
-              return false;
-            }
-            if (followUpToDate && nextFollowUpDateObj > endOfDay(new Date(followUpToDate))) {
-              return false;
-            }
-
-            if (followUpByFilterValue !== 'all' && followUpByFilterValue.trim() !== '') {
-              const lastFollowUp = lead.followUps && lead.followUps.length > 0 ? lead.followUps[lead.followUps.length - 1] : null;
-              if (!lastFollowUp || !(lastFollowUp.enteredBy || '').toLowerCase().includes(followUpByFilterValue.trim().toLowerCase())) {
+        if (followUpStatus === 'pending') {
+          tempLeads = tempLeads.filter(lead => {
+            if (!lead.nextFollowUpDate) return false;
+  
+            try {
+              const nextFollowUpDateObj = startOfDay(new Date(lead.nextFollowUpDate));
+  
+              if (followUpFromDate && nextFollowUpDateObj < startOfDay(new Date(followUpFromDate))) {
                 return false;
               }
+              if (followUpToDate && nextFollowUpDateObj > endOfDay(new Date(followUpToDate))) {
+                return false;
+              }
+  
+              if (followUpByFilterValue !== 'all' && followUpByFilterValue) {
+                const lastFollowUp = lead.followUps && lead.followUps.length > 0 ? lead.followUps[lead.followUps.length - 1] : null;
+                if (!lastFollowUp || !(lastFollowUp.enteredBy || '').toLowerCase().includes(followUpByFilterValue.toLowerCase())) {
+                  return false;
+                }
+              }
+              
+              return true;
+            } catch (e) {
+              return false;
             }
-            
-            return true;
-          } catch (e) {
-            return false;
-          }
-        });
-      } else if (followUpStatus === 'made') {
+          });
+        } else if (followUpStatus === 'made') {
         tempLeads = tempLeads.filter(lead => {
           if (!lead.followUps || lead.followUps.length === 0) return false;
           
           return lead.followUps.some(followUp => {
             try {
-              const personMatch = followUpByFilterValue === 'all' || followUpByFilterValue.trim() === '' || (followUp.enteredBy || '').toLowerCase().includes(followUpByFilterValue.trim().toLowerCase());
+              const personMatch = followUpByFilterValue === 'all' || !followUpByFilterValue || (followUp.enteredBy || '').toLowerCase().includes(followUpByFilterValue.toLowerCase());
               if (!personMatch) return false;
               
               const followUpMadeDate = new Date(followUp.date);
