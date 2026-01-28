@@ -225,7 +225,6 @@ export default function LeadsUpdatePage() {
     const statusFilterValue = filters.selectedStatus === 'Other' ? filters.otherStatusInput.trim() : filters.selectedStatus;
     const subStatusFilterValue = filters.selectedSubStatus === 'Other' ? filters.otherSubStatusInput.trim() : filters.selectedSubStatus;
     const leadSourceFilterValue = filters.selectedLeadSource === 'Other' ? filters.otherLeadSourceInput.trim() : filters.selectedLeadSource;
-    const followUpByFilterValue = filters.followUpEnteredBy === 'Other' ? filters.otherFollowUpEnteredByInput.trim() : filters.followUpEnteredBy;
 
     if (filters.considerStatus) {
         const excludedStatuses = ['Order closed', 'Fake', 'Existing Users', 'Not interested'];
@@ -283,59 +282,41 @@ export default function LeadsUpdatePage() {
     }
 
     if (filters.considerStatus) {
-      const today = startOfDay(new Date());
+        const today = startOfDay(new Date());
+        const followUpByFilterValue = filters.followUpEnteredBy === 'Other' ? filters.otherFollowUpEnteredByInput.trim() : filters.followUpEnteredBy;
 
-      if (filters.followUpStatus === 'pending') {
-        tempLeads = tempLeads.filter(lead => {
-          if (!lead.nextFollowUpDate) return false;
-          const nextFollowUpDateObj = startOfDay(new Date(lead.nextFollowUpDate));
-          if (nextFollowUpDateObj > today) return false;
+        if (followUpByFilterValue && followUpByFilterValue !== 'all') {
+            tempLeads = tempLeads.filter(lead => 
+                lead.followUps && lead.followUps.some(fu => flexibleNameMatch(fu.enteredBy, followUpByFilterValue))
+            );
+        }
 
-          if (filters.followUpFromDate && startOfDay(new Date(filters.followUpFromDate)) > nextFollowUpDateObj) {
-            return false;
-          }
-          if (filters.followUpToDate && endOfDay(new Date(filters.followUpToDate)) < nextFollowUpDateObj) {
-            return false;
-          }
+        if (filters.followUpStatus === 'pending') {
+            tempLeads = tempLeads.filter(lead => {
+                const nextFollowUpDateObj = lead.nextFollowUpDate ? startOfDay(new Date(lead.nextFollowUpDate)) : null;
+                const hasDateRange = filters.followUpFromDate || filters.followUpToDate;
+                if (hasDateRange) {
+                    if (!nextFollowUpDateObj) return false;
+                    if (filters.followUpFromDate && startOfDay(new Date(filters.followUpFromDate)) > nextFollowUpDateObj) return false;
+                    if (filters.followUpToDate && endOfDay(new Date(filters.followUpToDate)) < nextFollowUpDateObj) return false;
+                    return true;
+                } else {
+                    return !nextFollowUpDateObj || nextFollowUpDateObj <= today;
+                }
+            });
+        } else if (filters.followUpStatus === 'made') {
+            tempLeads = tempLeads.filter(lead => {
+                const nextFollowUpDateObj = lead.nextFollowUpDate ? startOfDay(new Date(lead.nextFollowUpDate)) : null;
+                if (!nextFollowUpDateObj || nextFollowUpDateObj <= today) return false;
 
-          if (followUpByFilterValue && followUpByFilterValue !== 'all') {
-            if (!lead.followUps || lead.followUps.length === 0) {
-                return false;
-            }
-            const hasMatchingFollowUp = lead.followUps.some(fu => flexibleNameMatch(fu.enteredBy, followUpByFilterValue));
-            if (!hasMatchingFollowUp) {
-                return false;
-            }
-          }
-          
-          return true;
-        });
-      } else if (filters.followUpStatus === 'made') {
-        tempLeads = tempLeads.filter(lead => {
-          if (!lead.nextFollowUpDate) return false;
-          const nextFollowUpDateObj = startOfDay(new Date(lead.nextFollowUpDate));
-          if (nextFollowUpDateObj <= today) return false;
-
-          if (filters.followUpFromDate && startOfDay(new Date(filters.followUpFromDate)) > nextFollowUpDateObj) {
-            return false;
-          }
-          if (filters.followUpToDate && endOfDay(new Date(filters.followUpToDate)) < nextFollowUpDateObj) {
-            return false;
-          }
-          
-          if (followUpByFilterValue && followUpByFilterValue !== 'all') {
-            if (!lead.followUps || lead.followUps.length === 0) {
-                return false;
-            }
-            const hasMatchingFollowUp = lead.followUps.some(fu => flexibleNameMatch(fu.enteredBy, followUpByFilterValue));
-            if (!hasMatchingFollowUp) {
-                return false;
-            }
-          }
-
-          return true;
-        });
-      }
+                const hasDateRange = filters.followUpFromDate || filters.followUpToDate;
+                if (hasDateRange) {
+                    if (filters.followUpFromDate && startOfDay(new Date(filters.followUpFromDate)) > nextFollowUpDateObj) return false;
+                    if (filters.followUpToDate && endOfDay(new Date(filters.followUpToDate)) < nextFollowUpDateObj) return false;
+                }
+                return true;
+            });
+        }
     }
 
     return tempLeads;
