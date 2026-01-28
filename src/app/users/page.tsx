@@ -65,6 +65,7 @@ export default function UsersPage() {
   const [showNewPassword, setShowNewPassword] = useState(false);
 
   const [userToDelete, setUserToDelete] = useState<AppUser | null>(null);
+  const [roleFilter, setRoleFilter] = useState('All');
 
   useEffect(() => {
     if (
@@ -336,6 +337,21 @@ export default function UsersPage() {
                   Click on a username to view their dashboard. Click the pencil
                   icon to edit their details in the form above.
                 </p>
+                <div className="flex items-center gap-2 mb-4">
+                  <Label htmlFor="role-filter">Filter by Role:</Label>
+                  <Select value={roleFilter} onValueChange={setRoleFilter}>
+                    <SelectTrigger id="role-filter" className="w-[180px]">
+                      <SelectValue placeholder="Filter by role..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="All">All Roles</SelectItem>
+                      <SelectItem value="Executive">Executive</SelectItem>
+                      <SelectItem value="Sub Admin">Sub Admin</SelectItem>
+                      <SelectItem value="Admin">Admin</SelectItem>
+                      <SelectItem value="Super Admin">Super Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -348,7 +364,9 @@ export default function UsersPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {users.map((user) => {
+                    {users
+                      .filter(user => roleFilter === 'All' || user.role === roleFilter)
+                      .map((user) => {
                       const canImpersonate =
                         (originalUser?.role === 'Super Admin' &&
                           user.role !== 'Super Admin') ||
