@@ -168,17 +168,13 @@ export default function LeadsUpdatePage() {
         tempLeads.sort((a,b) => a.creationDate - b.creationDate);
         break;
     }
-    if (activeTab !== 'search-result') {
-      setFilteredLeads(tempLeads);
-    }
+    setFilteredLeads(tempLeads);
     setCurrentPage(1);
   }
 
   useEffect(() => {
-    if (activeTab !== 'search-result') {
-      applyTabFilter(activeTab);
-    }
-  }, [visibleLeads, activeTab]);
+    applyTabFilter(activeTab);
+  }, [visibleLeads]);
 
   const handleShowButtonClick = () => {
     setActiveTab('search-result');
@@ -192,7 +188,7 @@ export default function LeadsUpdatePage() {
     if (searchTerm.trim() !== '') {
       tempLeads = tempLeads.filter(lead => {
         const leadValue = (lead[searchCategory as keyof LeadFormData] as string)?.toString().toLowerCase() || '';
-        return leadValue.startsWith(searchTerm.toLowerCase());
+        return leadValue.includes(searchTerm.toLowerCase());
       });
     }
     
@@ -216,10 +212,10 @@ export default function LeadsUpdatePage() {
         }
     }
     if (selectedExecutive !== 'all' && selectedExecutive !== 'Other') {
-      tempLeads = tempLeads.filter(lead => (lead.executive || '').toLowerCase() === selectedExecutive.toLowerCase());
+      tempLeads = tempLeads.filter(lead => (lead.executive || '').toLowerCase().includes(selectedExecutive.toLowerCase()));
     }
     if (givenBy !== 'all' && givenBy !== 'Other') {
-      tempLeads = tempLeads.filter(lead => (lead.givenBy || '').toLowerCase() === givenBy.toLowerCase());
+      tempLeads = tempLeads.filter(lead => (lead.givenBy || '').toLowerCase().includes(givenBy.toLowerCase()));
     }
     if (selectedStatus !== 'all') {
       tempLeads = tempLeads.filter(lead => lead.status === selectedStatus);
@@ -234,30 +230,29 @@ export default function LeadsUpdatePage() {
     if (considerStatus) {
       if (followUpStatus === 'pending') {
         tempLeads = tempLeads.filter(lead => {
-          // To be pending, a lead must have a scheduled next follow-up date.
+          // To be pending, a lead must have a scheduled next follow-up date that is today or in the past.
           if (!lead.nextFollowUpDate) return false;
 
           try {
-            const nextFollowUpDate = new Date(lead.nextFollowUpDate);
+            const nextFollowUpDateObj = startOfDay(new Date(lead.nextFollowUpDate));
             const today = endOfDay(new Date());
 
-            // A follow-up is pending if its due date is in the past or today.
-            if (nextFollowUpDate > today) {
+            if (nextFollowUpDateObj > today) {
               return false;
             }
 
             // If a date range is specified, the pending date must also fall within it.
-            if (followUpFromDate && nextFollowUpDate < startOfDay(new Date(followUpFromDate))) {
+            if (followUpFromDate && nextFollowUpDateObj < startOfDay(new Date(followUpFromDate))) {
               return false;
             }
-            if (followUpToDate && nextFollowUpDate > endOfDay(new Date(followUpToDate))) {
+            if (followUpToDate && nextFollowUpDateObj > endOfDay(new Date(followUpToDate))) {
               return false;
             }
 
             // If an "entered by" filter is active, check who entered the last follow-up.
             if (followUpEnteredBy !== 'all') {
               const lastFollowUp = lead.followUps && lead.followUps.length > 0 ? lead.followUps[lead.followUps.length - 1] : null;
-              if (!lastFollowUp || (lastFollowUp.enteredBy || '').toLowerCase() !== followUpEnteredBy.toLowerCase()) {
+              if (!lastFollowUp || !(lastFollowUp.enteredBy || '').toLowerCase().includes(followUpEnteredBy.toLowerCase())) {
                 return false;
               }
             }
@@ -277,7 +272,7 @@ export default function LeadsUpdatePage() {
           return lead.followUps.some(followUp => {
             try {
               // Check if the person who entered the follow-up matches.
-              const personMatch = followUpEnteredBy === 'all' || (followUp.enteredBy || '').toLowerCase() === followUpEnteredBy.toLowerCase();
+              const personMatch = followUpEnteredBy === 'all' || (followUp.enteredBy || '').toLowerCase().includes(followUpEnteredBy.toLowerCase());
               if (!personMatch) return false;
               
               const followUpMadeDate = new Date(followUp.date);
@@ -307,7 +302,6 @@ export default function LeadsUpdatePage() {
   const handleResetFilters = () => {
     setSearchTerm('');
     setSearchCategory('leadId');
-    setActiveTab('all');
     
     setFromDate('');
     setToDate('');
@@ -330,6 +324,7 @@ export default function LeadsUpdatePage() {
     setFollowUpEnteredBy('all');
     setOtherFollowUpEnteredByInput('');
 
+    setActiveTab('all');
     setCurrentPage(1);
   };
   
@@ -903,12 +898,7 @@ export default function LeadsUpdatePage() {
 
             <Card>
               <CardContent className="p-4 space-y-4">
-                <Tabs value={activeTab} onValueChange={(value) => {
-                  setActiveTab(value as TabValue);
-                  if (value !== 'search-result') {
-                    applyTabFilter(value as TabValue);
-                  }
-                }}>
+                <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as TabValue)}>
                   <TabsList>
                     <TabsTrigger value="all">All Leads</TabsTrigger>
                     <TabsTrigger value="not-viewed">Leads not Viewed</TabsTrigger>
