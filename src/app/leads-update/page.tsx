@@ -220,6 +220,7 @@ export default function LeadsUpdatePage() {
   const filterByCriteria = (leads: LeadFormData[], filters: typeof stagedFilters) => {
     let tempLeads = [...leads];
     
+    // Step 1: Use "Other" input values if present
     const executiveFilterValue = filters.selectedExecutive === 'Other' ? filters.otherExecutiveInput.trim() : filters.selectedExecutive;
     const givenByFilterValue = filters.givenBy === 'Other' ? filters.otherGivenByInput.trim() : filters.givenBy;
     const statusFilterValue = filters.selectedStatus === 'Other' ? filters.otherStatusInput.trim() : filters.selectedStatus;
@@ -227,6 +228,8 @@ export default function LeadsUpdatePage() {
     const leadSourceFilterValue = filters.selectedLeadSource === 'Other' ? filters.otherLeadSourceInput.trim() : filters.selectedLeadSource;
     const followUpByFilterValue = filters.followUpEnteredBy === 'Other' ? filters.otherFollowUpEnteredByInput.trim() : filters.followUpEnteredBy;
 
+    // Step 2: Apply simple filters first
+    
     // Filter by "Do not consider..." checkbox
     if (filters.considerStatus) {
         const excludedStatuses = ['Order closed', 'Fake', 'Existing Users', 'Not interested'];
@@ -288,46 +291,42 @@ export default function LeadsUpdatePage() {
     }
 
     // --- Follow-up Filters ---
-    // These filters are only applied if the main "considerStatus" checkbox is checked.
+    // These are applied sequentially only if the main "considerStatus" checkbox is checked.
     if (filters.considerStatus) {
-        const today = startOfDay(new Date());
-
-        // Apply "Enter by" filter
+        
+        // Filter by "Enter by"
         if (followUpByFilterValue && followUpByFilterValue !== 'all') {
             tempLeads = tempLeads.filter(lead => 
                 lead.followUps && lead.followUps.some(fu => flexibleNameMatch(fu.enteredBy, followUpByFilterValue))
             );
         }
 
-        // Apply "Follow Up Status" (Pending/Made) filter
-        if (filters.followUpStatus === 'pending') {
-            tempLeads = tempLeads.filter(lead => {
-                const nextFollowUpDateObj = lead.nextFollowUpDate ? startOfDay(new Date(lead.nextFollowUpDate)) : null;
-                const hasDateRange = filters.followUpFromDate || filters.followUpToDate;
+        // Filter by "Follow Up Status" (Pending/Made)
+        const todayStart = startOfDay(new Date());
 
-                if (hasDateRange) {
-                    if (!nextFollowUpDateObj) return false;
-                    const fromOk = !filters.followUpFromDate || startOfDay(new Date(filters.followUpFromDate)) <= nextFollowUpDateObj;
-                    const toOk = !filters.followUpToDate || endOfDay(new Date(filters.followUpToDate)) >= nextFollowUpDateObj;
-                    return fromOk && toOk;
-                } else {
-                    return !nextFollowUpDateObj || nextFollowUpDateObj <= today;
-                }
+        if (filters.followUpStatus === 'pending') {
+             tempLeads = tempLeads.filter(lead => {
+                if (!lead.nextFollowUpDate) return false;
+                const nextFollowUpDateObj = startOfDay(new Date(lead.nextFollowUpDate));
+                return nextFollowUpDateObj <= todayStart;
             });
         } else if (filters.followUpStatus === 'made') {
              tempLeads = tempLeads.filter(lead => {
-                const nextFollowUpDateObj = lead.nextFollowUpDate ? startOfDay(new Date(lead.nextFollowUpDate)) : null;
-                const hasDateRange = filters.followUpFromDate || filters.followUpToDate;
-                
-                if (!nextFollowUpDateObj) return false;
-
-                if (hasDateRange) {
-                    const fromOk = !filters.followUpFromDate || startOfDay(new Date(filters.followUpFromDate)) <= nextFollowUpDateObj;
-                    const toOk = !filters.followUpToDate || endOfDay(new Date(filters.followUpToDate)) >= nextFollowUpDateObj;
-                    return fromOk && toOk;
-                } else {
-                    return nextFollowUpDateObj > today;
-                }
+                if (!lead.nextFollowUpDate) return false;
+                const nextFollowUpDateObj = startOfDay(new Date(lead.nextFollowUpDate));
+                return nextFollowUpDateObj > todayStart;
+            });
+        }
+        
+        // Filter by Follow-up Date Range (applied after pending/made logic)
+        const hasDateRange = filters.followUpFromDate || filters.followUpToDate;
+        if(hasDateRange) {
+             tempLeads = tempLeads.filter(lead => {
+                if (!lead.nextFollowUpDate) return false;
+                const nextFollowUpDateObj = startOfDay(new Date(lead.nextFollowUpDate));
+                const fromOk = !filters.followUpFromDate || startOfDay(new Date(filters.followUpFromDate)) <= nextFollowUpDateObj;
+                const toOk = !filters.followUpToDate || endOfDay(new Date(filters.followUpToDate)) >= nextFollowUpDateObj;
+                return fromOk && toOk;
             });
         }
     }
@@ -342,21 +341,21 @@ export default function LeadsUpdatePage() {
         fromDate,
         toDate,
         selectedModules,
-        selectedExecutive,
+        selectedExecutive: selectedExecutive === 'Other' ? otherExecutiveInput : selectedExecutive,
         otherExecutiveInput,
-        givenBy,
+        givenBy: givenBy === 'Other' ? otherGivenByInput : givenBy,
         otherGivenByInput,
-        selectedStatus,
+        selectedStatus: selectedStatus === 'Other' ? otherStatusInput : selectedStatus,
         otherStatusInput,
-        selectedSubStatus,
+        selectedSubStatus: selectedSubStatus === 'Other' ? otherSubStatusInput : selectedSubStatus,
         otherSubStatusInput,
-        selectedLeadSource,
+        selectedLeadSource: selectedLeadSource === 'Other' ? otherLeadSourceInput : selectedLeadSource,
         otherLeadSourceInput,
         considerStatus,
         followUpStatus,
         followUpFromDate,
         followUpToDate,
-        followUpEnteredBy,
+        followUpEnteredBy: followUpEnteredBy === 'Other' ? otherFollowUpEnteredByInput : followUpEnteredBy,
         otherFollowUpEnteredByInput
       };
       
@@ -986,7 +985,7 @@ export default function LeadsUpdatePage() {
                   </CardTitle>
                 </CardHeader>
                  <ScrollArea className="w-full whitespace-nowrap rounded-md border">
-                  <Table className="min-w-[2700px]">
+                  <Table className="min-w-[2800px]">
                     <TableHeader className="bg-muted">
                       <TableRow>
                         <TableHead>Sl No</TableHead>
@@ -1009,6 +1008,7 @@ export default function LeadsUpdatePage() {
                         <TableHead>Next followup Date</TableHead>
                         <TableHead>Last Followup Remarks</TableHead>
                         <TableHead>Lead Status</TableHead>
+                        <TableHead>Lead Sub Status</TableHead>
                         <TableHead>Lead Status Remarks</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -1051,6 +1051,7 @@ export default function LeadsUpdatePage() {
                           <TableCell>{nextFollowupDate}</TableCell>
                           <TableCell>{lastFollowUp ? lastFollowUp.remarks : 'N/A'}</TableCell>
                           <TableCell>{lead.status}</TableCell>
+                          <TableCell>{lead.leadSubStatus || 'N/A'}</TableCell>
                           <TableCell>{lead.initialRemarks}</TableCell>
                         </TableRow>
                       )})}
