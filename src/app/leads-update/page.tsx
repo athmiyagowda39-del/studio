@@ -116,6 +116,7 @@ export default function LeadsUpdatePage() {
   const [otherFollowUpEnteredByInput, setOtherFollowUpEnteredByInput] = useState('');
 
   const [executives, setExecutives] = useState<string[]>([]);
+  const allUsernames = useMemo(() => users.map(u => u.username), [users]);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -672,12 +673,12 @@ export default function LeadsUpdatePage() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="all">All</SelectItem>
-                          {executives.map((exec) => (
-                            <SelectItem key={exec} value={exec}>
-                              {exec}
+                          {allUsernames.map((name) => (
+                            <SelectItem key={name} value={name}>
+                              {name}
                             </SelectItem>
                           ))}
-                          {!executives.includes(givenBy) && givenBy !== 'all' && givenBy !== 'Other' && (
+                          {!allUsernames.includes(givenBy) && givenBy !== 'all' && givenBy !== 'Other' && (
                               <SelectItem value={givenBy}>{givenBy}</SelectItem>
                           )}
                           <SelectItem value="Other">Other</SelectItem>
@@ -842,12 +843,12 @@ export default function LeadsUpdatePage() {
                                   </SelectTrigger>
                                   <SelectContent>
                                       <SelectItem value="all">All</SelectItem>
-                                      {executives.map((exec) => (
-                                      <SelectItem key={exec} value={exec}>
-                                          {exec}
+                                      {allUsernames.map((name) => (
+                                      <SelectItem key={name} value={name}>
+                                          {name}
                                       </SelectItem>
                                       ))}
-                                      {!executives.includes(followUpEnteredBy) && followUpEnteredBy !== 'all' && followUpEnteredBy !== 'Other' && (
+                                      {!allUsernames.includes(followUpEnteredBy) && followUpEnteredBy !== 'all' && followUpEnteredBy !== 'Other' && (
                                           <SelectItem value={followUpEnteredBy}>{followUpEnteredBy}</SelectItem>
                                       )}
                                       <SelectItem value="Other">Other</SelectItem>
