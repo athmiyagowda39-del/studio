@@ -17,7 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '../ui/textarea';
 import { Calendar } from '../ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
-import { CalendarIcon, Info, ChevronsUpDown, ChevronDown } from 'lucide-react';
+import { CalendarIcon, Info } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
@@ -26,7 +26,6 @@ import { ScrollArea } from '../ui/scroll-area';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '../ui/table';
 import { useApp } from '@/context/app-context';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
 
 type FollowUp = {
   id: number;
@@ -35,46 +34,6 @@ type FollowUp = {
   nextFollowUp: string;
   enteredBy: string;
 };
-
-const hrCoreModules = [
-  'Manpower Resource Planning',
-  'Recruitment and Requisition Management',
-  'Onboarding',
-  'Letter Generation',
-  'Leave Management',
-];
-
-const attendanceSubModules = [
-  'Desktop Attendance Marking Only',
-  'Integration with Attendance Machine',
-  'Mobile Attendance Marking without Location',
-  'Geo Fencing',
-  'Geo Tracking',
-];
-
-const hrExtendedModules = [
-  'Shift Roaster Management',
-  'Timesheet Management',
-  'Performance Management',
-  'Training Management',
-  'Employee Movement / Transfer',
-  'Probation to Confirmation',
-  'Employee Database Management',
-  'Mobile App',
-  'Employee Self Service',
-];
-
-const financeModules = ['Payroll', 'Separation', 'Travel and Expense'];
-
-const generalModules = [
-  'Broadcast | Survey',
-  'Query Management',
-  'Asset Tracking',
-  'Rewards Recognition',
-  'Organogram',
-  'Declaration | Reprimands',
-  'Ex-Employee Portal',
-];
 
 const leadStatusOptions = [
     'All',
@@ -98,7 +57,6 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
   const [followUps, setFollowUps] = useState<FollowUp[]>([]);
   const [currentStatus, setCurrentStatus] = useState('Initial');
   const [selectedStatus, setSelectedStatus] = useState('');
-  const [productPopoverOpen, setProductPopoverOpen] = useState(false);
   
   const [transferredTo, setTransferredTo] = useState('');
   const [isReadyToUpdate, setIsReadyToUpdate] = useState(false);
@@ -143,11 +101,6 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
   const handleLeadDetailChange = (field: keyof LeadFormData, value: string | boolean | number | Date | undefined) => {
     setLeadDetails(prev => ({...prev, [field]: value}));
   }
-
-  const handleProductSelect = (product: string) => {
-    handleLeadDetailChange('selectedModule', product);
-    setProductPopoverOpen(false);
-  };
 
   const handleAddFollowUp = async () => {
     const isOrderClosedRemark = ['closed', 'order closed'].includes(remarks.trim().toLowerCase());
@@ -443,130 +396,14 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="selectedModule">Module</Label>
-                 <Popover
-                    open={productPopoverOpen}
-                    onOpenChange={setProductPopoverOpen}
-                    >
-                    <PopoverTrigger asChild>
-                        <Button
-                        variant="outline"
-                        role="combobox"
-                        className="w-full justify-between font-normal"
-                        disabled={isReadOnly}
-                        >
-                        <span className="truncate">
-                            {leadDetails.selectedModule || 'Select Module...'}
-                        </span>
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                      <ScrollArea className="h-72">
-                        <div className="space-y-1 p-1">
-                          <Collapsible>
-                            <CollapsibleTrigger asChild>
-                              <button className="flex w-full items-center justify-between rounded-sm px-2 py-1.5 text-left text-sm font-bold hover:bg-accent [&[data-state=open]>svg]:rotate-180">
-                                <span>HR Modules</span>
-                                <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
-                              </button>
-                            </CollapsibleTrigger>
-                            <CollapsibleContent className="space-y-1 pt-1 pl-4">
-                              {hrCoreModules.map((product) => (
-                                <Button
-                                  variant="ghost"
-                                  className="w-full justify-start text-sm"
-                                  key={product}
-                                  onClick={() => handleProductSelect(product)}
-                                >
-                                  {product}
-                                </Button>
-                              ))}
-                              <Collapsible>
-                                <CollapsibleTrigger asChild>
-                                  <button className="flex w-full items-center justify-between rounded-sm px-2 py-1.5 text-left text-sm font-bold hover:bg-accent [&[data-state=open]>svg]:rotate-180">
-                                    <span>Attendance Management</span>
-                                    <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
-                                  </button>
-                                </CollapsibleTrigger>
-                                <CollapsibleContent className="space-y-1 pt-1 pl-4">
-                                  <Button
-                                    variant="ghost"
-                                    className="w-full justify-start text-sm"
-                                    key="Attendance Management"
-                                    onClick={() =>
-                                      handleProductSelect('Attendance Management')
-                                    }
-                                  >
-                                    Attendance Management
-                                  </Button>
-                                  {attendanceSubModules.map((product) => (
-                                    <Button
-                                      variant="ghost"
-                                      className="w-full justify-start text-xs"
-                                      key={product}
-                                      onClick={() => handleProductSelect(product)}
-                                    >
-                                      {product}
-                                    </Button>
-                                  ))}
-                                </CollapsibleContent>
-                              </Collapsible>
-                              {hrExtendedModules.map((product) => (
-                                <Button
-                                  variant="ghost"
-                                  className="w-full justify-start text-sm"
-                                  key={product}
-                                  onClick={() => handleProductSelect(product)}
-                                >
-                                  {product}
-                                </Button>
-                              ))}
-                            </CollapsibleContent>
-                          </Collapsible>
-                          <Collapsible>
-                            <CollapsibleTrigger asChild>
-                              <button className="flex w-full items-center justify-between rounded-sm px-2 py-1.5 text-left text-sm font-bold hover:bg-accent [&[data-state=open]>svg]:rotate-180">
-                                <span>Finance Modules</span>
-                                <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
-                              </button>
-                            </CollapsibleTrigger>
-                            <CollapsibleContent className="space-y-1 pt-1 pl-4">
-                              {financeModules.map((product) => (
-                                <Button
-                                  variant="ghost"
-                                  className="w-full justify-start text-sm"
-                                  key={product}
-                                  onClick={() => handleProductSelect(product)}
-                                >
-                                  {product}
-                                </Button>
-                              ))}
-                            </CollapsibleContent>
-                          </Collapsible>
-                          <Collapsible>
-                            <CollapsibleTrigger asChild>
-                              <button className="flex w-full items-center justify-between rounded-sm px-2 py-1.5 text-left text-sm font-bold hover:bg-accent [&[data-state=open]>svg]:rotate-180">
-                                <span>General Modules</span>
-                                <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
-                              </button>
-                            </CollapsibleTrigger>
-                            <CollapsibleContent className="space-y-1 pt-1 pl-4">
-                              {generalModules.map((product) => (
-                                <Button
-                                  variant="ghost"
-                                  className="w-full justify-start text-sm"
-                                  key={product}
-                                  onClick={() => handleProductSelect(product)}
-                                >
-                                  {product}
-                                </Button>
-                              ))}
-                            </CollapsibleContent>
-                          </Collapsible>
-                        </div>
-                      </ScrollArea>
-                    </PopoverContent>
-                    </Popover>
+                <Input
+                  id="selectedModule"
+                  value={leadDetails.selectedModule || ''}
+                  onChange={(e) =>
+                    handleLeadDetailChange('selectedModule', e.target.value)
+                  }
+                  readOnly={isReadOnly}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="manager">Manager</Label>
