@@ -840,6 +840,16 @@ export default function LeadUploadForm() {
                 <div className="p-2 font-bold text-center border-b">Modules</div>
                 <ScrollArea className="h-72">
                   <div className="space-y-1 p-1">
+                    <div
+                      className="flex items-center space-x-3 rounded-md p-2 pr-4 font-semibold cursor-pointer hover:bg-accent"
+                      onClick={() => {
+                        handleSelectChange('selectedModule', '');
+                        setProductPopoverOpen(false);
+                      }}
+                    >
+                      <div className="w-4 h-4 ml-1" /> {/* Spacer */}
+                      <label className="w-full cursor-pointer">Select module</label>
+                    </div>
                     <div className="flex items-center space-x-3 rounded-md p-2 pr-4 font-semibold">
                       <Checkbox id="all-modules-category" checked={getAllCheckedState()} onCheckedChange={(checked) => handleAllToggle(!!checked)} className="ml-1" />
                       <label htmlFor="all-modules-category" className="w-full cursor-pointer">All Modules</label>
@@ -1016,5 +1026,7 @@ export default function LeadUploadForm() {
     </div>
   );
 }
+
+    
 
     
