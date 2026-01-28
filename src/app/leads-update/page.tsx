@@ -225,12 +225,15 @@ export default function LeadsUpdatePage() {
     const statusFilterValue = filters.selectedStatus === 'Other' ? filters.otherStatusInput.trim() : filters.selectedStatus;
     const subStatusFilterValue = filters.selectedSubStatus === 'Other' ? filters.otherSubStatusInput.trim() : filters.selectedSubStatus;
     const leadSourceFilterValue = filters.selectedLeadSource === 'Other' ? filters.otherLeadSourceInput.trim() : filters.selectedLeadSource;
+    const followUpByFilterValue = filters.followUpEnteredBy === 'Other' ? filters.otherFollowUpEnteredByInput.trim() : filters.followUpEnteredBy;
 
+    // Filter by "Do not consider..." checkbox
     if (filters.considerStatus) {
         const excludedStatuses = ['Order closed', 'Fake', 'Existing Users', 'Not interested'];
         tempLeads = tempLeads.filter(lead => !excludedStatuses.includes(lead.status || ''));
     }
 
+    // Filter by main search term
     if (filters.searchTerm.trim() !== '') {
       const nameCategories = ['contactPerson', 'manager'];
       tempLeads = tempLeads.filter(lead => {
@@ -245,6 +248,7 @@ export default function LeadsUpdatePage() {
       });
     }
     
+    // Filter by creation date range
     if (filters.fromDate) {
       const fromTimestamp = new Date(`${filters.fromDate}T00:00:00`).getTime();
       tempLeads = tempLeads.filter(lead => lead.creationDate >= fromTimestamp);
@@ -254,6 +258,7 @@ export default function LeadsUpdatePage() {
       tempLeads = tempLeads.filter(lead => lead.creationDate <= toTimestamp);
     }
     
+    // Filter by selected modules
     if (filters.selectedModules) {
         const modulesToFilter = filters.selectedModules.split(', ').filter(Boolean);
         if (modulesToFilter.length > 0) {
@@ -265,6 +270,7 @@ export default function LeadsUpdatePage() {
         }
     }
     
+    // Filter by various dropdowns
     if (executiveFilterValue && executiveFilterValue !== 'all') {
         tempLeads = tempLeads.filter(lead => flexibleNameMatch(lead.executive, executiveFilterValue));
     }
@@ -281,40 +287,47 @@ export default function LeadsUpdatePage() {
       tempLeads = tempLeads.filter(lead => lead.reference === leadSourceFilterValue);
     }
 
+    // --- Follow-up Filters ---
+    // These filters are only applied if the main "considerStatus" checkbox is checked.
     if (filters.considerStatus) {
         const today = startOfDay(new Date());
-        const followUpByFilterValue = filters.followUpEnteredBy === 'Other' ? filters.otherFollowUpEnteredByInput.trim() : filters.followUpEnteredBy;
 
+        // Apply "Enter by" filter
         if (followUpByFilterValue && followUpByFilterValue !== 'all') {
             tempLeads = tempLeads.filter(lead => 
                 lead.followUps && lead.followUps.some(fu => flexibleNameMatch(fu.enteredBy, followUpByFilterValue))
             );
         }
 
+        // Apply "Follow Up Status" (Pending/Made) filter
         if (filters.followUpStatus === 'pending') {
             tempLeads = tempLeads.filter(lead => {
                 const nextFollowUpDateObj = lead.nextFollowUpDate ? startOfDay(new Date(lead.nextFollowUpDate)) : null;
                 const hasDateRange = filters.followUpFromDate || filters.followUpToDate;
+
                 if (hasDateRange) {
                     if (!nextFollowUpDateObj) return false;
-                    if (filters.followUpFromDate && startOfDay(new Date(filters.followUpFromDate)) > nextFollowUpDateObj) return false;
-                    if (filters.followUpToDate && endOfDay(new Date(filters.followUpToDate)) < nextFollowUpDateObj) return false;
-                    return true;
+                    const fromOk = !filters.followUpFromDate || startOfDay(new Date(filters.followUpFromDate)) <= nextFollowUpDateObj;
+                    const toOk = !filters.followUpToDate || endOfDay(new Date(filters.followUpToDate)) >= nextFollowUpDateObj;
+                    return fromOk && toOk;
                 } else {
                     return !nextFollowUpDateObj || nextFollowUpDateObj <= today;
                 }
             });
         } else if (filters.followUpStatus === 'made') {
-            tempLeads = tempLeads.filter(lead => {
+             tempLeads = tempLeads.filter(lead => {
                 const nextFollowUpDateObj = lead.nextFollowUpDate ? startOfDay(new Date(lead.nextFollowUpDate)) : null;
-                if (!nextFollowUpDateObj || nextFollowUpDateObj <= today) return false;
-
                 const hasDateRange = filters.followUpFromDate || filters.followUpToDate;
+                
+                if (!nextFollowUpDateObj) return false;
+
                 if (hasDateRange) {
-                    if (filters.followUpFromDate && startOfDay(new Date(filters.followUpFromDate)) > nextFollowUpDateObj) return false;
-                    if (filters.followUpToDate && endOfDay(new Date(filters.followUpToDate)) < nextFollowUpDateObj) return false;
+                    const fromOk = !filters.followUpFromDate || startOfDay(new Date(filters.followUpFromDate)) <= nextFollowUpDateObj;
+                    const toOk = !filters.followUpToDate || endOfDay(new Date(filters.followUpToDate)) >= nextFollowUpDateObj;
+                    return fromOk && toOk;
+                } else {
+                    return nextFollowUpDateObj > today;
                 }
-                return true;
             });
         }
     }
@@ -1079,5 +1092,3 @@ export default function LeadsUpdatePage() {
     </AppContent>
   );
 }
-
-    
