@@ -288,58 +288,52 @@ export default function LeadsUpdatePage() {
       if (filters.followUpStatus === 'pending') {
         tempLeads = tempLeads.filter(lead => {
           if (!lead.nextFollowUpDate) return false;
+          const nextFollowUpDateObj = startOfDay(new Date(lead.nextFollowUpDate));
+          if (nextFollowUpDateObj > today) return false;
 
-          try {
-            const nextFollowUpDateObj = startOfDay(new Date(lead.nextFollowUpDate));
-            
-            if (nextFollowUpDateObj > today) return false;
-
-            if (filters.followUpFromDate && nextFollowUpDateObj < startOfDay(new Date(filters.followUpFromDate))) {
-              return false;
-            }
-            if (filters.followUpToDate && nextFollowUpDateObj > endOfDay(new Date(filters.followUpToDate))) {
-              return false;
-            }
-
-            if (followUpByFilterValue && followUpByFilterValue !== 'all') {
-              const lastFollowUp = lead.followUps && lead.followUps.length > 0 ? lead.followUps[lead.followUps.length - 1] : null;
-              if (!lastFollowUp || !flexibleNameMatch(lastFollowUp.enteredBy, followUpByFilterValue)) {
-                return false;
-              }
-            }
-            
-            return true;
-          } catch (e) {
+          if (filters.followUpFromDate && startOfDay(new Date(filters.followUpFromDate)) > nextFollowUpDateObj) {
             return false;
           }
+          if (filters.followUpToDate && endOfDay(new Date(filters.followUpToDate)) < nextFollowUpDateObj) {
+            return false;
+          }
+
+          if (followUpByFilterValue && followUpByFilterValue !== 'all') {
+            if (!lead.followUps || lead.followUps.length === 0) {
+                return false;
+            }
+            const hasMatchingFollowUp = lead.followUps.some(fu => flexibleNameMatch(fu.enteredBy, followUpByFilterValue));
+            if (!hasMatchingFollowUp) {
+                return false;
+            }
+          }
+          
+          return true;
         });
       } else if (filters.followUpStatus === 'made') {
         tempLeads = tempLeads.filter(lead => {
           if (!lead.nextFollowUpDate) return false;
+          const nextFollowUpDateObj = startOfDay(new Date(lead.nextFollowUpDate));
+          if (nextFollowUpDateObj <= today) return false;
 
-          try {
-            const nextFollowUpDateObj = startOfDay(new Date(lead.nextFollowUpDate));
-            
-            if (nextFollowUpDateObj <= today) return false;
-
-            if (filters.followUpFromDate && nextFollowUpDateObj < startOfDay(new Date(filters.followUpFromDate))) {
-              return false;
-            }
-            if (filters.followUpToDate && nextFollowUpDateObj > endOfDay(new Date(filters.followUpToDate))) {
-              return false;
-            }
-            
-            if (followUpByFilterValue && followUpByFilterValue !== 'all') {
-              const lastFollowUp = lead.followUps && lead.followUps.length > 0 ? lead.followUps[lead.followUps.length - 1] : null;
-              if (!lastFollowUp || !flexibleNameMatch(lastFollowUp.enteredBy, followUpByFilterValue)) {
-                return false;
-              }
-            }
-
-            return true;
-          } catch (e) {
+          if (filters.followUpFromDate && startOfDay(new Date(filters.followUpFromDate)) > nextFollowUpDateObj) {
             return false;
           }
+          if (filters.followUpToDate && endOfDay(new Date(filters.followUpToDate)) < nextFollowUpDateObj) {
+            return false;
+          }
+          
+          if (followUpByFilterValue && followUpByFilterValue !== 'all') {
+            if (!lead.followUps || lead.followUps.length === 0) {
+                return false;
+            }
+            const hasMatchingFollowUp = lead.followUps.some(fu => flexibleNameMatch(fu.enteredBy, followUpByFilterValue));
+            if (!hasMatchingFollowUp) {
+                return false;
+            }
+          }
+
+          return true;
         });
       }
     }
@@ -349,27 +343,27 @@ export default function LeadsUpdatePage() {
 
   const handleShowButtonClick = () => {
       const currentFilters = {
-        searchTerm: searchTerm,
-        searchCategory: searchCategory,
-        fromDate: fromDate,
-        toDate: toDate,
-        selectedModules: selectedModules,
-        selectedExecutive: selectedExecutive,
-        otherExecutiveInput: otherExecutiveInput,
-        givenBy: givenBy,
-        otherGivenByInput: otherGivenByInput,
-        selectedStatus: selectedStatus,
-        otherStatusInput: otherStatusInput,
-        selectedSubStatus: selectedSubStatus,
-        otherSubStatusInput: otherSubStatusInput,
-        selectedLeadSource: selectedLeadSource,
-        otherLeadSourceInput: otherLeadSourceInput,
-        considerStatus: considerStatus,
-        followUpStatus: followUpStatus,
-        followUpFromDate: followUpFromDate,
-        followUpToDate: followUpToDate,
-        followUpEnteredBy: followUpEnteredBy,
-        otherFollowUpEnteredByInput: otherFollowUpEnteredByInput
+        searchTerm,
+        searchCategory,
+        fromDate,
+        toDate,
+        selectedModules,
+        selectedExecutive,
+        otherExecutiveInput,
+        givenBy,
+        otherGivenByInput,
+        selectedStatus,
+        otherStatusInput,
+        selectedSubStatus,
+        otherSubStatusInput,
+        selectedLeadSource,
+        otherLeadSourceInput,
+        considerStatus,
+        followUpStatus,
+        followUpFromDate,
+        followUpToDate,
+        followUpEnteredBy,
+        otherFollowUpEnteredByInput
       };
       
       setStagedFilters(currentFilters);
@@ -1104,3 +1098,5 @@ export default function LeadsUpdatePage() {
     </AppContent>
   );
 }
+
+    
