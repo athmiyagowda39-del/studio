@@ -137,12 +137,10 @@ export default function LeadsUpdatePage() {
     return allLeads;
   }, [allLeads, user]);
 
-  useEffect(() => {
-    if (activeTab === 'search-result') return;
+  const applyTabFilter = (tab: TabValue) => {
+     let tempLeads = [...visibleLeads];
 
-    let tempLeads = [...visibleLeads];
-
-    switch (activeTab) {
+    switch (tab) {
       case 'not-viewed':
         tempLeads = tempLeads.filter(lead => !lead.executiveViewDate);
         break;
@@ -172,6 +170,12 @@ export default function LeadsUpdatePage() {
     }
     setFilteredLeads(tempLeads);
     setCurrentPage(1);
+  }
+
+  useEffect(() => {
+    if (activeTab !== 'search-result') {
+      applyTabFilter(activeTab);
+    }
   }, [visibleLeads, activeTab]);
 
   const handleShowButtonClick = () => {
@@ -210,10 +214,10 @@ export default function LeadsUpdatePage() {
         }
     }
     if (selectedExecutive !== 'all' && selectedExecutive !== 'Other') {
-      tempLeads = tempLeads.filter(lead => (lead.executive || '').trim().toLowerCase() === selectedExecutive.trim().toLowerCase());
+      tempLeads = tempLeads.filter(lead => (lead.executive || '').toLowerCase() === selectedExecutive.toLowerCase());
     }
     if (givenBy !== 'all' && givenBy !== 'Other') {
-      tempLeads = tempLeads.filter(lead => (lead.givenBy || '').trim().toLowerCase() === givenBy.trim().toLowerCase());
+      tempLeads = tempLeads.filter(lead => (lead.givenBy || '').toLowerCase() === givenBy.toLowerCase());
     }
     if (selectedStatus !== 'all') {
       tempLeads = tempLeads.filter(lead => lead.status === selectedStatus);
@@ -232,10 +236,10 @@ export default function LeadsUpdatePage() {
 
           try {
             const nextFollowUp = new Date(lead.nextFollowUpDate);
-            if (followUpFromDate && startOfDay(nextFollowUp) < startOfDay(new Date(`${followUpFromDate}T00:00:00`))) {
+            if (followUpFromDate && nextFollowUp < startOfDay(new Date(`${followUpFromDate}T00:00:00`))) {
               return false;
             }
-            if (followUpToDate && startOfDay(nextFollowUp) > endOfDay(new Date(`${followUpToDate}T00:00:00`))) {
+            if (followUpToDate && nextFollowUp > endOfDay(new Date(`${followUpToDate}T00:00:00`))) {
               return false;
             }
           } catch {
@@ -243,7 +247,7 @@ export default function LeadsUpdatePage() {
           }
 
           if (followUpEnteredBy !== 'all') {
-            if (!lead.followUps || !lead.followUps.some(fu => (fu.enteredBy || '').trim().toLowerCase() === followUpEnteredBy.trim().toLowerCase())) {
+             if (!lead.followUps || !lead.followUps.some(fu => (fu.enteredBy || '').toLowerCase() === followUpEnteredBy.toLowerCase())) {
               return false;
             }
           }
@@ -255,15 +259,15 @@ export default function LeadsUpdatePage() {
           if (!lead.followUps || lead.followUps.length === 0) return false;
           
           return lead.followUps.some(followUp => {
-            const personMatch = followUpEnteredBy === 'all' || (followUp.enteredBy || '').trim().toLowerCase() === followUpEnteredBy.trim().toLowerCase();
+            const personMatch = followUpEnteredBy === 'all' || (followUp.enteredBy || '').toLowerCase() === followUpEnteredBy.toLowerCase();
             if (!personMatch) return false;
             
             try {
               const followUpDateObj = new Date(followUp.date);
-               if (followUpFromDate && startOfDay(followUpDateObj) < startOfDay(new Date(`${followUpFromDate}T00:00:00`))) {
+               if (followUpFromDate && followUpDateObj < startOfDay(new Date(`${followUpFromDate}T00:00:00`))) {
                 return false;
               }
-              if (followUpToDate && startOfDay(followUpDateObj) > endOfDay(new Date(`${followUpToDate}T00:00:00`))) {
+              if (followUpToDate && followUpDateObj > endOfDay(new Date(`${followUpToDate}T00:00:00`))) {
                 return false;
               }
               return true;
