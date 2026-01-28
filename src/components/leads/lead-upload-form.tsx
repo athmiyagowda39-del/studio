@@ -908,14 +908,14 @@ export default function LeadUploadForm() {
             <Label htmlFor="manager">Manager</Label>
             <Select
               value={formData.manager || ''}
-              onValueChange={(value) => handleSelectChange('manager', value)}
+              onValueChange={(value) => handleSelectChange('manager', value === 'clear-manager' ? '' : value)}
               disabled={isReadOnly}
             >
               <SelectTrigger id="manager">
                 <SelectValue placeholder="Select Manager..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Select Manager</SelectItem>
+                <SelectItem value="clear-manager">Select Manager</SelectItem>
                 {managers.map((manager) => (
                   <SelectItem key={manager.id} value={manager.username}>
                     {manager.username}
@@ -1048,3 +1048,4 @@ export default function LeadUploadForm() {
     
 
     
+
