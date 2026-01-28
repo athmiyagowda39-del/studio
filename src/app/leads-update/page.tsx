@@ -37,52 +37,7 @@ import {
 } from '@/components/ui/popover';
 import { ChevronsUpDown, ChevronDown, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-const hrCoreModules = [
-  'Manpower Resource Planning',
-  'Recruitment and Requisition Management',
-  'Onboarding',
-  'Letter Generation',
-  'Leave Management',
-];
-
-const attendanceSubModules = [
-  'Desktop Attendance Marking Only',
-  'Integration with Attendance Machine',
-  'Mobile Attendance Marking without Location',
-  'Geo Fencing',
-  'Geo Tracking',
-];
-
-const hrExtendedModules = [
-  'Shift Roaster Management',
-  'Timesheet Management',
-  'Performance Management',
-  'Training Management',
-  'Employee Movement / Transfer',
-  'Probation to Confirmation',
-  'Employee Database Management',
-  'Mobile App',
-  'Employee Self Service',
-];
-
-const financeModules = ['Payroll', 'Separation', 'Travel and Expense'];
-
-const generalModules = [
-  'Broadcast | Survey',
-  'Query Management',
-  'Asset Tracking',
-  'Rewards Recognition',
-  'Organogram',
-  'Declaration | Reprimands',
-  'Ex-Employee Portal',
-];
-
-const allHrModules = [...hrCoreModules, 'Attendance Management', ...attendanceSubModules, ...hrExtendedModules];
-const allFinanceModules = [...financeModules];
-const allGeneralModules = [...generalModules];
-const allAttendanceModules = ['Attendance Management', ...attendanceSubModules];
-const allModules = [...new Set([...allHrModules, ...allFinanceModules, ...allGeneralModules])];
+import { getDisplayModule, allModules, allHrModules, allFinanceModules, allGeneralModules, financeModules, generalModules } from '@/lib/modules';
 
 const LEADS_PER_PAGE = 10;
 type TabValue = 'all' | 'not-viewed' | 'follow-ups-due' | 'zero-follow-ups' | 'search-result';
@@ -122,38 +77,6 @@ const references = [
 ];
 
 const normalizeString = (str: string) => (str || '').toLowerCase().replace(/[\s.]+/g, '');
-
-const getDisplayModule = (selectedModuleString: string): string => {
-  if (!selectedModuleString) return 'N/A';
-
-  const selected = new Set(selectedModuleString.split(', ').filter(Boolean));
-  const display = [];
-
-  const hrSet = new Set(allHrModules);
-  const financeSet = new Set(allFinanceModules);
-  const generalSet = new Set(allGeneralModules);
-
-  let hasAllHr = hrSet.size > 0 && [...hrSet].every(m => selected.has(m));
-  let hasAllFinance = financeSet.size > 0 && [...financeSet].every(m => selected.has(m));
-  let hasAllGeneral = generalSet.size > 0 && [...generalSet].every(m => selected.has(m));
-
-  if (hasAllHr) {
-    display.push('HR Module');
-    [...hrSet].forEach(m => selected.delete(m));
-  }
-  if (hasAllFinance) {
-    display.push('Finance Module');
-    [...financeSet].forEach(m => selected.delete(m));
-  }
-  if (hasAllGeneral) {
-    display.push('General Module');
-    [...generalSet].forEach(m => selected.delete(m));
-  }
-
-  display.push(...Array.from(selected));
-  
-  return display.length > 0 ? display.join(', ') : 'N/A';
-};
 
 export default function LeadsUpdatePage() {
   const { user, isAuthenticated, isLoading, leads: allLeads, users } = useApp();
@@ -502,33 +425,7 @@ export default function LeadsUpdatePage() {
         return 'All Modules Selected';
     }
     
-    const display = [];
-    const remainingSelected = new Set(selected);
-
-    const hrSet = new Set(allHrModules);
-    const hasAllHr = hrSet.size > 0 && [...hrSet].every(m => selected.has(m));
-    if (hasAllHr) {
-      display.push('HR Module');
-      [...hrSet].forEach(m => remainingSelected.delete(m));
-    }
-
-    const financeSet = new Set(allFinanceModules);
-    const hasAllFinance = financeSet.size > 0 && [...financeSet].every(m => selected.has(m));
-    if (hasAllFinance) {
-      display.push('Finance Module');
-      [...financeSet].forEach(m => remainingSelected.delete(m));
-    }
-
-    const generalSet = new Set(allGeneralModules);
-    const hasAllGeneral = generalSet.size > 0 && [...generalSet].every(m => selected.has(m));
-    if (hasAllGeneral) {
-      display.push('General Module');
-      [...generalSet].forEach(m => remainingSelected.delete(m));
-    }
-    
-    display.push(...Array.from(remainingSelected));
-    
-    const buttonText = display.join(', ');
+    const buttonText = getDisplayModule(selectedModules);
 
     if(buttonText.endsWith(" Module") && !buttonText.includes(',')) {
         return `${buttonText} Selected`;

@@ -26,6 +26,7 @@ import { ScrollArea } from '../ui/scroll-area';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '../ui/table';
 import { useApp } from '@/context/app-context';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { getDisplayModule } from '@/lib/modules';
 
 type FollowUp = {
   id: number;
@@ -223,8 +224,8 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
       return;
     }
 
-    const { contactPerson, contactNumber, email, selectedModule, initialRemarks } = leadDetails;
-    const payload = { contactPerson, contactNumber, email, selectedModule, initialRemarks };
+    const { contactPerson, contactNumber, email, initialRemarks } = leadDetails;
+    const payload = { contactPerson, contactNumber, email, initialRemarks };
 
     updateLead(leadDetails.leadId, payload);
 
@@ -398,7 +399,7 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
                 <Label htmlFor="selectedModule">Module</Label>
                 <Input
                   id="selectedModule"
-                  value={leadDetails.selectedModule || ''}
+                  value={getDisplayModule(leadDetails.selectedModule || '')}
                   readOnly
                   className="bg-muted"
                 />
