@@ -76,6 +76,13 @@ const references = [
     "Existing Customer", "Upselling", "Cross-selling", "Events / Trade Shows", "Demo Request", "Trial Signup", "Other"
 ];
 
+const flexibleNameMatch = (nameInRecord: string | undefined, searchName: string): boolean => {
+    if (!nameInRecord || !searchName) return false;
+    const normalizedRecordName = nameInRecord.toLowerCase().replace(/[\s.]+/g, '');
+    const normalizedSearchName = searchName.toLowerCase().replace(/[\s.]+/g, '');
+    return normalizedRecordName.includes(normalizedSearchName);
+};
+
 export default function LeadsUpdatePage() {
   const { user, isAuthenticated, isLoading, leads: allLeads, users } = useApp();
   const router = useRouter();
@@ -226,10 +233,16 @@ export default function LeadsUpdatePage() {
     }
 
     if (filters.searchTerm.trim() !== '') {
+      const nameCategories = ['contactPerson', 'manager'];
       tempLeads = tempLeads.filter(lead => {
-        const searchVal = filters.searchTerm.trim().toLowerCase();
-        const fieldVal = (lead[filters.searchCategory as keyof LeadFormData] as string)?.toString().toLowerCase() || '';
-        return fieldVal.includes(searchVal);
+        const searchVal = filters.searchTerm.trim();
+        const fieldVal = (lead[filters.searchCategory as keyof LeadFormData] as string) || '';
+
+        if (nameCategories.includes(filters.searchCategory)) {
+            return flexibleNameMatch(fieldVal, searchVal);
+        }
+        
+        return fieldVal.toLowerCase().includes(searchVal.toLowerCase());
       });
     }
     
@@ -254,12 +267,10 @@ export default function LeadsUpdatePage() {
     }
     
     if (executiveFilterValue && executiveFilterValue !== 'all') {
-        const filterValueLower = executiveFilterValue.toLowerCase();
-        tempLeads = tempLeads.filter(lead => (lead.executive || '').toLowerCase().includes(filterValueLower));
+        tempLeads = tempLeads.filter(lead => flexibleNameMatch(lead.executive, executiveFilterValue));
     }
     if (givenByFilterValue && givenByFilterValue !== 'all') {
-        const filterValueLower = givenByFilterValue.toLowerCase();
-        tempLeads = tempLeads.filter(lead => (lead.givenBy || '').toLowerCase().includes(filterValueLower));
+        tempLeads = tempLeads.filter(lead => flexibleNameMatch(lead.givenBy, givenByFilterValue));
     }
     if (statusFilterValue !== 'all' && statusFilterValue) {
       tempLeads = tempLeads.filter(lead => lead.status === statusFilterValue);
@@ -280,7 +291,7 @@ export default function LeadsUpdatePage() {
 
           try {
             const nextFollowUpDateObj = startOfDay(new Date(lead.nextFollowUpDate));
-
+            
             if (nextFollowUpDateObj > today) return false;
 
             if (filters.followUpFromDate && nextFollowUpDateObj < startOfDay(new Date(filters.followUpFromDate))) {
@@ -292,7 +303,7 @@ export default function LeadsUpdatePage() {
 
             if (followUpByFilterValue && followUpByFilterValue !== 'all') {
               const lastFollowUp = lead.followUps && lead.followUps.length > 0 ? lead.followUps[lead.followUps.length - 1] : null;
-              if (!lastFollowUp || !lastFollowUp.enteredBy.toLowerCase().includes(followUpByFilterValue.toLowerCase())) {
+              if (!lastFollowUp || !flexibleNameMatch(lastFollowUp.enteredBy, followUpByFilterValue)) {
                 return false;
               }
             }
@@ -320,7 +331,7 @@ export default function LeadsUpdatePage() {
             
             if (followUpByFilterValue && followUpByFilterValue !== 'all') {
               const lastFollowUp = lead.followUps && lead.followUps.length > 0 ? lead.followUps[lead.followUps.length - 1] : null;
-              if (!lastFollowUp || !lastFollowUp.enteredBy.toLowerCase().includes(followUpByFilterValue.toLowerCase())) {
+              if (!lastFollowUp || !flexibleNameMatch(lastFollowUp.enteredBy, followUpByFilterValue)) {
                 return false;
               }
             }
@@ -338,36 +349,32 @@ export default function LeadsUpdatePage() {
 
   const handleShowButtonClick = () => {
       const currentFilters = {
-        searchTerm, searchCategory, fromDate, toDate, 
-        selectedModules, selectedExecutive, givenBy, selectedStatus, 
-        selectedSubStatus, selectedLeadSource, considerStatus,
-        followUpStatus, followUpFromDate, followUpToDate, followUpEnteredBy,
-        otherExecutiveInput, otherGivenByInput, otherStatusInput, otherSubStatusInput, otherLeadSourceInput, otherFollowUpEnteredByInput
+        searchTerm: searchTerm,
+        searchCategory: searchCategory,
+        fromDate: fromDate,
+        toDate: toDate,
+        selectedModules: selectedModules,
+        selectedExecutive: selectedExecutive,
+        otherExecutiveInput: otherExecutiveInput,
+        givenBy: givenBy,
+        otherGivenByInput: otherGivenByInput,
+        selectedStatus: selectedStatus,
+        otherStatusInput: otherStatusInput,
+        selectedSubStatus: selectedSubStatus,
+        otherSubStatusInput: otherSubStatusInput,
+        selectedLeadSource: selectedLeadSource,
+        otherLeadSourceInput: otherLeadSourceInput,
+        considerStatus: considerStatus,
+        followUpStatus: followUpStatus,
+        followUpFromDate: followUpFromDate,
+        followUpToDate: followUpToDate,
+        followUpEnteredBy: followUpEnteredBy,
+        otherFollowUpEnteredByInput: otherFollowUpEnteredByInput
       };
       
-      let finalExecutive = selectedExecutive;
-      if (selectedExecutive === 'Other' && otherExecutiveInput) finalExecutive = otherExecutiveInput;
-
-      let finalGivenBy = givenBy;
-      if (givenBy === 'Other' && otherGivenByInput) finalGivenBy = otherGivenByInput;
-
-      let finalStatus = selectedStatus;
-      if (selectedStatus === 'Other' && otherStatusInput) finalStatus = otherStatusInput;
-      
-      let finalSubStatus = selectedSubStatus;
-      if (selectedSubStatus === 'Other' && otherSubStatusInput) finalSubStatus = otherSubStatusInput;
-
-      let finalLeadSource = selectedLeadSource;
-      if (selectedLeadSource === 'Other' && otherLeadSourceInput) finalLeadSource = otherLeadSourceInput;
-
-      let finalFollowUpBy = followUpEnteredBy;
-      if (followUpEnteredBy === 'Other' && otherFollowUpEnteredByInput) finalFollowUpBy = otherFollowUpEnteredByInput;
-      
-      const filtersToApply = { ...currentFilters, selectedExecutive: finalExecutive, givenBy: finalGivenBy, selectedStatus: finalStatus, selectedSubStatus: finalSubStatus, selectedLeadSource: finalLeadSource, followUpEnteredBy: finalFollowUpBy };
-
-      setStagedFilters(filtersToApply);
+      setStagedFilters(currentFilters);
       setActiveTab('search-result');
-      applyFilters('search-result', filtersToApply);
+      applyFilters('search-result', currentFilters);
   };
   
   const handleResetFilters = () => {
@@ -1097,5 +1104,3 @@ export default function LeadsUpdatePage() {
     </AppContent>
   );
 }
-
-  
