@@ -180,18 +180,6 @@ export default function LeadsUpdatePage() {
     setActiveTab('search-result');
     let tempLeads = [...visibleLeads];
 
-    const {
-        searchTerm, searchCategory, fromDate, toDate,
-        selectedModules, selectedExecutive, givenBy, selectedStatus,
-        selectedSubStatus, selectedLeadSource, considerStatus,
-        followUpStatus, followUpFromDate, followUpToDate, followUpEnteredBy
-    } = {
-        searchTerm, searchCategory, fromDate, toDate, 
-        selectedModules, selectedExecutive, givenBy, selectedStatus, 
-        selectedSubStatus, selectedLeadSource, considerStatus,
-        followUpStatus, followUpFromDate, followUpToDate, followUpEnteredBy
-    };
-
     if (considerStatus) {
         const excludedStatuses = ['Order closed', 'Fake', 'Existing Users', 'Not interested'];
         tempLeads = tempLeads.filter(lead => !excludedStatuses.includes(lead.status || ''));
@@ -641,12 +629,12 @@ export default function LeadsUpdatePage() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="all">All</SelectItem>
-                           {executiveDropdownUsers.map(exec => (
-                            <SelectItem key={exec} value={exec}>
-                              {exec}
+                           {users.map(exec => (
+                            <SelectItem key={exec.id} value={exec.username}>
+                              {exec.username}
                             </SelectItem>
                           ))}
-                          {!executiveDropdownUsers.includes(selectedExecutive) && selectedExecutive !== 'all' && selectedExecutive !== 'Other' && (
+                          {!users.some(u => u.username === selectedExecutive) && selectedExecutive !== 'all' && selectedExecutive !== 'Other' && (
                               <SelectItem value={selectedExecutive}>{selectedExecutive}</SelectItem>
                           )}
                           <SelectItem value="Other">Other</SelectItem>
