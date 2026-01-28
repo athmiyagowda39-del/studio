@@ -76,8 +76,6 @@ const references = [
     "Existing Customer", "Upselling", "Cross-selling", "Events / Trade Shows", "Demo Request", "Trial Signup", "Other"
 ];
 
-const normalizeString = (str: string) => (str || '').toLowerCase().replace(/[\s.]+/g, '');
-
 export default function LeadsUpdatePage() {
   const { user, isAuthenticated, isLoading, leads: allLeads, users } = useApp();
   const router = useRouter();
@@ -140,40 +138,40 @@ export default function LeadsUpdatePage() {
   }, [allLeads, user]);
 
   useEffect(() => {
-    if (activeTab !== 'search-result') {
-      let tempLeads = [...visibleLeads];
+    if (activeTab === 'search-result') return;
 
-      switch (activeTab) {
-        case 'not-viewed':
-          tempLeads = tempLeads.filter(lead => !lead.executiveViewDate);
-          break;
-        case 'follow-ups-due':
-          const today = startOfDay(new Date());
-          tempLeads = tempLeads.filter(lead => {
-            if (!lead.nextFollowUpDate) return false;
-            try {
-              const dueDate = startOfDay(new Date(lead.nextFollowUpDate));
-              return dueDate <= today;
-            } catch {
-              return false;
-            }
-          });
-          tempLeads.sort((a, b) => 
-            (a.nextFollowUpDate ? new Date(a.nextFollowUpDate).getTime() : 0) - 
-            (b.nextFollowUpDate ? new Date(b.nextFollowUpDate).getTime() : 0)
-          );
-          break;
-        case 'zero-follow-ups':
-          tempLeads = tempLeads.filter(lead => !lead.followUps || lead.followUps.length === 0);
-          break;
-        case 'all':
-        default:
-          tempLeads.sort((a,b) => a.creationDate - b.creationDate);
-          break;
-      }
-      setFilteredLeads(tempLeads);
-      setCurrentPage(1);
+    let tempLeads = [...visibleLeads];
+
+    switch (activeTab) {
+      case 'not-viewed':
+        tempLeads = tempLeads.filter(lead => !lead.executiveViewDate);
+        break;
+      case 'follow-ups-due':
+        const today = startOfDay(new Date());
+        tempLeads = tempLeads.filter(lead => {
+          if (!lead.nextFollowUpDate) return false;
+          try {
+            const dueDate = startOfDay(new Date(lead.nextFollowUpDate));
+            return dueDate <= today;
+          } catch {
+            return false;
+          }
+        });
+        tempLeads.sort((a, b) => 
+          (a.nextFollowUpDate ? new Date(a.nextFollowUpDate).getTime() : 0) - 
+          (b.nextFollowUpDate ? new Date(b.nextFollowUpDate).getTime() : 0)
+        );
+        break;
+      case 'zero-follow-ups':
+        tempLeads = tempLeads.filter(lead => !lead.followUps || lead.followUps.length === 0);
+        break;
+      case 'all':
+      default:
+        tempLeads.sort((a,b) => a.creationDate - b.creationDate);
+        break;
     }
+    setFilteredLeads(tempLeads);
+    setCurrentPage(1);
   }, [visibleLeads, activeTab]);
 
   const handleShowButtonClick = () => {
@@ -212,10 +210,10 @@ export default function LeadsUpdatePage() {
         }
     }
     if (selectedExecutive !== 'all' && selectedExecutive !== 'Other') {
-      tempLeads = tempLeads.filter(lead => normalizeString(lead.executive || '') === normalizeString(selectedExecutive));
+      tempLeads = tempLeads.filter(lead => (lead.executive || '').trim().toLowerCase() === selectedExecutive.trim().toLowerCase());
     }
     if (givenBy !== 'all' && givenBy !== 'Other') {
-      tempLeads = tempLeads.filter(lead => normalizeString(lead.givenBy || '') === normalizeString(givenBy));
+      tempLeads = tempLeads.filter(lead => (lead.givenBy || '').trim().toLowerCase() === givenBy.trim().toLowerCase());
     }
     if (selectedStatus !== 'all') {
       tempLeads = tempLeads.filter(lead => lead.status === selectedStatus);
@@ -245,7 +243,7 @@ export default function LeadsUpdatePage() {
           }
 
           if (followUpEnteredBy !== 'all') {
-            if (!lead.followUps || !lead.followUps.some(fu => normalizeString(fu.enteredBy) === normalizeString(followUpEnteredBy))) {
+            if (!lead.followUps || !lead.followUps.some(fu => (fu.enteredBy || '').trim().toLowerCase() === followUpEnteredBy.trim().toLowerCase())) {
               return false;
             }
           }
@@ -257,7 +255,7 @@ export default function LeadsUpdatePage() {
           if (!lead.followUps || lead.followUps.length === 0) return false;
           
           return lead.followUps.some(followUp => {
-            const personMatch = followUpEnteredBy === 'all' || normalizeString(followUp.enteredBy) === normalizeString(followUpEnteredBy);
+            const personMatch = followUpEnteredBy === 'all' || (followUp.enteredBy || '').trim().toLowerCase() === followUpEnteredBy.trim().toLowerCase();
             if (!personMatch) return false;
             
             try {
@@ -285,7 +283,6 @@ export default function LeadsUpdatePage() {
     setSearchTerm('');
     setSearchCategory('leadId');
     setActiveTab('all');
-    setFilteredLeads(visibleLeads.sort((a,b) => a.creationDate - b.creationDate));
     
     setFromDate('');
     setToDate('');
@@ -629,12 +626,12 @@ export default function LeadsUpdatePage() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="all">All</SelectItem>
-                           {users.map(exec => (
-                            <SelectItem key={exec.id} value={exec.username}>
-                              {exec.username}
+                           {executiveDropdownUsers.map(exec => (
+                            <SelectItem key={exec} value={exec}>
+                              {exec}
                             </SelectItem>
                           ))}
-                          {!users.some(u => u.username === selectedExecutive) && selectedExecutive !== 'all' && selectedExecutive !== 'Other' && (
+                          {!executiveDropdownUsers.includes(selectedExecutive) && selectedExecutive !== 'all' && selectedExecutive !== 'Other' && (
                               <SelectItem value={selectedExecutive}>{selectedExecutive}</SelectItem>
                           )}
                           <SelectItem value="Other">Other</SelectItem>
