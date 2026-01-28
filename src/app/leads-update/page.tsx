@@ -117,6 +117,8 @@ export default function LeadsUpdatePage() {
 
   const [executives, setExecutives] = useState<string[]>([]);
   const allUsernames = useMemo(() => users.map(u => u.username), [users]);
+  
+  const [appliedFilters, setAppliedFilters] = useState<any | null>(null);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -144,11 +146,6 @@ export default function LeadsUpdatePage() {
   useEffect(() => {
     let tempLeads = [...visibleLeads];
 
-    if (considerStatus) {
-      const excludedStatuses = ['Order closed', 'Fake', 'Existing Users', 'Not interested'];
-      tempLeads = tempLeads.filter(lead => !excludedStatuses.includes(lead.status || ''));
-    }
-
     switch (activeTab) {
       case 'not-viewed':
         tempLeads = tempLeads.filter(lead => !lead.executiveViewDate);
@@ -173,96 +170,112 @@ export default function LeadsUpdatePage() {
         tempLeads = tempLeads.filter(lead => !lead.followUps || lead.followUps.length === 0);
         break;
       case 'search-result':
-        if (searchTerm.trim() !== '') {
-          tempLeads = tempLeads.filter(lead => {
-            const leadValue = (lead[searchCategory as keyof LeadFormData] as string)?.toString().toLowerCase() || '';
-            return leadValue.startsWith(searchTerm.toLowerCase());
-          });
-        }
-        
-        if (fromDate) {
-          const fromTimestamp = new Date(`${fromDate}T00:00:00`).getTime();
-          tempLeads = tempLeads.filter(lead => lead.creationDate >= fromTimestamp);
-        }
-        if (toDate) {
-          const toTimestamp = new Date(`${toDate}T23:59:59`).getTime();
-          tempLeads = tempLeads.filter(lead => lead.creationDate <= toTimestamp);
-        }
-        
-        if (selectedModules) {
-            const modulesToFilter = selectedModules.split(', ').filter(Boolean);
-            if (modulesToFilter.length > 0) {
-                tempLeads = tempLeads.filter(lead => {
-                    if (!lead.selectedModule) return false;
-                    const leadModules = lead.selectedModule.split(', ').filter(Boolean);
-                    return modulesToFilter.some(m => leadModules.includes(m));
-                });
+        if (appliedFilters) {
+            const {
+                searchTerm, searchCategory, fromDate, toDate,
+                selectedModules, selectedExecutive, givenBy, selectedStatus,
+                selectedSubStatus, selectedLeadSource, considerStatus,
+                followUpStatus, followUpFromDate, followUpToDate, followUpEnteredBy
+            } = appliedFilters;
+
+            if (considerStatus) {
+                const excludedStatuses = ['Order closed', 'Fake', 'Existing Users', 'Not interested'];
+                tempLeads = tempLeads.filter(lead => !excludedStatuses.includes(lead.status || ''));
             }
-        }
-        if (selectedExecutive !== 'all' && selectedExecutive !== 'Other') {
-          tempLeads = tempLeads.filter(lead => lead.executive === selectedExecutive);
-        }
-        if (givenBy !== 'all' && givenBy !== 'Other') {
-          tempLeads = tempLeads.filter(lead => lead.givenBy === givenBy);
-        }
-        if (selectedStatus !== 'all') {
-          tempLeads = tempLeads.filter(lead => lead.status === selectedStatus);
-        }
-        if (selectedSubStatus !== 'all' && selectedSubStatus !== 'Other') {
-          tempLeads = tempLeads.filter(lead => lead.leadSubStatus === selectedSubStatus);
-        }
-        if (selectedLeadSource !== 'all' && selectedLeadSource !== 'Other') {
-          tempLeads = tempLeads.filter(lead => lead.reference === selectedLeadSource);
-        }
 
-        if (considerStatus) {
-          if (followUpStatus === 'pending') {
-            tempLeads = tempLeads.filter(lead => {
-              if (!lead.nextFollowUpDate) return false;
-
-              try {
-                const nextFollowUp = new Date(lead.nextFollowUpDate);
-                if (followUpFromDate && startOfDay(nextFollowUp) < startOfDay(new Date(`${followUpFromDate}T00:00:00`))) {
-                  return false;
-                }
-                if (followUpToDate && startOfDay(nextFollowUp) > endOfDay(new Date(`${followUpToDate}T00:00:00`))) {
-                  return false;
-                }
-              } catch {
-                return false;
-              }
-
-              if (followUpEnteredBy !== 'all') {
-                if (!lead.followUps || !lead.followUps.some(fu => normalizeString(fu.enteredBy) === normalizeString(followUpEnteredBy))) {
-                  return false;
-                }
-              }
-              
-              return true;
-            });
-          } else if (followUpStatus === 'made') {
-            tempLeads = tempLeads.filter(lead => {
-              if (!lead.followUps || lead.followUps.length === 0) return false;
-              
-              return lead.followUps.some(followUp => {
-                const personMatch = followUpEnteredBy === 'all' || normalizeString(followUp.enteredBy) === normalizeString(followUpEnteredBy);
-                if (!personMatch) return false;
-                
-                try {
-                  const followUpDateObj = new Date(followUp.date);
-                   if (followUpFromDate && startOfDay(followUpDateObj) < startOfDay(new Date(`${followUpFromDate}T00:00:00`))) {
-                    return false;
-                  }
-                  if (followUpToDate && startOfDay(followUpDateObj) > endOfDay(new Date(`${followUpToDate}T00:00:00`))) {
-                    return false;
-                  }
-                  return true;
-                } catch {
-                   return false;
-                }
+            if (searchTerm.trim() !== '') {
+              tempLeads = tempLeads.filter(lead => {
+                const leadValue = (lead[searchCategory as keyof LeadFormData] as string)?.toString().toLowerCase() || '';
+                return leadValue.startsWith(searchTerm.toLowerCase());
               });
-            });
-          }
+            }
+            
+            if (fromDate) {
+              const fromTimestamp = new Date(`${fromDate}T00:00:00`).getTime();
+              tempLeads = tempLeads.filter(lead => lead.creationDate >= fromTimestamp);
+            }
+            if (toDate) {
+              const toTimestamp = new Date(`${toDate}T23:59:59`).getTime();
+              tempLeads = tempLeads.filter(lead => lead.creationDate <= toTimestamp);
+            }
+            
+            if (selectedModules) {
+                const modulesToFilter = selectedModules.split(', ').filter(Boolean);
+                if (modulesToFilter.length > 0) {
+                    tempLeads = tempLeads.filter(lead => {
+                        if (!lead.selectedModule) return false;
+                        const leadModules = lead.selectedModule.split(', ').filter(Boolean);
+                        return modulesToFilter.some(m => leadModules.includes(m));
+                    });
+                }
+            }
+            if (selectedExecutive !== 'all' && selectedExecutive !== 'Other') {
+              tempLeads = tempLeads.filter(lead => lead.executive === selectedExecutive);
+            }
+            if (givenBy !== 'all' && givenBy !== 'Other') {
+              tempLeads = tempLeads.filter(lead => lead.givenBy === givenBy);
+            }
+            if (selectedStatus !== 'all') {
+              tempLeads = tempLeads.filter(lead => lead.status === selectedStatus);
+            }
+            if (selectedSubStatus !== 'all' && selectedSubStatus !== 'Other') {
+              tempLeads = tempLeads.filter(lead => lead.leadSubStatus === selectedSubStatus);
+            }
+            if (selectedLeadSource !== 'all' && selectedLeadSource !== 'Other') {
+              tempLeads = tempLeads.filter(lead => lead.reference === selectedLeadSource);
+            }
+
+            if (considerStatus) {
+              if (followUpStatus === 'pending') {
+                tempLeads = tempLeads.filter(lead => {
+                  if (!lead.nextFollowUpDate) return false;
+
+                  try {
+                    const nextFollowUp = new Date(lead.nextFollowUpDate);
+                    if (followUpFromDate && startOfDay(nextFollowUp) < startOfDay(new Date(`${followUpFromDate}T00:00:00`))) {
+                      return false;
+                    }
+                    if (followUpToDate && startOfDay(nextFollowUp) > endOfDay(new Date(`${followUpToDate}T00:00:00`))) {
+                      return false;
+                    }
+                  } catch {
+                    return false;
+                  }
+
+                  if (followUpEnteredBy !== 'all') {
+                    if (!lead.followUps || !lead.followUps.some(fu => normalizeString(fu.enteredBy) === normalizeString(followUpEnteredBy))) {
+                      return false;
+                    }
+                  }
+                  
+                  return true;
+                });
+              } else if (followUpStatus === 'made') {
+                tempLeads = tempLeads.filter(lead => {
+                  if (!lead.followUps || lead.followUps.length === 0) return false;
+                  
+                  return lead.followUps.some(followUp => {
+                    const personMatch = followUpEnteredBy === 'all' || normalizeString(followUp.enteredBy) === normalizeString(followUpEnteredBy);
+                    if (!personMatch) return false;
+                    
+                    try {
+                      const followUpDateObj = new Date(followUp.date);
+                       if (followUpFromDate && startOfDay(followUpDateObj) < startOfDay(new Date(`${followUpFromDate}T00:00:00`))) {
+                        return false;
+                      }
+                      if (followUpToDate && startOfDay(followUpDateObj) > endOfDay(new Date(`${followUpToDate}T00:00:00`))) {
+                        return false;
+                      }
+                      return true;
+                    } catch {
+                       return false;
+                    }
+                  });
+                });
+              }
+            }
+        } else {
+            tempLeads = [];
         }
         break;
       case 'all':
@@ -273,21 +286,23 @@ export default function LeadsUpdatePage() {
 
     setFilteredLeads(tempLeads);
     setCurrentPage(1);
-  }, [
-    visibleLeads, activeTab, searchTerm, searchCategory, fromDate, toDate, 
-    selectedModules, selectedExecutive, givenBy, selectedStatus, 
-    selectedSubStatus, selectedLeadSource, considerStatus,
-    followUpStatus, followUpFromDate, followUpToDate, followUpEnteredBy
-  ]);
+  }, [visibleLeads, activeTab, appliedFilters]);
 
   const handleShowButtonClick = () => {
     setActiveTab('search-result');
+    setAppliedFilters({
+        searchTerm, searchCategory, fromDate, toDate, 
+        selectedModules, selectedExecutive, givenBy, selectedStatus, 
+        selectedSubStatus, selectedLeadSource, considerStatus,
+        followUpStatus, followUpFromDate, followUpToDate, followUpEnteredBy
+    });
   };
 
   const handleResetFilters = () => {
     setSearchTerm('');
     setSearchCategory('leadId');
     setActiveTab('all');
+    setAppliedFilters(null);
     
     setFromDate('');
     setToDate('');
@@ -344,9 +359,6 @@ export default function LeadsUpdatePage() {
 
   const handleStatusFilterChange = (value: string) => {
     setSelectedStatus(value);
-    if (value !== 'Other') {
-      setActiveTab('search-result');
-    }
   };
 
   const handleSetOtherStatus = () => {
@@ -354,7 +366,6 @@ export default function LeadsUpdatePage() {
       const newStatus = otherStatusInput.trim();
       setSelectedStatus(newStatus);
       setOtherStatusInput('');
-      setActiveTab('search-result');
     }
   };
 
