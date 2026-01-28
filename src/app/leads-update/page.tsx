@@ -168,7 +168,9 @@ export default function LeadsUpdatePage() {
         tempLeads.sort((a,b) => a.creationDate - b.creationDate);
         break;
     }
-    setFilteredLeads(tempLeads);
+    if (activeTab !== 'search-result') {
+      setFilteredLeads(tempLeads);
+    }
     setCurrentPage(1);
   }
 
@@ -232,47 +234,66 @@ export default function LeadsUpdatePage() {
     if (considerStatus) {
       if (followUpStatus === 'pending') {
         tempLeads = tempLeads.filter(lead => {
+          // To be pending, a lead must have a scheduled next follow-up date.
           if (!lead.nextFollowUpDate) return false;
 
           try {
-            const nextFollowUp = new Date(lead.nextFollowUpDate);
-            if (followUpFromDate && nextFollowUp < startOfDay(new Date(`${followUpFromDate}T00:00:00`))) {
+            const nextFollowUpDate = new Date(lead.nextFollowUpDate);
+            const today = endOfDay(new Date());
+
+            // A follow-up is pending if its due date is in the past or today.
+            if (nextFollowUpDate > today) {
               return false;
             }
-            if (followUpToDate && nextFollowUp > endOfDay(new Date(`${followUpToDate}T00:00:00`))) {
+
+            // If a date range is specified, the pending date must also fall within it.
+            if (followUpFromDate && nextFollowUpDate < startOfDay(new Date(followUpFromDate))) {
               return false;
             }
-          } catch {
+            if (followUpToDate && nextFollowUpDate > endOfDay(new Date(followUpToDate))) {
+              return false;
+            }
+
+            // If an "entered by" filter is active, check who entered the last follow-up.
+            if (followUpEnteredBy !== 'all') {
+              const lastFollowUp = lead.followUps && lead.followUps.length > 0 ? lead.followUps[lead.followUps.length - 1] : null;
+              if (!lastFollowUp || (lastFollowUp.enteredBy || '').toLowerCase() !== followUpEnteredBy.toLowerCase()) {
+                return false;
+              }
+            }
+            
+            return true;
+          } catch (e) {
+            // Handle invalid date formats gracefully.
             return false;
           }
-
-          if (followUpEnteredBy !== 'all') {
-             if (!lead.followUps || !lead.followUps.some(fu => (fu.enteredBy || '').toLowerCase() === followUpEnteredBy.toLowerCase())) {
-              return false;
-            }
-          }
-          
-          return true;
         });
       } else if (followUpStatus === 'made') {
         tempLeads = tempLeads.filter(lead => {
+          // To be "made", a lead must have at least one follow-up recorded.
           if (!lead.followUps || lead.followUps.length === 0) return false;
           
+          // Check if any of the follow-ups match the filter criteria.
           return lead.followUps.some(followUp => {
-            const personMatch = followUpEnteredBy === 'all' || (followUp.enteredBy || '').toLowerCase() === followUpEnteredBy.toLowerCase();
-            if (!personMatch) return false;
-            
             try {
-              const followUpDateObj = new Date(followUp.date);
-               if (followUpFromDate && followUpDateObj < startOfDay(new Date(`${followUpFromDate}T00:00:00`))) {
+              // Check if the person who entered the follow-up matches.
+              const personMatch = followUpEnteredBy === 'all' || (followUp.enteredBy || '').toLowerCase() === followUpEnteredBy.toLowerCase();
+              if (!personMatch) return false;
+              
+              const followUpMadeDate = new Date(followUp.date);
+              
+              // If a date range is specified, the follow-up must have been made within it.
+              if (followUpFromDate && followUpMadeDate < startOfDay(new Date(followUpFromDate))) {
                 return false;
               }
-              if (followUpToDate && followUpDateObj > endOfDay(new Date(`${followUpToDate}T00:00:00`))) {
+              if (followUpToDate && followUpMadeDate > endOfDay(new Date(followUpToDate))) {
                 return false;
               }
-              return true;
-            } catch {
-               return false;
+
+              return true; // This follow-up matches all criteria.
+            } catch (e) {
+              // Handle invalid date formats gracefully.
+              return false;
             }
           });
         });
@@ -882,7 +903,12 @@ export default function LeadsUpdatePage() {
 
             <Card>
               <CardContent className="p-4 space-y-4">
-                <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as TabValue)}>
+                <Tabs value={activeTab} onValueChange={(value) => {
+                  setActiveTab(value as TabValue);
+                  if (value !== 'search-result') {
+                    applyTabFilter(value as TabValue);
+                  }
+                }}>
                   <TabsList>
                     <TabsTrigger value="all">All Leads</TabsTrigger>
                     <TabsTrigger value="not-viewed">Leads not Viewed</TabsTrigger>
