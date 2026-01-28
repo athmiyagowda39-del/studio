@@ -491,12 +491,12 @@ export default function LeadsUpdatePage() {
 
   const getModuleButtonText = () => {
     if (!selectedModules) {
-        return 'All Modules';
+        return 'Select Module(s)...';
     }
 
     const selected = new Set(selectedModules.split(', ').filter(Boolean));
     if (selected.size === 0) {
-        return 'All Modules';
+        return 'Select Module(s)...';
     }
     if (selected.size === allModules.length) {
         return 'All Modules Selected';
@@ -528,7 +528,13 @@ export default function LeadsUpdatePage() {
     
     display.push(...Array.from(remainingSelected));
     
-    return display.join(', ');
+    const buttonText = display.join(', ');
+
+    if(buttonText.endsWith(" Module") && !buttonText.includes(',')) {
+        return `${buttonText} Selected`;
+    }
+    
+    return buttonText;
   };
 
   const ModuleSelectItem = ({ moduleName }: { moduleName: string }) => (
@@ -662,6 +668,16 @@ export default function LeadsUpdatePage() {
                            <div className="p-2 font-bold text-center border-b">Modules</div>
                           <ScrollArea className="h-72">
                             <div className="space-y-1 p-1">
+                              <div
+                                className="flex items-center space-x-3 rounded-md p-2 pr-4 font-semibold cursor-pointer hover:bg-accent"
+                                onClick={() => {
+                                  setSelectedModules('');
+                                  setProductPopoverOpen(false);
+                                }}
+                              >
+                                <div className="w-4 h-4 ml-1" /> {/* Spacer */}
+                                <label className="w-full cursor-pointer">Select module</label>
+                              </div>
                               <div className="flex items-center space-x-3 rounded-md p-2 pr-4 font-semibold">
                                 <Checkbox id="all-modules-category-filter" checked={getAllCheckedState()} onCheckedChange={(checked) => handleAllToggle(!!checked)} className="ml-1" />
                                 <label htmlFor="all-modules-category-filter" className="w-full cursor-pointer">All Modules</label>
