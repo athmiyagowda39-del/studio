@@ -115,24 +115,20 @@ export default function LeadsUpdatePage() {
   const [followUpEnteredBy, setFollowUpEnteredBy] = useState('all');
   const [otherFollowUpEnteredByInput, setOtherFollowUpEnteredByInput] = useState('');
 
-  const [executives, setExecutives] = useState<string[]>([]);
   const allUsernames = useMemo(() => users.map(u => u.username), [users]);
+  const executiveDropdownUsers = useMemo(() => {
+    const excludedNames = ['Varghese Vincent', 'Sam Devasia', 'Athmiya A G'];
+    return users
+      .filter(u => !excludedNames.includes(u.username))
+      .map(u => u.username);
+  }, [users]);
   
-  const [appliedFilters, setAppliedFilters] = useState<any | null>(null);
-
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       router.replace('/login');
     }
   }, [isAuthenticated, isLoading, router]);
 
-  useEffect(() => {
-    const executiveUsers = users
-      .filter(user => user.role === 'Executive')
-      .map(user => user.username);
-    setExecutives(executiveUsers);
-  }, [users]);
-  
   const visibleLeads = useMemo(() => {
     if (!user) return [];
 
@@ -144,165 +140,164 @@ export default function LeadsUpdatePage() {
   }, [allLeads, user]);
 
   useEffect(() => {
-    let tempLeads = [...visibleLeads];
+    if (activeTab !== 'search-result') {
+      let tempLeads = [...visibleLeads];
 
-    switch (activeTab) {
-      case 'not-viewed':
-        tempLeads = tempLeads.filter(lead => !lead.executiveViewDate);
-        break;
-      case 'follow-ups-due':
-        const today = startOfDay(new Date());
-        tempLeads = tempLeads.filter(lead => {
-          if (!lead.nextFollowUpDate) return false;
-          try {
-            const dueDate = startOfDay(new Date(lead.nextFollowUpDate));
-            return dueDate <= today;
-          } catch {
-            return false;
-          }
-        });
-        tempLeads.sort((a, b) => 
-          (a.nextFollowUpDate ? new Date(a.nextFollowUpDate).getTime() : 0) - 
-          (b.nextFollowUpDate ? new Date(b.nextFollowUpDate).getTime() : 0)
-        );
-        break;
-      case 'zero-follow-ups':
-        tempLeads = tempLeads.filter(lead => !lead.followUps || lead.followUps.length === 0);
-        break;
-      case 'search-result':
-        if (appliedFilters) {
-            const {
-                searchTerm, searchCategory, fromDate, toDate,
-                selectedModules, selectedExecutive, givenBy, selectedStatus,
-                selectedSubStatus, selectedLeadSource, considerStatus,
-                followUpStatus, followUpFromDate, followUpToDate, followUpEnteredBy
-            } = appliedFilters;
-
-            if (considerStatus) {
-                const excludedStatuses = ['Order closed', 'Fake', 'Existing Users', 'Not interested'];
-                tempLeads = tempLeads.filter(lead => !excludedStatuses.includes(lead.status || ''));
+      switch (activeTab) {
+        case 'not-viewed':
+          tempLeads = tempLeads.filter(lead => !lead.executiveViewDate);
+          break;
+        case 'follow-ups-due':
+          const today = startOfDay(new Date());
+          tempLeads = tempLeads.filter(lead => {
+            if (!lead.nextFollowUpDate) return false;
+            try {
+              const dueDate = startOfDay(new Date(lead.nextFollowUpDate));
+              return dueDate <= today;
+            } catch {
+              return false;
             }
-
-            if (searchTerm.trim() !== '') {
-              tempLeads = tempLeads.filter(lead => {
-                const leadValue = (lead[searchCategory as keyof LeadFormData] as string)?.toString().toLowerCase() || '';
-                return leadValue.startsWith(searchTerm.toLowerCase());
-              });
-            }
-            
-            if (fromDate) {
-              const fromTimestamp = new Date(`${fromDate}T00:00:00`).getTime();
-              tempLeads = tempLeads.filter(lead => lead.creationDate >= fromTimestamp);
-            }
-            if (toDate) {
-              const toTimestamp = new Date(`${toDate}T23:59:59`).getTime();
-              tempLeads = tempLeads.filter(lead => lead.creationDate <= toTimestamp);
-            }
-            
-            if (selectedModules) {
-                const modulesToFilter = selectedModules.split(', ').filter(Boolean);
-                if (modulesToFilter.length > 0) {
-                    tempLeads = tempLeads.filter(lead => {
-                        if (!lead.selectedModule) return false;
-                        const leadModules = lead.selectedModule.split(', ').filter(Boolean);
-                        return modulesToFilter.some(m => leadModules.includes(m));
-                    });
-                }
-            }
-            if (selectedExecutive !== 'all' && selectedExecutive !== 'Other') {
-              tempLeads = tempLeads.filter(lead => normalizeString(lead.executive || '') === normalizeString(selectedExecutive));
-            }
-            if (givenBy !== 'all' && givenBy !== 'Other') {
-              tempLeads = tempLeads.filter(lead => lead.givenBy === givenBy);
-            }
-            if (selectedStatus !== 'all') {
-              tempLeads = tempLeads.filter(lead => lead.status === selectedStatus);
-            }
-            if (selectedSubStatus !== 'all' && selectedSubStatus !== 'Other') {
-              tempLeads = tempLeads.filter(lead => lead.leadSubStatus === selectedSubStatus);
-            }
-            if (selectedLeadSource !== 'all' && selectedLeadSource !== 'Other') {
-              tempLeads = tempLeads.filter(lead => lead.reference === selectedLeadSource);
-            }
-
-            if (considerStatus) {
-              if (followUpStatus === 'pending') {
-                tempLeads = tempLeads.filter(lead => {
-                  if (!lead.nextFollowUpDate) return false;
-
-                  try {
-                    const nextFollowUp = new Date(lead.nextFollowUpDate);
-                    if (followUpFromDate && startOfDay(nextFollowUp) < startOfDay(new Date(`${followUpFromDate}T00:00:00`))) {
-                      return false;
-                    }
-                    if (followUpToDate && startOfDay(nextFollowUp) > endOfDay(new Date(`${followUpToDate}T00:00:00`))) {
-                      return false;
-                    }
-                  } catch {
-                    return false;
-                  }
-
-                  if (followUpEnteredBy !== 'all') {
-                    if (!lead.followUps || !lead.followUps.some(fu => normalizeString(fu.enteredBy) === normalizeString(followUpEnteredBy))) {
-                      return false;
-                    }
-                  }
-                  
-                  return true;
-                });
-              } else if (followUpStatus === 'made') {
-                tempLeads = tempLeads.filter(lead => {
-                  if (!lead.followUps || lead.followUps.length === 0) return false;
-                  
-                  return lead.followUps.some(followUp => {
-                    const personMatch = followUpEnteredBy === 'all' || normalizeString(followUp.enteredBy) === normalizeString(followUpEnteredBy);
-                    if (!personMatch) return false;
-                    
-                    try {
-                      const followUpDateObj = new Date(followUp.date);
-                       if (followUpFromDate && startOfDay(followUpDateObj) < startOfDay(new Date(`${followUpFromDate}T00:00:00`))) {
-                        return false;
-                      }
-                      if (followUpToDate && startOfDay(followUpDateObj) > endOfDay(new Date(`${followUpToDate}T00:00:00`))) {
-                        return false;
-                      }
-                      return true;
-                    } catch {
-                       return false;
-                    }
-                  });
-                });
-              }
-            }
-        } else {
-            tempLeads = [];
-        }
-        break;
-      case 'all':
-      default:
-        tempLeads.sort((a,b) => a.creationDate - b.creationDate);
-        break;
+          });
+          tempLeads.sort((a, b) => 
+            (a.nextFollowUpDate ? new Date(a.nextFollowUpDate).getTime() : 0) - 
+            (b.nextFollowUpDate ? new Date(b.nextFollowUpDate).getTime() : 0)
+          );
+          break;
+        case 'zero-follow-ups':
+          tempLeads = tempLeads.filter(lead => !lead.followUps || lead.followUps.length === 0);
+          break;
+        case 'all':
+        default:
+          tempLeads.sort((a,b) => a.creationDate - b.creationDate);
+          break;
+      }
+      setFilteredLeads(tempLeads);
+      setCurrentPage(1);
     }
-
-    setFilteredLeads(tempLeads);
-    setCurrentPage(1);
-  }, [visibleLeads, activeTab, appliedFilters]);
+  }, [visibleLeads, activeTab]);
 
   const handleShowButtonClick = () => {
     setActiveTab('search-result');
-    setAppliedFilters({
+    let tempLeads = [...visibleLeads];
+
+    const {
+        searchTerm, searchCategory, fromDate, toDate,
+        selectedModules, selectedExecutive, givenBy, selectedStatus,
+        selectedSubStatus, selectedLeadSource, considerStatus,
+        followUpStatus, followUpFromDate, followUpToDate, followUpEnteredBy
+    } = {
         searchTerm, searchCategory, fromDate, toDate, 
         selectedModules, selectedExecutive, givenBy, selectedStatus, 
         selectedSubStatus, selectedLeadSource, considerStatus,
         followUpStatus, followUpFromDate, followUpToDate, followUpEnteredBy
-    });
+    };
+
+    if (considerStatus) {
+        const excludedStatuses = ['Order closed', 'Fake', 'Existing Users', 'Not interested'];
+        tempLeads = tempLeads.filter(lead => !excludedStatuses.includes(lead.status || ''));
+    }
+
+    if (searchTerm.trim() !== '') {
+      tempLeads = tempLeads.filter(lead => {
+        const leadValue = (lead[searchCategory as keyof LeadFormData] as string)?.toString().toLowerCase() || '';
+        return leadValue.startsWith(searchTerm.toLowerCase());
+      });
+    }
+    
+    if (fromDate) {
+      const fromTimestamp = new Date(`${fromDate}T00:00:00`).getTime();
+      tempLeads = tempLeads.filter(lead => lead.creationDate >= fromTimestamp);
+    }
+    if (toDate) {
+      const toTimestamp = new Date(`${toDate}T23:59:59`).getTime();
+      tempLeads = tempLeads.filter(lead => lead.creationDate <= toTimestamp);
+    }
+    
+    if (selectedModules) {
+        const modulesToFilter = selectedModules.split(', ').filter(Boolean);
+        if (modulesToFilter.length > 0) {
+            tempLeads = tempLeads.filter(lead => {
+                if (!lead.selectedModule) return false;
+                const leadModules = lead.selectedModule.split(', ').filter(Boolean);
+                return modulesToFilter.some(m => leadModules.includes(m));
+            });
+        }
+    }
+    if (selectedExecutive !== 'all' && selectedExecutive !== 'Other') {
+      tempLeads = tempLeads.filter(lead => normalizeString(lead.executive || '') === normalizeString(selectedExecutive));
+    }
+    if (givenBy !== 'all' && givenBy !== 'Other') {
+      tempLeads = tempLeads.filter(lead => normalizeString(lead.givenBy || '') === normalizeString(givenBy));
+    }
+    if (selectedStatus !== 'all') {
+      tempLeads = tempLeads.filter(lead => lead.status === selectedStatus);
+    }
+    if (selectedSubStatus !== 'all' && selectedSubStatus !== 'Other') {
+      tempLeads = tempLeads.filter(lead => lead.leadSubStatus === selectedSubStatus);
+    }
+    if (selectedLeadSource !== 'all' && selectedLeadSource !== 'Other') {
+      tempLeads = tempLeads.filter(lead => lead.reference === selectedLeadSource);
+    }
+
+    if (considerStatus) {
+      if (followUpStatus === 'pending') {
+        tempLeads = tempLeads.filter(lead => {
+          if (!lead.nextFollowUpDate) return false;
+
+          try {
+            const nextFollowUp = new Date(lead.nextFollowUpDate);
+            if (followUpFromDate && startOfDay(nextFollowUp) < startOfDay(new Date(`${followUpFromDate}T00:00:00`))) {
+              return false;
+            }
+            if (followUpToDate && startOfDay(nextFollowUp) > endOfDay(new Date(`${followUpToDate}T00:00:00`))) {
+              return false;
+            }
+          } catch {
+            return false;
+          }
+
+          if (followUpEnteredBy !== 'all') {
+            if (!lead.followUps || !lead.followUps.some(fu => normalizeString(fu.enteredBy) === normalizeString(followUpEnteredBy))) {
+              return false;
+            }
+          }
+          
+          return true;
+        });
+      } else if (followUpStatus === 'made') {
+        tempLeads = tempLeads.filter(lead => {
+          if (!lead.followUps || lead.followUps.length === 0) return false;
+          
+          return lead.followUps.some(followUp => {
+            const personMatch = followUpEnteredBy === 'all' || normalizeString(followUp.enteredBy) === normalizeString(followUpEnteredBy);
+            if (!personMatch) return false;
+            
+            try {
+              const followUpDateObj = new Date(followUp.date);
+               if (followUpFromDate && startOfDay(followUpDateObj) < startOfDay(new Date(`${followUpFromDate}T00:00:00`))) {
+                return false;
+              }
+              if (followUpToDate && startOfDay(followUpDateObj) > endOfDay(new Date(`${followUpToDate}T00:00:00`))) {
+                return false;
+              }
+              return true;
+            } catch {
+               return false;
+            }
+          });
+        });
+      }
+    }
+
+    setFilteredLeads(tempLeads);
+    setCurrentPage(1);
   };
 
   const handleResetFilters = () => {
     setSearchTerm('');
     setSearchCategory('leadId');
     setActiveTab('all');
-    setAppliedFilters(null);
+    setFilteredLeads(visibleLeads.sort((a,b) => a.creationDate - b.creationDate));
     
     setFromDate('');
     setToDate('');
@@ -646,12 +641,12 @@ export default function LeadsUpdatePage() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="all">All</SelectItem>
-                           {allUsernames.map(exec => (
+                           {executiveDropdownUsers.map(exec => (
                             <SelectItem key={exec} value={exec}>
                               {exec}
                             </SelectItem>
                           ))}
-                          {!allUsernames.includes(selectedExecutive) && selectedExecutive !== 'all' && selectedExecutive !== 'Other' && (
+                          {!executiveDropdownUsers.includes(selectedExecutive) && selectedExecutive !== 'all' && selectedExecutive !== 'Other' && (
                               <SelectItem value={selectedExecutive}>{selectedExecutive}</SelectItem>
                           )}
                           <SelectItem value="Other">Other</SelectItem>
