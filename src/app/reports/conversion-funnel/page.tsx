@@ -80,17 +80,19 @@ export default function ConversionFunnelReportPage() {
 
   return (
     <AppContent>
-      <div className="flex flex-col gap-6">
-        <Card>
-          <CardHeader className="bg-primary/10">
-            <CardTitle className="text-center text-primary">CONVERSION FUNNEL REPORT</CardTitle>
-          </CardHeader>
-          <CardContent className="p-6">
-            <div className="flex justify-center">
-              <ConversionFunnelChart data={funnelData} />
-            </div>
-          </CardContent>
-        </Card>
+      <div className="-m-4 md:-m-6 p-4 md:p-6 bg-card min-h-full">
+        <div className="flex flex-col gap-6">
+          <Card>
+            <CardHeader className="bg-primary/10">
+              <CardTitle className="text-center text-primary">CONVERSION FUNNEL REPORT</CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="flex justify-center">
+                <ConversionFunnelChart data={funnelData} />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </AppContent>
   );
