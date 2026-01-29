@@ -18,7 +18,7 @@ function parseLeads(recordset: any[]): LeadFormData[] {
 export async function getLeads(): Promise<LeadFormData[]> {
   try {
     const pool = await getConnection();
-    const result = await pool.request().execute('sp_GetLeads');
+    const result = await pool.request().execute('usp_GetLeads');
     return parseLeads(result.recordset);
   } catch (error) {
     console.error('Failed to fetch leads:', error);
@@ -29,7 +29,7 @@ export async function getLeads(): Promise<LeadFormData[]> {
 export async function getNextLeadId(): Promise<string> {
     try {
         const pool = await getConnection();
-        const result = await pool.request().execute('sp_GetNextLeadId');
+        const result = await pool.request().execute('usp_GetNextLeadId');
         const maxId = result.recordset[0].maxId;
         return maxId ? (maxId + 1).toString() : '100000';
     } catch (error) {
@@ -101,7 +101,7 @@ export async function addLeads(leads: LeadFormData[]): Promise<LeadFormData[]> {
     try {
         const request = pool.request();
         request.input('leads', table);
-        await request.execute('sp_BulkAddLeads');
+        await request.execute('usp_BulkAddLeads');
 
         revalidatePath('/leads-upload');
         revalidatePath('/leads-update');
@@ -117,7 +117,7 @@ export async function updateLead(id: string, updates: Partial<LeadFormData>): Pr
 
   const leadResult = await pool.request()
       .input('leadId', sql.NVarChar, id)
-      .execute('sp_GetLeadById');
+      .execute('usp_GetLeadById');
 
   if (leadResult.recordset.length === 0) {
       throw new Error('Lead to update not found.');
@@ -153,7 +153,7 @@ export async function updateLead(id: string, updates: Partial<LeadFormData>): Pr
           .input('status', sql.NVarChar(100), mergedLead.status || null)
           .input('leadSubStatus', sql.NVarChar(100), mergedLead.leadSubStatus || null)
           .input('initialRemarks', sql.NVarChar(sql.MAX), mergedLead.initialRemarks || null)
-          .execute('sp_UpdateLead');
+          .execute('usp_UpdateLead');
 
       revalidatePath('/leads-update');
 

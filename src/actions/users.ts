@@ -13,7 +13,7 @@ function hashPassword(password: string): string {
 export async function getUsers(): Promise<AppUser[]> {
   try {
     const pool = await getConnection();
-    const result = await pool.request().execute('sp_GetUsers');
+    const result = await pool.request().execute('usp_GetUsers');
     return result.recordset.map(user => ({
       ...user,
       forcePasswordChange: !!user.forcePasswordChange
@@ -32,7 +32,7 @@ export async function loginUser(email: string, password: string): Promise<AppUse
     const result = await pool.request()
       .input('email', sql.NVarChar, email)
       .input('password', sql.NVarChar, hashedPassword)
-      .execute('sp_LoginUser');
+      .execute('usp_LoginUser');
     
     if (result.recordset.length > 0) {
       const user = result.recordset[0];
@@ -61,7 +61,7 @@ export async function addUser(userData: Omit<AppUser, 'id' | 'password' | 'force
       .input('phoneNumber', sql.NVarChar, userData.phoneNumber || null)
       .input('employeeId', sql.NVarChar, userData.employeeId || null)
       .input('forcePasswordChange', sql.Bit, true)
-      .execute('sp_AddUser');
+      .execute('usp_AddUser');
     
     revalidatePath('/users');
     return { ...userData, id: newId, forcePasswordChange: true };
@@ -81,7 +81,7 @@ export async function updateUser(id: string, updates: Partial<Omit<AppUser, 'id'
     // Fetch the current user data to merge with updates
     const userResult = await pool.request()
         .input('id', sql.NVarChar, id)
-        .execute('sp_GetUserById');
+        .execute('usp_GetUserById');
 
     if (userResult.recordset.length === 0) {
         throw new Error('User to update not found.');
@@ -110,7 +110,7 @@ export async function updateUser(id: string, updates: Partial<Omit<AppUser, 'id'
         .input('phoneNumber', sql.NVarChar, mergedUser.phoneNumber || null)
         .input('employeeId', sql.NVarChar, mergedUser.employeeId || null)
         .input('forcePasswordChange', sql.Bit, forceChange)
-        .execute('sp_UpdateUser');
+        .execute('usp_UpdateUser');
 
     revalidatePath('/users');
     revalidatePath('/profile');
@@ -129,7 +129,7 @@ export async function deleteUser(id: string): Promise<{ success: boolean }> {
     const pool = await getConnection();
     await pool.request()
       .input('id', sql.NVarChar, id)
-      .execute('sp_DeleteUser');
+      .execute('usp_DeleteUser');
     revalidatePath('/users');
     return { success: true };
   } catch (error) {
