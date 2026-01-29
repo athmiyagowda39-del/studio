@@ -10,12 +10,32 @@ import {
   SidebarInset,
   SidebarProvider,
 } from '@/components/ui/sidebar';
+import { useApp } from '@/context/app-context';
+import { useRouter, usePathname } from 'next/navigation';
+import { useEffect } from 'react';
+
 
 export default function AppContent({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const { user, isImpersonating, isLoading } = useApp();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (
+      !isLoading &&
+      user &&
+      user.forcePasswordChange &&
+      !isImpersonating &&
+      pathname !== '/profile'
+    ) {
+      router.replace('/profile');
+    }
+  }, [user, isLoading, isImpersonating, pathname, router]);
+  
   return (
     <SidebarProvider>
       <Sidebar>

@@ -28,7 +28,7 @@ import {
 import { useApp, type AppUser } from '@/context/app-context';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff, Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Trash2 } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -58,12 +58,11 @@ export default function UsersPage() {
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [newUsername, setNewUsername] = useState('');
   const [newEmail, setNewEmail] = useState('');
-  const [newPassword, setNewPassword] = useState('');
+  const [newEmployeeId, setNewEmployeeId] = useState('');
   const [newRole, setNewRole] = useState<
     'Super Admin' | 'Admin' | 'Sub Admin' | 'Executive' | ''
   >('');
-  const [showNewPassword, setShowNewPassword] = useState(false);
-
+  
   const [userToDelete, setUserToDelete] = useState<AppUser | null>(null);
   const [roleFilter, setRoleFilter] = useState('All');
 
@@ -91,9 +90,8 @@ export default function UsersPage() {
     setEditingUserId(null);
     setNewUsername('');
     setNewEmail('');
-    setNewPassword('');
+    setNewEmployeeId('');
     setNewRole('');
-    setShowNewPassword(false);
   };
 
   const handleSaveUser = async () => {
@@ -110,12 +108,9 @@ export default function UsersPage() {
       const updates: Partial<Omit<AppUser, 'id'>> = {
         username: newUsername,
         email: newEmail,
+        employeeId: newEmployeeId,
         role: newRole,
       };
-
-      if (newPassword.trim()) {
-        updates.password = newPassword;
-      }
 
       await updateUser(editingUserId, updates);
       toast({
@@ -125,14 +120,13 @@ export default function UsersPage() {
     } else {
       if (
         !newUsername.trim() ||
-        !newPassword.trim() ||
         !newEmail.trim() ||
         !newRole
       ) {
         toast({
           variant: 'destructive',
           title: 'Validation Error',
-          description: 'All fields are required.',
+          description: 'Username, Email, and Role are required.',
         });
         return;
       }
@@ -155,11 +149,11 @@ export default function UsersPage() {
           username: newUsername,
           email: newEmail,
           role: newRole,
-          password: newPassword,
+          employeeId: newEmployeeId,
         });
         toast({
           title: 'User Added',
-          description: `User "${newUsername}" has been created.`,
+          description: `User "${newUsername}" has been created with a default password.`,
         });
       } catch (error: any) {
         toast({
@@ -176,7 +170,7 @@ export default function UsersPage() {
     setEditingUserId(user.id);
     setNewUsername(user.username);
     setNewEmail(user.email);
-    setNewPassword('');
+    setNewEmployeeId(user.employeeId || '');
     setNewRole(user.role);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -272,31 +266,15 @@ export default function UsersPage() {
                     autoComplete="off"
                   />
                 </div>
-                <div className="flex-1 min-w-[180px] relative">
-                  <Label htmlFor="password">Password</Label>
+                <div className="flex-1 min-w-[180px]">
+                  <Label htmlFor="employeeId">Employee ID</Label>
                   <Input
-                    id="password"
-                    type={showNewPassword ? 'text' : 'password'}
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder={
-                      editingUserId ? 'Leave blank' : 'Enter password'
-                    }
-                    autoComplete="new-password"
+                    id="employeeId"
+                    value={newEmployeeId}
+                    onChange={(e) => setNewEmployeeId(e.target.value)}
+                    placeholder="Enter Employee ID"
+                    autoComplete="off"
                   />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-1 bottom-1 h-7 w-7 text-muted-foreground"
-                    onClick={() => setShowNewPassword((prev) => !prev)}
-                  >
-                    {showNewPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </Button>
                 </div>
                 <div className="flex-1 min-w-[180px]">
                   <Label htmlFor="role">Role</Label>
@@ -357,6 +335,7 @@ export default function UsersPage() {
                     <TableRow>
                       <TableHead>Username</TableHead>
                       <TableHead>Email</TableHead>
+                      <TableHead>Employee ID</TableHead>
                       <TableHead>Role</TableHead>
                       <TableHead className="text-right w-[120px]">
                         Actions
@@ -394,6 +373,7 @@ export default function UsersPage() {
                             )}
                           </TableCell>
                           <TableCell>{user.email}</TableCell>
+                          <TableCell>{user.employeeId || 'N/A'}</TableCell>
                           <TableCell>{user.role}</TableCell>
                           <TableCell className="text-right">
                             <Button

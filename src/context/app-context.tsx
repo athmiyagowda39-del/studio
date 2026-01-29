@@ -15,6 +15,8 @@ export type AppUser = {
   role: 'Super Admin' | 'Admin' | 'Sub Admin' | 'Executive';
   password?: string; 
   phoneNumber?: string;
+  employeeId?: string;
+  forcePasswordChange?: boolean;
 };
 
 type AppContextType = {
@@ -33,7 +35,7 @@ type AppContextType = {
   logout: () => void;
   impersonate: (userToImpersonate: AppUser) => void;
   stopImpersonation: () => void;
-  addUser: (user: Omit<AppUser, 'id'>) => Promise<void>;
+  addUser: (user: Omit<AppUser, 'id' | 'password' | 'forcePasswordChange'>) => Promise<void>;
   updateUser: (id: string, updates: Partial<Omit<AppUser, 'id'>>) => Promise<void>;
   deleteUser: (id: string) => Promise<void>;
   addLeads: (newLeads: LeadFormData[]) => Promise<void>;
@@ -75,15 +77,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setLeadReferences(fetchedReferences);
 
       if (sessionUserJson) {
-        setUser(JSON.parse(sessionUserJson));
+        const sessionUser = JSON.parse(sessionUserJson);
+        const freshUserData = fetchedUsers.find(u => u.id === sessionUser.id);
+        if (freshUserData) {
+          setUser(freshUserData);
+          sessionStorage.setItem('user', JSON.stringify(freshUserData));
+        } else {
+           sessionStorage.removeItem('user');
+        }
       }
       if (sessionOriginalUserJson) {
-        setOriginalUser(JSON.parse(sessionOriginalUserJson));
+        const sessionOriginalUser = JSON.parse(sessionOriginalUserJson);
+        const freshOriginalUserData = fetchedUsers.find(u => u.id === sessionOriginalUser.id);
+        if(freshOriginalUserData) {
+            setOriginalUser(freshOriginalUserData);
+            sessionStorage.setItem('originalUser', JSON.stringify(freshOriginalUserData));
+        } else {
+             sessionStorage.removeItem('originalUser');
+        }
       }
       
     } catch (error) {
       console.error("Failed to load initial data:", error);
-      // Here you might want to set an error state to show a message to the user
     } finally {
       setIsLoading(false);
     }
@@ -101,6 +116,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setOriginalUser(foundUser);
       sessionStorage.setItem('user', JSON.stringify(foundUser));
       sessionStorage.setItem('originalUser', JSON.stringify(foundUser));
+
+      if(foundUser.forcePasswordChange) {
+        router.push('/profile');
+      } else {
+        router.push('/dashboard');
+      }
+
     } else {
       throw new Error('Invalid email or password.');
     }
@@ -128,24 +150,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
     router.push('/users');
   };
 
-  const addUser = async (userData: Omit<AppUser, 'id'>) => {
+  const addUser = async (userData: Omit<AppUser, 'id'| 'password' | 'forcePasswordChange'>) => {
     const newUser = await UserActions.addUser(userData);
     setUsers(prev => [...prev, newUser]);
   };
 
   const updateUser = async (id: string, updates: Partial<Omit<AppUser, 'id'>>) => {
     const updatedUser = await UserActions.updateUser(id, updates);
-    setUsers(prev => prev.map(u => u.id === id ? { ...u, ...updatedUser } : u));
+    setUsers(prev => prev.map(u => u.id === id ? updatedUser : u));
     
     if (user?.id === id) {
-      const newCurrentUser = { ...user, ...updatedUser };
-      setUser(newCurrentUser);
-      sessionStorage.setItem('user', JSON.stringify(newCurrentUser));
+      setUser(updatedUser);
+      sessionStorage.setItem('user', JSON.stringify(updatedUser));
     }
     if (originalUser?.id === id) {
-        const newOriginalUser = { ...originalUser, ...updatedUser };
-        setOriginalUser(newOriginalUser);
-        sessionStorage.setItem('originalUser', JSON.stringify(newOriginalUser));
+        setOriginalUser(updatedUser);
+        sessionStorage.setItem('originalUser', JSON.stringify(updatedUser));
     }
   };
 
