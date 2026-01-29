@@ -69,48 +69,45 @@ function Calendar({
           ...classNames,
         }}
         components={{
-          Dropdown: ({ value, onChange, children }: DropdownProps) => {
-            const options = React.Children.toArray(
-              children
-            ) as React.ReactElement<React.HTMLProps<HTMLOptionElement>>[]
-            const selected = options.find(
-              (child) => child.props.value === value
-            )
+          Dropdown: (props: DropdownProps) => {
+            const { value, onChange, name, options } = props;
+            
             const handleChange = (value: string) => {
               const changeEvent = {
                 target: { value },
-              } as React.ChangeEvent<HTMLSelectElement>
-              onChange?.(changeEvent)
-            }
+              } as React.ChangeEvent<HTMLSelectElement>;
+              onChange?.(changeEvent);
+            };
+
+            const selected = options.find((option) => option.value === value);
+
             return (
               <Select
                 value={value?.toString()}
-                onValueChange={(value) => {
-                  handleChange(value)
-                }}
+                onValueChange={handleChange}
               >
                 <SelectTrigger className="pr-1.5 focus:ring-0 w-fit">
-                  <SelectValue>{selected?.props?.children}</SelectValue>
+                  <SelectValue>{selected?.label}</SelectValue>
                 </SelectTrigger>
                 <SelectContent position="popper">
-                  <ScrollArea className="h-48">
-                    {options.map((option, id: number) => (
+                  <ScrollArea className={name === 'years' ? 'h-48' : 'h-auto'}>
+                    {options.map((option) => (
                       <SelectItem
-                        key={`${option.props.value}-${id}`}
-                        value={option.props.value?.toString() ?? ""}
+                        key={option.value}
+                        value={option.value.toString()}
                       >
-                        {option.props.children}
+                        {option.label}
                       </SelectItem>
                     ))}
                   </ScrollArea>
                 </SelectContent>
               </Select>
-            )
+            );
           },
-          IconLeft: ({ ...props }) => <ChevronLeft className="h-4 w-4" />,
-          IconRight: ({ ...props }) => <ChevronRight className="h-4 w-4" />,
+          iconLeft: () => <ChevronLeft className="h-4 w-4" />,
+          iconRight: () => <ChevronRight className="h-4 w-4" />,
         }}
-        captionLayout="dropdown-buttons"
+        captionLayout="dropdown"
         fromYear={new Date().getFullYear() - 50}
         toYear={new Date().getFullYear() + 5}
         {...props}
