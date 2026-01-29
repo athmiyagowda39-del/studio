@@ -82,8 +82,6 @@ export default function LeadUpdateStatusReportPage() {
                     <TableBody>
                       {visibleLeads.length > 0 ? (
                         visibleLeads.map((lead, index) => {
-                          const date = new Date(lead.creationDate);
-                          const isValidDate = !isNaN(date.getTime());
                           const lastFollowUp =
                             lead.followUps && lead.followUps.length > 0
                               ? lead.followUps[lead.followUps.length - 1]
@@ -101,7 +99,7 @@ export default function LeadUpdateStatusReportPage() {
                               <TableCell>{index + 1}</TableCell>
                               <TableCell>{lead.leadId || 'N/A'}</TableCell>
                               <TableCell>
-                                {isValidDate ? format(date, 'PPP') : 'N/A'}
+                                {lead.creationDate ? format(new Date(lead.creationDate), 'PPP') : 'N/A'}
                               </TableCell>
                               <TableCell>
                                 {getDisplayModule(lead.selectedModule)}
@@ -120,7 +118,7 @@ export default function LeadUpdateStatusReportPage() {
                               <TableCell>{lead.reference || 'N/A'}</TableCell>
                               <TableCell>{lead.manager || 'N/A'}</TableCell>
                               <TableCell>
-                                {lastFollowUp ? format(new Date(lastFollowUp.date), 'PPP') : 'N/A'}
+                                {lastFollowUp && lastFollowUp.date ? format(new Date(lastFollowUp.date), 'PPP') : 'N/A'}
                               </TableCell>
                               <TableCell>
                                 {lastFollowUp ? lastFollowUp.enteredBy : 'N/A'}

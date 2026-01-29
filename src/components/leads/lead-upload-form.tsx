@@ -76,8 +76,8 @@ export type LeadFormData = {
   sector: string;
   selectedModule: string;
   toExecutive: boolean;
-  creationDate: number;
-  executiveViewDate?: number;
+  creationDate: string;
+  executiveViewDate?: string;
   followUps?: FollowUp[];
   nextFollowUpDate?: string;
   dealer?: string;
@@ -130,7 +130,7 @@ const references = [
   'Other',
 ];
 
-const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate' | 'givenBy'> = {
+const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate' | 'givenBy' | 'executiveViewDate'> = {
   pincode: '',
   state: '',
   district: '',
@@ -153,7 +153,7 @@ const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate' | 'givenBy'
 export default function LeadUploadForm() {
   const { user, users, isReadOnly, isImpersonating, addLeads, getNextLeadId } = useApp();
   const [formData, setFormData] = useState<
-    Omit<LeadFormData, 'leadId' | 'creationDate' | 'givenBy'>
+    Omit<LeadFormData, 'leadId' | 'creationDate' | 'givenBy' | 'executiveViewDate'>
   >(initialFormState);
   const [parsedLeads, setParsedLeads] = useState<Partial<LeadFormData>[]>([]);
   const [showPreview, setShowPreview] = useState(false);
@@ -258,7 +258,7 @@ export default function LeadUploadForm() {
   };
 
   const validateLead = (
-    lead: Omit<LeadFormData, 'leadId' | 'creationDate' | 'givenBy'>
+    lead: Omit<LeadFormData, 'leadId' | 'creationDate' | 'givenBy' | 'executiveViewDate'>
   ) => {
     if (!lead.selectedModule) {
       toast({
@@ -346,7 +346,7 @@ export default function LeadUploadForm() {
       ...formData,
       givenBy: user?.username || 'Manual',
       leadId: newLeadId,
-      creationDate: new Date().getTime(),
+      creationDate: new Date().toISOString(),
       status: 'Not viewed',
       executive: formData.toExecutive ? toExecutiveSelection : undefined,
     };
@@ -517,7 +517,7 @@ export default function LeadUploadForm() {
       executive: parsedLead.executive || '',
       toExecutive: !!parsedLead.executive,
       leadId: (nextId++).toString(),
-      creationDate: new Date().getTime(),
+      creationDate: new Date().toISOString(),
       givenBy: user?.username || 'File Upload',
       status: 'Not viewed',
     }));

@@ -8,6 +8,8 @@ import { revalidatePath } from 'next/cache';
 function parseLeads(recordset: any[]): LeadFormData[] {
     return recordset.map(lead => ({
         ...lead,
+        creationDate: lead.creationDate ? new Date(lead.creationDate).toISOString() : new Date(0).toISOString(),
+        executiveViewDate: lead.executiveViewDate ? new Date(lead.executiveViewDate).toISOString() : undefined,
         followUps: lead.followUps ? JSON.parse(lead.followUps) : [],
         toExecutive: !!lead.toExecutive, 
     }));
@@ -55,8 +57,8 @@ export async function addLeads(leads: LeadFormData[]): Promise<LeadFormData[]> {
     table.columns.add('headcount', sql.NVarChar(50));
     table.columns.add('sector', sql.NVarChar(100));
     table.columns.add('selectedModule', sql.NVarChar(sql.MAX));
-    table.columns.add('creationDate', sql.BigInt);
-    table.columns.add('executiveViewDate', sql.BigInt);
+    table.columns.add('creationDate', sql.DateTime);
+    table.columns.add('executiveViewDate', sql.DateTime);
     table.columns.add('followUps', sql.NVarChar(sql.MAX));
     table.columns.add('nextFollowUpDate', sql.NVarChar(255));
     table.columns.add('dealer', sql.NVarChar(255));
@@ -82,8 +84,8 @@ export async function addLeads(leads: LeadFormData[]): Promise<LeadFormData[]> {
             lead.headcount || null,
             lead.sector || null,
             lead.selectedModule || null,
-            lead.creationDate,
-            lead.executiveViewDate || null,
+            new Date(lead.creationDate),
+            lead.executiveViewDate ? new Date(lead.executiveViewDate) : null,
             lead.followUps ? JSON.stringify(lead.followUps) : null,
             lead.nextFollowUpDate || null,
             lead.dealer || null,
@@ -140,8 +142,8 @@ export async function updateLead(id: string, updates: Partial<LeadFormData>): Pr
           .input('headcount', sql.NVarChar(50), mergedLead.headcount || null)
           .input('sector', sql.NVarChar(100), mergedLead.sector || null)
           .input('selectedModule', sql.NVarChar(sql.MAX), mergedLead.selectedModule || null)
-          .input('creationDate', sql.BigInt, mergedLead.creationDate)
-          .input('executiveViewDate', sql.BigInt, mergedLead.executiveViewDate || null)
+          .input('creationDate', sql.DateTime, new Date(mergedLead.creationDate))
+          .input('executiveViewDate', sql.DateTime, mergedLead.executiveViewDate ? new Date(mergedLead.executiveViewDate) : null)
           .input('followUps', sql.NVarChar(sql.MAX), mergedLead.followUps ? JSON.stringify(mergedLead.followUps) : null)
           .input('nextFollowUpDate', sql.NVarChar(255), mergedLead.nextFollowUpDate || null)
           .input('dealer', sql.NVarChar(255), mergedLead.dealer || null)

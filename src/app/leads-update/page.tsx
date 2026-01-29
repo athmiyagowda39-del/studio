@@ -176,7 +176,7 @@ export default function LeadsUpdatePage() {
           break;
         case 'all':
         default:
-          tempLeads.sort((a,b) => a.creationDate - b.creationDate);
+          tempLeads.sort((a,b) => (new Date(a.creationDate).getTime() - new Date(b.creationDate).getTime()));
           break;
       }
       setFilteredLeads(tempLeads);
@@ -205,12 +205,12 @@ export default function LeadsUpdatePage() {
 
     if (filters.fromDate) {
         const fromTimestamp = new Date(`${filters.fromDate}T00:00:00`).getTime();
-        tempLeads = tempLeads.filter(lead => lead.creationDate >= fromTimestamp);
+        tempLeads = tempLeads.filter(lead => lead.creationDate && new Date(lead.creationDate).getTime() >= fromTimestamp);
     }
 
     if (filters.toDate) {
         const toTimestamp = new Date(`${filters.toDate}T23:59:59`).getTime();
-        tempLeads = tempLeads.filter(lead => lead.creationDate <= toTimestamp);
+        tempLeads = tempLeads.filter(lead => lead.creationDate && new Date(lead.creationDate).getTime() <= toTimestamp);
     }
     
     if (filters.selectedModules) {
@@ -989,7 +989,7 @@ export default function LeadsUpdatePage() {
                         >
                           <TableCell>{(currentPage - 1) * LEADS_PER_PAGE + index + 1}</TableCell>
                           <TableCell>{lead.leadId}</TableCell>
-                          <TableCell>{format(new Date(lead.creationDate), 'PPP')}</TableCell>
+                          <TableCell>{lead.creationDate ? format(new Date(lead.creationDate), 'PPP') : 'N/A'}</TableCell>
                           <TableCell>{getDisplayModule(lead.selectedModule)}</TableCell>
                           <TableCell>{lead.company}</TableCell>
                           <TableCell>{lead.contactPerson}</TableCell>
@@ -1002,7 +1002,7 @@ export default function LeadsUpdatePage() {
                           <TableCell>{lead.executive}</TableCell>
                           <TableCell>{lead.manager}</TableCell>
                           <TableCell>{lead.givenBy || 'N/A'}</TableCell>
-                          <TableCell>{lastFollowUp ? format(new Date(lastFollowUp.date), 'PPP') : 'N/A'}</TableCell>
+                          <TableCell>{lastFollowUp && lastFollowUp.date ? format(new Date(lastFollowUp.date), 'PPP') : 'N/A'}</TableCell>
                           <TableCell>{lastFollowUp ? lastFollowUp.enteredBy : 'N/A'}</TableCell>
                           <TableCell>{nextFollowupDate}</TableCell>
                           <TableCell>{lastFollowUp ? lastFollowUp.remarks : 'N/A'}</TableCell>

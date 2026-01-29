@@ -154,7 +154,7 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
     setSelectedStatus(newStatus);
     
     if (leadDetails.leadId && !leadDetails.executiveViewDate) {
-      setLeadDetails(prev => ({ ...prev, executiveViewDate: new Date().getTime() }));
+      setLeadDetails(prev => ({ ...prev, executiveViewDate: new Date().toISOString() }));
     }
   };
 
@@ -170,9 +170,9 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
     
     let updatedViewDate = leadDetails.executiveViewDate;
     if (user?.role === 'Executive' && !leadDetails.executiveViewDate) {
-        updatedViewDate = new Date().getTime();
+        updatedViewDate = new Date().toISOString();
     } else if (!leadDetails.executiveViewDate) {
-        updatedViewDate = new Date().getTime();
+        updatedViewDate = new Date().toISOString();
     }
 
     const payload = {
@@ -315,7 +315,7 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
                       <Calendar
                           mode="single"
                           selected={leadDetails.creationDate ? new Date(leadDetails.creationDate) : undefined}
-                          onSelect={(date) => handleLeadDetailChange('creationDate', date?.getTime())}
+                          onSelect={(date) => handleLeadDetailChange('creationDate', date?.toISOString())}
                           initialFocus
                           disabled
                       />
@@ -546,7 +546,7 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
                       followUps.map((followUp) => (
                         <TableRow key={followUp.id}>
                           <TableCell>{followUp.id}</TableCell>
-                          <TableCell>{format(new Date(followUp.date), 'PPP')}</TableCell>
+                          <TableCell>{followUp.date ? format(new Date(followUp.date), 'PPP') : 'N/A'}</TableCell>
                           <TableCell>{followUp.remarks}</TableCell>
                           <TableCell>{followUp.nextFollowUp}</TableCell>
                           <TableCell>{followUp.enteredBy}</TableCell>

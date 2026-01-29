@@ -318,8 +318,6 @@ export default function LeadReportPage() {
                             <TableBody>
                             {filteredLeads.length > 0 ? (
                                 filteredLeads.map((lead, index) => {
-                                const date = new Date(lead.creationDate);
-                                const isValidDate = !isNaN(date.getTime());
                                 const lastFollowUp = lead.followUps && lead.followUps.length > 0 ? lead.followUps[lead.followUps.length - 1] : null;
                                 const nextFollowupDate = lead.nextFollowUpDate && !isNaN(new Date(lead.nextFollowUpDate).getTime())
                                     ? format(new Date(lead.nextFollowUpDate), 'PPP')
@@ -329,7 +327,7 @@ export default function LeadReportPage() {
                                     <TableRow key={`${lead.leadId}-${index}`}>
                                     <TableCell>{index + 1}</TableCell>
                                     <TableCell>{lead.leadId || 'N/A'}</TableCell>
-                                    <TableCell>{isValidDate ? format(date, 'PPP') : 'N/A'}</TableCell>
+                                    <TableCell>{lead.creationDate ? format(new Date(lead.creationDate), 'PPP') : 'N/A'}</TableCell>
                                     <TableCell>{getDisplayModule(lead.selectedModule)}</TableCell>
                                     <TableCell>{lead.company || 'N/A'}</TableCell>
                                     <TableCell>{lead.contactPerson || 'N/A'}</TableCell>
@@ -342,7 +340,7 @@ export default function LeadReportPage() {
                                     <TableCell>{lead.sector || 'N/A'}</TableCell>
                                     <TableCell>{lead.headcount || 'N/A'}</TableCell>
                                     <TableCell>{lead.manager || 'N/A'}</TableCell>
-                                    <TableCell>{lastFollowUp ? format(new Date(lastFollowUp.date), 'PPP') : 'N/A'}</TableCell>
+                                    <TableCell>{lastFollowUp && lastFollowUp.date ? format(new Date(lastFollowUp.date), 'PPP') : 'N/A'}</TableCell>
                                     <TableCell>{lastFollowUp ? lastFollowUp.enteredBy : 'N/A'}</TableCell>
                                     <TableCell>{nextFollowupDate}</TableCell>
                                     <TableCell>{lastFollowUp ? lastFollowUp.remarks : 'N/A'}</TableCell>

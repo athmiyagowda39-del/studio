@@ -69,9 +69,11 @@ export default function DashboardPage() {
         if (!filteredLeads) return 0;
         const todayStart = startOfDay(new Date()).getTime();
         const todayEnd = endOfDay(new Date()).getTime();
-        return filteredLeads.filter(lead => 
-            lead.creationDate >= todayStart && lead.creationDate <= todayEnd
-        ).length;
+        return filteredLeads.filter(lead => {
+            if (!lead.creationDate) return false;
+            const leadTime = new Date(lead.creationDate).getTime();
+            return leadTime >= todayStart && leadTime <= todayEnd;
+        }).length;
     }, [filteredLeads]);
 
     const performanceData = useMemo(() => {
@@ -96,9 +98,10 @@ export default function DashboardPage() {
           leads: 0,
         }));
 
-        const relevantLeads = leads.filter(lead => getYear(new Date(lead.creationDate)) === year);
+        const relevantLeads = leads.filter(lead => lead.creationDate && getYear(new Date(lead.creationDate)) === year);
 
         relevantLeads.forEach(lead => {
+          if (!lead.creationDate) return;
           const monthIndex = getMonth(new Date(lead.creationDate));
           if (monthlyData[monthIndex]) {
             monthlyData[monthIndex].leads++;
@@ -131,11 +134,13 @@ export default function DashboardPage() {
         }));
 
         const relevantLeads = leads.filter(lead => {
+            if (!lead.creationDate) return false;
             const leadDate = new Date(lead.creationDate);
             return getYear(leadDate) === year && getMonth(leadDate) === monthIndex;
         });
 
         relevantLeads.forEach(lead => {
+            if (!lead.creationDate) return;
             const dayOfMonth = new Date(lead.creationDate).getDate() - 1;
             if (dailyData[dayOfMonth]) {
                 dailyData[dayOfMonth].leads++;
@@ -162,11 +167,13 @@ export default function DashboardPage() {
         });
         
         const relevantLeads = leads.filter(lead => {
+            if (!lead.creationDate) return false;
             const leadDate = new Date(lead.creationDate);
             return getYear(leadDate) === year && monthIndexesToShow.includes(getMonth(leadDate));
         });
 
         relevantLeads.forEach((lead) => {
+            if (!lead.creationDate) return;
             const leadDate = new Date(lead.creationDate);
             const formattedDate = formatDate(leadDate, 'd MMM');
             if (dailyLeads[formattedDate]) {
