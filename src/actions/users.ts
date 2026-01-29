@@ -13,7 +13,7 @@ function hashPassword(password: string): string {
 export async function getUsers(): Promise<AppUser[]> {
   try {
     const pool = await getConnection();
-    const result = await pool.request().query('SELECT id, username, email, role, password, phoneNumber, employeeId, forcePasswordChange FROM Users');
+    const result = await pool.request().execute('sp_GetUsers');
     return result.recordset.map(user => ({
       ...user,
       forcePasswordChange: !!user.forcePasswordChange
@@ -32,7 +32,7 @@ export async function loginUser(email: string, password: string): Promise<AppUse
     const result = await pool.request()
       .input('email', sql.NVarChar, email)
       .input('password', sql.NVarChar, hashedPassword)
-      .query('SELECT id, username, email, role, phoneNumber, employeeId, forcePasswordChange FROM Users WHERE email = @email AND password = @password');
+      .execute('sp_LoginUser');
     
     if (result.recordset.length > 0) {
       const user = result.recordset[0];
@@ -61,7 +61,7 @@ export async function addUser(userData: Omit<AppUser, 'id' | 'password' | 'force
       .input('phoneNumber', sql.NVarChar, userData.phoneNumber || null)
       .input('employeeId', sql.NVarChar, userData.employeeId || null)
       .input('forcePasswordChange', sql.Bit, true)
-      .query('INSERT INTO Users (id, username, email, role, password, phoneNumber, employeeId, forcePasswordChange) VALUES (@id, @username, @email, @role, @password, @phoneNumber, @employeeId, @forcePasswordChange)');
+      .execute('sp_AddUser');
     
     revalidatePath('/users');
     return { ...userData, id: newId, forcePasswordChange: true };
@@ -75,46 +75,49 @@ export async function addUser(userData: Omit<AppUser, 'id' | 'password' | 'force
 }
 
 export async function updateUser(id: string, updates: Partial<Omit<AppUser, 'id'>>): Promise<AppUser> {
-  const { username, email, role, password, phoneNumber, employeeId } = updates;
-  
-  const setClauses: string[] = [];
-  if (username !== undefined) setClauses.push('username = @username');
-  if (email !== undefined) setClauses.push('email = @email');
-  if (role !== undefined) setClauses.push('role = @role');
-  if (phoneNumber !== undefined) setClauses.push('phoneNumber = @phoneNumber');
-  if (employeeId !== undefined) setClauses.push('employeeId = @employeeId');
-  if (password !== undefined) {
-    setClauses.push('password = @password');
-    setClauses.push('forcePasswordChange = @forcePasswordChange');
-  }
-
-  if (setClauses.length === 0) {
-    throw new Error('No updates provided.');
-  }
-  
-  const queryString = `UPDATE Users SET ${setClauses.join(', ')} OUTPUT inserted.* WHERE id = @id`;
-
   try {
     const pool = await getConnection();
-    const request = pool.request().input('id', sql.NVarChar, id);
-    if (username !== undefined) request.input('username', sql.NVarChar, username);
-    if (email !== undefined) request.input('email', sql.NVarChar, email);
-    if (role !== undefined) request.input('role', sql.NVarChar, role);
-    if (phoneNumber !== undefined) request.input('phoneNumber', sql.NVarChar, phoneNumber);
-    if (employeeId !== undefined) request.input('employeeId', sql.NVarChar, employeeId);
-    
-    if (password !== undefined) {
-      request.input('password', sql.NVarChar, hashPassword(password));
-      request.input('forcePasswordChange', sql.Bit, false);
+
+    // Fetch the current user data to merge with updates
+    const userResult = await pool.request()
+        .input('id', sql.NVarChar, id)
+        .execute('sp_GetUserById');
+
+    if (userResult.recordset.length === 0) {
+        throw new Error('User to update not found.');
     }
-    
-    const result = await request.query(queryString);
-    
+    const currentUser = userResult.recordset[0];
+
+    // Merge updates with current data
+    const mergedUser = { ...currentUser, ...updates };
+
+    let passwordToUpdate = currentUser.password;
+    let forceChange = currentUser.forcePasswordChange;
+
+    // If a new password is provided, hash it and update the forcePasswordChange flag
+    if (updates.password) {
+        passwordToUpdate = hashPassword(updates.password);
+        forceChange = false;
+    }
+
+    // Call the update stored procedure with the full user object
+    const result = await pool.request()
+        .input('id', sql.NVarChar, id)
+        .input('username', sql.NVarChar, mergedUser.username)
+        .input('email', sql.NVarChar, mergedUser.email)
+        .input('role', sql.NVarChar, mergedUser.role)
+        .input('password', sql.NVarChar, passwordToUpdate)
+        .input('phoneNumber', sql.NVarChar, mergedUser.phoneNumber || null)
+        .input('employeeId', sql.NVarChar, mergedUser.employeeId || null)
+        .input('forcePasswordChange', sql.Bit, forceChange)
+        .execute('sp_UpdateUser');
+
     revalidatePath('/users');
     revalidatePath('/profile');
-
+    
     const updatedUser = result.recordset[0];
     return { ...updatedUser, forcePasswordChange: !!updatedUser.forcePasswordChange };
+
   } catch (error) {
     console.error('Failed to update user:', error);
     throw new Error('Failed to update user due to a database error.');
@@ -126,7 +129,7 @@ export async function deleteUser(id: string): Promise<{ success: boolean }> {
     const pool = await getConnection();
     await pool.request()
       .input('id', sql.NVarChar, id)
-      .query('DELETE FROM Users WHERE id = @id');
+      .execute('sp_DeleteUser');
     revalidatePath('/users');
     return { success: true };
   } catch (error) {
