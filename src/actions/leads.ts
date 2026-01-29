@@ -6,18 +6,42 @@ import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import { revalidatePath } from 'next/cache';
 
 function parseLeads(recordset: any[]): LeadFormData[] {
-    return recordset.map(lead => ({
-        ...lead,
-        creationDate: (lead.creationDate && !isNaN(new Date(lead.creationDate).getTime())) 
-            ? new Date(lead.creationDate).toISOString() 
-            : new Date(0).toISOString(),
-        executiveViewDate: (lead.executiveViewDate && !isNaN(new Date(lead.executiveViewDate).getTime())) 
-            ? new Date(lead.executiveViewDate).toISOString() 
-            : undefined,
-        followUps: lead.followUps ? JSON.parse(lead.followUps) : [],
-        toExecutive: !!lead.toExecutive, 
-    }));
+    return recordset.map(lead => {
+        const parseDateAsUTC = (dateInput: any): string | undefined => {
+            if (!dateInput) return undefined;
+            try {
+                // The DB might return a Date object or a string like '2024-07-25 10:00:00.000'.
+                // To ensure it's parsed as UTC, we handle both cases.
+                let date: Date;
+                if (dateInput instanceof Date) {
+                    date = dateInput;
+                } else {
+                    // Replace space with 'T' and add 'Z' to make it a valid UTC ISO string.
+                    date = new Date(String(dateInput).replace(' ', 'T') + 'Z');
+                }
+                
+                if (!isNaN(date.getTime())) {
+                    return date.toISOString();
+                }
+                return undefined;
+            } catch {
+                return undefined;
+            }
+        };
+
+        const creationDateISO = parseDateAsUTC(lead.creationDate) || new Date(0).toISOString();
+        const executiveViewDateISO = parseDateAsUTC(lead.executiveViewDate);
+
+        return {
+            ...lead,
+            creationDate: creationDateISO,
+            executiveViewDate: executiveViewDateISO,
+            followUps: lead.followUps ? JSON.parse(lead.followUps) : [],
+            toExecutive: !!lead.toExecutive, 
+        };
+    });
 }
+
 
 export async function getLeads(): Promise<LeadFormData[]> {
   try {

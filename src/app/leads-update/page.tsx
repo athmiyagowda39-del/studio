@@ -202,25 +202,37 @@ const filterByCriteria = (leads: LeadFormData[], filters: typeof stagedFilters):
                 : fieldVal.toLowerCase().includes(searchVal.toLowerCase());
         });
     }
-
+    
     if (filters.fromDate) {
         try {
-            const fromDateUTC = new Date(`${filters.fromDate}T00:00:00.000Z`);
+            // Create a date for the start of the day in the user's local timezone.
+            const localFromDate = new Date(`${filters.fromDate}T00:00:00`);
+
             tempLeads = tempLeads.filter(lead => {
                 if (!lead.creationDate) return false;
-                const leadDate = new Date(lead.creationDate);
-                return !isNaN(leadDate.getTime()) && leadDate.getTime() >= fromDateUTC.getTime();
+                try {
+                    const leadDateUTC = new Date(lead.creationDate); // lead.creationDate is a UTC ISO string
+                    return !isNaN(leadDateUTC.getTime()) && leadDateUTC.getTime() >= localFromDate.getTime();
+                } catch {
+                    return false;
+                }
             });
         } catch {}
     }
 
     if (filters.toDate) {
         try {
-            const toDateUTC = new Date(`${filters.toDate}T23:59:59.999Z`);
+            // Create a date for the end of the day in the user's local timezone.
+            const localToDate = new Date(`${filters.toDate}T23:59:59.999`);
+
             tempLeads = tempLeads.filter(lead => {
                 if (!lead.creationDate) return false;
-                const leadDate = new Date(lead.creationDate);
-                return !isNaN(leadDate.getTime()) && leadDate.getTime() <= toDateUTC.getTime();
+                 try {
+                    const leadDateUTC = new Date(lead.creationDate); // lead.creationDate is a UTC ISO string
+                    return !isNaN(leadDateUTC.getTime()) && leadDateUTC.getTime() <= localToDate.getTime();
+                } catch {
+                    return false;
+                }
             });
         } catch {}
     }
