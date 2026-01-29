@@ -54,8 +54,10 @@ const getFunnelData = (leads: LeadFormData[]) => {
 export default function ConversionFunnelReportPage() {
   const { user, isAuthenticated, isLoading, leads: allLeads } = useApp();
   const router = useRouter();
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
+    setIsClient(true);
     if (!isLoading && !isAuthenticated) {
       router.replace('/login');
     }
@@ -86,7 +88,7 @@ export default function ConversionFunnelReportPage() {
         </CardHeader>
         <CardContent className="p-6 flex-1 flex items-center justify-center">
           <div className="w-full">
-            <ConversionFunnelChart data={funnelData} />
+            {isClient && <ConversionFunnelChart data={funnelData} />}
           </div>
         </CardContent>
       </Card>

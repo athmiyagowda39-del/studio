@@ -78,8 +78,10 @@ const getLeadStatusesForFilters = (
 export default function LeadReportPage() {
   const { user, isAuthenticated, isLoading, leads: allLeads, leadStatuses: allLeadStatusesFromDb } = useApp();
   const router = useRouter();
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
+    setIsClient(true);
     if (!isLoading && !isAuthenticated) {
       router.replace('/login');
     }
@@ -381,7 +383,7 @@ export default function LeadReportPage() {
                         ))}
                     </div>
                     <div className="flex justify-center items-center">
-                        {chartData && chartData.length > 0 && <LeadStatusChart data={chartData} />}
+                        {isClient && chartData && chartData.length > 0 && <LeadStatusChart data={chartData} />}
                     </div>
                 </div>
                 </>

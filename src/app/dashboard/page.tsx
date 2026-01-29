@@ -32,8 +32,10 @@ export default function DashboardPage() {
     const [selectedState, setSelectedState] = useState<string>('all');
     const [selectedDistrict, setSelectedDistrict] = useState<string>('all');
     const [selectedExecutive, setSelectedExecutive] = useState<string>('all');
+    const [isClient, setIsClient] = useState(false);
     
     useEffect(() => {
+        setIsClient(true);
         if (!isLoading && !isAuthenticated) {
             router.replace('/login');
         }
@@ -50,7 +52,7 @@ export default function DashboardPage() {
     const filteredLeads = useMemo(() => {
         if (!allLeads || !user) return [];
 
-        if (user.role === 'Admin' || user.role === 'Sub Admin') {
+        if (user.role === 'Admin' || user.role === 'Super Admin') {
             if (selectedExecutive !== 'all') {
                 return allLeads.filter(lead => lead.executive === selectedExecutive);
             }
@@ -236,11 +238,11 @@ export default function DashboardPage() {
                         </div>
                     </CardHeader>
                     <CardContent>
-                      <LeadPerformanceChart 
+                      {isClient && <LeadPerformanceChart 
                         performanceData={performanceData} 
                         xAxisLabel={isAllYearView ? "Month" : isSingleMonthView ? "Number of Days" : "Date"} 
                         dataKey={isAllYearView ? 'month' : isSingleMonthView ? 'day' : 'date'}
-                      />
+                      />}
                     </CardContent>
                 </Card>
             </div>
