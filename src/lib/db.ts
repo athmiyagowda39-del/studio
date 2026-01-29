@@ -1,5 +1,3 @@
-'use server';
-
 import sql from 'mssql';
 
 const connectionString = process.env.DATABASE_URL;
