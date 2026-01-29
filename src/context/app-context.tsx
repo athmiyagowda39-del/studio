@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import * as UserActions from '@/actions/users';
 import * as LeadActions from '@/actions/leads';
+import * as OptionActions from '@/actions/options';
 
 export type AppUser = {
   id: string;
@@ -25,6 +26,9 @@ type AppContextType = {
   isReadOnly: boolean;
   users: AppUser[];
   leads: LeadFormData[];
+  leadStatuses: string[];
+  leadSubStatuses: string[];
+  leadReferences: string[];
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   impersonate: (userToImpersonate: AppUser) => void;
@@ -45,6 +49,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [users, setUsers] = useState<AppUser[]>([]);
   const [leads, setLeads] = useState<LeadFormData[]>([]);
+  const [leadStatuses, setLeadStatuses] = useState<string[]>([]);
+  const [leadSubStatuses, setLeadSubStatuses] = useState<string[]>([]);
+  const [leadReferences, setLeadReferences] = useState<string[]>([]);
   const router = useRouter();
 
   const loadInitialData = useCallback(async () => {
@@ -53,13 +60,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const sessionUserJson = sessionStorage.getItem('user');
       const sessionOriginalUserJson = sessionStorage.getItem('originalUser');
       
-      const [fetchedUsers, fetchedLeads] = await Promise.all([
+      const [fetchedUsers, fetchedLeads, fetchedStatuses, fetchedSubStatuses, fetchedReferences] = await Promise.all([
         UserActions.getUsers(),
         LeadActions.getLeads(),
+        OptionActions.getLeadStatuses(),
+        OptionActions.getLeadSubStatuses(),
+        OptionActions.getLeadReferences(),
       ]);
 
       setUsers(fetchedUsers);
       setLeads(fetchedLeads);
+      setLeadStatuses(fetchedStatuses);
+      setLeadSubStatuses(fetchedSubStatuses);
+      setLeadReferences(fetchedReferences);
 
       if (sessionUserJson) {
         setUser(JSON.parse(sessionUserJson));
@@ -165,6 +178,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         isReadOnly,
         users,
         leads,
+        leadStatuses,
+        leadSubStatuses,
+        leadReferences,
         login,
         logout,
         impersonate,

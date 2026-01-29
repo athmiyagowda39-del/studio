@@ -42,40 +42,6 @@ import { getDisplayModule, allModules, allHrModules, allFinanceModules, allGener
 const LEADS_PER_PAGE = 10;
 type TabValue = 'all' | 'not-viewed' | 'follow-ups-due' | 'zero-follow-ups' | 'search-result';
 
-const leadStatusOptions = [
-    'Attended',
-    'Not viewed',
-    'Unattended',
-    'Pursuing to Purchase',
-    'Not interested',
-    'Order closed',
-    'Proposal Sent',
-    'Do Not Contact',
-    'Quote Sent',
-    'Demo Given',
-];
-
-const leadSubStatusOptions = [
-    'All',
-    'pricing issue',
-    'requirement doesnot match',
-    'Already using another product',
-    'Not the decision maker',
-    'Just exploring',
-    'Competitor offering better deal',
-    'Contract already signed',
-    'Service not available in location',
-    'Wrong contact details',
-    'Business closed',
-    'Other',
-];
-
-const references = [
-    "All", "Website", "Social Media", "Google Ads", "Facebook Ads", "LinkedIn", "Referral", "Cold Call",
-    "Telecalling", "Walk-in", "Email Campaign", "WhatsApp Campaign", "IndiaMART", "Channel Partner",
-    "Existing Customer", "Upselling", "Cross-selling", "Events / Trade Shows", "Demo Request", "Trial Signup", "Other"
-];
-
 const flexibleNameMatch = (nameInRecord: string | undefined, searchName: string): boolean => {
     if (!nameInRecord || !searchName) return false;
     const normalizedRecordName = nameInRecord.toLowerCase().replace(/[\s.]+/g, '');
@@ -84,7 +50,7 @@ const flexibleNameMatch = (nameInRecord: string | undefined, searchName: string)
 };
 
 export default function LeadsUpdatePage() {
-  const { user, isAuthenticated, isLoading, leads: allLeads, users } = useApp();
+  const { user, isAuthenticated, isLoading, leads: allLeads, users, leadStatuses, leadSubStatuses, leadReferences } = useApp();
   const router = useRouter();
   const pageTopRef = useRef<HTMLDivElement>(null);
 
@@ -217,122 +183,110 @@ export default function LeadsUpdatePage() {
       setCurrentPage(1);
   };
   
-  const filterByCriteria = (leads: LeadFormData[], filters: typeof stagedFilters) => {
+  const filterByCriteria = (leads: LeadFormData[], filters: typeof stagedFilters): LeadFormData[] => {
     let tempLeads = [...leads];
-    
-    // Step 1: Use "Other" input values if present
-    const executiveFilterValue = filters.selectedExecutive === 'Other' ? filters.otherExecutiveInput.trim() : filters.selectedExecutive;
-    const givenByFilterValue = filters.givenBy === 'Other' ? filters.otherGivenByInput.trim() : filters.givenBy;
-    const statusFilterValue = filters.selectedStatus === 'Other' ? filters.otherStatusInput.trim() : filters.selectedStatus;
-    const subStatusFilterValue = filters.selectedSubStatus === 'Other' ? filters.otherSubStatusInput.trim() : filters.selectedSubStatus;
-    const leadSourceFilterValue = filters.selectedLeadSource === 'Other' ? filters.otherLeadSourceInput.trim() : filters.selectedLeadSource;
-    const followUpByFilterValue = filters.followUpEnteredBy === 'Other' ? filters.otherFollowUpEnteredByInput.trim() : filters.followUpEnteredBy;
 
-    // Step 2: Apply simple filters first
-    
-    // Filter by "Do not consider..." checkbox
+    // --- Simple Filters ---
     if (filters.considerStatus) {
         const excludedStatuses = ['Order closed', 'Fake', 'Existing Users', 'Not interested'];
         tempLeads = tempLeads.filter(lead => !excludedStatuses.includes(lead.status || ''));
     }
 
-    // Filter by main search term
     if (filters.searchTerm.trim() !== '') {
-      const nameCategories = ['contactPerson', 'manager'];
-      tempLeads = tempLeads.filter(lead => {
         const searchVal = filters.searchTerm.trim();
-        const fieldVal = (lead[filters.searchCategory as keyof LeadFormData] as string) || '';
+        tempLeads = tempLeads.filter(lead => {
+            const fieldVal = (lead[filters.searchCategory as keyof LeadFormData] as string) || '';
+            const nameCategories = ['contactPerson', 'manager'];
+            return nameCategories.includes(filters.searchCategory)
+                ? flexibleNameMatch(fieldVal, searchVal)
+                : fieldVal.toLowerCase().includes(searchVal.toLowerCase());
+        });
+    }
 
-        if (nameCategories.includes(filters.searchCategory)) {
-            return flexibleNameMatch(fieldVal, searchVal);
-        }
-        
-        return fieldVal.toLowerCase().includes(searchVal.toLowerCase());
-      });
-    }
-    
-    // Filter by creation date range
     if (filters.fromDate) {
-      const fromTimestamp = new Date(`${filters.fromDate}T00:00:00`).getTime();
-      tempLeads = tempLeads.filter(lead => lead.creationDate >= fromTimestamp);
+        const fromTimestamp = new Date(`${filters.fromDate}T00:00:00`).getTime();
+        tempLeads = tempLeads.filter(lead => lead.creationDate >= fromTimestamp);
     }
+
     if (filters.toDate) {
-      const toTimestamp = new Date(`${filters.toDate}T23:59:59`).getTime();
-      tempLeads = tempLeads.filter(lead => lead.creationDate <= toTimestamp);
+        const toTimestamp = new Date(`${filters.toDate}T23:59:59`).getTime();
+        tempLeads = tempLeads.filter(lead => lead.creationDate <= toTimestamp);
     }
     
-    // Filter by selected modules
     if (filters.selectedModules) {
         const modulesToFilter = filters.selectedModules.split(', ').filter(Boolean);
         if (modulesToFilter.length > 0) {
             tempLeads = tempLeads.filter(lead => {
-                if (!lead.selectedModule) return false;
-                const leadModules = lead.selectedModule.split(', ').filter(Boolean);
+                const leadModules = lead.selectedModule?.split(', ').filter(Boolean) || [];
                 return modulesToFilter.some(m => leadModules.includes(m));
             });
         }
     }
-    
-    // Filter by various dropdowns
-    if (executiveFilterValue && executiveFilterValue !== 'all') {
-        tempLeads = tempLeads.filter(lead => flexibleNameMatch(lead.executive, executiveFilterValue));
-    }
-    if (givenByFilterValue && givenByFilterValue !== 'all') {
-        tempLeads = tempLeads.filter(lead => flexibleNameMatch(lead.givenBy, givenByFilterValue));
-    }
-    if (statusFilterValue !== 'all' && statusFilterValue) {
-      tempLeads = tempLeads.filter(lead => lead.status === statusFilterValue);
-    }
-    if (subStatusFilterValue !== 'all' && subStatusFilterValue) {
-      tempLeads = tempLeads.filter(lead => lead.leadSubStatus === subStatusFilterValue);
-    }
-    if (leadSourceFilterValue !== 'all' && leadSourceFilterValue) {
-      tempLeads = tempLeads.filter(lead => lead.reference === leadSourceFilterValue);
-    }
+
+    const dropdownFilters: { key: keyof LeadFormData, value: string }[] = [
+        { key: 'executive', value: filters.selectedExecutive },
+        { key: 'givenBy', value: filters.givenBy },
+        { key: 'status', value: filters.selectedStatus },
+        { key: 'leadSubStatus', value: filters.selectedSubStatus },
+        { key: 'reference', value: filters.selectedLeadSource }
+    ];
+
+    dropdownFilters.forEach(filter => {
+        if (filter.value !== 'all' && filter.value) {
+            tempLeads = tempLeads.filter(lead => flexibleNameMatch(lead[filter.key], filter.value));
+        }
+    });
+
 
     // --- Follow-up Filters ---
-    // These are applied sequentially only if the main "considerStatus" checkbox is checked.
-    if (filters.considerStatus) {
-        
-        // Filter by "Enter by"
-        if (followUpByFilterValue && followUpByFilterValue !== 'all') {
-            tempLeads = tempLeads.filter(lead => 
-                lead.followUps && lead.followUps.some(fu => flexibleNameMatch(fu.enteredBy, followUpByFilterValue))
-            );
-        }
+    let followUpFilteredLeads: LeadFormData[] = [];
+    let hasFollowUpFilter = false;
 
-        // Filter by "Follow Up Status" (Pending/Made)
-        const todayStart = startOfDay(new Date());
+    // Filter by "Enter by"
+    if (filters.followUpEnteredBy && filters.followUpEnteredBy !== 'all') {
+        hasFollowUpFilter = true;
+        tempLeads.forEach(lead => {
+            if (lead.followUps?.some(fu => flexibleNameMatch(fu.enteredBy, filters.followUpEnteredBy))) {
+                followUpFilteredLeads.push(lead);
+            }
+        });
+        tempLeads = [...followUpFilteredLeads]; // Update tempLeads to only include those that match
+    }
 
-        if (filters.followUpStatus === 'pending') {
-             tempLeads = tempLeads.filter(lead => {
-                if (!lead.nextFollowUpDate) return false;
-                const nextFollowUpDateObj = startOfDay(new Date(lead.nextFollowUpDate));
-                return nextFollowUpDateObj <= todayStart;
-            });
-        } else if (filters.followUpStatus === 'made') {
-             tempLeads = tempLeads.filter(lead => {
-                if (!lead.nextFollowUpDate) return false;
-                const nextFollowUpDateObj = startOfDay(new Date(lead.nextFollowUpDate));
-                return nextFollowUpDateObj > todayStart;
-            });
-        }
-        
-        // Filter by Follow-up Date Range (applied after pending/made logic)
-        const hasDateRange = filters.followUpFromDate || filters.followUpToDate;
-        if(hasDateRange) {
-             tempLeads = tempLeads.filter(lead => {
-                if (!lead.nextFollowUpDate) return false;
-                const nextFollowUpDateObj = startOfDay(new Date(lead.nextFollowUpDate));
-                const fromOk = !filters.followUpFromDate || startOfDay(new Date(filters.followUpFromDate)) <= nextFollowUpDateObj;
-                const toOk = !filters.followUpToDate || endOfDay(new Date(filters.followUpToDate)) >= nextFollowUpDateObj;
-                return fromOk && toOk;
-            });
-        }
+    // Filter by "Follow Up Status" (Pending/Made)
+    const todayStart = startOfDay(new Date());
+
+    if (filters.followUpStatus === 'pending') {
+        hasFollowUpFilter = true;
+        tempLeads = tempLeads.filter(lead => {
+            if (!lead.nextFollowUpDate) return false;
+            const nextFollowUpDateObj = startOfDay(new Date(lead.nextFollowUpDate));
+            return nextFollowUpDateObj <= todayStart;
+        });
+    } else if (filters.followUpStatus === 'made') {
+        hasFollowUpFilter = true;
+        tempLeads = tempLeads.filter(lead => {
+            if (!lead.nextFollowUpDate) return false;
+            const nextFollowUpDateObj = startOfDay(new Date(lead.nextFollowUpDate));
+            return nextFollowUpDateObj > todayStart;
+        });
+    }
+
+    // Filter by Follow-up Date Range
+    const hasDateRange = filters.followUpFromDate || filters.followUpToDate;
+    if (hasDateRange) {
+        hasFollowUpFilter = true;
+        tempLeads = tempLeads.filter(lead => {
+            if (!lead.nextFollowUpDate) return false;
+            const nextFollowUpDateObj = startOfDay(new Date(lead.nextFollowUpDate));
+            const fromOk = !filters.followUpFromDate || startOfDay(new Date(filters.followUpFromDate)) <= nextFollowUpDateObj;
+            const toOk = !filters.followUpToDate || endOfDay(new Date(filters.followUpToDate)) >= nextFollowUpDateObj;
+            return fromOk && toOk;
+        });
     }
 
     return tempLeads;
-  }
+}
 
   const handleShowButtonClick = () => {
       const currentFilters = {
@@ -789,10 +743,10 @@ export default function LeadsUpdatePage() {
                             <SelectTrigger><SelectValue placeholder="--All--" /></SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all">All</SelectItem>
-                                {leadStatusOptions.map(status => (
+                                {leadStatuses.map(status => (
                                     <SelectItem key={status} value={status}>{status}</SelectItem>
                                 ))}
-                                {!leadStatusOptions.includes(selectedStatus) && selectedStatus !== 'all' && selectedStatus !== 'Other' && (
+                                {!leadStatuses.includes(selectedStatus) && selectedStatus !== 'all' && selectedStatus !== 'Other' && (
                                     <SelectItem value={selectedStatus}>{selectedStatus}</SelectItem>
                                 )}
                                 <SelectItem value="Other">Other</SelectItem>
@@ -822,12 +776,13 @@ export default function LeadsUpdatePage() {
                         </SelectTrigger>
                         <SelectContent>
                             <ScrollArea className="h-48">
-                                {leadSubStatusOptions.map(status => (
+                               <SelectItem value="all">All</SelectItem>
+                                {leadSubStatuses.map(status => (
                                 <SelectItem key={status} value={status}>
                                     {status}
                                 </SelectItem>
                                 ))}
-                                {!leadSubStatusOptions.includes(selectedSubStatus) && selectedSubStatus !== 'all' && selectedSubStatus !== 'Other' && (
+                                {!leadSubStatuses.includes(selectedSubStatus) && selectedSubStatus !== 'all' && selectedSubStatus !== 'Other' && (
                                     <SelectItem value={selectedSubStatus}>{selectedSubStatus}</SelectItem>
                                 )}
                             </ScrollArea>
@@ -853,14 +808,15 @@ export default function LeadsUpdatePage() {
                       <Label htmlFor="leadSource">Lead Source</Label>
                       <Select value={selectedLeadSource} onValueChange={(value) => setSelectedLeadSource(value)}>
                         <SelectTrigger id="leadSource">
-                           {selectedLeadSource && !references.includes(selectedLeadSource) ? (
+                           {selectedLeadSource && !leadReferences.includes(selectedLeadSource) ? (
                             <span className="truncate">{selectedLeadSource}</span>
                            ) : (
                             <SelectValue placeholder="--All--" />
                            )}
                         </SelectTrigger>
                         <SelectContent>
-                          {references.map((source) => (
+                          <SelectItem value="all">All</SelectItem>
+                          {leadReferences.map((source) => (
                             <SelectItem key={source} value={source}>
                               {source}
                             </SelectItem>

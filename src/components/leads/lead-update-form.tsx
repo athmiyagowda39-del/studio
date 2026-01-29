@@ -36,20 +36,6 @@ type FollowUp = {
   enteredBy: string;
 };
 
-const leadStatusOptions = [
-    'All',
-    'Attended',
-    'Not viewed',
-    'Unattended',
-    'Pursuing to Purchase',
-    'Not interested',
-    'Order closed',
-    'Proposal Sent',
-    'Do Not Contact',
-    'Quote Sent',
-    'Demo Given',
-];
-
 export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
   const [leadDetails, setLeadDetails] = useState<Partial<LeadFormData>>({});
   
@@ -63,7 +49,7 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
   const [isReadyToUpdate, setIsReadyToUpdate] = useState(false);
   
   const { toast } = useToast();
-  const { users, user, isReadOnly, leads: allLeads, updateLead } = useApp();
+  const { users, user, isReadOnly, leads: allLeads, updateLead, leadStatuses } = useApp();
   const [executives, setExecutives] = useState<string[]>([]);
 
    useEffect(() => {
@@ -611,7 +597,8 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
                               <SelectValue placeholder="-- Select --" />
                           </SelectTrigger>
                           <SelectContent>
-                              {leadStatusOptions.map((status) => (
+                              <SelectItem value="">-- Select --</SelectItem>
+                              {leadStatuses.map((status) => (
                                   <SelectItem key={status} value={status}>{status}</SelectItem>
                               ))}
                           </SelectContent>

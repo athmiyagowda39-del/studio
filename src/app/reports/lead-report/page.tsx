@@ -23,19 +23,6 @@ const LeadStatusChart = dynamic(
 
 const allStates = ["All", "Andaman and Nicobar Islands", "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chandigarh", "Chhattisgarh", "Dadra and Nagar Haveli and Daman and Diu", "Delhi", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jammu and Kashmir", "Jharkhand", "Karnataka", "Kerala", "Ladakh", "Lakshadweep", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Puducherry", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"];
 
-const chartLeadStatusOptions = [
-    'Attended',
-    'Not viewed',
-    'Demo Given',
-    'Unattended',
-    'Pursuing to Purchase',
-    'Not interested',
-    'Order closed',
-    'Proposal Sent',
-];
-
-const filterLeadStatusOptions = [...chartLeadStatusOptions, 'Other'];
-
 const sectors = ['All', 'IT', 'Finance', 'Healthcare', 'Manufacturing', 'Education', 'Retail', 'Hospitality', 'Telecommunication', 'Construction', 'Real Estate', 'Media & Entertainment', 'Government', 'Non-profit', 'Other'];
 const headcounts = ['All', '1-50', '51-200', '201-500', '501-1000', '1000+'];
 
@@ -43,7 +30,8 @@ const getLeadStatusesForFilters = (
   leads: LeadFormData[],
   state: string,
   sector: string,
-  headcount: string
+  headcount: string,
+  allStatuses: string[]
 ) => {
   const filteredLeads = leads.filter(lead => {
     let matches = true;
@@ -67,7 +55,7 @@ const getLeadStatusesForFilters = (
     return matches;
   });
 
-  const statusCounts = chartLeadStatusOptions.reduce((acc, status) => {
+  const statusCounts = allStatuses.reduce((acc, status) => {
     acc[status] = 0;
     return acc;
   }, {} as Record<string, number>);
@@ -88,7 +76,7 @@ const getLeadStatusesForFilters = (
 
 
 export default function LeadReportPage() {
-  const { user, isAuthenticated, isLoading, leads: allLeads } = useApp();
+  const { user, isAuthenticated, isLoading, leads: allLeads, leadStatuses: allLeadStatusesFromDb } = useApp();
   const router = useRouter();
 
   useEffect(() => {
@@ -113,11 +101,13 @@ export default function LeadReportPage() {
   const [otherStatusInput, setOtherStatusInput] = useState('');
   const [otherSectorInput, setOtherSectorInput] = useState('');
 
-  const leadStatuses = useMemo(() => {
+  const leadStatusesForTable = useMemo(() => {
     if (!visibleLeads) return [];
-    return getLeadStatusesForFilters(visibleLeads, selectedState, selectedSector, selectedHeadcount);
-  }, [visibleLeads, selectedState, selectedSector, selectedHeadcount]);
+    return getLeadStatusesForFilters(visibleLeads, selectedState, selectedSector, selectedHeadcount, allLeadStatusesFromDb);
+  }, [visibleLeads, selectedState, selectedSector, selectedHeadcount, allLeadStatusesFromDb]);
   
+  const filterLeadStatusOptions = useMemo(() => [...allLeadStatusesFromDb, 'Other'], [allLeadStatusesFromDb]);
+
   const filteredLeads = useMemo(() => {
     if (!visibleLeads) return [];
     let leads = [...visibleLeads];
@@ -152,14 +142,14 @@ export default function LeadReportPage() {
 
 
   const chartData = useMemo(() => {
-    if (!leadStatuses) return [];
-    return leadStatuses
+    if (!leadStatusesForTable) return [];
+    return leadStatusesForTable
       .filter((s) => s.status !== 'Total Leads')
       .map((item) => ({
           name: item.status,
           value: item.value,
       }));
-  }, [leadStatuses]);
+  }, [leadStatusesForTable]);
     
   const handleStatusChange = (value: string) => {
       setSelectedStatus(value === 'all-statuses' ? '' : value);
@@ -382,7 +372,7 @@ export default function LeadReportPage() {
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
                     <div className="space-y-2">
-                        {leadStatuses.map((item) => (
+                        {leadStatusesForTable.map((item) => (
                         <div
                             key={item.status}
                             className="flex justify-between items-center p-3 border rounded-lg"
