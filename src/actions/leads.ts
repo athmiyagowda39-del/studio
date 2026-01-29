@@ -10,14 +10,12 @@ function parseLeads(recordset: any[]): LeadFormData[] {
         const parseDateAsUTC = (dateInput: any): string | undefined => {
             if (!dateInput) return undefined;
             try {
-                // The DB might return a Date object or a string like '2024-07-25 10:00:00.000'.
-                // To ensure it's parsed as UTC, we handle both cases.
                 let date: Date;
                 if (dateInput instanceof Date) {
                     date = dateInput;
                 } else {
-                    // Replace space with 'T' and add 'Z' to make it a valid UTC ISO string.
-                    date = new Date(String(dateInput).replace(' ', 'T') + 'Z');
+                    const dateString = String(dateInput).replace(' ', 'T');
+                    date = new Date(dateString.endsWith('Z') ? dateString : dateString + 'Z');
                 }
                 
                 if (!isNaN(date.getTime())) {
@@ -53,6 +51,57 @@ export async function getLeads(): Promise<LeadFormData[]> {
     return [];
   }
 }
+
+export type LeadFilterData = {
+  searchTerm?: string;
+  searchCategory?: string;
+  fromDate?: string;
+  toDate?: string;
+  selectedModules?: string;
+  selectedExecutive?: string;
+  givenBy?: string;
+  selectedStatus?: string;
+  selectedSubStatus?: string;
+  selectedLeadSource?: string;
+  considerStatus?: boolean;
+  followUpStatus?: string;
+  followUpFromDate?: string;
+  followUpToDate?: string;
+  followUpEnteredBy?: string;
+};
+
+export async function getFilteredLeads(filters: LeadFilterData, user: { username: string; role: string; }): Promise<LeadFormData[]> {
+    try {
+        const pool = await getConnection();
+        const request = pool.request();
+
+        request.input('Username', sql.NVarChar, user.username);
+        request.input('UserRole', sql.NVarChar, user.role);
+
+        request.input('SearchTerm', sql.NVarChar, filters.searchTerm || null);
+        request.input('SearchCategory', sql.NVarChar, filters.searchCategory || null);
+        request.input('FromDate', sql.DateTime, filters.fromDate ? new Date(filters.fromDate) : null);
+        request.input('ToDate', sql.DateTime, filters.toDate ? new Date(filters.toDate) : null);
+        request.input('SelectedModules', sql.NVarChar, filters.selectedModules || null);
+        request.input('Executive', sql.NVarChar, filters.selectedExecutive === 'all' ? null : filters.selectedExecutive);
+        request.input('GivenBy', sql.NVarChar, filters.givenBy === 'all' ? null : filters.givenBy);
+        request.input('Status', sql.NVarChar, filters.selectedStatus === 'all' ? null : filters.selectedStatus);
+        request.input('LeadSubStatus', sql.NVarChar, filters.selectedSubStatus === 'all' ? null : filters.selectedSubStatus);
+        request.input('LeadSource', sql.NVarChar, filters.selectedLeadSource === 'all' ? null : filters.selectedLeadSource);
+        request.input('ConsiderStatus', sql.Bit, filters.considerStatus || false);
+        request.input('FollowUpStatus', sql.NVarChar, filters.followUpStatus || null);
+        request.input('FollowUpFromDate', sql.DateTime, filters.followUpFromDate ? new Date(filters.followUpFromDate) : null);
+        request.input('FollowUpToDate', sql.DateTime, filters.followUpToDate ? new Date(filters.followUpToDate) : null);
+        request.input('FollowUpEnteredBy', sql.NVarChar, filters.followUpEnteredBy === 'all' ? null : filters.followUpEnteredBy);
+
+        const result = await request.execute('usp_FilterLeads');
+        return parseLeads(result.recordset);
+    } catch (error) {
+        console.error('Failed to fetch filtered leads:', error);
+        return [];
+    }
+}
+
 
 export async function getNextLeadId(): Promise<string> {
     try {

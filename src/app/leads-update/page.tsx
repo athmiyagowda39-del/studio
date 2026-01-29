@@ -15,9 +15,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import LeadUpdateForm from '@/components/leads/lead-update-form';
 import AppContent from '@/components/layout/app-content';
-import { format, startOfDay, endOfDay } from 'date-fns';
+import { format, startOfDay } from 'date-fns';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
@@ -30,24 +30,13 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { ChevronsUpDown, ChevronDown, Check } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { ChevronsUpDown, ChevronDown } from 'lucide-react';
 import { getDisplayModule, allModules, allHrModules, allFinanceModules, allGeneralModules, financeModules, generalModules } from '@/lib/modules';
+import { getFilteredLeads } from '@/actions/leads';
 
 const LEADS_PER_PAGE = 10;
 type TabValue = 'all' | 'not-viewed' | 'follow-ups-due' | 'zero-follow-ups' | 'search-result';
-
-const flexibleNameMatch = (nameInRecord: string | undefined, searchName: string): boolean => {
-    if (!nameInRecord || !searchName) return false;
-    const normalizedRecordName = nameInRecord.toLowerCase().replace(/[\s.]+/g, '');
-    const normalizedSearchName = searchName.toLowerCase().replace(/[\s.]+/g, '');
-    return normalizedRecordName.includes(normalizedSearchName);
-};
 
 export default function LeadsUpdatePage() {
   const { user, isAuthenticated, isLoading, leads: allLeads, users, leadStatuses, leadSubStatuses, leadReferences } = useApp();
@@ -134,212 +123,60 @@ export default function LeadsUpdatePage() {
     return allLeads;
   }, [allLeads, user]);
 
+  const applyAndSetFilters = async (tab: TabValue, filters = stagedFilters) => {
+    if (!user) return;
+    
+    let leadsToShow: LeadFormData[] = [];
+    setCurrentPage(1);
+
+    if (tab === 'search-result') {
+        leadsToShow = await getFilteredLeads(filters, user);
+    } else {
+        let tempLeads = [...visibleLeads];
+        switch (tab) {
+          case 'not-viewed':
+            tempLeads = tempLeads.filter(lead => !lead.executiveViewDate);
+            break;
+          case 'follow-ups-due':
+            const today = startOfDay(new Date());
+            tempLeads = tempLeads.filter(lead => {
+              if (!lead.nextFollowUpDate) return false;
+              try {
+                const dueDate = startOfDay(new Date(lead.nextFollowUpDate));
+                return dueDate <= today;
+              } catch { return false; }
+            });
+            tempLeads.sort((a, b) => 
+              (a.nextFollowUpDate ? new Date(a.nextFollowUpDate).getTime() : 0) - 
+              (b.nextFollowUpDate ? new Date(b.nextFollowUpDate).getTime() : 0)
+            );
+            break;
+          case 'zero-follow-ups':
+            tempLeads = tempLeads.filter(lead => !lead.followUps || lead.followUps.length === 0);
+            break;
+          case 'all':
+          default:
+            tempLeads.sort((a,b) => (new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime()));
+            break;
+        }
+        leadsToShow = tempLeads;
+    }
+    setFilteredLeads(leadsToShow);
+  };
+  
   const handleTabChange = (tab: TabValue) => {
     setActiveTab(tab);
-    if(tab !== 'search-result') {
-      applyFilters(tab);
+    if (tab !== 'search-result') {
+      applyAndSetFilters(tab);
+    } else {
+      // For search-result, filtering is triggered by 'handleShowButtonClick'
+      applyAndSetFilters('search-result', stagedFilters);
     }
   };
   
   useEffect(() => {
-    applyFilters('all');
+    applyAndSetFilters('all');
   }, [visibleLeads]);
-  
-  const applyFilters = (tab: TabValue, currentFilters = stagedFilters) => {
-      let tempLeads = [...visibleLeads];
-
-      switch (tab) {
-        case 'not-viewed':
-          tempLeads = tempLeads.filter(lead => !lead.executiveViewDate);
-          break;
-        case 'follow-ups-due':
-          const today = startOfDay(new Date());
-          tempLeads = tempLeads.filter(lead => {
-            if (!lead.nextFollowUpDate) return false;
-            try {
-              const dueDate = startOfDay(new Date(lead.nextFollowUpDate));
-              return dueDate <= today;
-            } catch {
-              return false;
-            }
-          });
-          tempLeads.sort((a, b) => 
-            (a.nextFollowUpDate ? new Date(a.nextFollowUpDate).getTime() : 0) - 
-            (b.nextFollowUpDate ? new Date(b.nextFollowUpDate).getTime() : 0)
-          );
-          break;
-        case 'zero-follow-ups':
-          tempLeads = tempLeads.filter(lead => !lead.followUps || lead.followUps.length === 0);
-          break;
-        case 'search-result':
-          tempLeads = filterByCriteria(tempLeads, currentFilters);
-          break;
-        case 'all':
-        default:
-          tempLeads.sort((a,b) => (new Date(a.creationDate).getTime() - new Date(b.creationDate).getTime()));
-          break;
-      }
-      setFilteredLeads(tempLeads);
-      setCurrentPage(1);
-  };
-  
-const filterByCriteria = (leads: LeadFormData[], filters: typeof stagedFilters): LeadFormData[] => {
-    let tempLeads = [...leads];
-
-    // --- Simple Filters ---
-    if (filters.considerStatus) {
-        const excludedStatuses = ['Order closed', 'Fake', 'Existing Users', 'Not interested'];
-        tempLeads = tempLeads.filter(lead => !excludedStatuses.includes(lead.status || ''));
-    }
-
-    if (filters.searchTerm.trim() !== '') {
-        const searchVal = filters.searchTerm.trim();
-        tempLeads = tempLeads.filter(lead => {
-            const fieldVal = (lead[filters.searchCategory as keyof LeadFormData] as string) || '';
-            const nameCategories = ['contactPerson', 'manager'];
-            return nameCategories.includes(filters.searchCategory)
-                ? flexibleNameMatch(fieldVal, searchVal)
-                : fieldVal.toLowerCase().includes(searchVal.toLowerCase());
-        });
-    }
-    
-    if (filters.fromDate) {
-        try {
-            // Create a date for the start of the day in the user's local timezone.
-            const localFromDate = new Date(`${filters.fromDate}T00:00:00`);
-
-            tempLeads = tempLeads.filter(lead => {
-                if (!lead.creationDate) return false;
-                try {
-                    const leadDateUTC = new Date(lead.creationDate); // lead.creationDate is a UTC ISO string
-                    return !isNaN(leadDateUTC.getTime()) && leadDateUTC.getTime() >= localFromDate.getTime();
-                } catch {
-                    return false;
-                }
-            });
-        } catch {}
-    }
-
-    if (filters.toDate) {
-        try {
-            // Create a date for the end of the day in the user's local timezone.
-            const localToDate = new Date(`${filters.toDate}T23:59:59.999`);
-
-            tempLeads = tempLeads.filter(lead => {
-                if (!lead.creationDate) return false;
-                 try {
-                    const leadDateUTC = new Date(lead.creationDate); // lead.creationDate is a UTC ISO string
-                    return !isNaN(leadDateUTC.getTime()) && leadDateUTC.getTime() <= localToDate.getTime();
-                } catch {
-                    return false;
-                }
-            });
-        } catch {}
-    }
-    
-    if (filters.selectedModules) {
-        const modulesToFilter = filters.selectedModules.split(', ').filter(Boolean);
-        if (modulesToFilter.length > 0) {
-            tempLeads = tempLeads.filter(lead => {
-                const leadModules = lead.selectedModule?.split(', ').filter(Boolean) || [];
-                return modulesToFilter.some(m => leadModules.includes(m));
-            });
-        }
-    }
-
-    const dropdownFilters: { key: keyof LeadFormData, value: string }[] = [
-        { key: 'executive', value: filters.selectedExecutive },
-        { key: 'givenBy', value: filters.givenBy },
-        { key: 'status', value: filters.selectedStatus },
-        { key: 'leadSubStatus', value: filters.selectedSubStatus },
-        { key: 'reference', value: filters.selectedLeadSource }
-    ];
-
-    dropdownFilters.forEach(filter => {
-        if (filter.value !== 'all' && filter.value) {
-            tempLeads = tempLeads.filter(lead => flexibleNameMatch(lead[filter.key] as string, filter.value));
-        }
-    });
-
-
-    // --- Follow-up Filters ---
-    let followUpFilteredLeads: LeadFormData[] = [];
-    let hasFollowUpFilter = false;
-
-    // Filter by "Enter by"
-    if (filters.followUpEnteredBy && filters.followUpEnteredBy !== 'all') {
-        hasFollowUpFilter = true;
-        tempLeads.forEach(lead => {
-            if (lead.followUps?.some(fu => flexibleNameMatch(fu.enteredBy, filters.followUpEnteredBy))) {
-                followUpFilteredLeads.push(lead);
-            }
-        });
-        tempLeads = [...followUpFilteredLeads]; // Update tempLeads to only include those that match
-    }
-
-    // Filter by "Follow Up Status" (Pending/Made)
-    const todayStart = startOfDay(new Date());
-
-    if (filters.followUpStatus === 'pending') {
-        hasFollowUpFilter = true;
-        tempLeads = tempLeads.filter(lead => {
-            if (!lead.nextFollowUpDate) return false;
-            try {
-              const dueDate = startOfDay(new Date(lead.nextFollowUpDate));
-              return dueDate <= todayStart;
-            } catch {
-              return false;
-            }
-        });
-    } else if (filters.followUpStatus === 'made') {
-        hasFollowUpFilter = true;
-        tempLeads = tempLeads.filter(lead => {
-            if (!lead.nextFollowUpDate) return false;
-            try {
-              const nextFollowUpDateObj = startOfDay(new Date(lead.nextFollowUpDate));
-              return nextFollowUpDateObj > todayStart;
-            } catch {
-                return false;
-            }
-        });
-    }
-
-    // Filter by Follow-up Date Range
-    const hasDateRange = filters.followUpFromDate || filters.followUpToDate;
-    if (hasDateRange) {
-        hasFollowUpFilter = true;
-        
-        let fromTimestamp: number | null = null;
-        if (filters.followUpFromDate) {
-            try {
-                fromTimestamp = new Date(`${filters.followUpFromDate}T00:00:00.000Z`).getTime();
-            } catch {}
-        }
-        
-        let toTimestamp: number | null = null;
-        if (filters.followUpToDate) {
-            try {
-                toTimestamp = new Date(`${filters.followUpToDate}T23:59:59.999Z`).getTime();
-            } catch {}
-        }
-
-        tempLeads = tempLeads.filter(lead => {
-            if (!lead.nextFollowUpDate) return false;
-            try {
-                const nextFollowUpTimestamp = new Date(lead.nextFollowUpDate).getTime();
-                if (isNaN(nextFollowUpTimestamp)) return false;
-
-                const fromOk = fromTimestamp === null || fromTimestamp <= nextFollowUpTimestamp;
-                const toOk = toTimestamp === null || nextFollowUpTimestamp <= toTimestamp;
-                return fromOk && toOk;
-            } catch (e) {
-                return false;
-            }
-        });
-    }
-
-    return tempLeads;
-}
 
   const handleShowButtonClick = () => {
       const currentFilters = {
@@ -368,7 +205,7 @@ const filterByCriteria = (leads: LeadFormData[], filters: typeof stagedFilters):
       
       setStagedFilters(currentFilters);
       setActiveTab('search-result');
-      applyFilters('search-result', currentFilters);
+      applyAndSetFilters('search-result', currentFilters);
   };
   
   const handleResetFilters = () => {
@@ -404,7 +241,7 @@ const filterByCriteria = (leads: LeadFormData[], filters: typeof stagedFilters):
     
     setStagedFilters(initialFilters);
     setActiveTab('all');
-    applyFilters('all');
+    applyAndSetFilters('all', initialFilters);
   };
   
   const handleSelectLead = (leadId: string) => {
