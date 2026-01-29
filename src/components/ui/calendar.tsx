@@ -72,6 +72,8 @@ function Calendar({
           Dropdown: (props: DropdownProps) => {
             const { value, onChange, name, options } = props;
             
+            if (!options) return null;
+
             const handleChange = (value: string) => {
               const changeEvent = {
                 target: { value },
@@ -104,8 +106,8 @@ function Calendar({
               </Select>
             );
           },
-          iconLeft: () => <ChevronLeft className="h-4 w-4" />,
-          iconRight: () => <ChevronRight className="h-4 w-4" />,
+          IconLeft: () => <ChevronLeft className="h-4 w-4" />,
+          IconRight: () => <ChevronRight className="h-4 w-4" />,
         }}
         captionLayout="dropdown"
         fromYear={new Date().getFullYear() - 50}
