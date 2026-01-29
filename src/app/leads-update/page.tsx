@@ -33,7 +33,6 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ChevronsUpDown, ChevronDown } from 'lucide-react';
 import { getDisplayModule, allModules, allHrModules, allFinanceModules, allGeneralModules, financeModules, generalModules } from '@/lib/modules';
-import { getFilteredLeads } from '@/actions/leads';
 
 const LEADS_PER_PAGE = 10;
 type TabValue = 'all' | 'not-viewed' | 'follow-ups-due' | 'zero-follow-ups' | 'search-result';
@@ -123,14 +122,125 @@ export default function LeadsUpdatePage() {
     return allLeads;
   }, [allLeads, user]);
 
-  const applyAndSetFilters = async (tab: TabValue, filters = stagedFilters) => {
+  const applyAndSetFilters = (tab: TabValue, filters = stagedFilters) => {
     if (!user) return;
     
     let leadsToShow: LeadFormData[] = [];
     setCurrentPage(1);
 
     if (tab === 'search-result') {
-        leadsToShow = await getFilteredLeads(filters, user);
+        leadsToShow = visibleLeads.filter(lead => {
+            let match = true;
+
+            // Search Term
+            if (filters.searchTerm && filters.searchCategory) {
+                const leadValue = lead[filters.searchCategory as keyof LeadFormData] as string | undefined;
+                if (!leadValue || !String(leadValue).toLowerCase().includes(filters.searchTerm.toLowerCase())) {
+                    match = false;
+                }
+            }
+
+            // Date range
+            const fromDateObj = filters.fromDate ? new Date(filters.fromDate) : null;
+            const toDateObj = filters.toDate ? new Date(filters.toDate) : null;
+
+            if (fromDateObj) fromDateObj.setHours(0, 0, 0, 0);
+            if (toDateObj) toDateObj.setHours(23, 59, 59, 999);
+            
+            if (match && fromDateObj && (!lead.creationDate || new Date(lead.creationDate) < fromDateObj)) {
+                match = false;
+            }
+            if (match && toDateObj && (!lead.creationDate || new Date(lead.creationDate) > toDateObj)) {
+                match = false;
+            }
+
+            // Selected Modules
+            if (match && filters.selectedModules) {
+                const filterModules = filters.selectedModules.split(',').map(m => m.trim()).filter(Boolean);
+                const leadModules = (lead.selectedModule || '').split(',').map(m => m.trim()).filter(Boolean);
+                if (filterModules.length > 0 && !filterModules.some(fm => leadModules.includes(fm))) {
+                    match = false;
+                }
+            }
+
+            // Executive
+            if (match && filters.selectedExecutive && filters.selectedExecutive !== 'all') {
+                if (lead.executive !== filters.selectedExecutive) {
+                    match = false;
+                }
+            }
+
+            // Given By
+            if (match && filters.givenBy && filters.givenBy !== 'all') {
+                if (lead.givenBy !== filters.givenBy) {
+                    match = false;
+                }
+            }
+
+            // Status
+            if (match && filters.selectedStatus && filters.selectedStatus !== 'all') {
+                if (lead.status !== filters.selectedStatus) {
+                    match = false;
+                }
+            }
+
+            // Sub Status
+            if (match && filters.selectedSubStatus && filters.selectedSubStatus !== 'all') {
+                if (lead.leadSubStatus !== filters.selectedSubStatus) {
+                    match = false;
+                }
+            }
+            
+            // Lead Source
+            if (match && filters.selectedLeadSource && filters.selectedLeadSource !== 'all') {
+                if (lead.reference !== filters.selectedLeadSource) {
+                    match = false;
+                }
+            }
+
+            // Consider Status
+            if (match && filters.considerStatus) {
+                const excludedStatuses = ['Order closed', 'Fake', 'Existing Users', 'Not interested'];
+                if (lead.status && excludedStatuses.includes(lead.status)) {
+                    match = false;
+                }
+            }
+
+            // Follow-up related filters (only if considerStatus is true)
+            if (match && filters.considerStatus) {
+                // Follow-up Status
+                if (filters.followUpStatus === 'pending') {
+                    if (!lead.nextFollowUpDate || new Date(lead.nextFollowUpDate) > new Date()) {
+                        match = false;
+                    }
+                } else if (filters.followUpStatus === 'made') {
+                     if (!lead.nextFollowUpDate || new Date(lead.nextFollowUpDate) <= new Date()) {
+                        match = false;
+                    }
+                }
+                
+                const followUpFromDateObj = filters.followUpFromDate ? new Date(filters.followUpFromDate) : null;
+                const followUpToDateObj = filters.followUpToDate ? new Date(filters.followUpToDate) : null;
+                if(followUpFromDateObj) followUpFromDateObj.setHours(0,0,0,0);
+                if(followUpToDateObj) followUpToDateObj.setHours(23,59,59,999);
+
+                if (match && followUpFromDateObj && (!lead.nextFollowUpDate || new Date(lead.nextFollowUpDate) < followUpFromDateObj)) {
+                    match = false;
+                }
+                if (match && followUpToDateObj && (!lead.nextFollowUpDate || new Date(lead.nextFollowUpDate) > followUpToDateObj)) {
+                    match = false;
+                }
+
+                if (match && filters.followUpEnteredBy && filters.followUpEnteredBy !== 'all') {
+                    if (!lead.followUps || !lead.followUps.some(fu => fu.enteredBy === filters.followUpEnteredBy)) {
+                        match = false;
+                    }
+                }
+            }
+            
+            return match;
+        });
+
     } else {
         let tempLeads = [...visibleLeads];
         switch (tab) {
@@ -169,7 +279,6 @@ export default function LeadsUpdatePage() {
     if (tab !== 'search-result') {
       applyAndSetFilters(tab);
     } else {
-      // For search-result, filtering is triggered by 'handleShowButtonClick'
       applyAndSetFilters('search-result', stagedFilters);
     }
   };
