@@ -8,8 +8,12 @@ import { revalidatePath } from 'next/cache';
 function parseLeads(recordset: any[]): LeadFormData[] {
     return recordset.map(lead => ({
         ...lead,
-        creationDate: lead.creationDate ? new Date(lead.creationDate).toISOString() : new Date(0).toISOString(),
-        executiveViewDate: lead.executiveViewDate ? new Date(lead.executiveViewDate).toISOString() : undefined,
+        creationDate: (lead.creationDate && !isNaN(new Date(lead.creationDate).getTime())) 
+            ? new Date(lead.creationDate).toISOString() 
+            : new Date(0).toISOString(),
+        executiveViewDate: (lead.executiveViewDate && !isNaN(new Date(lead.executiveViewDate).getTime())) 
+            ? new Date(lead.executiveViewDate).toISOString() 
+            : undefined,
         followUps: lead.followUps ? JSON.parse(lead.followUps) : [],
         toExecutive: !!lead.toExecutive, 
     }));

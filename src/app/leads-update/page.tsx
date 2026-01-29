@@ -205,30 +205,22 @@ const filterByCriteria = (leads: LeadFormData[], filters: typeof stagedFilters):
 
     if (filters.fromDate) {
         try {
-            const [year, month, day] = filters.fromDate.split('-').map(Number);
-            const startOfLocalDay = new Date(year, month - 1, day, 0, 0, 0, 0);
-            const fromTimestamp = startOfLocalDay.getTime();
-
+            const fromDateUTC = new Date(`${filters.fromDate}T00:00:00.000Z`);
             tempLeads = tempLeads.filter(lead => {
                 if (!lead.creationDate) return false;
-                try {
-                    return new Date(lead.creationDate).getTime() >= fromTimestamp;
-                } catch { return false; }
+                const leadDate = new Date(lead.creationDate);
+                return !isNaN(leadDate.getTime()) && leadDate.getTime() >= fromDateUTC.getTime();
             });
         } catch {}
     }
 
     if (filters.toDate) {
         try {
-            const [year, month, day] = filters.toDate.split('-').map(Number);
-            const endOfLocalDay = new Date(year, month - 1, day, 23, 59, 59, 999);
-            const toTimestamp = endOfLocalDay.getTime();
-            
+            const toDateUTC = new Date(`${filters.toDate}T23:59:59.999Z`);
             tempLeads = tempLeads.filter(lead => {
                 if (!lead.creationDate) return false;
-                try {
-                    return new Date(lead.creationDate).getTime() <= toTimestamp;
-                } catch { return false; }
+                const leadDate = new Date(lead.creationDate);
+                return !isNaN(leadDate.getTime()) && leadDate.getTime() <= toDateUTC.getTime();
             });
         } catch {}
     }
@@ -308,16 +300,14 @@ const filterByCriteria = (leads: LeadFormData[], filters: typeof stagedFilters):
         let fromTimestamp: number | null = null;
         if (filters.followUpFromDate) {
             try {
-                const [year, month, day] = filters.followUpFromDate.split('-').map(Number);
-                fromTimestamp = new Date(year, month - 1, day, 0, 0, 0, 0).getTime();
+                fromTimestamp = new Date(`${filters.followUpFromDate}T00:00:00.000Z`).getTime();
             } catch {}
         }
         
         let toTimestamp: number | null = null;
         if (filters.followUpToDate) {
             try {
-                const [year, month, day] = filters.followUpToDate.split('-').map(Number);
-                toTimestamp = new Date(year, month - 1, day, 23, 59, 59, 999).getTime();
+                toTimestamp = new Date(`${filters.followUpToDate}T23:59:59.999Z`).getTime();
             } catch {}
         }
 
@@ -325,6 +315,8 @@ const filterByCriteria = (leads: LeadFormData[], filters: typeof stagedFilters):
             if (!lead.nextFollowUpDate) return false;
             try {
                 const nextFollowUpTimestamp = new Date(lead.nextFollowUpDate).getTime();
+                if (isNaN(nextFollowUpTimestamp)) return false;
+
                 const fromOk = fromTimestamp === null || fromTimestamp <= nextFollowUpTimestamp;
                 const toOk = toTimestamp === null || nextFollowUpTimestamp <= toTimestamp;
                 return fromOk && toOk;
@@ -1038,7 +1030,7 @@ const filterByCriteria = (leads: LeadFormData[], filters: typeof stagedFilters):
                         >
                           <TableCell>{(currentPage - 1) * LEADS_PER_PAGE + index + 1}</TableCell>
                           <TableCell>{lead.leadId}</TableCell>
-                          <TableCell>{lead.creationDate ? format(new Date(lead.creationDate), 'PPP') : 'N/A'}</TableCell>
+                          <TableCell>{lead.creationDate && !isNaN(new Date(lead.creationDate).getTime()) ? format(new Date(lead.creationDate), 'PPP') : 'N/A'}</TableCell>
                           <TableCell>{getDisplayModule(lead.selectedModule)}</TableCell>
                           <TableCell>{lead.company}</TableCell>
                           <TableCell>{lead.contactPerson}</TableCell>
@@ -1098,4 +1090,3 @@ const filterByCriteria = (leads: LeadFormData[], filters: typeof stagedFilters):
     </AppContent>
   );
 }
-
