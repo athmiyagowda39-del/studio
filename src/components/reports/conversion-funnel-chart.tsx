@@ -48,7 +48,7 @@ export default function ConversionFunnelChart({
         className="min-h-[200px] w-full"
       >
         <ResponsiveContainer>
-          <FunnelChart margin={{ top: 20, right: 120, bottom: 20, left: 20 }}>
+          <FunnelChart margin={{ top: 20, right: 150, bottom: 20, left: 20 }}>
             <Tooltip content={<ChartTooltipContent hideLabel />} />
             <Funnel dataKey="value" data={chartData} isAnimationActive>
               <LabelList
