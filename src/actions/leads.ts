@@ -1,3 +1,4 @@
+
 'use server';
 
 import { sql, getConnection } from '@/lib/db';
@@ -8,7 +9,6 @@ function parseLeads(recordset: any[]): LeadFormData[] {
     return recordset.map(lead => ({
         ...lead,
         followUps: lead.followUps ? JSON.parse(lead.followUps) : [],
-        // Make sure boolean values are correct
         toExecutive: !!lead.toExecutive, 
     }));
 }
@@ -16,7 +16,7 @@ function parseLeads(recordset: any[]): LeadFormData[] {
 export async function getLeads(): Promise<LeadFormData[]> {
   try {
     const pool = await getConnection();
-    const result = await pool.request().query('SELECT * FROM Leads');
+    const result = await pool.request().execute('sp_GetLeads');
     return parseLeads(result.recordset);
   } catch (error) {
     console.error('Failed to fetch leads:', error);
@@ -27,14 +27,12 @@ export async function getLeads(): Promise<LeadFormData[]> {
 export async function getNextLeadId(): Promise<string> {
     try {
         const pool = await getConnection();
-        // Ensure leadId is treated as a number for MAX()
-        const result = await pool.request().query("SELECT MAX(CAST(leadId as INT)) as maxId FROM Leads");
+        const result = await pool.request().execute('sp_GetNextLeadId');
         const maxId = result.recordset[0].maxId;
         return maxId ? (maxId + 1).toString() : '100000';
     } catch (error) {
         console.error('Failed to get next lead ID:', error);
-        // Fallback in case of error
-        return Date.now().toString();
+        return Date.now().toString(); // Fallback
     }
 }
 
@@ -42,111 +40,119 @@ export async function addLeads(leads: LeadFormData[]): Promise<LeadFormData[]> {
     if (leads.length === 0) return [];
     
     const pool = await getConnection();
-    const transaction = new sql.Transaction(pool);
+    
+    const table = new sql.Table('LeadType');
+    table.columns.add('leadId', sql.NVarChar(50));
+    table.columns.add('pincode', sql.NVarChar(10));
+    table.columns.add('state', sql.NVarChar(100));
+    table.columns.add('district', sql.NVarChar(100));
+    table.columns.add('address', sql.NVarChar(sql.MAX));
+    table.columns.add('contactPerson', sql.NVarChar(255));
+    table.columns.add('contactNumber', sql.NVarChar(50));
+    table.columns.add('reference', sql.NVarChar(100));
+    table.columns.add('email', sql.NVarChar(255));
+    table.columns.add('company', sql.NVarChar(255));
+    table.columns.add('headcount', sql.NVarChar(50));
+    table.columns.add('sector', sql.NVarChar(100));
+    table.columns.add('selectedModule', sql.NVarChar(sql.MAX));
+    table.columns.add('creationDate', sql.BigInt);
+    table.columns.add('executiveViewDate', sql.BigInt);
+    table.columns.add('followUps', sql.NVarChar(sql.MAX));
+    table.columns.add('nextFollowUpDate', sql.NVarChar(255));
+    table.columns.add('dealer', sql.NVarChar(255));
+    table.columns.add('manager', sql.NVarChar(255));
+    table.columns.add('executive', sql.NVarChar(255));
+    table.columns.add('givenBy', sql.NVarChar(255));
+    table.columns.add('status', sql.NVarChar(100));
+    table.columns.add('leadSubStatus', sql.NVarChar(100));
+    table.columns.add('initialRemarks', sql.NVarChar(sql.MAX));
+
+    for (const lead of leads) {
+        table.rows.add(
+            lead.leadId,
+            lead.pincode || null,
+            lead.state || null,
+            lead.district || null,
+            lead.address || null,
+            lead.contactPerson || null,
+            lead.contactNumber || null,
+            lead.reference || null,
+            lead.email || null,
+            lead.company || null,
+            lead.headcount || null,
+            lead.sector || null,
+            lead.selectedModule || null,
+            lead.creationDate,
+            lead.executiveViewDate || null,
+            lead.followUps ? JSON.stringify(lead.followUps) : null,
+            lead.nextFollowUpDate || null,
+            lead.dealer || null,
+            lead.manager || null,
+            lead.executive || null,
+            lead.givenBy || null,
+            lead.status || null,
+            lead.leadSubStatus || null,
+            lead.initialRemarks || null
+        );
+    }
+    
     try {
-        await transaction.begin();
-        
-        const table = new sql.Table('Leads');
-        table.create = false; // We assume the table already exists
-        // Define columns
-        table.columns.add('leadId', sql.NVarChar(50), { nullable: false, primary: true });
-        table.columns.add('pincode', sql.NVarChar(10), { nullable: true });
-        table.columns.add('state', sql.NVarChar(100), { nullable: true });
-        table.columns.add('district', sql.NVarChar(100), { nullable: true });
-        table.columns.add('address', sql.NVarChar(sql.MAX), { nullable: true });
-        table.columns.add('contactPerson', sql.NVarChar(255), { nullable: true });
-        table.columns.add('contactNumber', sql.NVarChar(50), { nullable: true });
-        table.columns.add('reference', sql.NVarChar(100), { nullable: true });
-        table.columns.add('email', sql.NVarChar(255), { nullable: true });
-        table.columns.add('company', sql.NVarChar(255), { nullable: true });
-        table.columns.add('headcount', sql.NVarChar(50), { nullable: true });
-        table.columns.add('sector', sql.NVarChar(100), { nullable: true });
-        table.columns.add('selectedModule', sql.NVarChar(sql.MAX), { nullable: true });
-        table.columns.add('creationDate', sql.BigInt, { nullable: false });
-        table.columns.add('executiveViewDate', sql.BigInt, { nullable: true });
-        table.columns.add('followUps', sql.NVarChar(sql.MAX), { nullable: true });
-        table.columns.add('nextFollowUpDate', sql.NVarChar(255), { nullable: true });
-        table.columns.add('dealer', sql.NVarChar(255), { nullable: true });
-        table.columns.add('manager', sql.NVarChar(255), { nullable: true });
-        table.columns.add('executive', sql.NVarChar(255), { nullable: true });
-        table.columns.add('givenBy', sql.NVarChar(255), { nullable: true });
-        table.columns.add('status', sql.NVarChar(100), { nullable: true });
-        table.columns.add('leadSubStatus', sql.NVarChar(100), { nullable: true });
-        table.columns.add('initialRemarks', sql.NVarChar(sql.MAX), { nullable: true });
-
-        // Add rows
-        for (const lead of leads) {
-            table.rows.add(
-                lead.leadId,
-                lead.pincode,
-                lead.state,
-                lead.district,
-                lead.address,
-                lead.contactPerson,
-                lead.contactNumber,
-                lead.reference,
-                lead.email,
-                lead.company,
-                lead.headcount,
-                lead.sector,
-                lead.selectedModule,
-                lead.creationDate,
-                lead.executiveViewDate || null,
-                lead.followUps ? JSON.stringify(lead.followUps) : null,
-                lead.nextFollowUpDate || null,
-                lead.dealer || null,
-                lead.manager || null,
-                lead.executive || null,
-                lead.givenBy || null,
-                lead.status || null,
-                lead.leadSubStatus || null,
-                lead.initialRemarks || null
-            );
-        }
-
-        const request = new sql.Request(transaction);
-        await request.bulk(table);
-        await transaction.commit();
+        const request = pool.request();
+        request.input('leads', table);
+        await request.execute('sp_BulkAddLeads');
 
         revalidatePath('/leads-upload');
         revalidatePath('/leads-update');
         return leads;
     } catch (error) {
-        await transaction.rollback();
-        console.error('Failed to bulk insert leads:', error);
+        console.error('Failed to bulk insert leads using stored procedure:', error);
         throw new Error('Failed to add leads due to a database error.');
     }
 }
 
 export async function updateLead(id: string, updates: Partial<LeadFormData>): Promise<LeadFormData> {
-  const setClauses: string[] = [];
-  const request = (await getConnection()).request().input('id', sql.NVarChar, id);
+  const pool = await getConnection();
 
-  for (const key in updates) {
-      if (Object.prototype.hasOwnProperty.call(updates, key) && key !== 'leadId') {
-          const value = (updates as any)[key];
-          setClauses.push(`${key} = @${key}`);
+  const leadResult = await pool.request()
+      .input('leadId', sql.NVarChar, id)
+      .execute('sp_GetLeadById');
 
-          if (key === 'followUps') {
-              request.input(key, sql.NVarChar(sql.MAX), value ? JSON.stringify(value) : null);
-          } else if (typeof value === 'number') {
-             request.input(key, sql.BigInt, value);
-          } else if (typeof value === 'boolean') {
-              request.input(key, sql.Bit, value);
-          } else {
-              request.input(key, sql.NVarChar, value === null ? null : String(value));
-          }
-      }
+  if (leadResult.recordset.length === 0) {
+      throw new Error('Lead to update not found.');
   }
+  
+  const [currentLead] = parseLeads(leadResult.recordset);
 
-  if (setClauses.length === 0) {
-    throw new Error('No updates provided for lead.');
-  }
-
-  const queryString = `UPDATE Leads SET ${setClauses.join(', ')} OUTPUT inserted.* WHERE leadId = @id`;
+  const mergedLead = { ...currentLead, ...updates };
 
   try {
-      const result = await request.query(queryString);
+      const result = await pool.request()
+          .input('leadId', sql.NVarChar, mergedLead.leadId)
+          .input('pincode', sql.NVarChar(10), mergedLead.pincode || null)
+          .input('state', sql.NVarChar(100), mergedLead.state || null)
+          .input('district', sql.NVarChar(100), mergedLead.district || null)
+          .input('address', sql.NVarChar(sql.MAX), mergedLead.address || null)
+          .input('contactPerson', sql.NVarChar(255), mergedLead.contactPerson || null)
+          .input('contactNumber', sql.NVarChar(50), mergedLead.contactNumber || null)
+          .input('reference', sql.NVarChar(100), mergedLead.reference || null)
+          .input('email', sql.NVarChar(255), mergedLead.email || null)
+          .input('company', sql.NVarChar(255), mergedLead.company || null)
+          .input('headcount', sql.NVarChar(50), mergedLead.headcount || null)
+          .input('sector', sql.NVarChar(100), mergedLead.sector || null)
+          .input('selectedModule', sql.NVarChar(sql.MAX), mergedLead.selectedModule || null)
+          .input('creationDate', sql.BigInt, mergedLead.creationDate)
+          .input('executiveViewDate', sql.BigInt, mergedLead.executiveViewDate || null)
+          .input('followUps', sql.NVarChar(sql.MAX), mergedLead.followUps ? JSON.stringify(mergedLead.followUps) : null)
+          .input('nextFollowUpDate', sql.NVarChar(255), mergedLead.nextFollowUpDate || null)
+          .input('dealer', sql.NVarChar(255), mergedLead.dealer || null)
+          .input('manager', sql.NVarChar(255), mergedLead.manager || null)
+          .input('executive', sql.NVarChar(255), mergedLead.executive || null)
+          .input('givenBy', sql.NVarChar(255), mergedLead.givenBy || null)
+          .input('status', sql.NVarChar(100), mergedLead.status || null)
+          .input('leadSubStatus', sql.NVarChar(100), mergedLead.leadSubStatus || null)
+          .input('initialRemarks', sql.NVarChar(sql.MAX), mergedLead.initialRemarks || null)
+          .execute('sp_UpdateLead');
+
       revalidatePath('/leads-update');
 
       if (result.recordset.length > 0) {
