@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -34,7 +35,7 @@ const allLinks: SidebarLink[] = [
     href: '/users',
     label: 'MANAGE USERS',
     icon: Users,
-    roles: ['Super Admin', 'Admin', 'Sub Admin'],
+    roles: ['Super Admin', 'Admin'],
   },
   { href: '/profile', label: 'PROFILE', icon: User },
 ];

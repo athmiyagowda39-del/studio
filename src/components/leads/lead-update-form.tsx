@@ -225,7 +225,7 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
   const managerForLead = leadDetails.manager
     ? users.find(
         (u) =>
-          (u.role === 'Admin' || u.role === 'Sub Admin' || u.role === 'Super Admin' || u.role === 'Manager') &&
+          (u.role === 'Admin' || u.role === 'Super Admin' || u.role === 'Manager') &&
           u.username
             .toLowerCase()
             .replace(/[\s.]+/g, '')

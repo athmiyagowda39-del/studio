@@ -12,7 +12,7 @@ export type AppUser = {
   id: string;
   username: string;
   email: string;
-  role: 'Super Admin' | 'Admin' | 'Sub Admin' | 'Manager' | 'Executive';
+  role: 'Super Admin' | 'Admin' | 'Manager' | 'Executive';
   password?: string; 
   phoneNumber?: string;
   employeeId?: string;
@@ -137,7 +137,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const impersonate = (userToImpersonate: AppUser) => {
-    if (originalUser && ['Admin', 'Sub Admin', 'Super Admin'].includes(originalUser.role)) {
+    if (originalUser && ['Admin', 'Super Admin'].includes(originalUser.role)) {
       setUser(userToImpersonate);
       sessionStorage.setItem('user', JSON.stringify(userToImpersonate));
       router.push('/dashboard');
@@ -185,7 +185,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const isImpersonating = !!(originalUser && user && originalUser.id !== user.id);
-  const isReadOnly = isImpersonating && originalUser?.role !== 'Super Admin';
+  const isReadOnly = (isImpersonating && originalUser?.role !== 'Super Admin');
 
   return (
     <AppContext.Provider

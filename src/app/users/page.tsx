@@ -60,7 +60,7 @@ export default function UsersPage() {
   const [newEmail, setNewEmail] = useState('');
   const [newEmployeeId, setNewEmployeeId] = useState('');
   const [newRole, setNewRole] = useState<
-    'Super Admin' | 'Admin' | 'Sub Admin' | 'Manager' | 'Executive' | ''
+    'Super Admin' | 'Admin' | 'Manager' | 'Executive' | ''
   >('');
   
   const [userToDelete, setUserToDelete] = useState<AppUser | null>(null);
@@ -70,7 +70,7 @@ export default function UsersPage() {
     if (
       !isLoading &&
       (!isAuthenticated ||
-        !['Admin', 'Sub Admin', 'Super Admin'].includes(
+        !['Admin', 'Super Admin'].includes(
           originalUser?.role as string
         ))
     ) {
@@ -81,7 +81,7 @@ export default function UsersPage() {
   if (
     isLoading ||
     !isAuthenticated ||
-    !['Admin', 'Sub Admin', 'Super Admin'].includes(originalUser?.role as string)
+    !['Admin', 'Super Admin'].includes(originalUser?.role as string)
   ) {
     return null;
   }
@@ -281,7 +281,7 @@ export default function UsersPage() {
                   <Select
                     value={newRole}
                     onValueChange={(
-                      value: 'Super Admin' | 'Admin' | 'Sub Admin' | 'Manager' | 'Executive'
+                      value: 'Super Admin' | 'Admin' | 'Manager' | 'Executive'
                     ) => setNewRole(value)}
                   >
                     <SelectTrigger id="role">
@@ -290,7 +290,6 @@ export default function UsersPage() {
                     <SelectContent>
                       <SelectItem value="Executive">Executive</SelectItem>
                       <SelectItem value="Manager">Manager</SelectItem>
-                      <SelectItem value="Sub Admin">Sub Admin</SelectItem>
                       <SelectItem value="Admin">Admin</SelectItem>
                       <SelectItem value="Super Admin">Super Admin</SelectItem>
                     </SelectContent>
@@ -326,7 +325,6 @@ export default function UsersPage() {
                       <SelectItem value="All">All Roles</SelectItem>
                       <SelectItem value="Executive">Executive</SelectItem>
                       <SelectItem value="Manager">Manager</SelectItem>
-                      <SelectItem value="Sub Admin">Sub Admin</SelectItem>
                       <SelectItem value="Admin">Admin</SelectItem>
                       <SelectItem value="Super Admin">Super Admin</SelectItem>
                     </SelectContent>
@@ -352,10 +350,7 @@ export default function UsersPage() {
                         (originalUser?.role === 'Super Admin' &&
                           user.role !== 'Super Admin') ||
                         (originalUser?.role === 'Admin' &&
-                          user.role !== 'Admin' &&
-                          user.role !== 'Super Admin') ||
-                        (originalUser?.role === 'Sub Admin' &&
-                          user.role === 'Executive');
+                          !['Admin', 'Super Admin'].includes(user.role));
 
                       return (
                         <TableRow key={user.id}>
