@@ -4,12 +4,10 @@ import {
   FunnelChart,
   Funnel,
   LabelList,
-  Tooltip,
   ResponsiveContainer,
 } from 'recharts';
 import {
   ChartContainer,
-  ChartTooltipContent,
   type ChartConfig,
 } from '@/components/ui/chart';
 
@@ -49,7 +47,6 @@ export default function ConversionFunnelChart({
       >
         <ResponsiveContainer>
           <FunnelChart margin={{ top: 20, right: 150, bottom: 20, left: 20 }}>
-            <Tooltip content={<ChartTooltipContent hideLabel />} />
             <Funnel dataKey="value" data={chartData} isAnimationActive>
               <LabelList
                 position="right"
