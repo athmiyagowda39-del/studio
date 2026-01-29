@@ -14,7 +14,6 @@ import { Button } from "@/components/ui/button"
 import { useState, useEffect } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { Textarea } from "../ui/textarea"
-import { Calendar } from "../ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 import { CalendarIcon, Info } from "lucide-react"
 import { format } from "date-fns"
@@ -33,6 +32,7 @@ import {
 import { useApp } from "@/context/app-context"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { getDisplayModule } from "@/lib/modules"
+import { Calendar } from "../ui/calendar"
 
 type FollowUp = {
   id: number
@@ -46,7 +46,7 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
   const [leadDetails, setLeadDetails] = useState<Partial<LeadFormData>>({})
 
   const [remarks, setRemarks] = useState("")
-  const [nextFollowUpDate, setNextFollowUpDate] = useState<Date>()
+  const [nextFollowUpDate, setNextFollowUpDate] = useState("")
   const [followUps, setFollowUps] = useState<FollowUp[]>([])
   const [currentStatus, setCurrentStatus] = useState("Initial")
   const [selectedStatus, setSelectedStatus] = useState("")
@@ -91,7 +91,7 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
       setFollowUps(foundLead.followUps || [])
       setCurrentStatus(foundLead.status || "Initial")
       setRemarks("")
-      setNextFollowUpDate(undefined)
+      setNextFollowUpDate("")
       setIsReadyToUpdate(false)
     } else {
       handleResetLeadDetails()
@@ -144,7 +144,7 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
       nextFollowUp:
         isOrderClosedRemark || !nextFollowUpDate
           ? "N/A"
-          : format(nextFollowUpDate, "PPP"),
+          : format(new Date(nextFollowUpDate + "T00:00:00"), "PPP"),
       enteredBy: user?.username || "Demo User",
     }
 
@@ -154,7 +154,7 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
       followUps: updatedFollowups,
       nextFollowUpDate: isOrderClosedRemark
         ? undefined
-        : nextFollowUpDate?.toISOString(),
+        : new Date(nextFollowUpDate + "T00:00:00").toISOString(),
       status: isOrderClosedRemark ? "Order closed" : leadDetails.status,
     }
 
@@ -164,7 +164,7 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
     if (isOrderClosedRemark) {
       setCurrentStatus("Order closed")
     }
-    setNextFollowUpDate(undefined)
+    setNextFollowUpDate("")
 
     toast({
       title: "Follow-up added",
@@ -255,7 +255,7 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
     setLeadDetails({})
     setFollowUps([])
     setCurrentStatus("Initial")
-    setNextFollowUpDate(undefined)
+    setNextFollowUpDate("")
     setTransferredTo("")
     setSelectedStatus("")
     setRemarks("")
@@ -264,7 +264,7 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
 
   const handleNewFollowUp = () => {
     setRemarks("")
-    setNextFollowUpDate(undefined)
+    setNextFollowUpDate("")
   }
 
   const handleSaveLeadDetails = async () => {
@@ -682,37 +682,15 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
               />
             </div>
             <div className="space-y-2">
-              <Label>Next Follow-up Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant={"outline"}
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !nextFollowUpDate && "text-muted-foreground"
-                    )}
-                    disabled={isOrderClosedRemark || isReadOnly}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {nextFollowUpDate ? (
-                      format(nextFollowUpDate, "PPP")
-                    ) : (
-                      <span>Pick a date</span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={nextFollowUpDate}
-                    onSelect={setNextFollowUpDate}
-                    disabled={{ before: new Date() }}
-                    initialFocus
-                    onTodayClick={() => setNextFollowUpDate(new Date())}
-                    onClearClick={() => setNextFollowUpDate(undefined)}
-                  />
-                </PopoverContent>
-              </Popover>
+              <Label htmlFor="nextFollowUpDate">Next Follow-up Date</Label>
+              <Input
+                id="nextFollowUpDate"
+                type="date"
+                value={nextFollowUpDate}
+                onChange={(e) => setNextFollowUpDate(e.target.value)}
+                min={new Date().toISOString().split("T")[0]}
+                disabled={isOrderClosedRemark || isReadOnly}
+              />
             </div>
             <div className="flex justify-end gap-2">
               <Button
