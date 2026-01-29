@@ -1,9 +1,11 @@
 
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
+import * as UserActions from '@/actions/users';
+import * as LeadActions from '@/actions/leads';
 
 export type AppUser = {
   id: string;
@@ -28,25 +30,12 @@ type AppContextType = {
   impersonate: (userToImpersonate: AppUser) => void;
   stopImpersonation: () => void;
   addUser: (user: Omit<AppUser, 'id'>) => Promise<void>;
-  updateUser: (id: string, updates: Partial<Omit<AppUser, 'id'>>) => void;
+  updateUser: (id: string, updates: Partial<Omit<AppUser, 'id'>>) => Promise<void>;
   deleteUser: (id: string) => Promise<void>;
-  addLeads: (newLeads: LeadFormData[]) => void;
-  updateLead: (id: string, updates: Partial<LeadFormData>) => void;
-  getNextLeadId: () => string;
+  addLeads: (newLeads: LeadFormData[]) => Promise<void>;
+  updateLead: (id: string, updates: Partial<LeadFormData>) => Promise<void>;
+  getNextLeadId: () => Promise<string>;
 };
-
-const defaultUsers: AppUser[] = [
-  { id: 'user-2', username: 'Luke Rajkumar', email: 'Luke.rajkumar@peopleworks.in', role: 'Super Admin', password: 'Luke@123', phoneNumber: '9500038277' },
-  { id: 'user-1', username: 'Athmiya A G', email: 'athmiya.ag@peopleworks.in', role: 'Super Admin', password: 'Welcome123#' },
-  { id: 'user-3', username: 'Varghese Vincent', email: 'Varghese@peopleworks.in', role: 'Super Admin', password: 'Varghese@123', phoneNumber: 'N/A' },
-  { id: 'user-4', username: 'Sam Devasia', email: 'sam.devasia@peopleworks.in', role: 'Super Admin', password: 'SamDev@456', phoneNumber: 'N/A' },
-  { id: 'user-6', username: 'Mandanna N', email: 'mandanna.n@peopleworks.in', role: 'Executive', password: 'Mandanna@101', phoneNumber: '9845622777' },
-  { id: 'user-5', username: 'Yathish G', email: 'yathish.g@peopleworks.in', role: 'Executive', password: 'Yathish@789', phoneNumber: '8553309892' },
-  { id: 'user-7', username: 'Hukum Chand Kewat', email: 'hukum@peopleworks.in', role: 'Executive', password: 'Hukum@112', phoneNumber: '9036010968' },
-  { id: 'user-8', username: 'Hemant Sharma', email: 'hemant.sharma@peopleworks.in', role: 'Executive', password: 'Password123' },
-  { id: 'user-9', username: 'Keerthi Taduru', email: 'keerth.taduru@peopleworks.in', role: 'Executive', password: 'Password123' },
-  { id: 'user-10', username: 'Akshay Azariah', email: 'Akshay.azariah@peopleworks.in', role: 'Executive', password: 'Password123' },
-];
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
@@ -58,64 +47,42 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [leads, setLeads] = useState<LeadFormData[]>([]);
   const router = useRouter();
 
-  useEffect(() => {
+  const loadInitialData = useCallback(async () => {
+    setIsLoading(true);
     try {
-      // Load users, ensuring defaults are always present
-      const storedUsersJSON = localStorage.getItem('appUsers');
-      let usersFromStorage: AppUser[] = [];
-      if (storedUsersJSON) {
-        try {
-            usersFromStorage = JSON.parse(storedUsersJSON);
-        } catch (e) {
-            console.error("Failed to parse users from storage, resetting to defaults.", e);
-        }
-      }
-
-      const usersMap = new Map<string, AppUser>();
-      // Load default users first
-      defaultUsers.forEach(u => usersMap.set(u.email.toLowerCase(), u));
-      // Overwrite with any stored users, preserving changes
-      usersFromStorage.forEach(u => usersMap.set(u.email.toLowerCase(), u));
+      const sessionUserJson = sessionStorage.getItem('user');
+      const sessionOriginalUserJson = sessionStorage.getItem('originalUser');
       
-      const mergedUsers = Array.from(usersMap.values());
-      setUsers(mergedUsers);
-      localStorage.setItem('appUsers', JSON.stringify(mergedUsers));
+      const [fetchedUsers, fetchedLeads] = await Promise.all([
+        UserActions.getUsers(),
+        LeadActions.getLeads(),
+      ]);
 
-      // Load leads
-      const storedLeads = localStorage.getItem('allLeads');
-      if (storedLeads) {
-        setLeads(JSON.parse(storedLeads));
-      }
+      setUsers(fetchedUsers);
+      setLeads(fetchedLeads);
 
-      // Load session
-      const sessionUser = sessionStorage.getItem('user');
-      const sessionOriginalUser = sessionStorage.getItem('originalUser');
-
-      if (sessionUser) {
-        setUser(JSON.parse(sessionUser));
+      if (sessionUserJson) {
+        setUser(JSON.parse(sessionUserJson));
       }
-      if (sessionOriginalUser) {
-        setOriginalUser(JSON.parse(sessionOriginalUser));
+      if (sessionOriginalUserJson) {
+        setOriginalUser(JSON.parse(sessionOriginalUserJson));
       }
-    } catch (e) {
-      console.error("Failed to initialize app state from storage", e);
+      
+    } catch (error) {
+      console.error("Failed to load initial data:", error);
+      // Here you might want to set an error state to show a message to the user
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  const persistUsers = (newUsers: AppUser[]) => {
-    setUsers(newUsers);
-    localStorage.setItem('appUsers', JSON.stringify(newUsers));
-  };
+  useEffect(() => {
+    loadInitialData();
+  }, [loadInitialData]);
 
-  const persistLeads = (newLeads: LeadFormData[]) => {
-    setLeads(newLeads);
-    localStorage.setItem('allLeads', JSON.stringify(newLeads));
-  };
 
   const login = async (email: string, password: string) => {
-    const foundUser = users.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
+    const foundUser = await UserActions.loginUser(email, password);
     if (foundUser) {
       setUser(foundUser);
       setOriginalUser(foundUser);
@@ -149,40 +116,39 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const addUser = async (userData: Omit<AppUser, 'id'>) => {
-    if (users.some(u => u.email.toLowerCase() === userData.email.toLowerCase())) {
-        throw new Error("User with this email already exists.");
-    }
-    const newUser = { ...userData, id: String(Date.now()) };
-    persistUsers([...users, newUser]);
+    const newUser = await UserActions.addUser(userData);
+    setUsers(prev => [...prev, newUser]);
   };
 
   const updateUser = async (id: string, updates: Partial<Omit<AppUser, 'id'>>) => {
-    const newUsers = users.map(u => u.id === id ? { ...u, ...updates } : u);
-    persistUsers(newUsers);
+    const updatedUser = await UserActions.updateUser(id, updates);
+    setUsers(prev => prev.map(u => u.id === id ? { ...u, ...updatedUser } : u));
+    
+    if (user?.id === id) {
+      const newCurrentUser = { ...user, ...updatedUser };
+      setUser(newCurrentUser);
+      sessionStorage.setItem('user', JSON.stringify(newCurrentUser));
+    }
+    if (originalUser?.id === id) {
+        const newOriginalUser = { ...originalUser, ...updatedUser };
+        setOriginalUser(newOriginalUser);
+        sessionStorage.setItem('originalUser', JSON.stringify(newOriginalUser));
+    }
   };
 
   const deleteUser = async (id: string) => {
-    const newUsers = users.filter(u => u.id !== id);
-    persistUsers(newUsers);
+    await UserActions.deleteUser(id);
+    setUsers(prev => prev.filter(u => u.id !== id));
   };
   
-  const addLeads = (newLeads: LeadFormData[]) => {
-    const updatedLeads = [...leads, ...newLeads];
-    persistLeads(updatedLeads);
+  const addLeads = async (newLeads: LeadFormData[]) => {
+    const addedLeads = await LeadActions.addLeads(newLeads);
+    setLeads(prev => [...prev, ...addedLeads]);
   };
   
-  const updateLead = (id: string, updates: Partial<LeadFormData>) => {
-    const updatedLeads = leads.map(l => l.leadId === id ? { ...l, ...updates } : l);
-    persistLeads(updatedLeads);
-  }
-
-  const getNextLeadId = (): string => {
-    if (leads.length === 0) return '100000';
-    const maxId = leads.reduce((max, lead) => {
-      const leadIdNum = parseInt(lead.leadId, 10);
-      return !isNaN(leadIdNum) && leadIdNum > max ? leadIdNum : max;
-    }, 99999);
-    return (maxId + 1).toString();
+  const updateLead = async (id: string, updates: Partial<LeadFormData>) => {
+    const updatedLead = await LeadActions.updateLead(id, updates);
+    setLeads(prev => prev.map(l => l.leadId === id ? updatedLead : l));
   };
 
   const isImpersonating = !!(originalUser && user && originalUser.id !== user.id);
@@ -208,7 +174,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         deleteUser,
         addLeads,
         updateLead,
-        getNextLeadId,
+        getNextLeadId: LeadActions.getNextLeadId,
       }}
     >
       {children}
