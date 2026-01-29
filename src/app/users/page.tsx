@@ -60,7 +60,7 @@ export default function UsersPage() {
   const [newEmail, setNewEmail] = useState('');
   const [newEmployeeId, setNewEmployeeId] = useState('');
   const [newRole, setNewRole] = useState<
-    'Super Admin' | 'Admin' | 'Sub Admin' | 'Executive' | ''
+    'Super Admin' | 'Admin' | 'Sub Admin' | 'Manager' | 'Executive' | ''
   >('');
   
   const [userToDelete, setUserToDelete] = useState<AppUser | null>(null);
@@ -281,7 +281,7 @@ export default function UsersPage() {
                   <Select
                     value={newRole}
                     onValueChange={(
-                      value: 'Super Admin' | 'Admin' | 'Sub Admin' | 'Executive'
+                      value: 'Super Admin' | 'Admin' | 'Sub Admin' | 'Manager' | 'Executive'
                     ) => setNewRole(value)}
                   >
                     <SelectTrigger id="role">
@@ -289,6 +289,7 @@ export default function UsersPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="Executive">Executive</SelectItem>
+                      <SelectItem value="Manager">Manager</SelectItem>
                       <SelectItem value="Sub Admin">Sub Admin</SelectItem>
                       <SelectItem value="Admin">Admin</SelectItem>
                       <SelectItem value="Super Admin">Super Admin</SelectItem>
@@ -324,6 +325,7 @@ export default function UsersPage() {
                     <SelectContent>
                       <SelectItem value="All">All Roles</SelectItem>
                       <SelectItem value="Executive">Executive</SelectItem>
+                      <SelectItem value="Manager">Manager</SelectItem>
                       <SelectItem value="Sub Admin">Sub Admin</SelectItem>
                       <SelectItem value="Admin">Admin</SelectItem>
                       <SelectItem value="Super Admin">Super Admin</SelectItem>

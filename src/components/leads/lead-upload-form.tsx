@@ -168,7 +168,7 @@ export default function LeadUploadForm() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const { toast } = useToast();
-  const managers = users.filter(u => ['Varghese Vincent', 'Sam Devasia'].includes(u.username));
+  const managers = users.filter(u => u.role === 'Manager');
 
 
   useEffect(() => {
@@ -964,5 +964,6 @@ export default function LeadUploadForm() {
     
 
     
+
 
 
