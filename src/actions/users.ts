@@ -7,7 +7,7 @@ import { revalidatePath } from 'next/cache';
 import crypto from 'crypto';
 
 function hashPassword(password: string): string {
-  return crypto.createHash('sha256').update(password).digest('hex');
+  return crypto.createHash('sha256').update(password).digest('hex').toUpperCase();
 }
 
 export async function getUsers(): Promise<AppUser[]> {
