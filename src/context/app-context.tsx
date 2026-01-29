@@ -185,7 +185,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const isImpersonating = !!(originalUser && user && originalUser.id !== user.id);
-  const isReadOnly = isImpersonating;
+  const isReadOnly = isImpersonating && originalUser?.role !== 'Super Admin';
 
   return (
     <AppContext.Provider
