@@ -204,13 +204,29 @@ export default function LeadsUpdatePage() {
     }
 
     if (filters.fromDate) {
-        const fromTimestamp = new Date(`${filters.fromDate}T00:00:00`).getTime();
-        tempLeads = tempLeads.filter(lead => lead.creationDate && new Date(lead.creationDate).getTime() >= fromTimestamp);
+        // Parse the date as UTC start of day to avoid timezone issues
+        const fromTimestamp = new Date(`${filters.fromDate}T00:00:00.000Z`).getTime();
+        tempLeads = tempLeads.filter(lead => {
+            if (!lead.creationDate) return false;
+            try {
+                return new Date(lead.creationDate).getTime() >= fromTimestamp;
+            } catch {
+                return false;
+            }
+        });
     }
 
     if (filters.toDate) {
-        const toTimestamp = new Date(`${filters.toDate}T23:59:59`).getTime();
-        tempLeads = tempLeads.filter(lead => lead.creationDate && new Date(lead.creationDate).getTime() <= toTimestamp);
+        // Parse the date as UTC end of day to avoid timezone issues
+        const toTimestamp = new Date(`${filters.toDate}T23:59:59.999Z`).getTime();
+        tempLeads = tempLeads.filter(lead => {
+            if (!lead.creationDate) return false;
+            try {
+                return new Date(lead.creationDate).getTime() <= toTimestamp;
+            } catch {
+                return false;
+            }
+        });
     }
     
     if (filters.selectedModules) {
@@ -233,7 +249,7 @@ export default function LeadsUpdatePage() {
 
     dropdownFilters.forEach(filter => {
         if (filter.value !== 'all' && filter.value) {
-            tempLeads = tempLeads.filter(lead => flexibleNameMatch(lead[filter.key], filter.value));
+            tempLeads = tempLeads.filter(lead => flexibleNameMatch(lead[filter.key] as string, filter.value));
         }
     });
 
@@ -260,15 +276,23 @@ export default function LeadsUpdatePage() {
         hasFollowUpFilter = true;
         tempLeads = tempLeads.filter(lead => {
             if (!lead.nextFollowUpDate) return false;
-            const nextFollowUpDateObj = startOfDay(new Date(lead.nextFollowUpDate));
-            return nextFollowUpDateObj <= todayStart;
+            try {
+              const dueDate = startOfDay(new Date(lead.nextFollowUpDate));
+              return dueDate <= todayStart;
+            } catch {
+              return false;
+            }
         });
     } else if (filters.followUpStatus === 'made') {
         hasFollowUpFilter = true;
         tempLeads = tempLeads.filter(lead => {
             if (!lead.nextFollowUpDate) return false;
-            const nextFollowUpDateObj = startOfDay(new Date(lead.nextFollowUpDate));
-            return nextFollowUpDateObj > todayStart;
+            try {
+              const nextFollowUpDateObj = startOfDay(new Date(lead.nextFollowUpDate));
+              return nextFollowUpDateObj > todayStart;
+            } catch {
+                return false;
+            }
         });
     }
 
@@ -278,10 +302,19 @@ export default function LeadsUpdatePage() {
         hasFollowUpFilter = true;
         tempLeads = tempLeads.filter(lead => {
             if (!lead.nextFollowUpDate) return false;
-            const nextFollowUpDateObj = startOfDay(new Date(lead.nextFollowUpDate));
-            const fromOk = !filters.followUpFromDate || startOfDay(new Date(filters.followUpFromDate)) <= nextFollowUpDateObj;
-            const toOk = !filters.followUpToDate || endOfDay(new Date(filters.followUpToDate)) >= nextFollowUpDateObj;
-            return fromOk && toOk;
+            try {
+                const nextFollowUpTimestamp = new Date(lead.nextFollowUpDate).getTime();
+                
+                const fromOk = !filters.followUpFromDate || 
+                    new Date(`${filters.followUpFromDate}T00:00:00.000Z`).getTime() <= nextFollowUpTimestamp;
+
+                const toOk = !filters.followUpToDate || 
+                    new Date(`${filters.followUpToDate}T23:59:59.999Z`).getTime() >= nextFollowUpTimestamp;
+                    
+                return fromOk && toOk;
+            } catch (e) {
+                return false; // Invalid date format in nextFollowUpDate
+            }
         });
     }
 
