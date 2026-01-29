@@ -183,7 +183,7 @@ export default function LeadsUpdatePage() {
       setCurrentPage(1);
   };
   
-  const filterByCriteria = (leads: LeadFormData[], filters: typeof stagedFilters): LeadFormData[] => {
+const filterByCriteria = (leads: LeadFormData[], filters: typeof stagedFilters): LeadFormData[] => {
     let tempLeads = [...leads];
 
     // --- Simple Filters ---
@@ -204,29 +204,33 @@ export default function LeadsUpdatePage() {
     }
 
     if (filters.fromDate) {
-        // Parse the date as UTC start of day to avoid timezone issues
-        const fromTimestamp = new Date(`${filters.fromDate}T00:00:00.000Z`).getTime();
-        tempLeads = tempLeads.filter(lead => {
-            if (!lead.creationDate) return false;
-            try {
-                return new Date(lead.creationDate).getTime() >= fromTimestamp;
-            } catch {
-                return false;
-            }
-        });
+        try {
+            const [year, month, day] = filters.fromDate.split('-').map(Number);
+            const startOfLocalDay = new Date(year, month - 1, day, 0, 0, 0, 0);
+            const fromTimestamp = startOfLocalDay.getTime();
+
+            tempLeads = tempLeads.filter(lead => {
+                if (!lead.creationDate) return false;
+                try {
+                    return new Date(lead.creationDate).getTime() >= fromTimestamp;
+                } catch { return false; }
+            });
+        } catch {}
     }
 
     if (filters.toDate) {
-        // Parse the date as UTC end of day to avoid timezone issues
-        const toTimestamp = new Date(`${filters.toDate}T23:59:59.999Z`).getTime();
-        tempLeads = tempLeads.filter(lead => {
-            if (!lead.creationDate) return false;
-            try {
-                return new Date(lead.creationDate).getTime() <= toTimestamp;
-            } catch {
-                return false;
-            }
-        });
+        try {
+            const [year, month, day] = filters.toDate.split('-').map(Number);
+            const endOfLocalDay = new Date(year, month - 1, day, 23, 59, 59, 999);
+            const toTimestamp = endOfLocalDay.getTime();
+            
+            tempLeads = tempLeads.filter(lead => {
+                if (!lead.creationDate) return false;
+                try {
+                    return new Date(lead.creationDate).getTime() <= toTimestamp;
+                } catch { return false; }
+            });
+        } catch {}
     }
     
     if (filters.selectedModules) {
@@ -300,20 +304,32 @@ export default function LeadsUpdatePage() {
     const hasDateRange = filters.followUpFromDate || filters.followUpToDate;
     if (hasDateRange) {
         hasFollowUpFilter = true;
+        
+        let fromTimestamp: number | null = null;
+        if (filters.followUpFromDate) {
+            try {
+                const [year, month, day] = filters.followUpFromDate.split('-').map(Number);
+                fromTimestamp = new Date(year, month - 1, day, 0, 0, 0, 0).getTime();
+            } catch {}
+        }
+        
+        let toTimestamp: number | null = null;
+        if (filters.followUpToDate) {
+            try {
+                const [year, month, day] = filters.followUpToDate.split('-').map(Number);
+                toTimestamp = new Date(year, month - 1, day, 23, 59, 59, 999).getTime();
+            } catch {}
+        }
+
         tempLeads = tempLeads.filter(lead => {
             if (!lead.nextFollowUpDate) return false;
             try {
                 const nextFollowUpTimestamp = new Date(lead.nextFollowUpDate).getTime();
-                
-                const fromOk = !filters.followUpFromDate || 
-                    new Date(`${filters.followUpFromDate}T00:00:00.000Z`).getTime() <= nextFollowUpTimestamp;
-
-                const toOk = !filters.followUpToDate || 
-                    new Date(`${filters.followUpToDate}T23:59:59.999Z`).getTime() >= nextFollowUpTimestamp;
-                    
+                const fromOk = fromTimestamp === null || fromTimestamp <= nextFollowUpTimestamp;
+                const toOk = toTimestamp === null || nextFollowUpTimestamp <= toTimestamp;
                 return fromOk && toOk;
             } catch (e) {
-                return false; // Invalid date format in nextFollowUpDate
+                return false;
             }
         });
     }
@@ -1082,3 +1098,4 @@ export default function LeadsUpdatePage() {
     </AppContent>
   );
 }
+
