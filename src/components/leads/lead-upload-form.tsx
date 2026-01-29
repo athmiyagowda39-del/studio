@@ -335,21 +335,23 @@ export default function LeadUploadForm() {
     return true;
   };
 
-  const handleSaveLead = () => {
+  const handleSaveLead = async () => {
     if (!validateLead(formData)) {
       return;
     }
+    
+    const newLeadId = await getNextLeadId();
 
     const newLead: LeadFormData = {
       ...formData,
       givenBy: user?.username || 'Manual',
-      leadId: getNextLeadId(),
+      leadId: newLeadId,
       creationDate: new Date().getTime(),
       status: 'Not viewed',
       executive: formData.toExecutive ? toExecutiveSelection : undefined,
     };
 
-    addLeads([newLead]);
+    await addLeads([newLead]);
 
     toast({
       title: 'Lead saved successfully',
@@ -486,7 +488,7 @@ export default function LeadUploadForm() {
     reader.readAsBinaryString(file);
   };
 
-  const handleConfirmUpload = () => {
+  const handleConfirmUpload = async () => {
     if (parsedLeads.length === 0) {
       toast({
         variant: 'destructive',
@@ -496,7 +498,7 @@ export default function LeadUploadForm() {
       return;
     }
 
-    let nextId = parseInt(getNextLeadId(), 10);
+    let nextId = parseInt(await getNextLeadId(), 10);
 
     const newLeads: LeadFormData[] = parsedLeads.map((parsedLead) => ({
       pincode: parsedLead.pincode || '',
@@ -520,7 +522,7 @@ export default function LeadUploadForm() {
       status: 'Not viewed',
     }));
 
-    addLeads(newLeads);
+    await addLeads(newLeads);
 
     toast({
       title: 'Upload Successful',
@@ -960,10 +962,3 @@ export default function LeadUploadForm() {
     </div>
   );
 }
-
-    
-
-    
-
-
-
