@@ -1,3 +1,4 @@
+
 import sql from 'mssql';
 
 const config: sql.config = {
@@ -16,8 +17,13 @@ let pool: sql.ConnectionPool | null = null;
 async function getConnection() {
   // If pool exists and is connected, return it.
   if (pool && pool.connected) {
+    console.log('Returning existing database connection from pool.');
     return pool;
   }
+
+  const { password, ...configWithoutPassword } = config;
+  console.log('Database config (password omitted):', JSON.stringify(configWithoutPassword, null, 2));
+
 
   // Check for missing essential configuration
   if (!config.server || !config.user || !config.database) {
@@ -26,6 +32,7 @@ async function getConnection() {
   }
 
   try {
+    console.log('No existing connection pool found or not connected. Creating new connection...');
     pool = await new sql.ConnectionPool(config).connect();
     console.log('Successfully connected to SQL Server.');
     
