@@ -5,13 +5,14 @@ import { sql, getConnection } from '@/lib/db';
 import type { AppUser } from '@/context/app-context';
 import { revalidatePath } from 'next/cache';
 import crypto from 'crypto';
+import { logger } from '@/lib/logger';
 
 function hashPassword(password: string): string {
   return crypto.createHash('sha256').update(password).digest('hex').toUpperCase();
 }
 
 export async function getUsers(): Promise<AppUser[]> {
-  console.log('Attempting to fetch users...');
+  logger.log('Attempting to fetch users...');
   try {
     const pool = await getConnection();
     const result = await pool.request().execute('usp_GetUsers');
@@ -19,16 +20,16 @@ export async function getUsers(): Promise<AppUser[]> {
       ...user,
       forcePasswordChange: !!user.forcePasswordChange
     }));
-    console.log(`Successfully fetched ${users.length} users.`);
+    logger.log(`Successfully fetched ${users.length} users.`);
     return users;
   } catch (error) {
-    console.error('Failed to fetch users:', error);
+    logger.error('Failed to fetch users:', error);
     return []; // Return empty array on error
   }
 }
 
 export async function loginUser(email: string, password: string): Promise<AppUser | null> {
-  console.log(`Attempting login for user: ${email}`);
+  logger.log(`Attempting login for user: ${email}`);
   try {
     const pool = await getConnection();
     const hashedPassword = hashPassword(password);
@@ -40,19 +41,19 @@ export async function loginUser(email: string, password: string): Promise<AppUse
     
     if (result.recordset.length > 0) {
       const user = result.recordset[0];
-      console.log(`Login successful for user: ${email}`);
+      logger.log(`Login successful for user: ${email}`);
       return { ...user, forcePasswordChange: !!user.forcePasswordChange };
     }
-    console.log(`Login failed for user: ${email}. Invalid credentials.`);
+    logger.log(`Login failed for user: ${email}. Invalid credentials.`);
     return null;
   } catch (error) {
-    console.error('Login failed with database error:', error);
+    logger.error('Login failed with database error:', error);
     throw new Error('A database error occurred during login.');
   }
 }
 
 export async function addUser(userData: Omit<AppUser, 'id' | 'password' | 'forcePasswordChange'>): Promise<AppUser> {
-  console.log(`Attempting to add user: ${userData.username}`);
+  logger.log(`Attempting to add user: ${userData.username}`);
   try {
     const pool = await getConnection();
     const newId = `user-${Date.now()}`;
@@ -72,10 +73,10 @@ export async function addUser(userData: Omit<AppUser, 'id' | 'password' | 'force
     
     revalidatePath('/users');
     const newUser = { ...userData, id: newId, forcePasswordChange: true };
-    console.log(`Successfully added user: ${userData.username}`);
+    logger.log(`Successfully added user: ${userData.username}`);
     return newUser;
   } catch (error: any) {
-    console.error('Failed to add user:', error);
+    logger.error('Failed to add user:', error);
     if (error.number === 2627) { // Unique constraint violation
       throw new Error('A user with this email, username, or employee ID already exists.');
     }
@@ -84,7 +85,7 @@ export async function addUser(userData: Omit<AppUser, 'id' | 'password' | 'force
 }
 
 export async function updateUser(id: string, updates: Partial<Omit<AppUser, 'id'>>): Promise<AppUser> {
-  console.log(`Attempting to update user: ${id}`);
+  logger.log(`Attempting to update user: ${id}`);
   try {
     const pool = await getConnection();
 
@@ -94,7 +95,7 @@ export async function updateUser(id: string, updates: Partial<Omit<AppUser, 'id'
         .execute('usp_GetUserById');
 
     if (userResult.recordset.length === 0) {
-        console.error(`Update failed: User with ID ${id} not found.`);
+        logger.error(`Update failed: User with ID ${id} not found.`);
         throw new Error('User to update not found.');
     }
     const currentUser = userResult.recordset[0];
@@ -107,7 +108,7 @@ export async function updateUser(id: string, updates: Partial<Omit<AppUser, 'id'
 
     // If a new password is provided, hash it and update the forcePasswordChange flag
     if (updates.password) {
-        console.log(`Password change requested for user: ${id}`);
+        logger.log(`Password change requested for user: ${id}`);
         passwordToUpdate = hashPassword(updates.password);
         forceChange = false;
     }
@@ -128,27 +129,27 @@ export async function updateUser(id: string, updates: Partial<Omit<AppUser, 'id'
     revalidatePath('/profile');
     
     const updatedUser = result.recordset[0];
-    console.log(`Successfully updated user: ${id}`);
+    logger.log(`Successfully updated user: ${id}`);
     return { ...updatedUser, forcePasswordChange: !!updatedUser.forcePasswordChange };
 
   } catch (error) {
-    console.error(`Failed to update user ${id}:`, error);
+    logger.error(`Failed to update user ${id}:`, error);
     throw new Error('Failed to update user due to a database error.');
   }
 }
 
 export async function deleteUser(id: string): Promise<{ success: boolean }> {
-  console.log(`Attempting to delete user: ${id}`);
+  logger.log(`Attempting to delete user: ${id}`);
   try {
     const pool = await getConnection();
     await pool.request()
       .input('id', sql.NVarChar, id)
       .execute('usp_DeleteUser');
     revalidatePath('/users');
-    console.log(`Successfully deleted user: ${id}`);
+    logger.log(`Successfully deleted user: ${id}`);
     return { success: true };
   } catch (error) {
-    console.error(`Failed to delete user ${id}:`, error);
+    logger.error(`Failed to delete user ${id}:`, error);
     throw new Error('Failed to delete user due to a database error.');
   }
 }

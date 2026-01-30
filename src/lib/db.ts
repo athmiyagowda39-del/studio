@@ -1,5 +1,6 @@
 
 import sql from 'mssql';
+import { logger } from './logger';
 
 const config: sql.config = {
   user: process.env.DB_USER,
@@ -17,33 +18,33 @@ let pool: sql.ConnectionPool | null = null;
 async function getConnection() {
   // If pool exists and is connected, return it.
   if (pool && pool.connected) {
-    console.log('Returning existing database connection from pool.');
+    logger.log('Returning existing database connection from pool.');
     return pool;
   }
 
   const { password, ...configWithoutPassword } = config;
-  console.log('Database config (password omitted):', JSON.stringify(configWithoutPassword, null, 2));
+  logger.log('Database config (password omitted):', JSON.stringify(configWithoutPassword, null, 2));
 
 
   // Check for missing essential configuration
   if (!config.server || !config.user || !config.database) {
-      console.error('Database configuration environment variables are not fully set.');
+      logger.error('Database configuration environment variables are not fully set.');
       throw new Error('Database configuration is missing.');
   }
 
   try {
-    console.log('No existing connection pool found or not connected. Creating new connection...');
+    logger.log('No existing connection pool found or not connected. Creating new connection...');
     pool = await new sql.ConnectionPool(config).connect();
-    console.log('Successfully connected to SQL Server.');
+    logger.log('Successfully connected to SQL Server.');
     
     pool.on('error', err => {
-        console.error('SQL Pool Error', err);
+        logger.error('SQL Pool Error', err);
         pool = null; // Reset pool on error to force reconnection on next call
     });
 
     return pool;
   } catch (err) {
-    console.error('Database Connection Failed!', err);
+    logger.error('Database Connection Failed!', err);
     pool = null; // Ensure pool is null on failure
     throw new Error('Could not connect to the database.');
   }
