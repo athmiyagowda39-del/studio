@@ -4,7 +4,6 @@
 import { sql, getConnection } from '@/lib/db';
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import { revalidatePath } from 'next/cache';
-import { logger } from '@/lib/logger';
 
 function parseLeads(recordset: any[]): LeadFormData[] {
     return recordset.map(lead => {
@@ -43,39 +42,33 @@ function parseLeads(recordset: any[]): LeadFormData[] {
 
 
 export async function getLeads(): Promise<LeadFormData[]> {
-  logger.log('Attempting to fetch leads...');
   try {
     const pool = await getConnection();
     const result = await pool.request().execute('usp_GetLeads');
     const leads = parseLeads(result.recordset);
-    logger.log(`Successfully fetched ${leads.length} leads.`);
     return leads;
   } catch (error) {
-    logger.error('Failed to fetch leads:', error);
+    console.error('Failed to fetch leads:', error);
     return [];
   }
 }
 
 export async function getNextLeadId(): Promise<string> {
-    logger.log('Attempting to get next lead ID...');
     try {
         const pool = await getConnection();
         const result = await pool.request().execute('usp_GetNextLeadId');
         const maxId = result.recordset[0].maxId;
         const nextId = maxId ? (maxId + 1).toString() : '100000';
-        logger.log(`Next lead ID determined as: ${nextId}`);
         return nextId;
     } catch (error) {
-        logger.error('Failed to get next lead ID:', error);
+        console.error('Failed to get next lead ID:', error);
         const fallbackId = Date.now().toString();
-        logger.log(`Falling back to timestamp for next lead ID: ${fallbackId}`);
         return fallbackId; // Fallback
     }
 }
 
 export async function addLeads(leads: LeadFormData[]): Promise<LeadFormData[]> {
     if (leads.length === 0) return [];
-    logger.log(`Attempting to add ${leads.length} new leads...`);
     
     const pool = await getConnection();
     
@@ -141,16 +134,14 @@ export async function addLeads(leads: LeadFormData[]): Promise<LeadFormData[]> {
 
         revalidatePath('/leads-upload');
         revalidatePath('/leads-update');
-        logger.log(`Successfully added ${leads.length} leads.`);
         return leads;
     } catch (error) {
-        logger.error('Failed to bulk insert leads using stored procedure:', error);
+        console.error('Failed to bulk insert leads using stored procedure:', error);
         throw new Error('Failed to add leads due to a database error.');
     }
 }
 
 export async function updateLead(id: string, updates: Partial<LeadFormData>): Promise<LeadFormData> {
-  logger.log(`Attempting to update lead: ${id} with updates:`, JSON.stringify(updates, null, 2));
   const pool = await getConnection();
 
   const leadResult = await pool.request()
@@ -158,7 +149,6 @@ export async function updateLead(id: string, updates: Partial<LeadFormData>): Pr
       .execute('usp_GetLeadById');
 
   if (leadResult.recordset.length === 0) {
-      logger.error(`Update failed: Lead with ID ${id} not found.`);
       throw new Error('Lead to update not found.');
   }
   
@@ -198,14 +188,12 @@ export async function updateLead(id: string, updates: Partial<LeadFormData>): Pr
 
       if (result.recordset.length > 0) {
           const [updatedLead] = parseLeads(result.recordset);
-          logger.log(`Successfully updated lead: ${id}`);
           return updatedLead;
       } else {
-          logger.error(`Update failed: Lead with ID ${id} not found after update operation.`);
           throw new Error('Lead not found after update.');
       }
   } catch (error) {
-      logger.error(`Failed to update lead ${id}:`, error);
+      console.error(`Failed to update lead ${id}:`, error);
       throw new Error('Failed to update lead due to a database error.');
   }
 }

@@ -2,18 +2,15 @@
 'use server';
 
 import { getConnection } from '@/lib/db';
-import { logger } from '@/lib/logger';
 
 async function fetchOptions(tableName: string): Promise<string[]> {
-    logger.log(`Attempting to fetch options from table: ${tableName}`);
     try {
         const pool = await getConnection();
         const result = await pool.request().query(`SELECT name FROM ${tableName} ORDER BY name`);
         const options = result.recordset.map(record => record.name);
-        logger.log(`Successfully fetched ${options.length} options from ${tableName}.`);
         return options;
     } catch (error) {
-        logger.error(`Failed to fetch options from ${tableName}:`, error);
+        console.error(`Failed to fetch options from ${tableName}:`, error);
         return [];
     }
 }
