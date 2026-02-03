@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
@@ -137,7 +136,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const impersonate = (userToImpersonate: AppUser) => {
-    if (originalUser && ['Admin', 'Super Admin'].includes(originalUser.role)) {
+    if (originalUser && ['Manager', 'Admin', 'Super Admin'].includes(originalUser.role)) {
       setUser(userToImpersonate);
       sessionStorage.setItem('user', JSON.stringify(userToImpersonate));
       router.push('/dashboard');

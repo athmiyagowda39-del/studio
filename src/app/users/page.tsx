@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -70,7 +69,7 @@ export default function UsersPage() {
     if (
       !isLoading &&
       (!isAuthenticated ||
-        !['Admin', 'Super Admin'].includes(
+        !['Manager', 'Admin', 'Super Admin'].includes(
           originalUser?.role as string
         ))
     ) {
@@ -81,7 +80,7 @@ export default function UsersPage() {
   if (
     isLoading ||
     !isAuthenticated ||
-    !['Admin', 'Super Admin'].includes(originalUser?.role as string)
+    !['Manager', 'Admin', 'Super Admin'].includes(originalUser?.role as string)
   ) {
     return null;
   }
@@ -350,7 +349,9 @@ export default function UsersPage() {
                         (originalUser?.role === 'Super Admin' &&
                           user.role !== 'Super Admin') ||
                         (originalUser?.role === 'Admin' &&
-                          !['Admin', 'Super Admin'].includes(user.role));
+                          !['Admin', 'Super Admin'].includes(user.role)) ||
+                        (originalUser?.role === 'Manager' &&
+                          user.role === 'Executive');
 
                       return (
                         <TableRow key={user.id}>

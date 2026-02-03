@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -52,7 +51,7 @@ export default function DashboardPage() {
     const filteredLeads = useMemo(() => {
         if (!allLeads || !user) return [];
 
-        if (user.role === 'Admin' || user.role === 'Super Admin') {
+        if (user.role === 'Manager' || user.role === 'Admin' || user.role === 'Super Admin') {
             if (selectedExecutive !== 'all') {
                 return allLeads.filter(lead => lead.executive === selectedExecutive);
             }
