@@ -29,7 +29,7 @@ const allLinks: SidebarLink[] = [
   { href: '/dashboard', label: 'DASHBOARD', icon: LayoutDashboard },
   { href: '/leads-upload', label: 'LEADS UPLOAD', icon: Upload },
   { href: '/leads-update', label: 'LEADS UPDATE', icon: FilePenLine },
-  { href: '/reports', label: 'REPORTS', icon: FileText },
+  { href: '/reports', label: 'REPORTS', icon: FileText, roles: ['Super Admin', 'Admin', 'Manager'] },
   {
     href: '/users',
     label: 'MANAGE USERS',

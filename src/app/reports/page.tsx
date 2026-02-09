@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
 export default function ReportsPage() {
-  const { isAuthenticated, isLoading } = useApp();
+  const { user, isAuthenticated, isLoading } = useApp();
   const router = useRouter();
 
   useEffect(() => {
@@ -23,7 +22,15 @@ export default function ReportsPage() {
     { name: 'CONVERSION FUNNEL REPORT', href: '/reports/conversion-funnel' },
     { name: 'LEAD UPDATE STATUS REPORT', href: '/reports/lead-update-status' },
     { name: 'LEAD UPLOAD STATUS REPORT', href: '/reports/lead-upload-status' },
+    { name: 'AUDIT LOG REPORT', href: '/reports/audit-log', roles: ['Super Admin', 'Admin', 'Manager'] },
   ];
+  
+  const visibleReports = reports.filter(report => {
+    if (!report.roles) return true;
+    if (!user) return false;
+    return report.roles.includes(user.role);
+  });
+
 
   if (isLoading || !isAuthenticated) {
     return null;
@@ -37,7 +44,7 @@ export default function ReportsPage() {
             <CardTitle className="text-center text-primary">Reports</CardTitle>
           </CardHeader>
           <CardContent className="p-6 grid grid-cols-1 gap-4">
-            {reports.map((report) => (
+            {visibleReports.map((report) => (
               <Link key={report.name} href={report.href} passHref>
                 <div className="p-4 border rounded-md text-center text-foreground hover:bg-accent cursor-pointer">
                   {report.name}

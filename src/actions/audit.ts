@@ -1,4 +1,3 @@
-
 'use server';
 
 import { sql, getConnection } from '@/lib/db';
@@ -11,6 +10,17 @@ export type AuditLogData = {
     targetEntityId?: string;
     details?: string;
 };
+
+export type AuditLogReportEntry = {
+    id: number;
+    timestamp: string;
+    userId: string;
+    username: string;
+    action: string;
+    targetEntityType: string | null;
+    targetEntityId: string | null;
+    details: string | null;
+}
 
 export async function addAuditLog(logData: AuditLogData) {
     try {
@@ -27,5 +37,24 @@ export async function addAuditLog(logData: AuditLogData) {
         // We log the error to the console, but don't re-throw.
         // A failure to write to the audit log should not crash the primary application functionality.
         console.error('Failed to write audit log:', error);
+    }
+}
+
+export async function getAuditLogs(fromDate: Date, toDate: Date, userId?: string): Promise<AuditLogReportEntry[]> {
+    try {
+        const pool = await getConnection();
+        const result = await pool.request()
+            .input('fromDate', sql.DateTime, fromDate)
+            .input('toDate', sql.DateTime, toDate)
+            .input('userId', sql.NVarChar, userId || null)
+            .execute('usp_GetAuditLogs');
+
+        return result.recordset.map(log => ({
+            ...log,
+            timestamp: new Date(log.timestamp).toISOString(),
+        }));
+    } catch (error) {
+        console.error('Failed to fetch audit logs:', error);
+        return [];
     }
 }
