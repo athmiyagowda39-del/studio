@@ -271,30 +271,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const updateLead = async (id: string, updates: Partial<LeadFormData>) => {
     const updatedLead = await LeadActions.updateLead(id, updates);
     if (user) {
-      const detailParts = Object.entries(updates).map(([key, value]) => {
-        if (key === 'followUps' && Array.isArray(value)) {
-          return 'added new follow-up';
-        }
-        if (key === 'status') {
-          return `status changed to '${value}'`;
-        }
-        if (key === 'executive') {
-          return `transferred to executive '${value}'`;
-        }
-        if (['contactPerson', 'contactNumber', 'email', 'initialRemarks'].includes(key)) {
-            return `${key} updated`;
-        }
-        return null;
-      }).filter(Boolean);
+      // Create a more generic and comprehensive log message
+      const changes = Object.keys(updates)
+        .map(key => {
+          if (key === 'followUps') return 'added a new follow-up';
+          if (key === 'executiveViewDate') return 'lead viewed by executive';
+          if (key === 'executive') return `transferred to executive '${updates[key]}'`;
+          if (key === 'status') return `status changed to '${updates[key]}'`;
+          return `${key} was updated`;
+        })
+        .join(', ');
 
-      if (detailParts.length > 0) {
+      if (changes) {
         addAuditLog({
-            userId: user.id,
-            username: user.username,
-            action: 'UPDATE_LEAD',
-            targetEntityType: 'LEAD',
-            targetEntityId: id,
-            details: `Updated lead for '${updatedLead.company}'. Changes: ${detailParts.join(', ')}`,
+          userId: user.id,
+          username: user.username,
+          action: 'UPDATE_LEAD',
+          targetEntityType: 'LEAD',
+          targetEntityId: id,
+          details: `Updated lead for '${updatedLead.company}'. Changes: ${changes}.`,
         });
       }
     }
