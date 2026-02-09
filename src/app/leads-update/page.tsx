@@ -33,6 +33,8 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ChevronsUpDown, ChevronDown } from 'lucide-react';
 import { getDisplayModule, allModules, allHrModules, allFinanceModules, allGeneralModules, financeModules, generalModules } from '@/lib/modules';
+import { addAuditLog } from '@/actions/audit';
+import * as XLSX from 'xlsx';
 
 const LEADS_PER_PAGE = 10;
 type TabValue = 'all' | 'not-viewed' | 'follow-ups-due' | 'zero-follow-ups' | 'search-result';
@@ -351,6 +353,75 @@ export default function LeadsUpdatePage() {
     setStagedFilters(initialFilters);
     setActiveTab('all');
     applyAndSetFilters('all', initialFilters);
+  };
+
+  const handleExportToExcel = () => {
+    if (!user) {
+        toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: 'You must be logged in to export data.',
+        });
+        return;
+    }
+
+    addAuditLog({
+      userId: user.id,
+      username: user.username,
+      action: 'DOWNLOAD_REPORT',
+      targetEntityType: 'LEAD_REPORT',
+      targetEntityId: 'LEADS_UPDATE_PAGE',
+      details: `User downloaded lead update report with ${filteredLeads.length} records.`,
+    });
+
+    const dataToExport = filteredLeads.map((lead, index) => {
+      const lastFollowUp = lead.followUps && lead.followUps.length > 0 ? lead.followUps[lead.followUps.length - 1] : null;
+      const nextFollowupDate =
+        lead.status === 'Order closed'
+          ? 'N/A'
+          : lead.nextFollowUpDate && !isNaN(new Date(lead.nextFollowUpDate).getTime())
+          ? format(new Date(lead.nextFollowUpDate), 'PPP')
+          : lastFollowUp
+          ? lastFollowUp.nextFollowUp
+          : 'N/A';
+          
+      return {
+        'Sl No': index + 1,
+        'Lead Id': lead.leadId,
+        'Lead Date': lead.creationDate && !isNaN(new Date(lead.creationDate).getTime()) ? format(new Date(lead.creationDate), 'PPP') : 'N/A',
+        'Module': getDisplayModule(lead.selectedModule),
+        'Company': lead.company,
+        'Contact': lead.contactPerson,
+        'Phone': lead.contactNumber,
+        'Emailid': lead.email,
+        'Address': lead.address,
+        'District': lead.district,
+        'State': lead.state,
+        'Reference': lead.reference,
+        'Executive': lead.executive,
+        'Manager': lead.manager,
+        'Given By': lead.givenBy || 'N/A',
+        'Last Followed Date': lastFollowUp && lastFollowUp.date ? format(new Date(lastFollowUp.date), 'PPP') : 'N/A',
+        'Enter by': lastFollowUp ? lastFollowUp.enteredBy : 'N/A',
+        'Next followup Date': nextFollowupDate,
+        'Last Followup Remarks': lastFollowUp ? lastFollowUp.remarks : 'N/A',
+        'Lead Status': lead.status,
+        'Lead Sub Status': lead.leadSubStatus || 'N/A',
+        'Lead Status Remarks': lead.initialRemarks,
+      };
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Leads');
+    
+    const fileName = `LeadReport_${format(new Date(), 'yyyyMMdd_HHmmss')}.xlsx`;
+    XLSX.writeFile(workbook, fileName);
+
+    toast({
+        title: 'Export Successful',
+        description: `${filteredLeads.length} leads have been exported to ${fileName}.`,
+    });
   };
   
   const handleSelectLead = (leadId: string) => {
@@ -915,7 +986,7 @@ export default function LeadsUpdatePage() {
 
                   <div className="flex justify-end gap-3 pt-4 border-t">
                     <Button onClick={handleShowButtonClick}>SHOW</Button>
-                    <Button variant="secondary">TO EXCEL</Button>
+                    <Button variant="secondary" onClick={handleExportToExcel}>TO EXCEL</Button>
                     <Button variant="destructive" onClick={handleResetFilters}>RESET</Button>
                   </div>
 
