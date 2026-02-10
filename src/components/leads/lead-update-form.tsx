@@ -105,11 +105,19 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
     setLeadDetails((prev) => ({ ...prev, [field]: value }))
   }
 
-  const handleAddFollowUp = async () => {
-    const isOrderClosedRemark = ["closed", "order closed"].includes(
-      remarks.trim().toLowerCase()
-    )
+  const terminalRemarkTriggers = [
+    "order closed",
+    "do not contact",
+    "existing users",
+    "fake",
+    "not interested",
+  ]
 
+  const isTerminalRemark = terminalRemarkTriggers.includes(
+    remarks.trim().toLowerCase()
+  )
+
+  const handleAddFollowUp = async () => {
     if (!remarks) {
       toast({
         variant: "destructive",
@@ -119,7 +127,7 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
       return
     }
 
-    if (!isOrderClosedRemark && !nextFollowUpDate) {
+    if (!isTerminalRemark && !nextFollowUpDate) {
       toast({
         variant: "destructive",
         title: "Missing Information",
@@ -142,7 +150,7 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
       date: new Date().toISOString(),
       remarks: remarks,
       nextFollowUp:
-        isOrderClosedRemark || !nextFollowUpDate
+        isTerminalRemark || !nextFollowUpDate
           ? "N/A"
           : format(new Date(nextFollowUpDate + "T00:00:00"), "PPP"),
       enteredBy: user?.username || "Demo User",
@@ -150,19 +158,35 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
 
     const updatedFollowups = [...(followUps || []), newFollowUp]
 
+    const getStatusFromRemark = (remark: string): string | undefined => {
+      const remarkText = remark.trim().toLowerCase()
+      const statusMap: { [key: string]: string } = {
+        "order closed": "Order closed",
+        "do not contact": "Do Not Contact",
+        "existing users": "Existing Users",
+        fake: "Fake",
+        "not interested": "Not interested",
+      }
+      return statusMap[remarkText]
+    }
+
+    const newStatus = isTerminalRemark
+      ? getStatusFromRemark(remarks)
+      : leadDetails.status
+
     const updatedLeadPayload: Partial<LeadFormData> = {
       followUps: updatedFollowups,
-      nextFollowUpDate: isOrderClosedRemark
+      nextFollowUpDate: isTerminalRemark
         ? undefined
         : new Date(nextFollowUpDate + "T00:00:00").toISOString(),
-      status: isOrderClosedRemark ? "Order closed" : leadDetails.status,
+      status: newStatus,
     }
 
     updateLead(leadDetails.leadId, updatedLeadPayload)
 
     setRemarks("")
-    if (isOrderClosedRemark) {
-      setCurrentStatus("Order closed")
+    if (isTerminalRemark && newStatus) {
+      setCurrentStatus(newStatus)
     }
     setNextFollowUpDate("")
 
@@ -288,10 +312,6 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
     })
     setIsReadyToUpdate(false)
   }
-
-  const isOrderClosedRemark = ["closed", "order closed"].includes(
-    remarks.trim().toLowerCase()
-  )
 
   const executiveForLead = leadDetails.executive
     ? users.find(
@@ -689,7 +709,7 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
                 value={nextFollowUpDate}
                 onChange={(e) => setNextFollowUpDate(e.target.value)}
                 min={new Date().toISOString().split("T")[0]}
-                disabled={isOrderClosedRemark || isReadOnly}
+                disabled={isTerminalRemark || isReadOnly}
               />
             </div>
             <div className="flex justify-end gap-2">
