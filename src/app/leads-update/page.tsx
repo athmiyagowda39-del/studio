@@ -35,6 +35,7 @@ import { ChevronsUpDown, ChevronDown } from 'lucide-react';
 import { getDisplayModule, allModules, allHrModules, allFinanceModules, allGeneralModules, financeModules, generalModules } from '@/lib/modules';
 import { addAuditLog } from '@/actions/audit';
 import * as XLSX from 'xlsx';
+import { useToast } from '@/hooks/use-toast';
 
 const LEADS_PER_PAGE = 10;
 type TabValue = 'all' | 'not-viewed' | 'follow-ups-due' | 'zero-follow-ups' | 'search-result';
@@ -43,6 +44,7 @@ export default function LeadsUpdatePage() {
   const { user, isAuthenticated, isLoading, leads: allLeads, users, leadStatuses, leadSubStatuses, leadReferences } = useApp();
   const router = useRouter();
   const pageTopRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
 
   const [filteredLeads, setFilteredLeads] = useState<LeadFormData[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -187,7 +189,7 @@ export default function LeadsUpdatePage() {
             }
 
             // Sub Status
-            if (match && filters.selectedSubStatus && filters.selectedSubStatus !== 'all') {
+            if (match && filters.selectedStatus === 'Not interested' && filters.selectedSubStatus && filters.selectedSubStatus !== 'all') {
                 if (lead.leadSubStatus !== filters.selectedSubStatus) {
                     match = false;
                 }
@@ -455,6 +457,10 @@ export default function LeadsUpdatePage() {
 
   const handleStatusFilterChange = (value: string) => {
     setSelectedStatus(value);
+    if (value !== 'Not interested') {
+        setSelectedSubStatus('all');
+        setOtherSubStatusInput('');
+    }
   };
 
   const handleSetOtherStatus = () => {
@@ -838,6 +844,7 @@ export default function LeadsUpdatePage() {
                         </div>
                       )}
                     </div>
+                    {selectedStatus === 'Not interested' && (
                     <div className="space-y-1">
                       <Label>Sub Status of Lead</Label>
                       <Select value={selectedSubStatus} onValueChange={(value) => setSelectedSubStatus(value)}>
@@ -855,6 +862,7 @@ export default function LeadsUpdatePage() {
                                 {!leadSubStatuses.includes(selectedSubStatus) && selectedSubStatus !== 'all' && selectedSubStatus !== 'Other' && (
                                     <SelectItem value={selectedSubStatus}>{selectedSubStatus}</SelectItem>
                                 )}
+                                <SelectItem value="Other">Other</SelectItem>
                             </ScrollArea>
                         </SelectContent>
                       </Select>
@@ -874,6 +882,7 @@ export default function LeadsUpdatePage() {
                         </div>
                       )}
                     </div>
+                    )}
                      <div className="space-y-1">
                       <Label htmlFor="leadSource">Lead Source</Label>
                       <Select value={selectedLeadSource} onValueChange={(value) => setSelectedLeadSource(value)}>
