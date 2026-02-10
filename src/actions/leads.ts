@@ -30,11 +30,22 @@ function parseLeads(recordset: any[]): LeadFormData[] {
         const creationDateISO = parseDateAsUTC(lead.creationDate) || new Date(0).toISOString();
         const executiveViewDateISO = parseDateAsUTC(lead.executiveViewDate);
 
+        let parsedFollowUps = [];
+        if (lead.followUps) {
+            try {
+                parsedFollowUps = JSON.parse(lead.followUps);
+            } catch (e) {
+                console.error(`Failed to parse followUps for leadId ${lead.leadId}:`, lead.followUps, e);
+                // Default to empty array if parsing fails
+                parsedFollowUps = [];
+            }
+        }
+
         return {
             ...lead,
             creationDate: creationDateISO,
             executiveViewDate: executiveViewDateISO,
-            followUps: lead.followUps ? JSON.parse(lead.followUps) : [],
+            followUps: parsedFollowUps,
             toExecutive: !!lead.toExecutive, 
         };
     });
