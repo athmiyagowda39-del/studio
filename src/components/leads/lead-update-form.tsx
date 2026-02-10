@@ -111,6 +111,7 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
     "existing users",
     "fake",
     "not interested",
+    "not intreted",
   ]
 
   const isTerminalRemark = terminalRemarkTriggers.includes(
@@ -164,8 +165,9 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
         "order closed": "Order closed",
         "do not contact": "Do Not Contact",
         "existing users": "Existing Users",
-        fake: "Fake",
+        "fake": "Fake",
         "not interested": "Not interested",
+        "not intreted": "Not interested",
       }
       return statusMap[remarkText]
     }
