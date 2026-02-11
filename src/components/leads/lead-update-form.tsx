@@ -92,6 +92,8 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
       setLeadDetails(foundLead)
       setFollowUps(foundLead.followUps || [])
       setCurrentStatus(foundLead.status || "Initial")
+      setSelectedStatus(foundLead.status || "")
+      setSelectedSubStatus(foundLead.leadSubStatus || "")
       setRemarks("")
       setNextFollowUpDate("")
       setIsReadyToUpdate(false)
@@ -186,7 +188,7 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
       status: newStatus,
     }
 
-    updateLead(leadDetails.leadId, updatedLeadPayload)
+    await updateLead(leadDetails.leadId, updatedLeadPayload)
 
     setRemarks("")
     if (isTerminalRemark && newStatus) {
@@ -218,7 +220,7 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
       return
     }
 
-    updateLead(leadDetails.leadId, { executive: transferredTo })
+    await updateLead(leadDetails.leadId, { executive: transferredTo })
 
     toast({
       title: "Lead Transferred",
@@ -280,7 +282,7 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
       executiveViewDate: updatedViewDate,
     }
 
-    updateLead(leadDetails.leadId, payload)
+    await updateLead(leadDetails.leadId, payload)
 
     toast({
       title: "Status Updated",
@@ -322,7 +324,7 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
     const { contactPerson, contactNumber, email, initialRemarks } = leadDetails
     const payload = { contactPerson, contactNumber, email, initialRemarks }
 
-    updateLead(leadDetails.leadId, payload)
+    await updateLead(leadDetails.leadId, payload)
 
     toast({
       title: "Lead Updated",
