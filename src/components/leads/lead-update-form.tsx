@@ -813,54 +813,57 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
 
             <div className="space-y-2">
               <Label>Current Status</Label>
-              <div className="flex items-center gap-2">
-                <span className="font-semibold shrink-0 text-muted-foreground">
+              <div className="flex items-start gap-2">
+                <span className="font-semibold shrink-0 text-muted-foreground pt-2">
                   ({currentStatus})
                 </span>
-                <Select
-                  value={selectedStatus}
-                  onValueChange={handleStatusSelection}
-                  disabled={!leadDetails.leadId || isReadOnly}
-                >
-                  <SelectTrigger className="w-full min-w-[200px]">
-                    <SelectValue placeholder="-- Select --" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {leadStatuses.map((status) => (
-                      <SelectItem key={status} value={status}>
-                        {status}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Button
-                  onClick={handleUpdateStatus}
-                  disabled={!leadDetails.leadId || isReadOnly}
-                >
-                  Update
-                </Button>
-              </div>
-              {selectedStatus === "Not interested" && (
-                <div className="space-y-2 pt-2">
-                    <Label htmlFor="subStatus">Sub Status</Label>
+                <div className="flex-grow space-y-2">
+                  <div className="flex items-center gap-2">
                     <Select
-                        value={selectedSubStatus}
-                        onValueChange={setSelectedSubStatus}
-                        disabled={isReadOnly}
+                      value={selectedStatus}
+                      onValueChange={handleStatusSelection}
+                      disabled={!leadDetails.leadId || isReadOnly}
                     >
-                        <SelectTrigger id="subStatus">
-                            <SelectValue placeholder="Select Sub Status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <ScrollArea className="h-48">
-                            {leadSubStatuses.map(subStatus => (
-                                <SelectItem key={subStatus} value={subStatus}>{subStatus}</SelectItem>
-                            ))}
-                            </ScrollArea>
-                        </SelectContent>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="-- Select --" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {leadStatuses.map((status) => (
+                          <SelectItem key={status} value={status}>
+                            {status}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
                     </Select>
+                    <Button
+                      onClick={handleUpdateStatus}
+                      disabled={!leadDetails.leadId || isReadOnly}
+                    >
+                      Update
+                    </Button>
+                  </div>
+                  {selectedStatus === "Not interested" && (
+                    <Select
+                      value={selectedSubStatus}
+                      onValueChange={setSelectedSubStatus}
+                      disabled={isReadOnly}
+                    >
+                      <SelectTrigger id="subStatus">
+                        <SelectValue placeholder="Select Sub Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <ScrollArea className="h-48">
+                          {leadSubStatuses.map((subStatus) => (
+                            <SelectItem key={subStatus} value={subStatus}>
+                              {subStatus}
+                            </SelectItem>
+                          ))}
+                        </ScrollArea>
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
           </div>
         </CardContent>
