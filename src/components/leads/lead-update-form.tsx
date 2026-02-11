@@ -50,6 +50,7 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
   const [followUps, setFollowUps] = useState<FollowUp[]>([])
   const [currentStatus, setCurrentStatus] = useState("Initial")
   const [selectedStatus, setSelectedStatus] = useState("")
+  const [selectedSubStatus, setSelectedSubStatus] = useState("")
 
   const [transferredTo, setTransferredTo] = useState("")
   const [isReadyToUpdate, setIsReadyToUpdate] = useState(false)
@@ -62,6 +63,7 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
     leads: allLeads,
     updateLead,
     leadStatuses,
+    leadSubStatuses,
   } = useApp()
   const [executives, setExecutives] = useState<string[]>([])
 
@@ -227,6 +229,9 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
 
   const handleStatusSelection = (newStatus: string) => {
     setSelectedStatus(newStatus)
+    if (newStatus !== "Not interested") {
+      setSelectedSubStatus("")
+    }
 
     if (leadDetails.leadId && !leadDetails.executiveViewDate) {
       setLeadDetails((prev) => ({
@@ -242,6 +247,14 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
         variant: "destructive",
         title: "No Status Selected",
         description: "Please select a status to update.",
+      })
+      return
+    }
+    if (selectedStatus === "Not interested" && !selectedSubStatus) {
+      toast({
+        variant: "destructive",
+        title: "Sub Status Required",
+        description: "Please select a sub status when the lead is 'Not interested'.",
       })
       return
     }
@@ -261,8 +274,9 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
       updatedViewDate = new Date().toISOString()
     }
 
-    const payload = {
+    const payload: Partial<LeadFormData> = {
       status: selectedStatus,
+      leadSubStatus: selectedStatus === "Not interested" ? selectedSubStatus : "",
       executiveViewDate: updatedViewDate,
     }
 
@@ -275,6 +289,7 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
 
     setCurrentStatus(selectedStatus)
     setSelectedStatus("")
+    setSelectedSubStatus("")
   }
 
   const handleResetLeadDetails = () => {
@@ -284,6 +299,7 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
     setNextFollowUpDate("")
     setTransferredTo("")
     setSelectedStatus("")
+    setSelectedSubStatus("")
     setRemarks("")
     setIsReadyToUpdate(false)
   }
@@ -822,6 +838,27 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
                   Update
                 </Button>
               </div>
+              {selectedStatus === "Not interested" && (
+                <div className="space-y-2 pt-2">
+                    <Label htmlFor="subStatus">Sub Status</Label>
+                    <Select
+                        value={selectedSubStatus}
+                        onValueChange={setSelectedSubStatus}
+                        disabled={isReadOnly}
+                    >
+                        <SelectTrigger id="subStatus">
+                            <SelectValue placeholder="Select Sub Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <ScrollArea className="h-48">
+                            {leadSubStatuses.map(subStatus => (
+                                <SelectItem key={subStatus} value={subStatus}>{subStatus}</SelectItem>
+                            ))}
+                            </ScrollArea>
+                        </SelectContent>
+                    </Select>
+                </div>
+              )}
             </div>
           </div>
         </CardContent>
