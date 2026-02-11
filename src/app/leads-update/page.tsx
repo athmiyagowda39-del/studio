@@ -844,45 +844,47 @@ export default function LeadsUpdatePage() {
                         </div>
                       )}
                     </div>
-                    {selectedStatus === 'Not interested' && (
                     <div className="space-y-1">
-                      <Label>Sub Status of Lead</Label>
-                      <Select value={selectedSubStatus} onValueChange={(value) => setSelectedSubStatus(value)}>
-                        <SelectTrigger>
-                            <SelectValue placeholder="--All--" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <ScrollArea className="h-48">
-                               <SelectItem value="all">All</SelectItem>
-                                {leadSubStatuses.map(status => (
-                                <SelectItem key={status} value={status}>
-                                    {status}
-                                </SelectItem>
-                                ))}
-                                {!leadSubStatuses.includes(selectedSubStatus) && selectedSubStatus !== 'all' && selectedSubStatus !== 'Other' && (
-                                    <SelectItem value={selectedSubStatus}>{selectedSubStatus}</SelectItem>
-                                )}
-                                <SelectItem value="Other">Other</SelectItem>
-                            </ScrollArea>
-                        </SelectContent>
-                      </Select>
-                       {selectedSubStatus === 'Other' && (
-                        <div className="mt-2">
-                           <div className="flex items-center gap-2">
-                              <Input
-                                placeholder="Specify other reason"
-                                value={otherSubStatusInput}
-                                onChange={(e) => setOtherSubStatusInput(e.target.value)}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter') handleSetOtherSubStatus();
-                                }}
-                              />
-                              <Button size="sm" onClick={handleSetOtherSubStatus}>OK</Button>
+                      {selectedStatus === 'Not interested' && (
+                        <>
+                          <Label>Sub Status of Lead</Label>
+                          <Select value={selectedSubStatus} onValueChange={(value) => setSelectedSubStatus(value)}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="--All--" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <ScrollArea className="h-48">
+                                  <SelectItem value="all">All</SelectItem>
+                                    {leadSubStatuses.map(status => (
+                                    <SelectItem key={status} value={status}>
+                                        {status}
+                                    </SelectItem>
+                                    ))}
+                                    {!leadSubStatuses.includes(selectedSubStatus) && selectedSubStatus !== 'all' && selectedSubStatus !== 'Other' && (
+                                        <SelectItem value={selectedSubStatus}>{selectedSubStatus}</SelectItem>
+                                    )}
+                                    <SelectItem value="Other">Other</SelectItem>
+                                </ScrollArea>
+                            </SelectContent>
+                          </Select>
+                          {selectedSubStatus === 'Other' && (
+                            <div className="mt-2">
+                              <div className="flex items-center gap-2">
+                                  <Input
+                                    placeholder="Specify other reason"
+                                    value={otherSubStatusInput}
+                                    onChange={(e) => setOtherSubStatusInput(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') handleSetOtherSubStatus();
+                                    }}
+                                  />
+                                  <Button size="sm" onClick={handleSetOtherSubStatus}>OK</Button>
+                                </div>
                             </div>
-                        </div>
+                          )}
+                        </>
                       )}
                     </div>
-                    )}
                      <div className="space-y-1">
                       <Label htmlFor="leadSource">Lead Source</Label>
                       <Select value={selectedLeadSource} onValueChange={(value) => setSelectedLeadSource(value)}>
