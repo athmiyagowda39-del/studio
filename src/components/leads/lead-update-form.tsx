@@ -13,14 +13,14 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
 import { useState, useEffect } from "react"
 import { useToast } from "@/hooks/use-toast"
-import { Textarea } from "../ui/textarea"
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
+import { Textarea } from "@/components/ui/textarea"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { CalendarIcon, Info } from "lucide-react"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { LeadFormData } from "./lead-upload-form"
-import { ScrollArea } from "../ui/scroll-area"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   Table,
   TableHeader,
@@ -28,11 +28,11 @@ import {
   TableHead,
   TableBody,
   TableCell,
-} from "../ui/table"
+} from "@/components/ui/table"
 import { useApp } from "@/context/app-context"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { getDisplayModule } from "@/lib/modules"
-import { Calendar } from "../ui/calendar"
+import { Calendar } from "@/components/ui/calendar"
 
 type FollowUp = {
   id: number
