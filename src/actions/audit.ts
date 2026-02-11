@@ -54,7 +54,25 @@ export async function getAuditLogs(fromDate: Date, toDate: Date, userId?: string
             timestamp: new Date(log.timestamp).toISOString(),
         }));
     } catch (error) {
+        await addErrorLog('getAuditLogs', error, userId ? `UserId: ${userId}`: undefined);
         console.error('Failed to fetch audit logs:', error);
         return [];
+    }
+}
+
+
+export async function addErrorLog(source: string, error: any, userDetails?: string | null) {
+    try {
+        const pool = await getConnection();
+        await pool.request()
+            .input('source', sql.NVarChar, source)
+            .input('errorMessage', sql.NVarChar(sql.MAX), error.message || String(error))
+            .input('stackTrace', sql.NVarChar(sql.MAX), error.stack || null)
+            .input('userDetails', sql.NVarChar(sql.MAX), userDetails || null)
+            .execute('usp_AddErrorLog');
+    } catch (dbError) {
+        // If we can't even log to the DB, log to console.
+        console.error(`Failed to write to error log. Original error source: ${source}`, error);
+        console.error('Database error during logging:', dbError);
     }
 }

@@ -2,6 +2,7 @@
 'use server';
 
 import { getConnection } from '@/lib/db';
+import { addErrorLog } from './audit';
 
 async function fetchOptions(tableName: string): Promise<string[]> {
     try {
@@ -10,6 +11,7 @@ async function fetchOptions(tableName: string): Promise<string[]> {
         const options = result.recordset.map(record => record.name);
         return options;
     } catch (error) {
+        await addErrorLog(`fetchOptions: ${tableName}`, error);
         console.error(`Failed to fetch options from ${tableName}:`, error);
         return [];
     }

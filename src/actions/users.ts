@@ -5,6 +5,7 @@ import { sql, getConnection } from '@/lib/db';
 import type { AppUser } from '@/context/app-context';
 import { revalidatePath } from 'next/cache';
 import crypto from 'crypto';
+import { addErrorLog } from './audit';
 
 function hashPassword(password: string): string {
   return crypto.createHash('sha256').update(password).digest('hex').toUpperCase();
@@ -20,6 +21,7 @@ export async function getUsers(): Promise<AppUser[]> {
     }));
     return users;
   } catch (error) {
+    await addErrorLog('getUsers', error);
     console.error('Failed to fetch users:', error);
     return []; // Return empty array on error
   }
@@ -41,6 +43,7 @@ export async function loginUser(email: string, password: string): Promise<AppUse
     }
     return null;
   } catch (error) {
+    await addErrorLog('loginUser', error, `Email: ${email}`);
     console.error('Login failed with database error:', error);
     throw new Error('A database error occurred during login.');
   }
@@ -68,6 +71,7 @@ export async function addUser(userData: Omit<AppUser, 'id' | 'password' | 'force
     const newUser = { ...userData, id: newId, forcePasswordChange: true };
     return newUser;
   } catch (error: any) {
+    await addErrorLog('addUser', error, JSON.stringify(userData));
     console.error('Failed to add user:', error);
     if (error.number === 2627) { // Unique constraint violation
       throw new Error('A user with this email, username, or employee ID already exists.');
@@ -121,6 +125,7 @@ export async function updateUser(id: string, updates: Partial<Omit<AppUser, 'id'
     return { ...updatedUser, forcePasswordChange: !!updatedUser.forcePasswordChange };
 
   } catch (error) {
+    await addErrorLog('updateUser', error, `UserId: ${id}, Updates: ${JSON.stringify(updates)}`);
     console.error(`Failed to update user ${id}:`, error);
     throw new Error('Failed to update user due to a database error.');
   }
@@ -135,6 +140,7 @@ export async function deleteUser(id: string): Promise<{ success: boolean }> {
     revalidatePath('/users');
     return { success: true };
   } catch (error) {
+    await addErrorLog('deleteUser', error, `UserId: ${id}`);
     console.error(`Failed to delete user ${id}:`, error);
     throw new Error('Failed to delete user due to a database error.');
   }
