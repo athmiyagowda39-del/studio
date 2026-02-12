@@ -7,48 +7,13 @@ import { revalidatePath } from 'next/cache';
 import { addErrorLog } from './audit';
 
 function parseLeads(recordset: any[]): LeadFormData[] {
-    const leads = recordset.map(lead => {
-        // Robust date parsing
-        const parseDate = (dateInput: any): Date | undefined => {
-            if (!dateInput) return undefined;
-            const date = new Date(dateInput);
-            return isNaN(date.getTime()) ? undefined : date;
-        };
-
-        const creationDate = parseDate(lead.creationDate);
-
-        // If creationDate is invalid, we cannot process this lead. Log and skip.
-        if (!creationDate) {
-            console.error(`Skipping lead with invalid creationDate. Lead ID: ${lead.leadId}, Date Value: ${lead.creationDate}`);
-            return null;
-        }
-
-        const executiveViewDate = parseDate(lead.executiveViewDate);
-
-        let parsedFollowUps: any[] = [];
-        if (lead.followUps) {
-            try {
-                const followUpsData = JSON.parse(lead.followUps);
-                // Ensure it's an array before assigning
-                if (Array.isArray(followUpsData)) {
-                    parsedFollowUps = followUpsData;
-                }
-            } catch (e) {
-                console.error(`Failed to parse followUps JSON for leadId ${lead.leadId}:`, e);
-                // Keep parsedFollowUps as empty array on failure
-            }
-        }
-
-        return {
-            ...lead,
-            creationDate: creationDate.toISOString(),
-            executiveViewDate: executiveViewDate?.toISOString(),
-            followUps: parsedFollowUps,
-            toExecutive: !!lead.toExecutive,
-        };
-    }).filter((lead): lead is LeadFormData => lead !== null); // Filter out null (invalid) leads
-
-    return leads;
+    return recordset.map(lead => ({
+        ...lead,
+        creationDate: new Date(lead.creationDate).toISOString(),
+        executiveViewDate: lead.executiveViewDate ? new Date(lead.executiveViewDate).toISOString() : undefined,
+        followUps: lead.followUps ? JSON.parse(lead.followUps) : [],
+        toExecutive: !!lead.toExecutive,
+    }));
 }
 
 
