@@ -251,10 +251,15 @@ export default function LeadUploadForm() {
 
   const resetForm = () => {
     setFormData(initialFormState);
-    if (!isExecutiveContext && !isImpersonating) {
+    handleCancelUpload();
+
+    // Re-apply executive-specific state after reset
+    if (user?.role === 'Executive') {
+      setFormData(prev => ({...prev, toExecutive: true}));
+      setToExecutiveSelection(user.username);
+    } else {
       setToExecutiveSelection('');
     }
-    handleCancelUpload();
   };
 
   const validateLead = (
