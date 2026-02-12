@@ -7,49 +7,48 @@ import { revalidatePath } from 'next/cache';
 import { addErrorLog } from './audit';
 
 function parseLeads(recordset: any[]): LeadFormData[] {
-    return recordset.map(lead => {
-        const parseDateAsUTC = (dateInput: any): string | undefined => {
+    const leads = recordset.map(lead => {
+        // Robust date parsing
+        const parseDate = (dateInput: any): Date | undefined => {
             if (!dateInput) return undefined;
-            try {
-                let date: Date;
-                if (dateInput instanceof Date) {
-                    date = dateInput;
-                } else {
-                    const dateString = String(dateInput).replace(' ', 'T');
-                    date = new Date(dateString.endsWith('Z') ? dateString : dateString + 'Z');
-                }
-                
-                if (!isNaN(date.getTime())) {
-                    return date.toISOString();
-                }
-                return undefined;
-            } catch {
-                return undefined;
-            }
+            const date = new Date(dateInput);
+            return isNaN(date.getTime()) ? undefined : date;
         };
 
-        const creationDateISO = parseDateAsUTC(lead.creationDate) || new Date(0).toISOString();
-        const executiveViewDateISO = parseDateAsUTC(lead.executiveViewDate);
+        const creationDate = parseDate(lead.creationDate);
 
-        let parsedFollowUps = [];
+        // If creationDate is invalid, we cannot process this lead. Log and skip.
+        if (!creationDate) {
+            console.error(`Skipping lead with invalid creationDate. Lead ID: ${lead.leadId}, Date Value: ${lead.creationDate}`);
+            return null;
+        }
+
+        const executiveViewDate = parseDate(lead.executiveViewDate);
+
+        let parsedFollowUps: any[] = [];
         if (lead.followUps) {
             try {
-                parsedFollowUps = JSON.parse(lead.followUps);
+                const followUpsData = JSON.parse(lead.followUps);
+                // Ensure it's an array before assigning
+                if (Array.isArray(followUpsData)) {
+                    parsedFollowUps = followUpsData;
+                }
             } catch (e) {
-                console.error(`Failed to parse followUps for leadId ${lead.leadId}:`, lead.followUps, e);
-                // Default to empty array if parsing fails
-                parsedFollowUps = [];
+                console.error(`Failed to parse followUps JSON for leadId ${lead.leadId}:`, e);
+                // Keep parsedFollowUps as empty array on failure
             }
         }
 
         return {
             ...lead,
-            creationDate: creationDateISO,
-            executiveViewDate: executiveViewDateISO,
+            creationDate: creationDate.toISOString(),
+            executiveViewDate: executiveViewDate?.toISOString(),
             followUps: parsedFollowUps,
-            toExecutive: !!lead.toExecutive, 
+            toExecutive: !!lead.toExecutive,
         };
-    });
+    }).filter((lead): lead is LeadFormData => lead !== null); // Filter out null (invalid) leads
+
+    return leads;
 }
 
 
