@@ -25,7 +25,7 @@ import {
   CardTitle,
   CardContent,
   CardDescription,
-} from '../ui/card';
+} from '@/components/ui/card';
 import { useState, useRef, useEffect } from 'react';
 import * as XLSX from 'xlsx';
 import {
@@ -37,13 +37,13 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { Textarea } from '../ui/textarea';
-import { Checkbox } from '../ui/checkbox';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useApp } from '@/context/app-context';
 import { cn } from '@/lib/utils';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
-import { ScrollArea } from '../ui/scroll-area';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Collapsible,
   CollapsibleContent,
