@@ -41,6 +41,7 @@ import {
 
 export default function UsersPage() {
   const {
+    user,
     originalUser,
     isAuthenticated,
     isLoading,
@@ -343,7 +344,7 @@ export default function UsersPage() {
                   </TableHeader>
                   <TableBody>
                     {users
-                      .filter(user => roleFilter === 'All' || user.role === roleFilter)
+                      .filter(u => roleFilter === 'All' || u.role === roleFilter)
                       .map((mappedUser) => {
                       const canImpersonate =
                         (originalUser?.role === 'Super Admin' &&
