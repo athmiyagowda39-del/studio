@@ -344,40 +344,40 @@ export default function UsersPage() {
                   <TableBody>
                     {users
                       .filter(user => roleFilter === 'All' || user.role === roleFilter)
-                      .map((user) => {
+                      .map((mappedUser) => {
                       const canImpersonate =
                         (originalUser?.role === 'Super Admin' &&
-                          user.role !== 'Super Admin') ||
+                          mappedUser.role !== 'Super Admin') ||
                         (originalUser?.role === 'Admin' &&
-                          !['Admin', 'Super Admin'].includes(user.role)) ||
+                          !['Admin', 'Super Admin'].includes(mappedUser.role)) ||
                         (originalUser?.role === 'Manager' &&
-                          user.role === 'Executive');
+                          mappedUser.role === 'Executive');
 
                       return (
-                        <TableRow key={user.id}>
+                        <TableRow key={mappedUser.id}>
                           <TableCell>
                             {canImpersonate ? (
                               <Button
                                 variant="link"
                                 className="p-0 h-auto font-medium"
-                                onClick={() => handleImpersonate(user)}
+                                onClick={() => handleImpersonate(mappedUser)}
                               >
-                                {user.username}
+                                {mappedUser.username}
                               </Button>
                             ) : (
                               <span className="font-medium px-1">
-                                {user.username}
+                                {mappedUser.username}
                               </span>
                             )}
                           </TableCell>
-                          <TableCell>{user.email}</TableCell>
-                          <TableCell>{user.employeeId || 'N/A'}</TableCell>
-                          <TableCell>{user.role}</TableCell>
+                          <TableCell>{mappedUser.email}</TableCell>
+                          <TableCell>{mappedUser.employeeId || 'N/A'}</TableCell>
+                          <TableCell>{mappedUser.role}</TableCell>
                           <TableCell className="text-right">
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() => handleEditClick(user)}
+                              onClick={() => handleEditClick(mappedUser)}
                             >
                               <Pencil className="h-4 w-4" />
                               <span className="sr-only">Edit User</span>
@@ -385,8 +385,8 @@ export default function UsersPage() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() => setUserToDelete(user)}
-                              disabled={originalUser?.id === user.id}
+                              onClick={() => setUserToDelete(mappedUser)}
+                              disabled={originalUser?.id === mappedUser.id}
                             >
                               <Trash2 className="h-4 w-4 text-destructive" />
                               <span className="sr-only">Delete User</span>
