@@ -253,28 +253,35 @@ export default function LeadUploadForm() {
     setFormData(initialFormState);
     handleCancelUpload();
 
-    // Re-apply executive-specific state after reset
-    if (user?.role === 'Executive') {
-      setFormData(prev => ({...prev, toExecutive: true}));
-      setToExecutiveSelection(user.username);
+    if (user?.role === 'Executive' || (isImpersonating && user?.role === 'Executive')) {
+        setFormData(prev => ({...prev, toExecutive: true}));
+        setToExecutiveSelection(user.username);
     } else {
-      setToExecutiveSelection('');
+        setToExecutiveSelection('');
     }
   };
 
   const validateLead = (
     lead: Omit<LeadFormData, 'leadId' | 'creationDate' | 'givenBy' | 'executiveViewDate'>
   ) => {
-    if (!lead.selectedModule) {
-      toast({
-        variant: 'destructive',
-        title: 'Missing Information',
-        description: 'Please select a module.',
-      });
-      return false;
-    }
+    const fieldDisplayNames: { [key: string]: string } = {
+      pincode: 'Pin code',
+      company: 'Company',
+      contactPerson: 'Contact person',
+      address: 'Address',
+      state: 'State',
+      district: 'District',
+      contactNumber: 'Contact Number',
+      email: 'Email',
+      reference: 'Reference',
+      headcount: 'Company headcount',
+      sector: 'Sector',
+      selectedModule: 'Module',
+      manager: 'Manager',
+      initialRemarks: 'Initial Remarks',
+    };
 
-    const requiredFields: (keyof typeof lead)[] = [
+    const requiredFields: (keyof typeof fieldDisplayNames)[] = [
       'pincode',
       'company',
       'contactPerson',
@@ -286,33 +293,35 @@ export default function LeadUploadForm() {
       'reference',
       'headcount',
       'sector',
+      'selectedModule',
       'manager',
+      'initialRemarks'
     ];
 
     for (const field of requiredFields) {
-      if (!lead[field]) {
+      if (!lead[field as keyof typeof lead]) {
         toast({
           variant: 'destructive',
           title: 'Missing Information',
-          description: 'Please fill all required fields.',
+          description: `Please fill in the '${fieldDisplayNames[field]}' field.`,
         });
         return false;
       }
     }
-
-    if (lead.reference === 'Other') {
+    
+    if (lead.reference === 'Other' || lead.reference === 'All') {
       toast({
         variant: 'destructive',
-        title: 'Missing Information',
-        description: "Please specify a value for 'Other' reference.",
+        title: 'Invalid Selection',
+        description: "Please specify a valid 'Reference'.",
       });
       return false;
     }
-    if (lead.sector === 'Other') {
+    if (lead.sector === 'Other' || lead.sector === 'All') {
       toast({
         variant: 'destructive',
-        title: 'Missing Information',
-        description: "Please specify a value for 'Other' sector.",
+        title: 'Invalid Selection',
+        description: "Please specify a valid 'Sector'.",
       });
       return false;
     }
@@ -967,3 +976,5 @@ export default function LeadUploadForm() {
     </div>
   );
 }
+
+    
