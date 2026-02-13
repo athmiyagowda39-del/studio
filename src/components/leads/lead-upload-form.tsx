@@ -180,12 +180,13 @@ export default function LeadUploadForm() {
   }, [users]);
 
   useEffect(() => {
-    if (isImpersonating && user?.role === 'Executive') {
+    const validUser = user as { role?: string; username: string };
+    if (
+      validUser?.role === 'Executive' ||
+      (isImpersonating && validUser?.role === 'Executive')
+    ) {
       setFormData((prev) => ({ ...prev, toExecutive: true }));
-      setToExecutiveSelection(user.username);
-    } else if (user?.role === 'Executive') {
-      setFormData((prev) => ({ ...prev, toExecutive: true }));
-      setToExecutiveSelection(user.username);
+      setToExecutiveSelection(validUser.username);
     } else {
       setFormData((prev) => ({ ...prev, toExecutive: false }));
       setToExecutiveSelection('');
@@ -239,11 +240,11 @@ export default function LeadUploadForm() {
     }
 
     const handler = setTimeout(() => {
-      const isDuplicate = allLeads.some(
+      const duplicateLead = allLeads.find(
         (lead) => lead.company && lead.company.trim().toLowerCase() === formData.company.trim().toLowerCase()
       );
-      if (isDuplicate) {
-        setCompanyError('A lead with this company name already exists.');
+      if (duplicateLead) {
+        setCompanyError(`A lead with this company name already exists. Lead ID: ${duplicateLead.leadId}`);
       } else {
         setCompanyError('');
       }
@@ -276,10 +277,11 @@ export default function LeadUploadForm() {
     setFormData(initialFormState);
     setCompanyError('');
     handleCancelUpload();
-
-    if (user?.role === 'Executive' || (isImpersonating && user?.role === 'Executive')) {
+    
+    const validUser = user as { role?: string; username: string };
+    if (validUser?.role === 'Executive' || (isImpersonating && validUser?.role === 'Executive')) {
         setFormData(prev => ({...prev, toExecutive: true}));
-        setToExecutiveSelection(user.username);
+        setToExecutiveSelection(validUser.username);
     } else {
         setToExecutiveSelection('');
     }
@@ -1024,7 +1026,3 @@ export default function LeadUploadForm() {
     </div>
   );
 }
-
-    
-
-    
