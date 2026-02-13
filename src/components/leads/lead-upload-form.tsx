@@ -163,6 +163,7 @@ export default function LeadUploadForm() {
   const [otherToExecutiveInput, setOtherToExecutiveInput] = useState('');
   const [productPopoverOpen, setProductPopoverOpen] = useState(false);
   const [executives, setExecutives] = useState<string[]>([]);
+  const [companyError, setCompanyError] = useState('');
   const isExecutiveContext = user?.role === 'Executive';
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -230,6 +231,28 @@ export default function LeadUploadForm() {
         });
     }
   }, [formData.pincode, toast]);
+  
+  useEffect(() => {
+    if (!formData.company) {
+      setCompanyError('');
+      return;
+    }
+
+    const handler = setTimeout(() => {
+      const isDuplicate = allLeads.some(
+        (lead) => lead.company && lead.company.trim().toLowerCase() === formData.company.trim().toLowerCase()
+      );
+      if (isDuplicate) {
+        setCompanyError('A lead with this company name already exists.');
+      } else {
+        setCompanyError('');
+      }
+    }, 500);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [formData.company, allLeads]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -251,6 +274,7 @@ export default function LeadUploadForm() {
 
   const resetForm = () => {
     setFormData(initialFormState);
+    setCompanyError('');
     handleCancelUpload();
 
     if (user?.role === 'Executive' || (isImpersonating && user?.role === 'Executive')) {
@@ -351,6 +375,15 @@ export default function LeadUploadForm() {
 
   const handleSaveLead = async () => {
     if (!validateLead(formData)) {
+      return;
+    }
+
+    if (companyError) {
+      toast({
+        variant: 'destructive',
+        title: 'Duplicate Company',
+        description: companyError,
+      });
       return;
     }
 
@@ -709,6 +742,7 @@ export default function LeadUploadForm() {
           <div className="space-y-2">
             <Label htmlFor="company">Company</Label>
             <Input id="company" value={formData.company} onChange={handleInputChange} readOnly={isReadOnly} />
+            {companyError && <p className="text-sm text-destructive mt-1">{companyError}</p>}
           </div>
           <div className="space-y-2">
             <Label htmlFor="contactPerson">Contact person</Label>
@@ -990,5 +1024,7 @@ export default function LeadUploadForm() {
     </div>
   );
 }
+
+    
 
     
