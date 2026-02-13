@@ -588,26 +588,6 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="selectedModule">Module</Label>
-                <Input
-                  id="selectedModule"
-                  value={getDisplayModule(leadDetails.selectedModule || "")}
-                  readOnly
-                  className="bg-muted"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="headcount">Headcount</Label>
-                <Input
-                  id="headcount"
-                  value={leadDetails.headcount || ""}
-                  onChange={(e) =>
-                    handleLeadDetailChange("headcount", e.target.value)
-                  }
-                  readOnly={isReadOnly}
-                />
-              </div>
-              <div className="space-y-2">
                 <Label htmlFor="manager">Manager</Label>
                 <div className="relative">
                   <Input
@@ -662,6 +642,26 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
                     </Popover>
                   )}
                 </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="headcount">Headcount</Label>
+                <Input
+                  id="headcount"
+                  value={leadDetails.headcount || ""}
+                  onChange={(e) =>
+                    handleLeadDetailChange("headcount", e.target.value)
+                  }
+                  readOnly={isReadOnly}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="selectedModule">Module</Label>
+                <Input
+                  id="selectedModule"
+                  value={getDisplayModule(leadDetails.selectedModule || "")}
+                  readOnly
+                  className="bg-muted"
+                />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4 pt-4 border-t">
