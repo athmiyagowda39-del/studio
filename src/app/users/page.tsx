@@ -39,6 +39,8 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
+const allowedRoles: AppUser['role'][] = ['Manager', 'Admin', 'Super Admin'];
+
 export default function UsersPage() {
   const {
     user,
@@ -70,9 +72,9 @@ export default function UsersPage() {
     if (
       !isLoading &&
       (!isAuthenticated ||
-        !['Manager', 'Admin', 'Super Admin'].includes(
-          originalUser?.role as string
-        ))
+        !originalUser ||
+        !allowedRoles.includes(originalUser.role)
+      )
     ) {
       router.replace('/dashboard');
     }
@@ -81,7 +83,8 @@ export default function UsersPage() {
   if (
     isLoading ||
     !isAuthenticated ||
-    !['Manager', 'Admin', 'Super Admin'].includes(originalUser?.role as string)
+    !originalUser ||
+    !allowedRoles.includes(originalUser.role)
   ) {
     return null;
   }
