@@ -321,8 +321,8 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
       return
     }
 
-    const { contactPerson, contactNumber, email, initialRemarks } = leadDetails
-    const payload = { contactPerson, contactNumber, email, initialRemarks }
+    const { contactPerson, contactNumber, email, initialRemarks, headcount } = leadDetails
+    const payload = { contactPerson, contactNumber, email, initialRemarks, headcount }
 
     await updateLead(leadDetails.leadId, payload)
 
@@ -588,6 +588,17 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
                 />
               </div>
               <div className="space-y-2">
+                <Label htmlFor="headcount">Headcount</Label>
+                <Input
+                  id="headcount"
+                  value={leadDetails.headcount || ""}
+                  onChange={(e) =>
+                    handleLeadDetailChange("headcount", e.target.value)
+                  }
+                  readOnly={isReadOnly}
+                />
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="manager">Manager</Label>
                 <div className="relative">
                   <Input
@@ -843,24 +854,26 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
                     </Button>
                   </div>
                   {selectedStatus === "Not interested" && (
-                    <Select
-                      value={selectedSubStatus}
-                      onValueChange={setSelectedSubStatus}
-                      disabled={isReadOnly}
-                    >
-                      <SelectTrigger id="subStatus">
-                        <SelectValue placeholder="Select Sub Status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <ScrollArea className="h-48">
-                          {leadSubStatuses.map((subStatus) => (
-                            <SelectItem key={subStatus} value={subStatus}>
-                              {subStatus}
-                            </SelectItem>
-                          ))}
-                        </ScrollArea>
-                      </SelectContent>
-                    </Select>
+                    <div className="w-full pt-2">
+                        <Select
+                        value={selectedSubStatus}
+                        onValueChange={setSelectedSubStatus}
+                        disabled={isReadOnly}
+                        >
+                        <SelectTrigger id="subStatus">
+                            <SelectValue placeholder="Select Sub Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <ScrollArea className="h-48">
+                            {leadSubStatuses.map((subStatus) => (
+                                <SelectItem key={subStatus} value={subStatus}>
+                                {subStatus}
+                                </SelectItem>
+                            ))}
+                            </ScrollArea>
+                        </SelectContent>
+                        </Select>
+                    </div>
                   )}
                 </div>
               </div>

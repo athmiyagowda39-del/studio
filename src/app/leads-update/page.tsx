@@ -400,6 +400,7 @@ export default function LeadsUpdatePage() {
         'District': lead.district,
         'State': lead.state,
         'Reference': lead.reference,
+        'Headcount': lead.headcount || 'N/A',
         'Executive': lead.executive,
         'Manager': lead.manager,
         'Given By': lead.givenBy || 'N/A',
@@ -1022,7 +1023,7 @@ export default function LeadsUpdatePage() {
                   </CardTitle>
                 </CardHeader>
                  <ScrollArea className="w-full whitespace-nowrap rounded-md border">
-                  <Table className="min-w-[2800px]">
+                  <Table className="min-w-[2900px]">
                     <TableHeader className="bg-muted">
                       <TableRow>
                         <TableHead>Sl No</TableHead>
@@ -1037,6 +1038,7 @@ export default function LeadsUpdatePage() {
                         <TableHead>District</TableHead>
                         <TableHead>State</TableHead>
                         <TableHead>Reference</TableHead>
+                        <TableHead>Headcount</TableHead>
                         <TableHead>Executive</TableHead>
                         <TableHead>Manager</TableHead>
                         <TableHead>Given By</TableHead>
@@ -1080,6 +1082,7 @@ export default function LeadsUpdatePage() {
                           <TableCell>{lead.district}</TableCell>
                           <TableCell>{lead.state}</TableCell>
                           <TableCell>{lead.reference}</TableCell>
+                          <TableCell>{lead.headcount || 'N/A'}</TableCell>
                           <TableCell>{lead.executive}</TableCell>
                           <TableCell>{lead.manager}</TableCell>
                           <TableCell>{lead.givenBy || 'N/A'}</TableCell>
