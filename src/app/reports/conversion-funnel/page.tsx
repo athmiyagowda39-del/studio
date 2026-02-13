@@ -118,7 +118,7 @@ export default function ConversionFunnelReportPage() {
 
   return (
     <AppContent>
-      <Card className="h-full flex flex-col">
+      <Card>
         <CardHeader className="bg-primary/10">
           <CardTitle className="text-center text-primary">CONVERSION FUNNEL REPORT</CardTitle>
         </CardHeader>
