@@ -101,3 +101,11 @@ body {
 .animate-pulse {
   animation: pulse 6s infinite ease-in-out;
 }
+
+.clickable-funnel .recharts-funnel-sector {
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.clickable-funnel .recharts-funnel-sector:hover {
+  opacity: 0.8;
+}

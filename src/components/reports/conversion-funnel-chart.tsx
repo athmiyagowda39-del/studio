@@ -5,6 +5,7 @@ import {
   Funnel,
   LabelList,
   ResponsiveContainer,
+  Tooltip,
 } from 'recharts';
 import {
   ChartContainer,
@@ -13,6 +14,7 @@ import {
 
 type ConversionFunnelChartProps = {
   data: { name: string; value: number }[];
+  onStageClick?: (stageName: string) => void;
 };
 
 const colors = [
@@ -26,6 +28,7 @@ const colors = [
 
 export default function ConversionFunnelChart({
   data,
+  onStageClick,
 }: ConversionFunnelChartProps) {
   const chartData = data.map((item, index) => ({
     ...item,
@@ -40,14 +43,23 @@ export default function ConversionFunnelChart({
   });
 
   return (
-    <div style={{ width: '100%', height: 400 }}>
+    <div
+      style={{ width: '100%', height: 400 }}
+      className={onStageClick ? 'clickable-funnel' : ''}
+    >
       <ChartContainer
         config={chartConfig}
         className="min-h-[200px] w-full"
       >
         <ResponsiveContainer>
           <FunnelChart margin={{ top: 20, right: 150, bottom: 20, left: 20 }}>
-            <Funnel dataKey="value" data={chartData} isAnimationActive>
+            <Tooltip />
+            <Funnel
+              dataKey="value"
+              data={chartData}
+              isAnimationActive
+              onClick={(data) => onStageClick?.(data.name)}
+            >
               <LabelList
                 position="right"
                 fill="hsl(var(--foreground))"
