@@ -151,7 +151,7 @@ const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate' | 'givenBy'
 };
 
 export default function LeadUploadForm() {
-  const { user, users, isReadOnly, isImpersonating, addLeads, getNextLeadId } = useApp();
+  const { user, users, isReadOnly, isImpersonating, addLeads, getNextLeadId, leads: allLeads } = useApp();
   const [formData, setFormData] = useState<
     Omit<LeadFormData, 'leadId' | 'creationDate' | 'givenBy' | 'executiveViewDate'>
   >(initialFormState);
@@ -352,6 +352,20 @@ export default function LeadUploadForm() {
   const handleSaveLead = async () => {
     if (!validateLead(formData)) {
       return;
+    }
+
+    const isDuplicate = allLeads.some(lead => 
+      (lead.contactNumber && formData.contactNumber && lead.contactNumber.trim() === formData.contactNumber.trim()) ||
+      (lead.email && formData.email && lead.email.trim().toLowerCase() === formData.email.trim().toLowerCase())
+    );
+
+    if (isDuplicate) {
+        toast({
+            variant: 'destructive',
+            title: 'Duplicate Lead',
+            description: 'A lead with this contact number or email already exists.',
+        });
+        return;
     }
     
     const newLeadId = await getNextLeadId();
