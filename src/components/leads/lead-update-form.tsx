@@ -219,6 +219,15 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
       })
       return
     }
+    
+    if (transferredTo === leadDetails.executive) {
+        toast({
+          variant: 'destructive',
+          title: 'Already Assigned',
+          description: `This lead is already assigned to ${transferredTo}.`,
+        });
+        return;
+    }
 
     await updateLead(leadDetails.leadId, { executive: transferredTo })
 
