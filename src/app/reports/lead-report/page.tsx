@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -31,6 +30,7 @@ const getLeadStatusesForFilters = (
   state: string,
   sector: string,
   headcount: string,
+  status: string,
   allStatuses: string[]
 ) => {
   const filteredLeads = leads.filter(lead => {
@@ -51,6 +51,9 @@ const getLeadStatusesForFilters = (
       } else {
         matches = matches && (leadHeadcount >= min);
       }
+    }
+    if (status !== 'All') {
+        matches = matches && lead.status === status;
     }
     return matches;
   });
@@ -98,14 +101,15 @@ export default function LeadReportPage() {
   const [selectedState, setSelectedState] = useState('All');
   const [selectedSector, setSelectedSector] = useState('All');
   const [selectedHeadcount, setSelectedHeadcount] = useState('All');
+  const [selectedStatus, setSelectedStatus] = useState('All');
   const [detailedStatusView, setDetailedStatusView] = useState<string | null>(null);
 
   const [otherSectorInput, setOtherSectorInput] = useState('');
 
   const leadStatusesForTable = useMemo(() => {
     if (!visibleLeads) return [];
-    return getLeadStatusesForFilters(visibleLeads, selectedState, selectedSector, selectedHeadcount, allLeadStatusesFromDb);
-  }, [visibleLeads, selectedState, selectedSector, selectedHeadcount, allLeadStatusesFromDb]);
+    return getLeadStatusesForFilters(visibleLeads, selectedState, selectedSector, selectedHeadcount, selectedStatus, allLeadStatusesFromDb);
+  }, [visibleLeads, selectedState, selectedSector, selectedHeadcount, selectedStatus, allLeadStatusesFromDb]);
   
 
   const leadsForDetailedView = useMemo(() => {
@@ -131,6 +135,9 @@ export default function LeadReportPage() {
             matches = matches && (leadHeadcount >= min);
           }
         }
+        if (selectedStatus !== 'All') {
+            matches = matches && lead.status === selectedStatus;
+        }
         return matches;
     });
 
@@ -140,7 +147,7 @@ export default function LeadReportPage() {
     
     return leads.filter(lead => lead.status === detailedStatusView);
 
-  }, [detailedStatusView, visibleLeads, selectedState, selectedSector, selectedHeadcount]);
+  }, [detailedStatusView, visibleLeads, selectedState, selectedSector, selectedHeadcount, selectedStatus]);
 
 
   const chartData = useMemo(() => {
@@ -239,6 +246,22 @@ export default function LeadReportPage() {
                             {headcounts.map(count => (
                                 <SelectItem key={count} value={count}>
                                     {count}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div className="flex items-center gap-2">
+                    <span className="font-medium">Status:</span>
+                    <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                        <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Select a status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="All">All Statuses</SelectItem>
+                            {allLeadStatusesFromDb.map(status => (
+                                <SelectItem key={status} value={status}>
+                                    {status}
                                 </SelectItem>
                             ))}
                         </SelectContent>
