@@ -96,11 +96,10 @@ export default function LeadReportPage() {
   }, [allLeads, user]);
 
   const [selectedState, setSelectedState] = useState('All');
-  const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedSector, setSelectedSector] = useState('All');
   const [selectedHeadcount, setSelectedHeadcount] = useState('All');
+  const [detailedStatusView, setDetailedStatusView] = useState<string | null>(null);
 
-  const [otherStatusInput, setOtherStatusInput] = useState('');
   const [otherSectorInput, setOtherSectorInput] = useState('');
 
   const leadStatusesForTable = useMemo(() => {
@@ -108,39 +107,40 @@ export default function LeadReportPage() {
     return getLeadStatusesForFilters(visibleLeads, selectedState, selectedSector, selectedHeadcount, allLeadStatusesFromDb);
   }, [visibleLeads, selectedState, selectedSector, selectedHeadcount, allLeadStatusesFromDb]);
   
-  const filterLeadStatusOptions = useMemo(() => [...allLeadStatusesFromDb, 'Other'], [allLeadStatusesFromDb]);
 
-  const filteredLeads = useMemo(() => {
-    if (!visibleLeads) return [];
-    let leads = [...visibleLeads];
+  const leadsForDetailedView = useMemo(() => {
+    if (!detailedStatusView || !visibleLeads) return [];
     
-    if (selectedState && selectedState !== 'All') {
-        leads = leads.filter(lead => lead.state === selectedState);
-    }
-    
-    if (selectedStatus && selectedStatus !== 'all-statuses' && selectedStatus !== 'Other') {
-      leads = leads.filter(lead => (lead as any).status === selectedStatus);
-    }
-
-    if (selectedSector && selectedSector !== 'All' && selectedSector !== 'Other') {
-      leads = leads.filter(lead => lead.sector === selectedSector);
-    }
-
-    if (selectedHeadcount && selectedHeadcount !== 'All') {
-      const [min, max] = selectedHeadcount.replace('+', '-').split('-').map(Number);
-      leads = leads.filter(lead => {
-        const headcount = parseInt(lead.headcount, 10);
-        if (isNaN(headcount)) return false;
-        if (max) {
-          return headcount >= min && headcount <= max;
+    // Base filtering by State, Sector, Headcount
+    let leads = visibleLeads.filter(lead => {
+        let matches = true;
+        if (selectedState !== 'All') {
+            matches = matches && lead.state === selectedState;
         }
-        return headcount >= min;
-      });
+        if (selectedSector !== 'All') {
+          matches = matches && lead.sector === selectedSector;
+        }
+        if (selectedHeadcount !== 'All') {
+          const [min, max] = selectedHeadcount.replace('+', '-').split('-').map(Number);
+          const leadHeadcount = parseInt(lead.headcount, 10);
+          if (isNaN(leadHeadcount)) {
+            matches = false;
+          } else if (max) {
+            matches = matches && (leadHeadcount >= min && leadHeadcount <= max);
+          } else {
+            matches = matches && (leadHeadcount >= min);
+          }
+        }
+        return matches;
+    });
+
+    if (detailedStatusView === 'Total Leads') {
+        return leads;
     }
     
-    return leads;
+    return leads.filter(lead => lead.status === detailedStatusView);
 
-  }, [selectedState, selectedStatus, selectedSector, selectedHeadcount, visibleLeads]);
+  }, [detailedStatusView, visibleLeads, selectedState, selectedSector, selectedHeadcount]);
 
 
   const chartData = useMemo(() => {
@@ -153,14 +153,11 @@ export default function LeadReportPage() {
       }));
   }, [leadStatusesForTable]);
     
-  const handleStatusChange = (value: string) => {
-      setSelectedStatus(value === 'all-statuses' ? '' : value);
-  }
-
-  const handleSetOtherStatus = () => {
-    if (otherStatusInput.trim()) {
-      setSelectedStatus(otherStatusInput.trim());
-      setOtherStatusInput('');
+  const handleStatusRowClick = (status: string) => {
+    if (detailedStatusView === status) {
+        setDetailedStatusView(null);
+    } else {
+        setDetailedStatusView(status);
     }
   };
 
@@ -170,8 +167,6 @@ export default function LeadReportPage() {
       setOtherSectorInput('');
     }
   };
-
-  const shouldShowDetails = selectedStatus && selectedStatus !== 'all-statuses' && selectedStatus !== 'Other';
 
   if (isLoading || !isAuthenticated) {
     return null;
@@ -202,38 +197,6 @@ export default function LeadReportPage() {
                             </ScrollArea>
                         </SelectContent>
                     </Select>
-                </div>
-                <div className="flex items-center gap-2">
-                    <span className="font-medium">Status:</span>
-                    <div className="flex flex-col gap-1">
-                        <Select value={selectedStatus} onValueChange={handleStatusChange}>
-                            <SelectTrigger className="w-[180px]">
-                                <SelectValue placeholder="Select a status" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all-statuses">All Statuses</SelectItem>
-                                {filterLeadStatusOptions.map(status => (
-                                    <SelectItem key={status} value={status}>
-                                        {status}
-                                    </SelectItem>
-                                ))}
-                                {selectedStatus && !filterLeadStatusOptions.includes(selectedStatus) && selectedStatus !== '' && selectedStatus !== 'all-statuses' && (
-                                    <SelectItem value={selectedStatus}>{selectedStatus}</SelectItem>
-                                )}
-                            </SelectContent>
-                        </Select>
-                        {selectedStatus === 'Other' && (
-                            <div className="mt-1 flex items-center gap-2">
-                                <Input
-                                    placeholder="Specify other status"
-                                    value={otherStatusInput}
-                                    onChange={(e) => setOtherStatusInput(e.target.value)}
-                                    onKeyDown={(e) => { if (e.key === 'Enter') handleSetOtherStatus(); }}
-                                />
-                                <Button size="sm" onClick={handleSetOtherStatus}>OK</Button>
-                            </div>
-                        )}
-                    </div>
                 </div>
                 <div className="flex items-center gap-2">
                     <span className="font-medium">Sectors:</span>
@@ -283,11 +246,14 @@ export default function LeadReportPage() {
                 </div>
             </div>
             
-            {shouldShowDetails ? (
+            {detailedStatusView ? (
                 <div>
-                    <h2 className="text-xl font-semibold mb-4">
-                        Leads with status "{selectedStatus}" in {selectedState === 'All' ? 'All States' : selectedState}: <span className="text-primary font-bold">{filteredLeads.length}</span>
-                    </h2>
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-xl font-semibold">
+                            Leads with status "{detailedStatusView}" in {selectedState === 'All' ? 'All States' : selectedState}: <span className="text-primary font-bold">{leadsForDetailedView.length}</span>
+                        </h2>
+                        <Button variant="outline" onClick={() => setDetailedStatusView(null)}>Back to Report</Button>
+                    </div>
                     <ScrollArea className="w-full whitespace-nowrap rounded-md border">
                         <Table className="min-w-[3000px]">
                             <TableHeader>
@@ -318,8 +284,8 @@ export default function LeadReportPage() {
                             </TableRow>
                             </TableHeader>
                             <TableBody>
-                            {filteredLeads.length > 0 ? (
-                                filteredLeads.map((lead, index) => {
+                            {leadsForDetailedView.length > 0 ? (
+                                leadsForDetailedView.map((lead, index) => {
                                 const lastFollowUp = lead.followUps && lead.followUps.length > 0 ? lead.followUps[lead.followUps.length - 1] : null;
                                 const nextFollowupDate = lead.nextFollowUpDate && !isNaN(new Date(lead.nextFollowUpDate).getTime())
                                     ? format(new Date(lead.nextFollowUpDate), 'PPP')
@@ -375,7 +341,8 @@ export default function LeadReportPage() {
                         {leadStatusesForTable.map((item) => (
                         <div
                             key={item.status}
-                            className="flex justify-between items-center p-3 border rounded-lg"
+                            className="flex justify-between items-center p-3 border rounded-lg cursor-pointer hover:bg-accent transition-colors"
+                            onClick={() => handleStatusRowClick(item.status)}
                         >
                             <span className="font-medium">{item.status}:</span>
                             <span className="font-bold text-primary">{item.value}</span>
