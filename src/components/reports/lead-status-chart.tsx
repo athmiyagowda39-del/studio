@@ -19,38 +19,54 @@ const chartConfig = {
   value: {
     label: 'Leads',
   },
-  Attended: {
-    label: 'Attended',
+  'Order closed': {
+    label: 'Order closed',
     color: 'hsl(var(--chart-2))',
   },
-  'Not viewed': {
-    label: 'Not viewed',
-    color: 'hsl(var(--chart-4))',
+  'Pursuing to Purchase': {
+    label: 'Pursuing to Purchase',
+    color: 'hsl(var(--primary))',
+  },
+  'Proposal Sent': {
+    label: 'Proposal Sent',
+    color: 'hsl(var(--chart-3))',
+  },
+  'Quote Sent': {
+    label: 'Quote Sent',
+    color: 'hsl(var(--chart-3))',
   },
   'Demo Given': {
     label: 'Demo Given',
     color: 'hsl(var(--chart-3))',
   },
+  Attended: {
+    label: 'Attended',
+    color: 'hsl(var(--chart-4))',
+  },
+  'Not viewed': {
+    label: 'Not viewed',
+    color: 'hsl(var(--chart-5))',
+  },
   Unattended: {
     label: 'Unattended',
-    color: 'hsl(var(--primary))',
-  },
-  'Pursuing to Purchase': {
-    label: 'Pursuing to Purchase',
-    color: 'hsl(120 100% 35%)',
+    color: 'hsl(var(--chart-5))',
   },
   'Not interested': {
     label: 'Not interested',
     color: 'hsl(var(--destructive))',
   },
-  'Order closed': {
-    label: 'Order closed',
-    color: 'hsl(60 100% 50%)',
+  'Do Not Contact': {
+    label: 'Do Not Contact',
+    color: 'hsl(var(--destructive))',
   },
-  'Proposal Sent': {
-    label: 'Proposal Sent',
-    color: 'hsl(260 100% 70%)',
-  }
+  Fake: {
+    label: 'Fake',
+    color: 'hsl(var(--muted-foreground))',
+  },
+  'Existing Users': {
+    label: 'Existing Users',
+    color: 'hsl(var(--muted-foreground))',
+  },
 };
 
 
