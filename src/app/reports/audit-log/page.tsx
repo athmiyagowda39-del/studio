@@ -11,7 +11,7 @@ import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import AppContent from '@/components/layout/app-content';
 import { useApp, type AppUser } from '@/context/app-context';
-import { getAuditLogs, type AuditLogReportEntry } from '@/actions/audit';
+import type { AuditLogReportEntry } from '@/lib/server-actions/audit';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 
@@ -36,38 +36,34 @@ export default function AuditLogReportPage() {
     const handleFetchLogs = async () => {
         setIsFetching(true);
         try {
-            const from = new Date(fromDate);
-            from.setHours(0, 0, 0, 0);
+            const response = await fetch('/api/audit/logs', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    fromDate,
+                    toDate,
+                    userId: selectedUserId,
+                }),
+            });
 
-            const to = new Date(toDate);
-            to.setHours(23, 59, 59, 999);
-
-            if (from > to) {
-                toast({
-                    variant: 'destructive',
-                    title: 'Invalid Date Range',
-                    description: 'The "From Date" cannot be after the "To Date".'
-                });
-                return;
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to fetch logs');
             }
 
-            const logs = await getAuditLogs(
-                from,
-                to,
-                selectedUserId === 'all' ? undefined : selectedUserId
-            );
+            const logs = await response.json();
             setAuditLogs(logs);
 
             toast({
                 title: 'Logs Fetched',
                 description: `${logs.length} audit log entries found.`,
             });
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
             toast({
                 variant: 'destructive',
                 title: 'Error Fetching Logs',
-                description: 'An unexpected error occurred while fetching the audit logs.',
+                description: error.message || 'An unexpected error occurred while fetching the audit logs.',
             });
         } finally {
             setIsFetching(false);

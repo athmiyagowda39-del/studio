@@ -4,10 +4,6 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
-import * as UserActions from '@/actions/users';
-import * as LeadActions from '@/actions/leads';
-import * as OptionActions from '@/actions/options';
-import { addAuditLog } from '@/actions/audit';
 
 export type AppUser = {
   id: string;
@@ -46,6 +42,20 @@ type AppContextType = {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
+// Helper function for making API requests
+async function fetchAPI(url: string, options: RequestInit = {}) {
+    const response = await fetch(url, options);
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'An unknown error occurred' }));
+        throw new Error(errorData.error || `Request failed with status ${response.status}`);
+    }
+    // For DELETE requests, there might not be a body
+    if (response.status === 204) {
+      return null;
+    }
+    return response.json();
+}
+
 export function AppProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AppUser | null>(null);
   const [originalUser, setOriginalUser] = useState<AppUser | null>(null);
@@ -57,6 +67,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [leadReferences, setLeadReferences] = useState<string[]>([]);
   const router = useRouter();
 
+  const addAuditLog = useCallback(async (logData: Omit<Parameters<typeof fetchAPI>[1], 'body'> & { body: any }) => {
+    try {
+        await fetchAPI('/api/audit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(logData.body),
+        });
+    } catch (error) {
+        console.error("Failed to post audit log:", error);
+    }
+  }, []);
+
   const loadInitialData = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -64,11 +86,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const sessionOriginalUserJson = sessionStorage.getItem('originalUser');
       
       const [fetchedUsers, fetchedLeads, fetchedStatuses, fetchedSubStatuses, fetchedReferences] = await Promise.all([
-        UserActions.getUsers(),
-        LeadActions.getLeads(),
-        OptionActions.getLeadStatuses(),
-        OptionActions.getLeadSubStatuses(),
-        OptionActions.getLeadReferences(),
+        fetchAPI('/api/users'),
+        fetchAPI('/api/leads'),
+        fetchAPI('/api/options/statuses'),
+        fetchAPI('/api/options/sub-statuses'),
+        fetchAPI('/api/options/references'),
       ]);
 
       setUsers(fetchedUsers);
@@ -79,7 +101,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       if (sessionUserJson) {
         const sessionUser = JSON.parse(sessionUserJson);
-        const freshUserData = fetchedUsers.find(u => u.id === sessionUser.id);
+        const freshUserData = fetchedUsers.find((u: AppUser) => u.id === sessionUser.id);
         if (freshUserData) {
           setUser(freshUserData);
           sessionStorage.setItem('user', JSON.stringify(freshUserData));
@@ -89,7 +111,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
       if (sessionOriginalUserJson) {
         const sessionOriginalUser = JSON.parse(sessionOriginalUserJson);
-        const freshOriginalUserData = fetchedUsers.find(u => u.id === sessionOriginalUser.id);
+        const freshOriginalUserData = fetchedUsers.find((u: AppUser) => u.id === sessionOriginalUser.id);
         if(freshOriginalUserData) {
             setOriginalUser(freshOriginalUserData);
             sessionStorage.setItem('originalUser', JSON.stringify(freshOriginalUserData));
@@ -111,18 +133,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
 
   const login = async (email: string, password: string) => {
-    const foundUser = await UserActions.loginUser(email, password);
+    const foundUser = await fetchAPI('/api/users/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+    });
+
     if (foundUser) {
       setUser(foundUser);
       setOriginalUser(foundUser);
       sessionStorage.setItem('user', JSON.stringify(foundUser));
       sessionStorage.setItem('originalUser', JSON.stringify(foundUser));
 
-      addAuditLog({
-        userId: foundUser.id,
-        username: foundUser.username,
-        action: 'LOGIN',
-        details: 'User logged in successfully.',
+      await addAuditLog({
+        body: {
+          userId: foundUser.id,
+          username: foundUser.username,
+          action: 'LOGIN',
+          details: 'User logged in successfully.',
+        }
       });
 
       if(foundUser.forcePasswordChange) {
@@ -130,19 +159,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
       } else {
         router.push('/dashboard');
       }
-
-    } else {
-      throw new Error('Invalid email or password.');
     }
   };
 
   const logout = async () => {
     if (user) {
-      addAuditLog({
-        userId: user.id,
-        username: user.username,
-        action: 'LOGOUT',
-        details: 'User logged out.',
+      await addAuditLog({
+        body: {
+            userId: user.id,
+            username: user.username,
+            action: 'LOGOUT',
+            details: 'User logged out.',
+        }
       });
     }
     setUser(null);
@@ -152,15 +180,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     router.push('/login');
   };
 
-  const impersonate = (userToImpersonate: AppUser) => {
+  const impersonate = async (userToImpersonate: AppUser) => {
     if (originalUser && ['Manager', 'Admin', 'Super Admin'].includes(originalUser.role)) {
-      addAuditLog({
-        userId: originalUser.id,
-        username: originalUser.username,
-        action: 'IMPERSONATE_START',
-        targetEntityType: 'USER',
-        targetEntityId: userToImpersonate.id,
-        details: `Started impersonating user: ${userToImpersonate.username}`,
+      await addAuditLog({
+        body: {
+          userId: originalUser.id,
+          username: originalUser.username,
+          action: 'IMPERSONATE_START',
+          targetEntityType: 'USER',
+          targetEntityId: userToImpersonate.id,
+          details: `Started impersonating user: ${userToImpersonate.username}`,
+        }
       });
       setUser(userToImpersonate);
       sessionStorage.setItem('user', JSON.stringify(userToImpersonate));
@@ -168,15 +198,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const stopImpersonation = () => {
+  const stopImpersonation = async () => {
     if (originalUser && user) {
-      addAuditLog({
-        userId: originalUser.id,
-        username: originalUser.username,
-        action: 'IMPERSONATE_STOP',
-        targetEntityType: 'USER',
-        targetEntityId: user.id,
-        details: `Stopped impersonating user: ${user.username}`,
+      await addAuditLog({
+        body: {
+          userId: originalUser.id,
+          username: originalUser.username,
+          action: 'IMPERSONATE_STOP',
+          targetEntityType: 'USER',
+          targetEntityId: user.id,
+          details: `Stopped impersonating user: ${user.username}`,
+        }
       });
     }
     setUser(originalUser);
@@ -185,34 +217,47 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const addUser = async (userData: Omit<AppUser, 'id'| 'password' | 'forcePasswordChange'>) => {
-    const newUser = await UserActions.addUser(userData);
+    const newUser = await fetchAPI('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData),
+    });
     if (user) {
-      addAuditLog({
-        userId: user.id,
-        username: user.username,
-        action: 'CREATE_USER',
-        targetEntityType: 'USER',
-        targetEntityId: newUser.id,
-        details: `Created new user '${newUser.username}' with role '${newUser.role}'.`,
+      await addAuditLog({
+        body: {
+          userId: user.id,
+          username: user.username,
+          action: 'CREATE_USER',
+          targetEntityType: 'USER',
+          targetEntityId: newUser.id,
+          details: `Created new user '${newUser.username}' with role '${newUser.role}'.`,
+        }
       });
     }
     setUsers(prev => [...prev, newUser]);
+    router.refresh();
   };
 
   const updateUser = async (id: string, updates: Partial<Omit<AppUser, 'id'>>) => {
-    const updatedUser = await UserActions.updateUser(id, updates);
+    const updatedUser = await fetchAPI(`/api/users/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+    });
     if (user) {
       const detailParts = Object.entries(updates)
         .filter(([key]) => key !== 'password')
         .map(([key]) => `${key} changed`);
 
-      addAuditLog({
-        userId: user.id,
-        username: user.username,
-        action: 'UPDATE_USER',
-        targetEntityType: 'USER',
-        targetEntityId: id,
-        details: `Updated user '${updatedUser.username}'. Changes: ${detailParts.join(', ')}`,
+      await addAuditLog({
+        body: {
+          userId: user.id,
+          username: user.username,
+          action: 'UPDATE_USER',
+          targetEntityType: 'USER',
+          targetEntityId: id,
+          details: `Updated user '${updatedUser.username}'. Changes: ${detailParts.join(', ')}`,
+        }
       });
     }
     
@@ -226,50 +271,69 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setOriginalUser(updatedUser);
         sessionStorage.setItem('originalUser', JSON.stringify(updatedUser));
     }
+    router.refresh();
   };
 
   const deleteUser = async (id: string) => {
     const userToDelete = users.find(u => u.id === id);
-    await UserActions.deleteUser(id);
+    await fetchAPI(`/api/users/${id}`, { method: 'DELETE' });
     if (user && userToDelete) {
-      addAuditLog({
-        userId: user.id,
-        username: user.username,
-        action: 'DELETE_USER',
-        targetEntityType: 'USER',
-        targetEntityId: id,
-        details: `Deleted user: ${userToDelete.username}`,
+      await addAuditLog({
+        body: {
+          userId: user.id,
+          username: user.username,
+          action: 'DELETE_USER',
+          targetEntityType: 'USER',
+          targetEntityId: id,
+          details: `Deleted user: ${userToDelete.username}`,
+        }
       });
     }
     setUsers(prev => prev.filter(u => u.id !== id));
+    router.refresh();
   };
   
   const addLeads = async (newLeads: LeadFormData[]) => {
-    const addedLeads = await LeadActions.addLeads(newLeads);
+    const addedLeads = await fetchAPI('/api/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newLeads),
+    });
+
      if (user) {
       if (addedLeads.length === 1) {
-        addAuditLog({
-          userId: user.id,
-          username: user.username,
-          action: 'CREATE_LEAD',
-          targetEntityType: 'LEAD',
-          targetEntityId: addedLeads[0].leadId,
-          details: `Created new lead for company: ${addedLeads[0].company}`,
+        await addAuditLog({
+          body: {
+            userId: user.id,
+            username: user.username,
+            action: 'CREATE_LEAD',
+            targetEntityType: 'LEAD',
+            targetEntityId: addedLeads[0].leadId,
+            details: `Created new lead for company: ${addedLeads[0].company}`,
+          }
         });
       } else {
-        addAuditLog({
-          userId: user.id,
-          username: user.username,
-          action: 'CREATE_LEAD_BULK',
-          details: `Added ${addedLeads.length} new leads via bulk upload.`,
+        await addAuditLog({
+          body: {
+            userId: user.id,
+            username: user.username,
+            action: 'CREATE_LEAD_BULK',
+            details: `Added ${addedLeads.length} new leads via bulk upload.`,
+          }
         });
       }
     }
     setLeads(prev => [...prev, ...addedLeads]);
+    router.refresh();
   };
   
   const updateLead = async (id: string, updates: Partial<LeadFormData>) => {
-    const updatedLead = await LeadActions.updateLead(id, updates);
+    const updatedLead = await fetchAPI(`/api/leads/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+    });
+
     if (user) {
       // Create a more generic and comprehensive log message
       const changes = Object.keys(updates)
@@ -283,18 +347,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
         .join(', ');
 
       if (changes) {
-        addAuditLog({
-          userId: user.id,
-          username: user.username,
-          action: 'UPDATE_LEAD',
-          targetEntityType: 'LEAD',
-          targetEntityId: id,
-          details: `Updated lead for '${updatedLead.company}'. Changes: ${changes}.`,
+        await addAuditLog({
+          body: {
+            userId: user.id,
+            username: user.username,
+            action: 'UPDATE_LEAD',
+            targetEntityType: 'LEAD',
+            targetEntityId: id,
+            details: `Updated lead for '${updatedLead.company}'. Changes: ${changes}.`,
+          }
         });
       }
     }
     setLeads(prev => prev.map(l => l.leadId === id ? updatedLead : l));
+    router.refresh();
   };
+
+  const getNextLeadId = async (): Promise<string> => {
+    const data = await fetchAPI('/api/leads/next-id');
+    return data.nextId;
+  }
 
   const isImpersonating = !!(originalUser && user && originalUser.id !== user.id);
   const isReadOnly = (isImpersonating && originalUser?.role !== 'Super Admin');
@@ -322,7 +394,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         deleteUser,
         addLeads,
         updateLead,
-        getNextLeadId: LeadActions.getNextLeadId,
+        getNextLeadId,
       }}
     >
       {children}

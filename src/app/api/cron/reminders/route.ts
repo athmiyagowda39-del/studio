@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getLeads } from '@/actions/leads';
-import { getUsers } from '@/actions/users';
+import { getLeads } from '@/lib/server-actions/leads';
+import { getUsers } from '@/lib/server-actions/users';
 import { sendEmail } from '@/lib/email';
 import { isSameDay, parseISO } from 'date-fns';
 
