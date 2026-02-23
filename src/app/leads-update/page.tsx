@@ -33,7 +33,6 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ChevronsUpDown, ChevronDown } from 'lucide-react';
 import { getDisplayModule, allModules, allHrModules, allFinanceModules, allGeneralModules, financeModules, generalModules } from '@/lib/modules';
-import { addAuditLog } from '@/actions/audit';
 import * as XLSX from 'xlsx';
 import { useToast } from '@/hooks/use-toast';
 
@@ -41,7 +40,7 @@ const LEADS_PER_PAGE = 10;
 type TabValue = 'all' | 'not-viewed' | 'follow-ups-due' | 'zero-follow-ups' | 'search-result';
 
 export default function LeadsUpdatePage() {
-  const { user, isAuthenticated, isLoading, leads: allLeads, users, leadStatuses, leadSubStatuses, leadReferences } = useApp();
+  const { user, isAuthenticated, isLoading, leads: allLeads, users, leadStatuses, leadSubStatuses, leadReferences, addAuditLog } = useApp();
   const router = useRouter();
   const pageTopRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();

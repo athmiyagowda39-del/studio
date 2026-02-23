@@ -4,6 +4,8 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
+import type { AuditLogData } from '@/lib/server-actions/audit';
+
 
 export type AppUser = {
   id: string;
@@ -38,6 +40,7 @@ type AppContextType = {
   addLeads: (newLeads: LeadFormData[]) => Promise<void>;
   updateLead: (id: string, updates: Partial<LeadFormData>) => Promise<void>;
   getNextLeadId: () => Promise<string>;
+  addAuditLog: (logData: AuditLogData) => Promise<void>;
 };
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -49,12 +52,13 @@ async function fetchAPI(url: string, options: RequestInit = {}) {
         const errorData = await response.json().catch(() => ({ error: 'An unknown error occurred' }));
         throw new Error(errorData.error || `Request failed with status ${response.status}`);
     }
-    // For DELETE requests, there might not be a body
-    if (response.status === 204) {
+    // For DELETE or other requests with no content, there might not be a body
+    if (response.status === 204 || response.headers.get('content-length') === '0') {
       return null;
     }
     return response.json();
 }
+
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AppUser | null>(null);
@@ -67,12 +71,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [leadReferences, setLeadReferences] = useState<string[]>([]);
   const router = useRouter();
 
-  const addAuditLog = useCallback(async (logData: Omit<Parameters<typeof fetchAPI>[1], 'body'> & { body: any }) => {
+  const addAuditLog = useCallback(async (logData: AuditLogData) => {
     try {
         await fetchAPI('/api/audit', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(logData.body),
+            body: JSON.stringify(logData),
         });
     } catch (error) {
         console.error("Failed to post audit log:", error);
@@ -146,12 +150,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       sessionStorage.setItem('originalUser', JSON.stringify(foundUser));
 
       await addAuditLog({
-        body: {
           userId: foundUser.id,
           username: foundUser.username,
           action: 'LOGIN',
           details: 'User logged in successfully.',
-        }
       });
 
       if(foundUser.forcePasswordChange) {
@@ -165,12 +167,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     if (user) {
       await addAuditLog({
-        body: {
             userId: user.id,
             username: user.username,
             action: 'LOGOUT',
             details: 'User logged out.',
-        }
       });
     }
     setUser(null);
@@ -183,14 +183,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const impersonate = async (userToImpersonate: AppUser) => {
     if (originalUser && ['Manager', 'Admin', 'Super Admin'].includes(originalUser.role)) {
       await addAuditLog({
-        body: {
           userId: originalUser.id,
           username: originalUser.username,
           action: 'IMPERSONATE_START',
           targetEntityType: 'USER',
           targetEntityId: userToImpersonate.id,
           details: `Started impersonating user: ${userToImpersonate.username}`,
-        }
       });
       setUser(userToImpersonate);
       sessionStorage.setItem('user', JSON.stringify(userToImpersonate));
@@ -201,14 +199,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const stopImpersonation = async () => {
     if (originalUser && user) {
       await addAuditLog({
-        body: {
           userId: originalUser.id,
           username: originalUser.username,
           action: 'IMPERSONATE_STOP',
           targetEntityType: 'USER',
           targetEntityId: user.id,
           details: `Stopped impersonating user: ${user.username}`,
-        }
       });
     }
     setUser(originalUser);
@@ -224,18 +220,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
     if (user) {
       await addAuditLog({
-        body: {
           userId: user.id,
           username: user.username,
           action: 'CREATE_USER',
           targetEntityType: 'USER',
           targetEntityId: newUser.id,
           details: `Created new user '${newUser.username}' with role '${newUser.role}'.`,
-        }
       });
     }
     setUsers(prev => [...prev, newUser]);
-    router.refresh();
   };
 
   const updateUser = async (id: string, updates: Partial<Omit<AppUser, 'id'>>) => {
@@ -250,14 +243,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         .map(([key]) => `${key} changed`);
 
       await addAuditLog({
-        body: {
           userId: user.id,
           username: user.username,
           action: 'UPDATE_USER',
           targetEntityType: 'USER',
           targetEntityId: id,
           details: `Updated user '${updatedUser.username}'. Changes: ${detailParts.join(', ')}`,
-        }
       });
     }
     
@@ -271,7 +262,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setOriginalUser(updatedUser);
         sessionStorage.setItem('originalUser', JSON.stringify(updatedUser));
     }
-    router.refresh();
   };
 
   const deleteUser = async (id: string) => {
@@ -279,18 +269,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await fetchAPI(`/api/users/${id}`, { method: 'DELETE' });
     if (user && userToDelete) {
       await addAuditLog({
-        body: {
           userId: user.id,
           username: user.username,
           action: 'DELETE_USER',
           targetEntityType: 'USER',
           targetEntityId: id,
           details: `Deleted user: ${userToDelete.username}`,
-        }
       });
     }
     setUsers(prev => prev.filter(u => u.id !== id));
-    router.refresh();
   };
   
   const addLeads = async (newLeads: LeadFormData[]) => {
@@ -303,28 +290,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
      if (user) {
       if (addedLeads.length === 1) {
         await addAuditLog({
-          body: {
             userId: user.id,
             username: user.username,
             action: 'CREATE_LEAD',
             targetEntityType: 'LEAD',
             targetEntityId: addedLeads[0].leadId,
             details: `Created new lead for company: ${addedLeads[0].company}`,
-          }
         });
       } else {
         await addAuditLog({
-          body: {
             userId: user.id,
             username: user.username,
             action: 'CREATE_LEAD_BULK',
             details: `Added ${addedLeads.length} new leads via bulk upload.`,
-          }
         });
       }
     }
     setLeads(prev => [...prev, ...addedLeads]);
-    router.refresh();
   };
   
   const updateLead = async (id: string, updates: Partial<LeadFormData>) => {
@@ -348,19 +330,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       if (changes) {
         await addAuditLog({
-          body: {
             userId: user.id,
             username: user.username,
             action: 'UPDATE_LEAD',
             targetEntityType: 'LEAD',
             targetEntityId: id,
             details: `Updated lead for '${updatedLead.company}'. Changes: ${changes}.`,
-          }
         });
       }
     }
     setLeads(prev => prev.map(l => l.leadId === id ? updatedLead : l));
-    router.refresh();
   };
 
   const getNextLeadId = async (): Promise<string> => {
@@ -371,9 +350,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const isImpersonating = !!(originalUser && user && originalUser.id !== user.id);
   const isReadOnly = (isImpersonating && originalUser?.role !== 'Super Admin');
 
-  return (
-    <AppContext.Provider
-      value={{
+  const contextValue = {
         isAuthenticated: !!user,
         user,
         originalUser,
@@ -395,8 +372,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
         addLeads,
         updateLead,
         getNextLeadId,
-      }}
-    >
+        addAuditLog,
+      };
+
+  return (
+    <AppContext.Provider value={contextValue}>
       {children}
     </AppContext.Provider>
   );

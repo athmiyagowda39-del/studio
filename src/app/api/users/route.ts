@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getUsers, addUser } from '@/lib/server-actions/users';
 import type { AppUser } from '@/context/app-context';
+import { revalidatePath } from 'next/cache';
 
 export async function GET() {
     try {
@@ -16,6 +17,7 @@ export async function POST(req: Request) {
     try {
         const userData: Omit<AppUser, 'id' | 'password' | 'forcePasswordChange'> = await req.json();
         const newUser = await addUser(userData);
+        revalidatePath('/users');
         return NextResponse.json(newUser, { status: 201 });
     } catch (error: any) {
         console.error('API Error: Failed to add user', error);

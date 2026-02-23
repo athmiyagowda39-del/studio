@@ -1,12 +1,14 @@
 import { NextResponse } from 'next/server';
 import { updateLead } from '@/lib/server-actions/leads';
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
+import { revalidatePath } from 'next/cache';
 
 export async function PUT(req: Request, { params }: { params: { id: string } }) {
     try {
         const id = params.id;
         const updates: Partial<LeadFormData> = await req.json();
         const updatedLead = await updateLead(id, updates);
+        revalidatePath('/leads-update');
         return NextResponse.json(updatedLead);
     } catch (error: any) {
         console.error(`API Error: Failed to update lead ${params.id}`, error);
