@@ -521,6 +521,8 @@ export default function LeadUploadForm() {
           selectedmodule: 'selectedModule',
           manager: 'manager',
           executive: 'executive',
+          monthlycontractvalue: 'monthlyContractValue',
+          annualcontractvalue: 'annualContractValue',
         };
 
         const leadsData = json
@@ -643,6 +645,8 @@ export default function LeadUploadForm() {
       creationDate: new Date().toISOString(),
       givenBy: user?.username || 'File Upload',
       status: 'Not viewed',
+      monthlyContractValue: parsedLead.monthlyContractValue || '',
+      annualContractValue: parsedLead.annualContractValue || '',
     }));
 
     await addLeads(newLeads);
@@ -692,8 +696,8 @@ export default function LeadUploadForm() {
 
   const handleDownloadSample = () => {
     const sampleData = [
-      [ 'pincode', 'company', 'contactPerson', 'address', 'state', 'district', 'contactNumber', 'email', 'reference', 'headcount', 'sector', 'selectedModule', 'manager', 'executive'],
-      [ '560001', 'Sample Corp', 'John Doe', '123 Main St', 'Karnataka', 'Bengaluru', '9876543210', 'john.doe@example.com', 'Website', '150', 'IT', 'Payroll', 'Jane Smith', 'Yathish G'],
+      [ 'pincode', 'company', 'contactPerson', 'address', 'state', 'district', 'contactNumber', 'email', 'reference', 'headcount', 'sector', 'selectedModule', 'manager', 'executive', 'monthlyContractValue', 'annualContractValue'],
+      [ '560001', 'Sample Corp', 'John Doe', '123 Main St', 'Karnataka', 'Bengaluru', '9876543210', 'john.doe@example.com', 'Website', '150', 'IT', 'Payroll', 'Jane Smith', 'Yathish G', '5000', '60000'],
     ];
     const worksheet = XLSX.utils.aoa_to_sheet(sampleData);
     const workbook = XLSX.utils.book_new();
