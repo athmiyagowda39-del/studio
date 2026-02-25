@@ -120,6 +120,7 @@ const references = [
   'Email Campaign',
   'WhatsApp Campaign',
   'IndiaMART',
+  'Pharmacy',
   'Channel Partner',
   'Existing Customer',
   'Upselling',
@@ -813,7 +814,7 @@ export default function LeadUploadForm() {
 
           <div className="space-y-2">
             <Label htmlFor="selectedModule">Module</Label>
-            <Popover open={productPopoverOpen} onOpenChange={setProductPopoverOpen}>
+            <Popover open={productPopoverOpen} onOpenChange={setProductPopoverOpen} modal={false}>
               <PopoverTrigger asChild>
                 <Button variant="outline" role="combobox" className="w-full justify-between font-normal" disabled={isReadOnly}>
                   <span className="truncate">{getModuleButtonText()}</span>

@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -81,6 +82,7 @@ const SelectContent = React.forwardRef<
         className
       )}
       position={position}
+      onOpenAutoFocus={(e) => e.preventDefault()}
       {...props}
     >
       <SelectScrollUpButton />
