@@ -94,8 +94,10 @@ export default function LeadStatusChart({
           data={chartData}
           dataKey="value"
           nameKey="name"
-          innerRadius={80}
-          strokeWidth={5}
+          innerRadius={60}
+          strokeWidth={2}
+          stroke="hsl(var(--background))"
+          minAngle={1}
           onClick={(pieData) => onStatusClick?.(pieData.name)}
           cursor={onStatusClick ? "pointer" : "default"}
         >
