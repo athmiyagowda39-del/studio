@@ -448,6 +448,7 @@ export default function LeadUploadForm() {
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (isReadOnly) return;
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       processFileAndUpload(file);
@@ -455,6 +456,19 @@ export default function LeadUploadForm() {
   };
 
   const processFileAndUpload = (file: File) => {
+    const validExtensions = ['.xlsx', '.xls', '.csv'];
+    if (!validExtensions.some(ext => file.name.toLowerCase().endsWith(ext))) {
+      toast({
+        variant: 'destructive',
+        title: 'Invalid File Type',
+        description: 'Please upload a valid Excel or CSV file. Ensure the file has an extension like .xlsx, .xls, or .csv.',
+      });
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
@@ -565,6 +579,19 @@ export default function LeadUploadForm() {
           description:
             "Could not read the file. Please ensure it's a valid Excel/CSV file with correct headers.",
         });
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      }
+    };
+    reader.onerror = () => {
+      toast({
+        variant: 'destructive',
+        title: 'File Read Error',
+        description: 'There was an error reading the file.'
+      });
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
       }
     };
     reader.readAsBinaryString(file);
@@ -645,16 +672,7 @@ export default function LeadUploadForm() {
     const files = e.dataTransfer.files;
     if (files && files.length > 0) {
       const file = files[0];
-      const validExtensions = ['.xlsx', '.xls', '.csv'];
-      if (validExtensions.some(ext => file.name.toLowerCase().endsWith(ext))) {
-        processFileAndUpload(file);
-      } else {
-        toast({
-          variant: 'destructive',
-          title: 'Invalid File Type',
-          description: 'Please upload a valid Excel or CSV file.',
-        });
-      }
+      processFileAndUpload(file);
     }
   };
 
