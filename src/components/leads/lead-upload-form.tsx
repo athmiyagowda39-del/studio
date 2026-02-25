@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Input } from '@/components/ui/input';
@@ -621,6 +620,19 @@ export default function LeadUploadForm() {
         description: 'There is no data to upload.',
       });
       return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    for (let i = 0; i < parsedLeads.length; i++) {
+      const lead = parsedLeads[i];
+      if (lead.email && !emailRegex.test(lead.email)) {
+        toast({
+          variant: 'destructive',
+          title: `Invalid Email in Uploaded File`,
+          description: `Row ${i + 2} has an invalid email: "${lead.email}". Please correct the file and upload again.`,
+        });
+        return;
+      }
     }
 
     let nextId = parseInt(await getNextLeadId(), 10);
