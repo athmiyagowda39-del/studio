@@ -1074,26 +1074,26 @@ export default function LeadsUpdatePage() {
                           <TableCell>{(currentPage - 1) * LEADS_PER_PAGE + index + 1}</TableCell>
                           <TableCell>{lead.leadId}</TableCell>
                           <TableCell>{lead.creationDate && !isNaN(new Date(lead.creationDate).getTime()) ? format(new Date(lead.creationDate), 'PPP') : 'N/A'}</TableCell>
-                          <TableCell>{getDisplayModule(lead.selectedModule)}</TableCell>
+                          <TableCell><div className="max-h-16 overflow-y-auto">{getDisplayModule(lead.selectedModule)}</div></TableCell>
                           <TableCell>{lead.company}</TableCell>
                           <TableCell>{lead.contactPerson}</TableCell>
                           <TableCell>{lead.contactNumber}</TableCell>
                           <TableCell>{lead.email}</TableCell>
-                          <TableCell>{lead.address}</TableCell>
+                          <TableCell><div className="max-h-16 overflow-y-auto">{lead.address}</div></TableCell>
                           <TableCell>{lead.district}</TableCell>
                           <TableCell>{lead.state}</TableCell>
                           <TableCell>{lead.reference}</TableCell>
                           <TableCell>{lead.headcount || 'N/A'}</TableCell>
-                          <TableCell>{lead.executive}</TableCell>
-                          <TableCell>{lead.manager}</TableCell>
+                          <TableCell>{lead.executive || 'N/A'}</TableCell>
+                          <TableCell>{lead.manager || 'N/A'}</TableCell>
                           <TableCell>{lead.givenBy || 'N/A'}</TableCell>
                           <TableCell>{lastFollowUp && lastFollowUp.date ? format(new Date(lastFollowUp.date), 'PPP') : 'N/A'}</TableCell>
                           <TableCell>{lastFollowUp ? lastFollowUp.enteredBy : 'N/A'}</TableCell>
                           <TableCell>{nextFollowupDate}</TableCell>
-                          <TableCell>{lastFollowUp ? lastFollowUp.remarks : 'N/A'}</TableCell>
-                          <TableCell>{lead.status}</TableCell>
+                          <TableCell><div className="max-h-16 overflow-y-auto">{lastFollowUp ? lastFollowUp.remarks : 'N/A'}</div></TableCell>
+                          <TableCell>{lead.status || 'N/A'}</TableCell>
                           <TableCell>{lead.leadSubStatus || 'N/A'}</TableCell>
-                          <TableCell>{lead.initialRemarks}</TableCell>
+                          <TableCell><div className="max-h-16 overflow-y-auto">{lead.initialRemarks || 'N/A'}</div></TableCell>
                         </TableRow>
                       )})}
                     </TableBody>
