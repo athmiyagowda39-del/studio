@@ -101,6 +101,8 @@ export default function LeadsUpdatePage() {
     otherFollowUpEnteredByInput: ''
   });
 
+  const filteredLeadStatuses = useMemo(() => leadStatuses.filter(s => s !== 'Quote Sent'), [leadStatuses]);
+
   const allUsernames = useMemo(() => users.map(u => u.username), [users]);
   const executiveDropdownUsers = useMemo(() => {
     const excludedNames = ['Varghese Vincent', 'Sam Devasia', 'Athmiya A G'];
@@ -819,10 +821,10 @@ export default function LeadsUpdatePage() {
                             <SelectTrigger><SelectValue placeholder="--All--" /></SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all">All</SelectItem>
-                                {leadStatuses.map(status => (
+                                {filteredLeadStatuses.map(status => (
                                     <SelectItem key={status} value={status}>{status}</SelectItem>
                                 ))}
-                                {!leadStatuses.includes(selectedStatus) && selectedStatus !== 'all' && selectedStatus !== 'Other' && (
+                                {!filteredLeadStatuses.includes(selectedStatus) && selectedStatus !== 'all' && selectedStatus !== 'Other' && (
                                     <SelectItem value={selectedStatus}>{selectedStatus}</SelectItem>
                                 )}
                                 <SelectItem value="Other">Other</SelectItem>

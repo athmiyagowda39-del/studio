@@ -1,3 +1,4 @@
+
 "use client"
 
 import { Input } from "@/components/ui/input"
@@ -11,7 +12,7 @@ import {
 } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { Textarea } from "@/components/ui/textarea"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -65,6 +66,7 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
     leadStatuses,
     leadSubStatuses,
   } = useApp()
+  const filteredLeadStatuses = useMemo(() => leadStatuses.filter(status => status !== 'Quote Sent'), [leadStatuses]);
   const [executives, setExecutives] = useState<string[]>([])
 
   useEffect(() => {
@@ -848,7 +850,7 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
                         <SelectValue placeholder="-- Select --" />
                       </SelectTrigger>
                       <SelectContent>
-                        {leadStatuses.map((status) => (
+                        {filteredLeadStatuses.map((status) => (
                           <SelectItem key={status} value={status}>
                             {status}
                           </SelectItem>
