@@ -20,10 +20,10 @@ export default function ReportsPage() {
 
   const reports = [
     { name: 'LEAD REPORT', href: '/reports/lead-report' },
-    { name: 'CONTRACT VALUES REPORT', href: '/reports/contract-values' },
     { name: 'CONVERSION FUNNEL REPORT', href: '/reports/conversion-funnel' },
     { name: 'LEAD UPDATE STATUS REPORT', href: '/reports/lead-update-status' },
     { name: 'LEAD UPLOAD STATUS REPORT', href: '/reports/lead-upload-status' },
+    { name: 'CONTRACT VALUES REPORT', href: '/reports/contract-values' },
     { name: 'AUDIT LOG REPORT', href: '/reports/audit-log', roles: ['Super Admin', 'Admin', 'Manager'] },
   ];
   
