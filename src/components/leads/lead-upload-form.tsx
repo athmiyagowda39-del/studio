@@ -198,6 +198,20 @@ export default function LeadUploadForm() {
 
   useEffect(() => {
     if (formData.pincode.length === 6) {
+      // Custom mapping for specific pincodes
+      if (formData.pincode === '122098') {
+        setFormData((prev) => ({
+          ...prev,
+          state: 'Haryana',
+          district: 'Gurugram',
+        }));
+        toast({
+          title: 'Location Found',
+          description: `State and District have been auto-filled for pincode ${formData.pincode}.`,
+        });
+        return; // Exit after handling custom pincode
+      }
+
       fetch(`https://api.postalpincode.in/pincode/${formData.pincode}`)
         .then((response) => response.json())
         .then((data) => {
