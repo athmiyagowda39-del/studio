@@ -412,6 +412,8 @@ export default function LeadsUpdatePage() {
         'Lead Status': lead.status,
         'Lead Sub Status': lead.leadSubStatus || 'N/A',
         'Lead Status Remarks': lead.initialRemarks,
+        'Monthly Contract Value': lead.monthlyContractValue || 'N/A',
+        'Annual Contract Value': lead.annualContractValue || 'N/A',
       };
     });
 
@@ -1024,7 +1026,7 @@ export default function LeadsUpdatePage() {
                   </CardTitle>
                 </CardHeader>
                  <ScrollArea className="w-full whitespace-nowrap rounded-md border">
-                  <Table className="min-w-[2900px]">
+                  <Table className="min-w-[3300px]">
                     <TableHeader className="bg-muted">
                       <TableRow>
                         <TableHead>Sl No</TableHead>
@@ -1050,6 +1052,8 @@ export default function LeadsUpdatePage() {
                         <TableHead>Lead Status</TableHead>
                         <TableHead>Lead Sub Status</TableHead>
                         <TableHead>Lead Status Remarks</TableHead>
+                        <TableHead>Monthly Contract Value</TableHead>
+                        <TableHead>Annual Contract Value</TableHead>
                       </TableRow>
                     </TableHeader>
 
@@ -1094,6 +1098,8 @@ export default function LeadsUpdatePage() {
                           <TableCell>{lead.status || 'N/A'}</TableCell>
                           <TableCell>{lead.leadSubStatus || 'N/A'}</TableCell>
                           <TableCell><div className="max-h-16 overflow-y-auto">{lead.initialRemarks || 'N/A'}</div></TableCell>
+                          <TableCell>{lead.monthlyContractValue || 'N/A'}</TableCell>
+                          <TableCell>{lead.annualContractValue || 'N/A'}</TableCell>
                         </TableRow>
                       )})}
                     </TableBody>

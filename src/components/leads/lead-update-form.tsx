@@ -52,6 +52,8 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
   const [currentStatus, setCurrentStatus] = useState("Initial")
   const [selectedStatus, setSelectedStatus] = useState("")
   const [selectedSubStatus, setSelectedSubStatus] = useState("")
+  const [monthlyContractValue, setMonthlyContractValue] = useState("")
+  const [annualContractValue, setAnnualContractValue] = useState("")
 
   const [transferredTo, setTransferredTo] = useState("")
   const [isReadyToUpdate, setIsReadyToUpdate] = useState(false)
@@ -96,6 +98,8 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
       setCurrentStatus(foundLead.status || "Initial")
       setSelectedStatus(foundLead.status || "")
       setSelectedSubStatus(foundLead.leadSubStatus || "")
+      setMonthlyContractValue(foundLead.monthlyContractValue || "");
+      setAnnualContractValue(foundLead.annualContractValue || "");
       setRemarks("")
       setNextFollowUpDate("")
       setIsReadyToUpdate(false)
@@ -242,6 +246,10 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
 
   const handleStatusSelection = (newStatus: string) => {
     setSelectedStatus(newStatus)
+     if (newStatus !== 'Proposal Sent') {
+        setMonthlyContractValue('');
+        setAnnualContractValue('');
+    }
     if (newStatus !== "Not interested") {
       setSelectedSubStatus("")
     }
@@ -293,6 +301,22 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
       executiveViewDate: updatedViewDate,
     }
 
+    if (selectedStatus === 'Proposal Sent') {
+        if (!monthlyContractValue || !annualContractValue) {
+            toast({
+                variant: 'destructive',
+                title: 'Contract Values Required',
+                description: 'Please enter both Monthly and Annual contract values.',
+            });
+            return;
+        }
+        payload.monthlyContractValue = monthlyContractValue;
+        payload.annualContractValue = annualContractValue;
+    } else {
+        payload.monthlyContractValue = '';
+        payload.annualContractValue = '';
+    }
+
     await updateLead(leadDetails.leadId, payload)
 
     toast({
@@ -303,6 +327,8 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
     setCurrentStatus(selectedStatus)
     setSelectedStatus("")
     setSelectedSubStatus("")
+    setMonthlyContractValue("");
+    setAnnualContractValue("");
   }
 
   const handleResetLeadDetails = () => {
@@ -313,6 +339,8 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
     setTransferredTo("")
     setSelectedStatus("")
     setSelectedSubStatus("")
+    setMonthlyContractValue("");
+    setAnnualContractValue("");
     setRemarks("")
     setIsReadyToUpdate(false)
   }
@@ -864,6 +892,34 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
                       Update
                     </Button>
                   </div>
+                  {selectedStatus === "Proposal Sent" && (
+                    <div className="grid grid-cols-2 gap-2 pt-2">
+                        <div className="space-y-1">
+                            <Label htmlFor="monthlyContractValue" className="text-xs">Monthly Contract Value</Label>
+                            <Input
+                                id="monthlyContractValue"
+                                value={monthlyContractValue}
+                                onChange={(e) => setMonthlyContractValue(e.target.value)}
+                                placeholder="e.g., 5000"
+                                type="number"
+                                disabled={isReadOnly}
+                                className="h-9"
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <Label htmlFor="annualContractValue" className="text-xs">Annual Contract Value</Label>
+                            <Input
+                                id="annualContractValue"
+                                value={annualContractValue}
+                                onChange={(e) => setAnnualContractValue(e.target.value)}
+                                placeholder="e.g., 60000"
+                                type="number"
+                                disabled={isReadOnly}
+                                className="h-9"
+                            />
+                        </div>
+                    </div>
+                  )}
                   {selectedStatus === "Not interested" && (
                     <div className="w-full pt-2">
                         <Select

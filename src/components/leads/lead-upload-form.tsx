@@ -87,6 +87,8 @@ export type LeadFormData = {
   status?: string;
   leadSubStatus?: string;
   initialRemarks?: string;
+  monthlyContractValue?: string;
+  annualContractValue?: string;
 };
 
 const sectors = [

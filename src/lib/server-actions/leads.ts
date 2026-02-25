@@ -1,3 +1,4 @@
+
 import { sql, getConnection } from '@/lib/db';
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import { addErrorLog } from './audit';
@@ -70,6 +71,8 @@ export async function addLeads(leads: LeadFormData[]): Promise<LeadFormData[]> {
     table.columns.add('status', sql.NVarChar(100));
     table.columns.add('leadSubStatus', sql.NVarChar(100));
     table.columns.add('initialRemarks', sql.NVarChar(sql.MAX));
+    table.columns.add('monthlyContractValue', sql.NVarChar(50));
+    table.columns.add('annualContractValue', sql.NVarChar(50));
 
     for (const lead of leads) {
         table.rows.add(
@@ -96,7 +99,9 @@ export async function addLeads(leads: LeadFormData[]): Promise<LeadFormData[]> {
             lead.givenBy || null,
             lead.status || null,
             lead.leadSubStatus || null,
-            lead.initialRemarks || null
+            lead.initialRemarks || null,
+            lead.monthlyContractValue || null,
+            lead.annualContractValue || null
         );
     }
     
@@ -154,6 +159,8 @@ export async function updateLead(id: string, updates: Partial<LeadFormData>): Pr
           .input('status', sql.NVarChar(100), mergedLead.status || null)
           .input('leadSubStatus', sql.NVarChar(100), mergedLead.leadSubStatus || null)
           .input('initialRemarks', sql.NVarChar(sql.MAX), mergedLead.initialRemarks || null)
+          .input('monthlyContractValue', sql.NVarChar(50), mergedLead.monthlyContractValue || null)
+          .input('annualContractValue', sql.NVarChar(50), mergedLead.annualContractValue || null)
           .execute('usp_UpdateLead');
 
 
