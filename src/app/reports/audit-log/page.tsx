@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import AppContent from '@/components/layout/app-content';
@@ -125,8 +126,8 @@ export default function AuditLogReportPage() {
                                 <CardTitle className="text-lg">Log Entries ({auditLogs.length})</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <ScrollArea className="h-96 w-full rounded-md border">
-                                    <Table>
+                                <ScrollArea className="h-96 w-full whitespace-nowrap rounded-md border">
+                                    <Table className="min-w-[1200px]">
                                         <TableHeader>
                                             <TableRow>
                                                 <TableHead>Timestamp</TableHead>
@@ -146,7 +147,7 @@ export default function AuditLogReportPage() {
                                                         <TableCell>{log.action}</TableCell>
                                                         <TableCell>{log.targetEntityType || 'N/A'}</TableCell>
                                                         <TableCell>{log.targetEntityId || 'N/A'}</TableCell>
-                                                        <TableCell className="max-w-sm truncate">{log.details || 'N/A'}</TableCell>
+                                                        <TableCell>{log.details || 'N/A'}</TableCell>
                                                     </TableRow>
                                                 ))
                                             ) : (
@@ -158,6 +159,7 @@ export default function AuditLogReportPage() {
                                             )}
                                         </TableBody>
                                     </Table>
+                                    <ScrollBar orientation="horizontal" />
                                 </ScrollArea>
                             </CardContent>
                         </Card>
