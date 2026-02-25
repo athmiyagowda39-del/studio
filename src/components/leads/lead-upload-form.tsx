@@ -260,7 +260,12 @@ export default function LeadUploadForm() {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { id, value } = e.target;
-    setFormData((prev) => ({ ...prev, [id]: value }));
+    if (id === 'contactNumber') {
+      const numericValue = value.replace(/[^0-9]/g, '');
+      setFormData((prev) => ({ ...prev, [id]: numericValue }));
+    } else {
+      setFormData((prev) => ({ ...prev, [id]: value }));
+    }
   };
 
   const handleSelectChange = (id: string, value: string) => {
@@ -344,6 +349,17 @@ export default function LeadUploadForm() {
       });
       return false;
     }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(lead.email)) {
+      toast({
+        variant: 'destructive',
+        title: 'Invalid Email',
+        description: 'Please enter a valid email address (e.g., name@example.com).',
+      });
+      return false;
+    }
+
     if (lead.sector === 'Other' || lead.sector === 'All') {
       toast({
         variant: 'destructive',
@@ -765,7 +781,7 @@ export default function LeadUploadForm() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="contactNumber">Contact Number</Label>
-            <Input id="contactNumber" value={formData.contactNumber} onChange={handleInputChange} readOnly={isReadOnly} />
+            <Input id="contactNumber" type="tel" value={formData.contactNumber} onChange={handleInputChange} readOnly={isReadOnly} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
