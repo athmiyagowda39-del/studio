@@ -373,7 +373,7 @@ export default function LeadReportPage() {
                         ))}
                     </div>
                     <div className="flex justify-center items-center">
-                        {isClient && chartData && chartData.length > 0 && <LeadStatusChart data={chartData} />}
+                        {isClient && chartData && chartData.length > 0 && <LeadStatusChart data={chartData} onStatusClick={handleStatusRowClick} />}
                     </div>
                 </div>
                 </>
