@@ -1,8 +1,7 @@
-
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import AppContent from '@/components/layout/app-content';
 import { useApp } from '@/context/app-context';
@@ -67,6 +66,7 @@ export default function ConversionFunnelReportPage() {
   const [isClient, setIsClient] = useState(false);
   const [selectedStage, setSelectedStage] = useState<string | null>(null);
   const [stageLeads, setStageLeads] = useState<LeadFormData[]>([]);
+  const detailsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setIsClient(true);
@@ -110,6 +110,10 @@ export default function ConversionFunnelReportPage() {
     
     setSelectedStage(stageName);
     setStageLeads(filtered);
+
+    setTimeout(() => {
+      detailsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
   };
 
   if (isLoading || !isAuthenticated) {
@@ -131,7 +135,7 @@ export default function ConversionFunnelReportPage() {
           </div>
 
           {selectedStage && (
-            <Card>
+            <Card ref={detailsRef}>
               <CardHeader>
                 <CardTitle className="text-lg">
                   Leads in Stage: "{selectedStage}" ({stageLeads.length} leads)
