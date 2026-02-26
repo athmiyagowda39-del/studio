@@ -476,8 +476,8 @@ export default function LeadUploadForm() {
 
   const handleDownloadSample = () => {
     const sampleData = [
-      [ 'pincode', 'company', 'contactPerson', 'address', 'state', 'district', 'contactNumber', 'email', 'reference', 'headcount', 'sector', 'selectedModule', 'manager', 'executive', 'monthlyContractValue', 'annualContractValue'],
-      [ '560001', 'Sample Corp', 'John Doe', '123 Main St', 'Karnataka', 'Bengaluru', '9876543210', 'john.doe@example.com', 'Website', '150', 'IT', 'Payroll', 'Jane Smith', 'Yathish G', '5000', '60000'],
+      [ 'company', 'contactPerson', 'address', 'state', 'district', 'contactNumber', 'email', 'pincode', 'reference', 'headcount', 'sector', 'selectedModule', 'manager', 'executive'],
+      [ 'Sample Corp', 'John Doe', '123 Main St', 'Karnataka', 'Bengaluru', '9876543210', 'john.doe@example.com', '560001', 'Website', '150', 'IT', 'Payroll', 'Jane Smith', 'Yathish G'],
     ];
     const worksheet = XLSX.utils.aoa_to_sheet(sampleData);
     const workbook = XLSX.utils.book_new();
