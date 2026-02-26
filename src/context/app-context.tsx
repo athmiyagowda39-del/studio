@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
@@ -30,6 +29,7 @@ type AppContextType = {
   leadStatuses: string[];
   leadSubStatuses: string[];
   leadReferences: string[];
+  sectors: string[];
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   impersonate: (userToImpersonate: AppUser) => void;
@@ -69,6 +69,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [leadStatuses, setLeadStatuses] = useState<string[]>([]);
   const [leadSubStatuses, setLeadSubStatuses] = useState<string[]>([]);
   const [leadReferences, setLeadReferences] = useState<string[]>([]);
+  const [sectors, setSectors] = useState<string[]>([]);
   const router = useRouter();
 
   const addAuditLog = useCallback(async (logData: AuditLogData) => {
@@ -89,12 +90,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const sessionUserJson = sessionStorage.getItem('user');
       const sessionOriginalUserJson = sessionStorage.getItem('originalUser');
       
-      const [fetchedUsers, fetchedLeads, fetchedStatuses, fetchedSubStatuses, fetchedReferences] = await Promise.all([
+      const [fetchedUsers, fetchedLeads, fetchedStatuses, fetchedSubStatuses, fetchedReferences, fetchedSectors] = await Promise.all([
         fetchAPI('/api/users'),
         fetchAPI('/api/leads'),
         fetchAPI('/api/options/statuses'),
         fetchAPI('/api/options/sub-statuses'),
         fetchAPI('/api/options/references'),
+        fetchAPI('/api/options/sectors'),
       ]);
 
       setUsers(fetchedUsers);
@@ -102,6 +104,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setLeadStatuses(fetchedStatuses);
       setLeadSubStatuses(fetchedSubStatuses);
       setLeadReferences(fetchedReferences);
+      setSectors(fetchedSectors);
 
       if (sessionUserJson) {
         const sessionUser = JSON.parse(sessionUserJson);
@@ -362,6 +365,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         leadStatuses,
         leadSubStatuses,
         leadReferences,
+        sectors,
         login,
         logout,
         impersonate,

@@ -22,7 +22,6 @@ const LeadStatusChart = dynamic(
 
 const allStates = ["All", "Andaman and Nicobar Islands", "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chandigarh", "Chhattisgarh", "Dadra and Nagar Haveli and Daman and Diu", "Delhi", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jammu and Kashmir", "Jharkhand", "Karnataka", "Kerala", "Ladakh", "Lakshadweep", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Puducherry", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"];
 
-const sectors = ['All', 'IT', 'Finance', 'Healthcare', 'Manufacturing', 'Education', 'Retail', 'Hospitality', 'Telecommunication', 'Construction', 'Real Estate', 'Media & Entertainment', 'Government', 'Non-profit', 'Other'];
 const headcounts = ['All', '1-50', '51-200', '201-500', '501-1000', '1000+'];
 
 const getLeadStatusesForFilters = (
@@ -79,7 +78,7 @@ const getLeadStatusesForFilters = (
 
 
 export default function LeadReportPage() {
-  const { user, isAuthenticated, isLoading, leads: allLeads, leadStatuses: allLeadStatusesFromDb } = useApp();
+  const { user, isAuthenticated, isLoading, leads: allLeads, leadStatuses: allLeadStatusesFromDb, sectors: sectorsFromDb } = useApp();
   const router = useRouter();
   const [isClient, setIsClient] = useState(false);
 
@@ -105,6 +104,8 @@ export default function LeadReportPage() {
   const [detailedStatusView, setDetailedStatusView] = useState<string | null>(null);
 
   const [otherSectorInput, setOtherSectorInput] = useState('');
+
+  const sectorsWithAll = useMemo(() => ['All', ...sectorsFromDb], [sectorsFromDb]);
 
   const leadStatusesForTable = useMemo(() => {
     if (!visibleLeads) return [];
@@ -213,12 +214,12 @@ export default function LeadReportPage() {
                                 <SelectValue placeholder="Select a sector" />
                             </SelectTrigger>
                             <SelectContent>
-                                {sectors.map(sector => (
+                                {sectorsWithAll.map(sector => (
                                     <SelectItem key={sector} value={sector}>
                                         {sector}
                                     </SelectItem>
                                 ))}
-                                 {selectedSector && !sectors.includes(selectedSector) && (
+                                 {selectedSector && !sectorsWithAll.includes(selectedSector) && (
                                     <SelectItem value={selectedSector}>{selectedSector}</SelectItem>
                                 )}
                             </SelectContent>

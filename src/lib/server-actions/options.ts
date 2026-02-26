@@ -25,3 +25,7 @@ export async function getLeadSubStatuses(): Promise<string[]> {
 export async function getLeadReferences(): Promise<string[]> {
     return fetchOptions('LeadReferences');
 }
+
+export async function getSectors(): Promise<string[]> {
+    return fetchOptions('Sectors');
+}

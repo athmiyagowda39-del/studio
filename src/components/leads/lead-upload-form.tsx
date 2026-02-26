@@ -89,48 +89,6 @@ export type LeadFormData = {
   annualContractValue?: string;
 };
 
-const sectors = [
-  'All',
-  'IT',
-  'Finance',
-  'Healthcare',
-  'Manufacturing',
-  'Education',
-  'Retail',
-  'Hospitality',
-  'Telecommunication',
-  'Construction',
-  'Real Estate',
-  'Media & Entertainment',
-  'Government',
-  'Non-profit',
-  'Other',
-];
-const references = [
-  'All',
-  'Website',
-  'Social Media',
-  'Google Ads',
-  'Facebook Ads',
-  'LinkedIn',
-  'Referral',
-  'Cold Call',
-  'Telecalling',
-  'Walk-in',
-  'Email Campaign',
-  'WhatsApp Campaign',
-  'IndiaMART',
-  'Pharmacy',
-  'Channel Partner',
-  'Existing Customer',
-  'Upselling',
-  'Cross-selling',
-  'Events / Trade Shows',
-  'Demo Request',
-  'Trial Signup',
-  'Other',
-];
-
 const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate' | 'givenBy' | 'executiveViewDate'> = {
   pincode: '',
   state: '',
@@ -154,16 +112,13 @@ const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate' | 'givenBy'
 };
 
 export default function LeadUploadForm() {
-  const { user, users, isReadOnly, isImpersonating, addLeads, getNextLeadId, leads: allLeads } = useApp();
+  const { user, users, isReadOnly, isImpersonating, addLeads, getNextLeadId, leads: allLeads, sectors, leadReferences } = useApp();
   const [formData, setFormData] = useState<
     Omit<LeadFormData, 'leadId' | 'creationDate' | 'givenBy' | 'executiveViewDate'>
   >(initialFormState);
   const [parsedLeads, setParsedLeads] = useState<Partial<LeadFormData>[]>([]);
   const [showPreview, setShowPreview] = useState(false);
   const [toExecutiveSelection, setToExecutiveSelection] = useState('');
-  const [otherReferenceInput, setOtherReferenceInput] = useState('');
-  const [otherSectorInput, setOtherSectorInput] = useState('');
-  const [otherToExecutiveInput, setOtherToExecutiveInput] = useState('');
   const [productPopoverOpen, setProductPopoverOpen] = useState(false);
   const [executives, setExecutives] = useState<string[]>([]);
   const [companyError, setCompanyError] = useState('');
@@ -525,6 +480,8 @@ export default function LeadUploadForm() {
     XLSX.writeFile(workbook, 'SampleLeads.xlsx');
   };
 
+  const selectedModulesArray = formData.selectedModule ? formData.selectedModule.split(', ').filter(Boolean) : [];
+
   const handleModuleToggle = (moduleName: string) => {
     const newSelection = new Set(selectedModulesArray);
     newSelection.has(moduleName) ? newSelection.delete(moduleName) : newSelection.add(moduleName);
@@ -535,6 +492,17 @@ export default function LeadUploadForm() {
     const newSelection = new Set(selectedModulesArray);
     categoryModules.forEach(m => isAdding ? newSelection.add(m) : newSelection.delete(m));
     handleSelectChange('selectedModule', Array.from(newSelection).join(', '));
+  };
+
+  const getCategoryCheckedState = (categoryModules: string[]): boolean | 'indeterminate' => {
+    const selectionCount = categoryModules.filter(m => selectedModulesArray.includes(m)).length;
+    if (selectionCount === 0) return false;
+    if (selectionCount === categoryModules.length) return true;
+    return 'indeterminate';
+  };
+
+  const handleAllToggle = (isAdding: boolean) => {
+    handleSelectChange('selectedModule', isAdding ? allModules.join(', ') : '');
   };
 
   const getModuleButtonText = () => {
@@ -599,10 +567,10 @@ export default function LeadUploadForm() {
             <Label htmlFor="reference">Reference</Label>
             <Select value={formData.reference} onValueChange={(value) => handleSelectChange('reference', value)} disabled={isReadOnly}>
               <SelectTrigger id="reference">
-                {formData.reference && !references.includes(formData.reference) ? (<span className="truncate">{formData.reference}</span>) : (<SelectValue placeholder="Select Reference..." />)}
+                {formData.reference && !leadReferences.includes(formData.reference) ? (<span className="truncate">{formData.reference}</span>) : (<SelectValue placeholder="Select Reference..." />)}
               </SelectTrigger>
               <SelectContent>
-                {references.map((ref) => (<SelectItem key={ref} value={ref}>{ref}</SelectItem>))}
+                {leadReferences.map((ref) => (<SelectItem key={ref} value={ref}>{ref}</SelectItem>))}
               </SelectContent>
             </Select>
           </div>
