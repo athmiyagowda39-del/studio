@@ -45,31 +45,34 @@ function ExpandableCell({ content, title }: { content: string | null | undefined
   
   const isShort = content.length < 35;
 
+  if (isShort) {
+    return <span>{content}</span>;
+  }
+
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <div className={cn(
-          "flex items-center gap-2 cursor-pointer group transition-colors hover:text-primary",
-          !isShort && "max-w-[200px]"
-        )}>
-          <span className={cn("flex-1", !isShort && "truncate")}>{content}</span>
-          {!isShort && (
-            <span className="shrink-0 text-[9px] font-bold bg-muted px-1.5 py-0.5 rounded-sm opacity-60 group-hover:opacity-100 group-hover:bg-primary group-hover:text-primary-foreground transition-all">
-              VIEW
-            </span>
-          )}
+        <div 
+          onClick={(e) => e.stopPropagation()} // Prevent row selection when clicking "VIEW"
+          className="flex items-center gap-2 cursor-pointer group transition-colors hover:text-primary max-w-[200px]"
+        >
+          <span className="flex-1 truncate">{content}</span>
+          <span className="shrink-0 text-[9px] font-bold bg-muted px-1.5 py-0.5 rounded-sm opacity-60 group-hover:opacity-100 group-hover:bg-primary group-hover:text-primary-foreground transition-all">
+            VIEW
+          </span>
         </div>
       </PopoverTrigger>
-      {!isShort && (
-        <PopoverContent className="w-80 p-4 shadow-2xl border-2 z-50 pointer-events-auto">
-          <div className="space-y-2">
-            <h4 className="font-bold text-xs uppercase text-primary border-b pb-1 tracking-wider">{title}</h4>
-            <div className="text-sm whitespace-normal break-words leading-relaxed max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-              {content}
-            </div>
+      <PopoverContent 
+        className="w-80 p-4 shadow-2xl border-2 z-50 pointer-events-auto"
+        onClick={(e) => e.stopPropagation()} // Prevent row selection when clicking inside popover
+      >
+        <div className="space-y-2">
+          <h4 className="font-bold text-xs uppercase text-primary border-b pb-1 tracking-wider">{title}</h4>
+          <div className="text-sm whitespace-normal break-words leading-relaxed max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+            {content}
           </div>
-        </PopoverContent>
-      )}
+        </div>
+      </PopoverContent>
     </Popover>
   );
 }
