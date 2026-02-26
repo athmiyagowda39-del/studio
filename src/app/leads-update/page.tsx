@@ -259,6 +259,7 @@ export default function LeadsUpdatePage() {
           case 'follow-ups-due':
             const today = startOfDay(new Date());
             tempLeads = tempLeads.filter(lead => {
+              if (lead.status === 'Order closed') return false; // Exclude Order closed
               if (!lead.nextFollowUpDate) return false;
               try {
                 const dueDate = startOfDay(new Date(lead.nextFollowUpDate));
@@ -1123,8 +1124,6 @@ export default function LeadsUpdatePage() {
                       variant="outline"
                       disabled={currentPage === 1}
                       onClick={() => setCurrentPage(p => p - 1)}
-                    >
-                      Previous
                     </Button>
 
                     <span className="self-center text-sm">
