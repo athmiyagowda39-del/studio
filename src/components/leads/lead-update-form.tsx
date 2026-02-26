@@ -14,10 +14,7 @@ import { Button } from "@/components/ui/button"
 import { useState, useEffect, useMemo } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { Textarea } from "@/components/ui/textarea"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { CalendarIcon, Info } from "lucide-react"
 import { format } from "date-fns"
-import { cn } from "@/lib/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { LeadFormData } from "./lead-upload-form"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -31,8 +28,8 @@ import {
 } from "@/components/ui/table"
 import { useApp } from "@/context/app-context"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Info } from "lucide-react"
 import { getDisplayModule } from "@/lib/modules"
-import { Calendar } from "@/components/ui/calendar"
 
 type FollowUp = {
   id: number
@@ -56,14 +53,13 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
   const [isReadyToUpdate, setIsReadyToUpdate] = useState(false)
 
   const { toast } = useToast()
-  const { users, user, isReadOnly, leads: allLeads, updateLead, leadStatuses, leadSubStatuses } = useApp()
+  const { users, user, isReadOnly, leads: allLeads, updateLead, leadStatuses, leadSubStatuses, modules, addAuditLog } = useApp()
   const filteredLeadStatuses = useMemo(() => leadStatuses.filter(status => status !== 'Quote Sent'), [leadStatuses]);
-  const [executives, setExecutives] = useState<string[]>([])
-
-  useEffect(() => {
-    const executiveUsers = users.filter((user) => user.role === "Executive").map((user) => user.username)
-    setExecutives(executiveUsers)
-  }, [users])
+  
+  const executives = useMemo(() => 
+    users.filter((u) => u.role === "Executive").map((u) => u.username), 
+    [users]
+  )
 
   useEffect(() => {
     if (leadId) {
@@ -81,11 +77,16 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
       setCurrentStatus(foundLead.status || "Initial")
       setSelectedStatus(foundLead.status || "")
       setSelectedSubStatus(foundLead.leadSubStatus || "")
-      setMonthlyContractValue(foundLead.monthlyContractValue || "");
-      setAnnualContractValue(foundLead.annualContractValue || "");
+      setMonthlyContractValue(foundLead.monthlyContractValue || "")
+      setAnnualContractValue(foundLead.annualContractValue || "")
       setRemarks("")
       setNextFollowUpDate("")
       setIsReadyToUpdate(false)
+      
+      // Update executive view date if not set
+      if (user?.role === 'Executive' && !foundLead.executiveViewDate) {
+        updateLead(id, { executiveViewDate: new Date().toISOString() });
+      }
     } else {
       handleResetLeadDetails()
     }
@@ -96,6 +97,7 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
   }
 
   const handleAddFollowUp = async () => {
+    if (!leadDetails.leadId) return
     if (!remarks || (!nextFollowUpDate && !remarks.toLowerCase().includes("order closed"))) {
       toast({ variant: "destructive", title: "Missing Information", description: "Please provide remarks and next follow-up date." })
       return
@@ -106,32 +108,58 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
       date: new Date().toISOString(),
       remarks: remarks,
       nextFollowUp: nextFollowUpDate ? format(new Date(nextFollowUpDate + "T00:00:00"), "PPP") : "N/A",
-      enteredBy: user?.username || "Demo User",
+      enteredBy: user?.username || "System",
     }
 
-    await updateLead(leadDetails.leadId!, {
-      followUps: [...(followUps || []), newFollowUp],
-      nextFollowUpDate: nextFollowUpDate ? new Date(nextFollowUpDate + "T00:00:00").toISOString() : undefined,
-    })
+    try {
+      await updateLead(leadDetails.leadId, {
+        followUps: [...(followUps || []), newFollowUp],
+        nextFollowUpDate: nextFollowUpDate ? new Date(nextFollowUpDate + "T00:00:00").toISOString() : undefined,
+      })
+      setRemarks("")
+      setNextFollowUpDate("")
+      toast({ title: "Follow-up added" })
+    } catch (error) {
+      toast({ variant: "destructive", title: "Update Failed", description: "Failed to add follow-up." })
+    }
+  }
 
-    setRemarks("")
-    setNextFollowUpDate("")
-    toast({ title: "Follow-up added" })
+  const handleTransfer = async () => {
+    if (!leadDetails.leadId || !transferredTo) {
+        toast({ variant: 'destructive', title: 'Transfer Error', description: 'Please select an executive to transfer to.' });
+        return;
+    }
+
+    try {
+        await updateLead(leadDetails.leadId, {
+            executive: transferredTo,
+            toExecutive: true,
+            executiveViewDate: undefined // Reset view date for new executive
+        });
+        toast({ title: 'Lead Transferred', description: `Lead successfully transferred to ${transferredTo}.` });
+        setTransferredTo("");
+    } catch (error) {
+        toast({ variant: 'destructive', title: 'Transfer Failed', description: 'Failed to transfer lead.' });
+    }
   }
 
   const handleUpdateStatus = async () => {
-    if (!selectedStatus) return
+    if (!leadDetails.leadId || !selectedStatus) return
     const payload: Partial<LeadFormData> = {
       status: selectedStatus,
       leadSubStatus: selectedStatus === "Not interested" ? selectedSubStatus : "",
-      monthlyContractValue: selectedStatus === 'Proposal Sent' ? monthlyContractValue : '',
-      annualContractValue: selectedStatus === 'Proposal Sent' ? annualContractValue : '',
+      monthlyContractValue: selectedStatus === 'Proposal Sent' ? monthlyContractValue : leadDetails.monthlyContractValue,
+      annualContractValue: selectedStatus === 'Proposal Sent' ? annualContractValue : leadDetails.annualContractValue,
     }
 
-    await updateLead(leadDetails.leadId!, payload)
-    toast({ title: "Status Updated" })
-    setCurrentStatus(selectedStatus)
-    setSelectedStatus("")
+    try {
+      await updateLead(leadDetails.leadId, payload)
+      toast({ title: "Status Updated" })
+      setCurrentStatus(selectedStatus)
+      setSelectedStatus("")
+    } catch (error) {
+        toast({ variant: 'destructive', title: 'Update Failed', description: 'Failed to update status.' });
+    }
   }
 
   const handleResetLeadDetails = () => {
@@ -141,85 +169,251 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
     setMonthlyContractValue("")
     setAnnualContractValue("")
     setIsReadyToUpdate(false)
+    setRemarks("")
+    setNextFollowUpDate("")
+    setTransferredTo("")
   }
 
   const handleSaveLeadDetails = async () => {
     if (!leadDetails.leadId) return
-    await updateLead(leadDetails.leadId, {
-      contactPerson: leadDetails.contactPerson,
-      contactNumber: leadDetails.contactNumber,
-      email: leadDetails.email,
-      headcount: leadDetails.headcount,
-    })
-    toast({ title: "Lead Updated" })
-    setIsReadyToUpdate(false)
+    try {
+        await updateLead(leadDetails.leadId, {
+            contactPerson: leadDetails.contactPerson,
+            contactNumber: leadDetails.contactNumber,
+            email: leadDetails.email,
+            headcount: leadDetails.headcount,
+            address: leadDetails.address,
+            district: leadDetails.district,
+            state: leadDetails.state
+        })
+        toast({ title: "Lead Updated" })
+        setIsReadyToUpdate(false)
+    } catch (error) {
+        toast({ variant: 'destructive', title: 'Update Failed', description: 'Failed to save lead details.' });
+    }
   }
 
   return (
     <div className="space-y-6">
       {isReadOnly && <Alert variant="default"><Info className="h-4 w-4" /><AlertTitle>Read-Only Mode</AlertTitle></Alert>}
+      
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+        {/* LEAD CONTACT CARD */}
         <Card>
-          <CardHeader><CardTitle className="text-base">LEAD CONTACT CARD</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-base font-bold uppercase">Lead Contact Card</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1"><Label>Lead ID</Label><Input value={leadDetails.leadId || ""} readOnly /></div>
-              <div className="space-y-1"><Label>Company</Label><Input value={leadDetails.company || ""} readOnly /></div>
-              <div className="space-y-1"><Label>Contact Person</Label><Input value={leadDetails.contactPerson || ""} onChange={e => handleLeadDetailChange('contactPerson', e.target.value)} readOnly={isReadOnly} /></div>
-              <div className="space-y-1"><Label>Phone</Label><Input value={leadDetails.contactNumber || ""} onChange={e => handleLeadDetailChange('contactNumber', e.target.value)} readOnly={isReadOnly} /></div>
-              <div className="space-y-1"><Label>Email</Label><Input value={leadDetails.email || ""} onChange={e => handleLeadDetailChange('email', e.target.value)} readOnly={isReadOnly} /></div>
-              <div className="space-y-1"><Label>Headcount</Label><Input value={leadDetails.headcount || ""} onChange={e => handleLeadDetailChange('headcount', e.target.value)} readOnly={isReadOnly} /></div>
+              <div className="space-y-1">
+                <Label className="font-semibold">Lead(id)</Label>
+                <Input value={leadDetails.leadId || ""} placeholder="Select a lead from the table below" readOnly className="bg-muted/30" />
+              </div>
+              <div className="space-y-1">
+                <Label className="font-semibold">Company</Label>
+                <Input value={leadDetails.company || ""} readOnly className="bg-muted/30" />
+              </div>
+              
+              <div className="space-y-1">
+                <Label className="font-semibold">Contact person</Label>
+                <Input value={leadDetails.contactPerson || ""} onChange={e => handleLeadDetailChange('contactPerson', e.target.value)} readOnly={isReadOnly} />
+              </div>
+              <div className="space-y-1">
+                <Label className="font-semibold">Contact Number</Label>
+                <Input value={leadDetails.contactNumber || ""} onChange={e => handleLeadDetailChange('contactNumber', e.target.value)} readOnly={isReadOnly} />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="font-semibold">Address</Label>
+                <Input value={leadDetails.address || ""} onChange={e => handleLeadDetailChange('address', e.target.value)} readOnly={isReadOnly} />
+              </div>
+              <div className="space-y-1">
+                <Label className="font-semibold">Email ID</Label>
+                <Input value={leadDetails.email || ""} onChange={e => handleLeadDetailChange('email', e.target.value)} readOnly={isReadOnly} />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="font-semibold">District</Label>
+                <Input value={leadDetails.district || ""} onChange={e => handleLeadDetailChange('district', e.target.value)} readOnly={isReadOnly} />
+              </div>
+              <div className="space-y-1">
+                <Label className="font-semibold">State</Label>
+                <Input value={leadDetails.state || ""} onChange={e => handleLeadDetailChange('state', e.target.value)} readOnly={isReadOnly} />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="font-semibold">Date of lead</Label>
+                <Input value={leadDetails.creationDate ? format(new Date(leadDetails.creationDate), 'PPP') : ""} readOnly className="bg-muted/30" />
+              </div>
+              <div className="space-y-1">
+                <Label className="font-semibold">Executive viewed date</Label>
+                <Input value={leadDetails.executiveViewDate ? format(new Date(leadDetails.executiveViewDate), 'PPP p') : "Not yet seen"} readOnly className="bg-muted/30" />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="font-semibold">Reference</Label>
+                <Input value={leadDetails.reference || ""} readOnly className="bg-muted/30" />
+              </div>
+              <div className="space-y-1">
+                <Label className="font-semibold">Given By</Label>
+                <Input value={leadDetails.givenBy || ""} readOnly className="bg-muted/30" />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="font-semibold">Executive</Label>
+                <Input value={leadDetails.executive || ""} readOnly className="bg-muted/30" />
+              </div>
+              <div className="space-y-1">
+                <Label className="font-semibold">Manager</Label>
+                <Input value={leadDetails.manager || ""} readOnly className="bg-muted/30" />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="font-semibold">Headcount</Label>
+                <Input value={leadDetails.headcount || ""} onChange={e => handleLeadDetailChange('headcount', e.target.value)} readOnly={isReadOnly} />
+              </div>
+              <div className="space-y-1">
+                <Label className="font-semibold">Module</Label>
+                <div className="h-10 px-3 py-2 text-sm border rounded-md bg-muted/30 truncate">
+                  {getDisplayModule(leadDetails.selectedModule || "", modules)}
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-2 pt-4 border-t">
-              <Checkbox id="ready" checked={isReadyToUpdate} onCheckedChange={(c) => setIsReadyToUpdate(!!c)} disabled={isReadOnly} />
-              <Label htmlFor="ready">Yes, I am Ready to Update.</Label>
-              <Button onClick={handleSaveLeadDetails} disabled={!isReadyToUpdate || isReadOnly} className="ml-auto">Save</Button>
+
+            <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t">
+              <div className="flex items-center gap-2">
+                <Checkbox id="ready" checked={isReadyToUpdate} onCheckedChange={(c) => setIsReadyToUpdate(!!c)} disabled={isReadOnly} />
+                <Label htmlFor="ready" className="font-semibold text-sm">Yes, I am Ready to Update.</Label>
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={handleSaveLeadDetails} disabled={!isReadyToUpdate || isReadOnly} className="bg-primary/90">Save</Button>
+                <Button variant="outline" onClick={handleResetLeadDetails}>Reset</Button>
+              </div>
             </div>
           </CardContent>
         </Card>
+
+        {/* LEAD TRACKER */}
         <Card>
-          <CardHeader><CardTitle className="text-base">LEAD TRACKER</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label>Follow Up Remarks</Label>
-              <Textarea value={remarks} onChange={e => setRemarks(e.target.value)} readOnly={isReadOnly} />
+          <CardHeader><CardTitle className="text-base font-bold uppercase">Lead Tracker</CardTitle></CardHeader>
+          <CardContent className="space-y-6">
+            {/* TRANSFER SECTION */}
+            <div className="space-y-2 p-3 bg-muted/20 rounded-lg border">
+              <Label className="font-bold uppercase text-xs text-muted-foreground">Transferred Lead</Label>
+              <div className="flex gap-2">
+                <Select value={transferredTo} onValueChange={setTransferredTo} disabled={isReadOnly}>
+                  <SelectTrigger className="flex-1">
+                    <SelectValue placeholder="Select Executive to transfer to..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {executives.map(exec => (
+                        <SelectItem key={exec} value={exec}>{exec}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button onClick={handleTransfer} disabled={!transferredTo || isReadOnly} size="sm" className="bg-primary/80">Transfer</Button>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label>Next Follow-up Date</Label>
-              <Input type="date" value={nextFollowUpDate} onChange={e => setNextFollowUpDate(e.target.value)} disabled={isReadOnly} />
+
+            {/* FOLLOW UP SECTION */}
+            <div className="space-y-4">
+              <Label className="font-bold uppercase text-xs text-muted-foreground">Follow Up</Label>
+              <div className="space-y-1">
+                <Label className="text-xs font-semibold">Remarks</Label>
+                <Textarea value={remarks} onChange={e => setRemarks(e.target.value)} readOnly={isReadOnly} className="min-h-[100px]" />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs font-semibold">Next Follow-up Date</Label>
+                <Input type="date" value={nextFollowUpDate} onChange={e => setNextFollowUpDate(e.target.value)} disabled={isReadOnly} />
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" size="sm" onClick={() => { setRemarks(""); setNextFollowUpDate(""); }}>New</Button>
+                <Button onClick={handleAddFollowUp} disabled={isReadOnly} size="sm" className="bg-primary/90">Add>></Button>
+              </div>
             </div>
-            <div className="flex justify-end gap-2"><Button onClick={handleAddFollowUp} disabled={isReadOnly}>Add Follow-up</Button></div>
-            <ScrollArea className="h-48 rounded-md border p-2">
-                <Table>
-                    <TableHeader><TableRow><TableHead>Date</TableHead><TableHead>Remarks</TableHead><TableHead>Next</TableHead></TableRow></TableHeader>
-                    <TableBody>{followUps.map(fu => <TableRow key={fu.id}><TableCell>{format(new Date(fu.date), 'MMM d')}</TableCell><TableCell>{fu.remarks}</TableCell><TableCell>{fu.nextFollowUp}</TableCell></TableRow>)}</TableBody>
-                </Table>
-            </ScrollArea>
+
+            {/* FOLLOW UP TABLE */}
+            <div className="border rounded-md overflow-hidden">
+                <ScrollArea className="h-[200px]">
+                    <Table>
+                        <TableHeader className="bg-muted/50">
+                            <TableRow>
+                                <TableHead className="w-16">Sl No</TableHead>
+                                <TableHead>Date</TableHead>
+                                <TableHead>Remarks</TableHead>
+                                <TableHead>Next Follow-up</TableHead>
+                                <TableHead>Entered by</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {followUps.length > 0 ? (
+                                followUps.map((fu, idx) => (
+                                    <TableRow key={fu.id}>
+                                        <TableCell>{idx + 1}</TableCell>
+                                        <TableCell>{format(new Date(fu.date), 'MM/dd/yyyy')}</TableCell>
+                                        <TableCell className="max-w-[200px] truncate" title={fu.remarks}>{fu.remarks}</TableCell>
+                                        <TableCell>{fu.nextFollowUp}</TableCell>
+                                        <TableCell>{fu.enteredBy}</TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">
+                                        No follow-ups added yet.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </ScrollArea>
+            </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* LEAD STATUS UPDATE SECTION */}
       <Card>
-        <CardHeader><CardTitle className="text-base">Lead Status</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-base font-bold uppercase">Lead Status</CardTitle></CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center gap-4">
-            <span className="font-semibold text-muted-foreground">({currentStatus})</span>
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2">
+                <span className="font-bold text-primary">Current Status:</span>
+                <span className="font-semibold text-muted-foreground">({currentStatus})</span>
+            </div>
             <Select value={selectedStatus} onValueChange={setSelectedStatus} disabled={isReadOnly}>
-              <SelectTrigger className="w-[200px]"><SelectValue placeholder="Update Status..." /></SelectTrigger>
-              <SelectContent>{filteredLeadStatuses.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+              <SelectTrigger className="w-[240px]">
+                <SelectValue placeholder="Update Status..." />
+              </SelectTrigger>
+              <SelectContent>
+                {filteredLeadStatuses.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+              </SelectContent>
             </Select>
             <Button onClick={handleUpdateStatus} disabled={!selectedStatus || isReadOnly}>Update</Button>
           </div>
+          
           {selectedStatus === 'Proposal Sent' && (
-            <div className="grid grid-cols-2 gap-4 pt-2">
-              <div className="space-y-1"><Label>Monthly Value</Label><Input type="number" value={monthlyContractValue} onChange={e => setMonthlyContractValue(e.target.value)} disabled={isReadOnly} /></div>
-              <div className="space-y-1"><Label>Annual Value</Label><Input type="number" value={annualContractValue} onChange={e => setAnnualContractValue(e.target.value)} disabled={isReadOnly} /></div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-muted/10 rounded-lg border">
+              <div className="space-y-1">
+                <Label>Monthly Contract Value (INR)</Label>
+                <Input type="number" value={monthlyContractValue} onChange={e => setMonthlyContractValue(e.target.value)} disabled={isReadOnly} placeholder="0.00" />
+              </div>
+              <div className="space-y-1">
+                <Label>Annual Contract Value (INR)</Label>
+                <Input type="number" value={annualContractValue} onChange={e => setAnnualContractValue(e.target.value)} disabled={isReadOnly} placeholder="0.00" />
+              </div>
             </div>
           )}
+          
           {selectedStatus === 'Not interested' && (
-            <Select value={selectedSubStatus} onValueChange={setSelectedSubStatus} disabled={isReadOnly}>
-              <SelectTrigger className="w-full"><SelectValue placeholder="Select Reason..." /></SelectTrigger>
-              <SelectContent>{leadSubStatuses.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-            </Select>
+            <div className="p-4 bg-muted/10 rounded-lg border">
+                <Label className="mb-2 block">Reason for Not Interested</Label>
+                <Select value={selectedSubStatus} onValueChange={setSelectedSubStatus} disabled={isReadOnly}>
+                <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select Reason..." />
+                </SelectTrigger>
+                <SelectContent>
+                    {leadSubStatuses.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                </SelectContent>
+                </Select>
+            </div>
           )}
         </CardContent>
       </Card>
