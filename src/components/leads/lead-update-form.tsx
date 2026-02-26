@@ -1,4 +1,3 @@
-
 "use client"
 
 import { Input } from "@/components/ui/input"
@@ -45,7 +44,6 @@ type FollowUp = {
 
 export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
   const [leadDetails, setLeadDetails] = useState<Partial<LeadFormData>>({})
-
   const [remarks, setRemarks] = useState("")
   const [nextFollowUpDate, setNextFollowUpDate] = useState("")
   const [followUps, setFollowUps] = useState<FollowUp[]>([])
@@ -54,27 +52,16 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
   const [selectedSubStatus, setSelectedSubStatus] = useState("")
   const [monthlyContractValue, setMonthlyContractValue] = useState("")
   const [annualContractValue, setAnnualContractValue] = useState("")
-
   const [transferredTo, setTransferredTo] = useState("")
   const [isReadyToUpdate, setIsReadyToUpdate] = useState(false)
 
   const { toast } = useToast()
-  const {
-    users,
-    user,
-    isReadOnly,
-    leads: allLeads,
-    updateLead,
-    leadStatuses,
-    leadSubStatuses,
-  } = useApp()
+  const { users, user, isReadOnly, leads: allLeads, updateLead, leadStatuses, leadSubStatuses } = useApp()
   const filteredLeadStatuses = useMemo(() => leadStatuses.filter(status => status !== 'Quote Sent'), [leadStatuses]);
   const [executives, setExecutives] = useState<string[]>([])
 
   useEffect(() => {
-    const executiveUsers = users
-      .filter((user) => user.role === "Executive")
-      .map((user) => user.username)
+    const executiveUsers = users.filter((user) => user.role === "Executive").map((user) => user.username)
     setExecutives(executiveUsers)
   }, [users])
 
@@ -87,10 +74,6 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
   }, [leadId, allLeads])
 
   const findLeadAndSetDetails = (id: string) => {
-    if (!id || !allLeads) {
-      setLeadDetails({})
-      return
-    }
     const foundLead = allLeads.find((lead) => lead.leadId === id)
     if (foundLead) {
       setLeadDetails(foundLead)
@@ -108,51 +91,13 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
     }
   }
 
-  const handleLeadDetailChange = (
-    field: keyof LeadFormData,
-    value: string | boolean | number | Date | undefined
-  ) => {
+  const handleLeadDetailChange = (field: keyof LeadFormData, value: any) => {
     setLeadDetails((prev) => ({ ...prev, [field]: value }))
   }
 
-  const terminalRemarkTriggers = [
-    "order closed",
-    "do not contact",
-    "existing users",
-    "fake",
-    "not interested",
-    "not intreted",
-  ]
-
-  const isTerminalRemark = terminalRemarkTriggers.includes(
-    remarks.trim().toLowerCase()
-  )
-
   const handleAddFollowUp = async () => {
-    if (!remarks) {
-      toast({
-        variant: "destructive",
-        title: "Missing Information",
-        description: "Please fill in the Remarks field.",
-      })
-      return
-    }
-
-    if (!isTerminalRemark && !nextFollowUpDate) {
-      toast({
-        variant: "destructive",
-        title: "Missing Information",
-        description: "Please provide a Next Follow-up Date.",
-      })
-      return
-    }
-
-    if (!leadDetails.leadId) {
-      toast({
-        variant: "destructive",
-        title: "No Lead Loaded",
-        description: "Please load a lead before adding follow-ups.",
-      })
+    if (!remarks || (!nextFollowUpDate && !remarks.toLowerCase().includes("order closed"))) {
+      toast({ variant: "destructive", title: "Missing Information", description: "Please provide remarks and next follow-up date." })
       return
     }
 
@@ -160,792 +105,122 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
       id: (followUps?.length || 0) + 1,
       date: new Date().toISOString(),
       remarks: remarks,
-      nextFollowUp:
-        isTerminalRemark || !nextFollowUpDate
-          ? "N/A"
-          : format(new Date(nextFollowUpDate + "T00:00:00"), "PPP"),
+      nextFollowUp: nextFollowUpDate ? format(new Date(nextFollowUpDate + "T00:00:00"), "PPP") : "N/A",
       enteredBy: user?.username || "Demo User",
     }
 
-    const updatedFollowups = [...(followUps || []), newFollowUp]
-
-    const getStatusFromRemark = (remark: string): string | undefined => {
-      const remarkText = remark.trim().toLowerCase()
-      const statusMap: { [key: string]: string } = {
-        "order closed": "Order closed",
-        "do not contact": "Do Not Contact",
-        "existing users": "Existing Users",
-        "fake": "Fake",
-        "not interested": "Not interested",
-        "not intreted": "Not interested",
-      }
-      return statusMap[remarkText]
-    }
-
-    const newStatus = isTerminalRemark
-      ? getStatusFromRemark(remarks)
-      : leadDetails.status
-
-    const updatedLeadPayload: Partial<LeadFormData> = {
-      followUps: updatedFollowups,
-      nextFollowUpDate: isTerminalRemark
-        ? undefined
-        : new Date(nextFollowUpDate + "T00:00:00").toISOString(),
-      status: newStatus,
-    }
-
-    await updateLead(leadDetails.leadId, updatedLeadPayload)
+    await updateLead(leadDetails.leadId!, {
+      followUps: [...(followUps || []), newFollowUp],
+      nextFollowUpDate: nextFollowUpDate ? new Date(nextFollowUpDate + "T00:00:00").toISOString() : undefined,
+    })
 
     setRemarks("")
-    if (isTerminalRemark && newStatus) {
-      setCurrentStatus(newStatus)
-    }
     setNextFollowUpDate("")
-
-    toast({
-      title: "Follow-up added",
-      description: "Your follow-up has been recorded.",
-    })
-  }
-
-  const handleTransferLead = async () => {
-    if (!leadDetails.leadId) {
-      toast({
-        variant: "destructive",
-        title: "No Lead Selected",
-        description: "Please select a lead to transfer.",
-      })
-      return
-    }
-    if (!transferredTo) {
-      toast({
-        variant: "destructive",
-        title: "No Executive Selected",
-        description: "Please select an executive to transfer the lead to.",
-      })
-      return
-    }
-    
-    if (transferredTo === leadDetails.executive) {
-        toast({
-          variant: 'destructive',
-          title: 'Already Assigned',
-          description: `This lead is already assigned to ${transferredTo}.`,
-        });
-        return;
-    }
-
-    await updateLead(leadDetails.leadId, { executive: transferredTo })
-
-    toast({
-      title: "Lead Transferred",
-      description: `Lead ${leadDetails.leadId} has been transferred to ${transferredTo}.`,
-    })
-    setTransferredTo("")
-  }
-
-  const handleStatusSelection = (newStatus: string) => {
-    setSelectedStatus(newStatus)
-     if (newStatus !== 'Proposal Sent') {
-        setMonthlyContractValue('');
-        setAnnualContractValue('');
-    }
-    if (newStatus !== "Not interested") {
-      setSelectedSubStatus("")
-    }
-
-    if (leadDetails.leadId && !leadDetails.executiveViewDate) {
-      setLeadDetails((prev) => ({
-        ...prev,
-        executiveViewDate: new Date().toISOString(),
-      }))
-    }
+    toast({ title: "Follow-up added" })
   }
 
   const handleUpdateStatus = async () => {
-    if (!selectedStatus) {
-      toast({
-        variant: "destructive",
-        title: "No Status Selected",
-        description: "Please select a status to update.",
-      })
-      return
-    }
-    if (selectedStatus === "Not interested" && !selectedSubStatus) {
-      toast({
-        variant: "destructive",
-        title: "Sub Status Required",
-        description: "Please select a sub status when the lead is 'Not interested'.",
-      })
-      return
-    }
-    if (!leadDetails.leadId) {
-      toast({
-        variant: "destructive",
-        title: "No Lead Selected",
-        description: "Please select a lead before updating its status.",
-      })
-      return
-    }
-
-    let updatedViewDate = leadDetails.executiveViewDate
-    if (user?.role === "Executive" && !leadDetails.executiveViewDate) {
-      updatedViewDate = new Date().toISOString()
-    } else if (!leadDetails.executiveViewDate) {
-      updatedViewDate = new Date().toISOString()
-    }
-
+    if (!selectedStatus) return
     const payload: Partial<LeadFormData> = {
       status: selectedStatus,
       leadSubStatus: selectedStatus === "Not interested" ? selectedSubStatus : "",
-      executiveViewDate: updatedViewDate,
+      monthlyContractValue: selectedStatus === 'Proposal Sent' ? monthlyContractValue : '',
+      annualContractValue: selectedStatus === 'Proposal Sent' ? annualContractValue : '',
     }
 
-    if (selectedStatus === 'Proposal Sent') {
-        if (!monthlyContractValue || !annualContractValue) {
-            toast({
-                variant: 'destructive',
-                title: 'Contract Values Required',
-                description: 'Please enter both Monthly and Annual contract values.',
-            });
-            return;
-        }
-        payload.monthlyContractValue = monthlyContractValue;
-        payload.annualContractValue = annualContractValue;
-    } else {
-        payload.monthlyContractValue = '';
-        payload.annualContractValue = '';
-    }
-
-    await updateLead(leadDetails.leadId, payload)
-
-    toast({
-      title: "Status Updated",
-      description: `Lead ${leadDetails.leadId} status updated to ${selectedStatus}.`,
-    })
-
+    await updateLead(leadDetails.leadId!, payload)
+    toast({ title: "Status Updated" })
     setCurrentStatus(selectedStatus)
     setSelectedStatus("")
-    setSelectedSubStatus("")
-    setMonthlyContractValue("");
-    setAnnualContractValue("");
   }
 
   const handleResetLeadDetails = () => {
     setLeadDetails({})
     setFollowUps([])
     setCurrentStatus("Initial")
-    setNextFollowUpDate("")
-    setTransferredTo("")
-    setSelectedStatus("")
-    setSelectedSubStatus("")
-    setMonthlyContractValue("");
-    setAnnualContractValue("");
-    setRemarks("")
+    setMonthlyContractValue("")
+    setAnnualContractValue("")
     setIsReadyToUpdate(false)
-  }
-
-  const handleNewFollowUp = () => {
-    setRemarks("")
-    setNextFollowUpDate("")
   }
 
   const handleSaveLeadDetails = async () => {
-    if (!leadDetails.leadId) {
-      toast({
-        variant: "destructive",
-        title: "No Lead Loaded",
-        description: "Please search and load a lead before saving.",
-      })
-      return
-    }
-
-    const { contactPerson, contactNumber, email, initialRemarks, headcount } = leadDetails
-    const payload = { contactPerson, contactNumber, email, initialRemarks, headcount }
-
-    await updateLead(leadDetails.leadId, payload)
-
-    toast({
-      title: "Lead Updated",
-      description: `Lead ${leadDetails.leadId} has been successfully updated.`,
+    if (!leadDetails.leadId) return
+    await updateLead(leadDetails.leadId, {
+      contactPerson: leadDetails.contactPerson,
+      contactNumber: leadDetails.contactNumber,
+      email: leadDetails.email,
+      headcount: leadDetails.headcount,
     })
+    toast({ title: "Lead Updated" })
     setIsReadyToUpdate(false)
   }
 
-  const executiveForLead = leadDetails.executive
-    ? users.find(
-        (u) => u.username.toLowerCase() === leadDetails.executive?.toLowerCase()
-      )
-    : null
-  const managerForLead = leadDetails.manager
-    ? users.find(
-        (u) =>
-          (u.role === "Admin" ||
-            u.role === "Manager") &&
-          u.username
-            .toLowerCase()
-            .replace(/[\s.]+/g, "")
-            .includes(
-              leadDetails.manager!.toLowerCase().replace(/[\s.]+/g, "")
-            )
-      )
-    : null
-
   return (
     <div className="space-y-6">
-      {isReadOnly && (
-        <Alert
-          variant="default"
-          className="bg-blue-50 border-blue-200 text-blue-800"
-        >
-          <Info className="h-4 w-4 !text-blue-800" />
-          <AlertTitle>Read-Only Mode</AlertTitle>
-          <AlertDescription>
-            You are viewing this data as an admin. No changes can be made while
-            impersonating.
-          </AlertDescription>
-        </Alert>
-      )}
+      {isReadOnly && <Alert variant="default"><Info className="h-4 w-4" /><AlertTitle>Read-Only Mode</AlertTitle></Alert>}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
         <Card>
-          <CardHeader>
-            <CardTitle className="text-base">LEAD CONTACT CARD</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 p-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
-              <div className="space-y-2">
-                <Label htmlFor="searchLeadId">Lead(id)</Label>
-                <Input
-                  id="searchLeadId"
-                  placeholder="Select a lead from the table below"
-                  value={leadDetails.leadId || ""}
-                  readOnly
-                  className="bg-muted"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="company">Company</Label>
-                <Input
-                  id="company"
-                  value={leadDetails.company || ""}
-                  readOnly
-                  className="bg-muted"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="contactPerson">Contact person</Label>
-                <Input
-                  id="contactPerson"
-                  value={leadDetails.contactPerson || ""}
-                  onChange={(e) =>
-                    handleLeadDetailChange("contactPerson", e.target.value)
-                  }
-                  readOnly={isReadOnly}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="contactNumber">Contact Number</Label>
-                <Input
-                  id="contactNumber"
-                  value={leadDetails.contactNumber || ""}
-                  onChange={(e) =>
-                    handleLeadDetailChange("contactNumber", e.target.value)
-                  }
-                  readOnly={isReadOnly}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="address">Address</Label>
-                <Input
-                  id="address"
-                  value={leadDetails.address || ""}
-                  readOnly
-                  className="bg-muted"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email ID</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={leadDetails.email || ""}
-                  onChange={(e) =>
-                    handleLeadDetailChange("email", e.target.value)
-                  }
-                  readOnly={isReadOnly}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="district">District</Label>
-                <Input
-                  id="district"
-                  value={leadDetails.district || ""}
-                  readOnly
-                  className="bg-muted"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="state">State</Label>
-                <Input
-                  id="state"
-                  value={leadDetails.state || ""}
-                  readOnly
-                  className="bg-muted"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="dateOfLead">Date of lead</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant={"outline"}
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !leadDetails.creationDate && "text-muted-foreground"
-                      )}
-                      disabled
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {leadDetails.creationDate ? (
-                        format(new Date(leadDetails.creationDate), "PPP")
-                      ) : (
-                        <span>Pick a date</span>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={
-                        leadDetails.creationDate
-                          ? new Date(leadDetails.creationDate)
-                          : undefined
-                      }
-                      onSelect={(date) =>
-                        handleLeadDetailChange(
-                          "creationDate",
-                          date?.toISOString()
-                        )
-                      }
-                      initialFocus
-                      disabled
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="dealerViewDate">Executive viewed date</Label>
-                <div className="flex h-10 w-full items-center rounded-md border border-input bg-muted px-3 py-2 text-sm">
-                  {leadDetails.executiveViewDate ? (
-                    format(new Date(leadDetails.executiveViewDate), "PPP")
-                  ) : (
-                    <span className="text-muted-foreground">Not yet seen</span>
-                  )}
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="reference">Reference</Label>
-                <Input
-                  id="reference"
-                  value={leadDetails.reference || ""}
-                  readOnly
-                  className="bg-muted"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="givenBy">Given By</Label>
-                <Input
-                  id="givenBy"
-                  value={leadDetails.givenBy || ""}
-                  readOnly
-                  className="bg-muted"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="executive">Executive</Label>
-                <div className="relative">
-                  <Input
-                    id="executive"
-                    value={leadDetails.executive || ""}
-                    readOnly
-                    className="bg-muted pr-10"
-                  />
-                  {leadDetails.leadId && executiveForLead && (
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Info className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-primary cursor-pointer" />
-                      </PopoverTrigger>
-                      <PopoverContent className="w-96">
-                        <div className="grid gap-4">
-                          <div className="space-y-2">
-                            <h4 className="font-medium leading-none">
-                              Executive Details
-                            </h4>
-                            <p className="text-sm text-muted-foreground">
-                              Contact information for the assigned executive.
-                            </p>
-                          </div>
-                          <div className="grid gap-2">
-                            <div className="grid grid-cols-4 items-center gap-4">
-                              <Label>Name</Label>
-                              <span className="col-span-3 h-8 flex items-center">
-                                {executiveForLead.username}
-                              </span>
-                            </div>
-                            <div className="grid grid-cols-4 items-center gap-4">
-                              <Label>Email</Label>
-                              <span className="col-span-3 h-8 flex items-center">
-                                {executiveForLead.email}
-                              </span>
-                            </div>
-                            <div className="grid grid-cols-4 items-center gap-4">
-                              <Label>Phone</Label>
-                              <span className="col-span-3 h-8 flex items-center">
-                                {executiveForLead.phoneNumber || "N/A"}
-                              </span>
-                            </div>
-                            <div className="grid grid-cols-4 items-center gap-4">
-                              <Label>Role</Label>
-                              <span className="col-span-3 h-8 flex items-center">
-                                {executiveForLead.role}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </PopoverContent>
-                    </Popover>
-                  )}
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="manager">Manager</Label>
-                <div className="relative">
-                  <Input
-                    id="manager"
-                    value={leadDetails.manager || ""}
-                    readOnly
-                    className="bg-muted pr-10"
-                  />
-                  {leadDetails.leadId && managerForLead && (
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Info className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-primary cursor-pointer" />
-                      </PopoverTrigger>
-                      <PopoverContent className="w-96">
-                        <div className="grid gap-4">
-                          <div className="space-y-2">
-                            <h4 className="font-medium leading-none">
-                              Manager Details
-                            </h4>
-                            <p className="text-sm text-muted-foreground">
-                              Contact information for the assigned manager.
-                            </p>
-                          </div>
-                          <div className="grid gap-2">
-                            <div className="grid grid-cols-4 items-center gap-4">
-                              <Label>Name</Label>
-                              <span className="col-span-3 h-8 flex items-center">
-                                {managerForLead.username}
-                              </span>
-                            </div>
-                            <div className="grid grid-cols-4 items-center gap-4">
-                              <Label>Email</Label>
-                              <span className="col-span-3 h-8 flex items-center">
-                                {managerForLead.email}
-                              </span>
-                            </div>
-                            <div className="grid grid-cols-4 items-center gap-4">
-                              <Label>Phone</Label>
-                              <span className="col-span-3 h-8 flex items-center">
-                                {managerForLead.phoneNumber || "N/A"}
-                              </span>
-                            </div>
-                            <div className="grid grid-cols-4 items-center gap-4">
-                              <Label>Role</Label>
-                              <span className="col-span-3 h-8 flex items-center">
-                                {managerForLead.role}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </PopoverContent>
-                    </Popover>
-                  )}
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="headcount">Headcount</Label>
-                <Input
-                  id="headcount"
-                  value={leadDetails.headcount || ""}
-                  onChange={(e) =>
-                    handleLeadDetailChange("headcount", e.target.value)
-                  }
-                  readOnly={isReadOnly}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="selectedModule">Module</Label>
-                <Input
-                  id="selectedModule"
-                  value={getDisplayModule(leadDetails.selectedModule || "")}
-                  readOnly
-                  className="bg-muted"
-                />
-              </div>
+          <CardHeader><CardTitle className="text-base">LEAD CONTACT CARD</CardTitle></CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1"><Label>Lead ID</Label><Input value={leadDetails.leadId || ""} readOnly /></div>
+              <div className="space-y-1"><Label>Company</Label><Input value={leadDetails.company || ""} readOnly /></div>
+              <div className="space-y-1"><Label>Contact Person</Label><Input value={leadDetails.contactPerson || ""} onChange={e => handleLeadDetailChange('contactPerson', e.target.value)} readOnly={isReadOnly} /></div>
+              <div className="space-y-1"><Label>Phone</Label><Input value={leadDetails.contactNumber || ""} onChange={e => handleLeadDetailChange('contactNumber', e.target.value)} readOnly={isReadOnly} /></div>
+              <div className="space-y-1"><Label>Email</Label><Input value={leadDetails.email || ""} onChange={e => handleLeadDetailChange('email', e.target.value)} readOnly={isReadOnly} /></div>
+              <div className="space-y-1"><Label>Headcount</Label><Input value={leadDetails.headcount || ""} onChange={e => handleLeadDetailChange('headcount', e.target.value)} readOnly={isReadOnly} /></div>
             </div>
-            <div className="grid grid-cols-2 gap-4 pt-4 border-t">
-              <div>
-                <div className="flex items-center space-x-2 mt-2">
-                  <Checkbox
-                    id="readyToUpdate"
-                    checked={isReadyToUpdate}
-                    onCheckedChange={(checked) =>
-                      setIsReadyToUpdate(checked as boolean)
-                    }
-                    disabled={isReadOnly}
-                  />
-                  <Label htmlFor="readyToUpdate">
-                    Yes, I am Ready to Update.
-                  </Label>
-                </div>
-              </div>
-              <div className="flex items-center justify-end gap-2">
-                <Button
-                  onClick={handleSaveLeadDetails}
-                  disabled={!isReadyToUpdate || isReadOnly}
-                >
-                  Save
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleResetLeadDetails}
-                  disabled={isReadOnly}
-                >
-                  Reset
-                </Button>
-              </div>
+            <div className="flex items-center gap-2 pt-4 border-t">
+              <Checkbox id="ready" checked={isReadyToUpdate} onCheckedChange={(c) => setIsReadyToUpdate(!!c)} disabled={isReadOnly} />
+              <Label htmlFor="ready">Yes, I am Ready to Update.</Label>
+              <Button onClick={handleSaveLeadDetails} disabled={!isReadyToUpdate || isReadOnly} className="ml-auto">Save</Button>
             </div>
           </CardContent>
         </Card>
-
         <Card>
-          <CardHeader>
-            <CardTitle className="text-base">LEAD TRACKER</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 p-4">
+          <CardHeader><CardTitle className="text-base">LEAD TRACKER</CardTitle></CardHeader>
+          <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label className="font-semibold shrink-0">TRANSFERRED LEAD</Label>
-              <div className="flex items-center gap-2">
-                <Select
-                  value={transferredTo}
-                  onValueChange={setTransferredTo}
-                  disabled={isReadOnly || !leadDetails.leadId}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select Executive to transfer to..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {executives.map((exec) => (
-                      <SelectItem key={exec} value={exec}>
-                        {exec}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Button
-                  onClick={handleTransferLead}
-                  disabled={isReadOnly || !leadDetails.leadId || !transferredTo}
-                >
-                  Transfer
-                </Button>
-              </div>
-            </div>
-            <p className="font-semibold">Follow Up</p>
-            <div className="space-y-2">
-              <Label htmlFor="remarks">Remarks</Label>
-              <Textarea
-                id="remarks"
-                value={remarks}
-                onChange={(e) => setRemarks(e.target.value)}
-                readOnly={isReadOnly}
-              />
+              <Label>Follow Up Remarks</Label>
+              <Textarea value={remarks} onChange={e => setRemarks(e.target.value)} readOnly={isReadOnly} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="nextFollowUpDate">Next Follow-up Date</Label>
-              <Input
-                id="nextFollowUpDate"
-                type="date"
-                value={nextFollowUpDate}
-                onChange={(e) => setNextFollowUpDate(e.target.value)}
-                min={new Date().toISOString().split("T")[0]}
-                disabled={isTerminalRemark || isReadOnly}
-              />
+              <Label>Next Follow-up Date</Label>
+              <Input type="date" value={nextFollowUpDate} onChange={e => setNextFollowUpDate(e.target.value)} disabled={isReadOnly} />
             </div>
-            <div className="flex justify-end gap-2">
-              <Button
-                variant="outline"
-                onClick={handleNewFollowUp}
-                disabled={isReadOnly}
-              >
-                New
-              </Button>
-              <Button onClick={handleAddFollowUp} disabled={isReadOnly}>
-                Add&gt;&gt;
-              </Button>
-            </div>
-            <div className="space-y-4 pt-4">
-              <ScrollArea className="h-48 w-full rounded-md border">
+            <div className="flex justify-end gap-2"><Button onClick={handleAddFollowUp} disabled={isReadOnly}>Add Follow-up</Button></div>
+            <ScrollArea className="h-48 rounded-md border p-2">
                 <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Sl No</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Remarks</TableHead>
-                      <TableHead>Next Follow-up</TableHead>
-                      <TableHead>Entered by</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {followUps.length > 0 ? (
-                      followUps.map((followUp) => (
-                        <TableRow key={followUp.id}>
-                          <TableCell>{followUp.id}</TableCell>
-                          <TableCell>
-                            {followUp.date
-                              ? format(new Date(followUp.date), "PPP")
-                              : "N/A"}
-                          </TableCell>
-                          <TableCell>{followUp.remarks}</TableCell>
-                          <TableCell>{followUp.nextFollowUp}</TableCell>
-                          <TableCell>{followUp.enteredBy}</TableCell>
-                        </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell
-                          colSpan={5}
-                          className="h-24 text-center text-muted-foreground"
-                        >
-                          No follow-ups added yet.
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
+                    <TableHeader><TableRow><TableHead>Date</TableHead><TableHead>Remarks</TableHead><TableHead>Next</TableHead></TableRow></TableHeader>
+                    <TableBody>{followUps.map(fu => <TableRow key={fu.id}><TableCell>{format(new Date(fu.date), 'MMM d')}</TableCell><TableCell>{fu.remarks}</TableCell><TableCell>{fu.nextFollowUp}</TableCell></TableRow>)}</TableBody>
                 </Table>
-              </ScrollArea>
-            </div>
+            </ScrollArea>
           </CardContent>
         </Card>
       </div>
-
       <Card>
-        <CardHeader className="bg-primary/10">
-          <CardTitle className="text-primary text-base font-bold">
-            Lead Status
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-4 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-            <div className="space-y-2">
-              <Label htmlFor="initialRemarks">Initial Remarks</Label>
-              <Textarea
-                id="initialRemarks"
-                value={leadDetails.initialRemarks || ""}
-                onChange={(e) =>
-                  handleLeadDetailChange("initialRemarks", e.target.value)
-                }
-                placeholder="Enter initial remarks for the lead..."
-                rows={3}
-                readOnly={isReadOnly}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Current Status</Label>
-              <div className="flex items-start gap-2">
-                <span className="font-semibold shrink-0 text-muted-foreground pt-2">
-                  ({currentStatus})
-                </span>
-                <div className="flex-grow space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Select
-                      value={selectedStatus}
-                      onValueChange={handleStatusSelection}
-                      disabled={!leadDetails.leadId || isReadOnly}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="-- Select --" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {filteredLeadStatuses.map((status) => (
-                          <SelectItem key={status} value={status}>
-                            {status}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Button
-                      onClick={handleUpdateStatus}
-                      disabled={!leadDetails.leadId || isReadOnly}
-                    >
-                      Update
-                    </Button>
-                  </div>
-                  {selectedStatus === "Proposal Sent" && (
-                    <div className="grid grid-cols-2 gap-2 pt-2">
-                        <div className="space-y-1">
-                            <Label htmlFor="monthlyContractValue" className="text-xs">Monthly Contract Value</Label>
-                            <Input
-                                id="monthlyContractValue"
-                                value={monthlyContractValue}
-                                onChange={(e) => setMonthlyContractValue(e.target.value)}
-                                placeholder="e.g., 5000"
-                                type="number"
-                                disabled={isReadOnly}
-                                className="h-9"
-                            />
-                        </div>
-                        <div className="space-y-1">
-                            <Label htmlFor="annualContractValue" className="text-xs">Annual Contract Value</Label>
-                            <Input
-                                id="annualContractValue"
-                                value={annualContractValue}
-                                onChange={(e) => setAnnualContractValue(e.target.value)}
-                                placeholder="e.g., 60000"
-                                type="number"
-                                disabled={isReadOnly}
-                                className="h-9"
-                            />
-                        </div>
-                    </div>
-                  )}
-                  {selectedStatus === "Not interested" && (
-                    <div className="w-full pt-2">
-                        <Select
-                        value={selectedSubStatus}
-                        onValueChange={setSelectedSubStatus}
-                        disabled={isReadOnly}
-                        >
-                        <SelectTrigger id="subStatus">
-                            <SelectValue placeholder="Select Sub Status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <ScrollArea className="h-48">
-                            {leadSubStatuses.map((subStatus) => (
-                                <SelectItem key={subStatus} value={subStatus}>
-                                {subStatus}
-                                </SelectItem>
-                            ))}
-                            </ScrollArea>
-                        </SelectContent>
-                        </Select>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
+        <CardHeader><CardTitle className="text-base">Lead Status</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center gap-4">
+            <span className="font-semibold text-muted-foreground">({currentStatus})</span>
+            <Select value={selectedStatus} onValueChange={setSelectedStatus} disabled={isReadOnly}>
+              <SelectTrigger className="w-[200px]"><SelectValue placeholder="Update Status..." /></SelectTrigger>
+              <SelectContent>{filteredLeadStatuses.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+            </Select>
+            <Button onClick={handleUpdateStatus} disabled={!selectedStatus || isReadOnly}>Update</Button>
           </div>
+          {selectedStatus === 'Proposal Sent' && (
+            <div className="grid grid-cols-2 gap-4 pt-2">
+              <div className="space-y-1"><Label>Monthly Value</Label><Input type="number" value={monthlyContractValue} onChange={e => setMonthlyContractValue(e.target.value)} disabled={isReadOnly} /></div>
+              <div className="space-y-1"><Label>Annual Value</Label><Input type="number" value={annualContractValue} onChange={e => setAnnualContractValue(e.target.value)} disabled={isReadOnly} /></div>
+            </div>
+          )}
+          {selectedStatus === 'Not interested' && (
+            <Select value={selectedSubStatus} onValueChange={setSelectedSubStatus} disabled={isReadOnly}>
+              <SelectTrigger className="w-full"><SelectValue placeholder="Select Reason..." /></SelectTrigger>
+              <SelectContent>{leadSubStatuses.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+            </Select>
+          )}
         </CardContent>
       </Card>
     </div>

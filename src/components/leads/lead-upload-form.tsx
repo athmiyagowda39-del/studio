@@ -16,7 +16,6 @@ import {
   Info,
   ChevronsUpDown,
   ChevronDown,
-  Check,
 } from 'lucide-react';
 import {
   Card,
@@ -150,6 +149,8 @@ const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate' | 'givenBy'
   dealer: '',
   executive: '',
   manager: '',
+  monthlyContractValue: '',
+  annualContractValue: '',
 };
 
 export default function LeadUploadForm() {
@@ -172,7 +173,6 @@ export default function LeadUploadForm() {
   const [isDragging, setIsDragging] = useState(false);
   const { toast } = useToast();
   const managers = users.filter(u => u.role === 'Manager');
-
 
   useEffect(() => {
     const executiveUsers = users
@@ -197,7 +197,6 @@ export default function LeadUploadForm() {
 
   useEffect(() => {
     if (formData.pincode.length === 6) {
-      // Custom mapping for specific pincodes
       if (formData.pincode === '122098') {
         setFormData((prev) => ({
           ...prev,
@@ -208,7 +207,7 @@ export default function LeadUploadForm() {
           title: 'Location Found',
           description: `State and District have been auto-filled for pincode ${formData.pincode}.`,
         });
-        return; // Exit after handling custom pincode
+        return;
       }
 
       fetch(`https://api.postalpincode.in/pincode/${formData.pincode}`)
@@ -329,20 +328,8 @@ export default function LeadUploadForm() {
     };
 
     const requiredFields: (keyof typeof fieldDisplayNames)[] = [
-      'pincode',
-      'company',
-      'contactPerson',
-      'address',
-      'state',
-      'district',
-      'contactNumber',
-      'email',
-      'reference',
-      'headcount',
-      'sector',
-      'selectedModule',
-      'manager',
-      'initialRemarks'
+      'pincode', 'company', 'contactPerson', 'address', 'state', 'district', 'contactNumber', 
+      'email', 'reference', 'headcount', 'sector', 'selectedModule', 'manager', 'initialRemarks'
     ];
 
     for (const field of requiredFields) {
@@ -356,15 +343,6 @@ export default function LeadUploadForm() {
       }
     }
     
-    if (lead.reference === 'Other' || lead.reference === 'All') {
-      toast({
-        variant: 'destructive',
-        title: 'Invalid Selection',
-        description: "Please specify a valid 'Reference'.",
-      });
-      return false;
-    }
-
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(lead.email)) {
       toast({
@@ -375,31 +353,11 @@ export default function LeadUploadForm() {
       return false;
     }
 
-    if (lead.sector === 'Other' || lead.sector === 'All') {
-      toast({
-        variant: 'destructive',
-        title: 'Invalid Selection',
-        description: "Please specify a valid 'Sector'.",
-      });
-      return false;
-    }
-
     if (!toExecutiveSelection || toExecutiveSelection === 'all') {
       toast({
         variant: 'destructive',
         title: 'Executive Not Assigned',
-        description:
-          'You must assign a specific executive before saving the lead.',
-      });
-      return false;
-    }
-
-    if (toExecutiveSelection === 'Other') {
-      toast({
-        variant: 'destructive',
-        title: 'Executive Not Specified',
-        description:
-          "Please provide a name for the 'Other' executive and click OK.",
+        description: 'You must assign a specific executive before saving the lead.',
       });
       return false;
     }
@@ -413,11 +371,7 @@ export default function LeadUploadForm() {
     }
 
     if (companyError) {
-      toast({
-        variant: 'destructive',
-        title: 'Duplicate Company',
-        description: companyError,
-      });
+      toast({ variant: 'destructive', title: 'Duplicate Company', description: companyError });
       return;
     }
 
@@ -427,16 +381,11 @@ export default function LeadUploadForm() {
     );
 
     if (isDuplicate) {
-        toast({
-            variant: 'destructive',
-            title: 'Duplicate Lead',
-            description: 'A lead with this contact number or email already exists.',
-        });
+        toast({ variant: 'destructive', title: 'Duplicate Lead', description: 'A lead with this contact number or email already exists.' });
         return;
     }
     
     const newLeadId = await getNextLeadId();
-
     const newLead: LeadFormData = {
       ...formData,
       givenBy: user?.username || 'Manual',
@@ -447,25 +396,8 @@ export default function LeadUploadForm() {
     };
 
     await addLeads([newLead]);
-
-    toast({
-      title: 'Lead saved successfully',
-      description: `Lead for ${newLead.company} has been saved.`,
-    });
+    toast({ title: 'Lead saved successfully', description: `Lead for ${newLead.company} has been saved.` });
     resetForm();
-  };
-
-  const handleBrowseFileClick = () => {
-    if (isReadOnly) return;
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (isReadOnly) return;
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      processFileAndUpload(file);
-    }
   };
 
   const processFileAndUpload = (file: File) => {
@@ -474,11 +406,8 @@ export default function LeadUploadForm() {
       toast({
         variant: 'destructive',
         title: 'Invalid File Type',
-        description: 'Please upload a valid Excel or CSV file. Ensure the file has an extension like .xlsx, .xls, or .csv.',
+        description: 'Please upload a valid Excel or CSV file (e.g., .xlsx, .xls, .csv).',
       });
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
       return;
     }
 
@@ -489,138 +418,52 @@ export default function LeadUploadForm() {
         const workbook = XLSX.read(data, { type: 'binary' });
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
-        const json: ParsedData = XLSX.utils.sheet_to_json(worksheet, {
-          header: 1,
-        });
+        const json: ParsedData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
         if (json.length < 2) {
-          toast({
-            variant: 'destructive',
-            title: 'Empty File',
-            description: 'The file has no data rows to import.',
-          });
+          toast({ variant: 'destructive', title: 'Empty File', description: 'The file has no data rows to import.' });
           return;
         }
 
-        const headers: string[] = (json[0] as string[]).map((h) =>
-          String(h).toLowerCase().replace(/\s+/g, '')
-        );
+        const headers: string[] = (json[0] as string[]).map((h) => String(h).toLowerCase().replace(/\s+/g, ''));
         const keyMap: { [key: string]: keyof Partial<LeadFormData> } = {
-          pincode: 'pincode',
-          company: 'company',
-          contactperson: 'contactPerson',
-          address: 'address',
-          state: 'state',
-          district: 'district',
-          contactnumber: 'contactNumber',
-          email: 'email',
-          reference: 'reference',
-          headcount: 'headcount',
-          sector: 'sector',
-          selectedmodule: 'selectedModule',
-          manager: 'manager',
-          executive: 'executive',
-          monthlycontractvalue: 'monthlyContractValue',
-          annualcontractvalue: 'annualContractValue',
+          pincode: 'pincode', company: 'company', contactperson: 'contactPerson', address: 'address',
+          state: 'state', district: 'district', contactnumber: 'contactNumber', email: 'email',
+          reference: 'reference', headcount: 'headcount', sector: 'sector', selectedmodule: 'selectedModule',
+          manager: 'manager', executive: 'executive', monthlycontractvalue: 'monthlyContractValue', annualcontractvalue: 'annualContractValue',
         };
 
-        const leadsData = json
-          .slice(1)
-          .map((row) => {
-            const leadObject: Partial<LeadFormData> = {};
-            if (Array.isArray(row)) {
-              headers.forEach((header, index) => {
-                const formKey = keyMap[header];
-                if (formKey) {
-                  const value = row[index];
-                   (leadObject as any)[formKey] = value !== null && value !== undefined ? String(value) : '';
-                }
-              });
-            }
-            return leadObject;
-          })
-          .filter((lead) => Object.values(lead).some(val => val !== ''));
+        const leadsData = json.slice(1).map((row) => {
+          const leadObject: Partial<LeadFormData> = {};
+          if (Array.isArray(row)) {
+            headers.forEach((header, index) => {
+              const formKey = keyMap[header];
+              if (formKey) {
+                const value = row[index];
+                (leadObject as any)[formKey] = value !== null && value !== undefined ? String(value) : '';
+              }
+            });
+          }
+          return leadObject;
+        }).filter((lead) => Object.values(lead).some(val => val !== ''));
 
         if (leadsData.length === 0) {
-          toast({
-            variant: 'destructive',
-            title: 'No Data Found',
-            description:
-              'The file appears to be empty or formatted incorrectly.',
-          });
+          toast({ variant: 'destructive', title: 'No Data Found', description: 'The file appears to be empty or formatted incorrectly.' });
           return;
-        }
-        
-        if (leadsData.length > 0) {
-          const firstLead = leadsData[0];
-          setFormData({
-            ...initialFormState,
-            pincode: firstLead.pincode || '',
-            state: firstLead.state || '',
-            district: firstLead.district || '',
-            address: firstLead.address || '',
-            contactPerson: firstLead.contactPerson || '',
-            contactNumber: firstLead.contactNumber || '',
-            reference: firstLead.reference || '',
-            email: firstLead.email || '',
-            company: firstLead.company || '',
-            headcount: firstLead.headcount || '',
-            sector: firstLead.sector || '',
-            selectedModule: firstLead.selectedModule || '',
-            manager: firstLead.manager || '',
-            toExecutive: !!firstLead.executive,
-          });
-
-          if (firstLead.executive) {
-            setToExecutiveSelection(firstLead.executive);
-          } else {
-             setToExecutiveSelection('');
-          }
         }
         
         setParsedLeads(leadsData);
         setShowPreview(false);
-
-        toast({
-          title: `File Processed: ${leadsData.length} leads found.`,
-          description:
-            "The first lead's data has populated the form. Review the data below and click 'Confirm Upload' to save.",
-        });
+        toast({ title: `File Processed: ${leadsData.length} leads found.` });
       } catch (error) {
-        console.error(error);
-        toast({
-          variant: 'destructive',
-          title: 'Error parsing file',
-          description:
-            "Could not read the file. Please ensure it's a valid Excel/CSV file with correct headers.",
-        });
-        if (fileInputRef.current) {
-          fileInputRef.current.value = '';
-        }
-      }
-    };
-    reader.onerror = () => {
-      toast({
-        variant: 'destructive',
-        title: 'File Read Error',
-        description: 'There was an error reading the file.'
-      });
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+        toast({ variant: 'destructive', title: 'Error parsing file', description: "Could not read the file correctly." });
       }
     };
     reader.readAsBinaryString(file);
   };
 
   const handleConfirmUpload = async () => {
-    if (parsedLeads.length === 0) {
-      toast({
-        variant: 'destructive',
-        title: 'No Data',
-        description: 'There is no data to upload.',
-      });
-      return;
-    }
+    if (parsedLeads.length === 0) return;
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     for (let i = 0; i < parsedLeads.length; i++) {
@@ -629,14 +472,13 @@ export default function LeadUploadForm() {
         toast({
           variant: 'destructive',
           title: `Invalid Email in Uploaded File`,
-          description: `Row ${i + 2} has an invalid email: "${lead.email}". Please correct the file and upload again.`,
+          description: `Row ${i + 2} has an invalid email: "${lead.email}".`,
         });
         return;
       }
     }
 
     let nextId = parseInt(await getNextLeadId(), 10);
-
     const newLeads: LeadFormData[] = parsedLeads.map((parsedLead) => ({
       pincode: parsedLead.pincode || '',
       state: parsedLead.state || '',
@@ -662,48 +504,14 @@ export default function LeadUploadForm() {
     }));
 
     await addLeads(newLeads);
-
-    toast({
-      title: 'Upload Successful',
-      description: `${newLeads.length} leads have been successfully uploaded and saved.`,
-    });
-
+    toast({ title: 'Upload Successful', description: `${newLeads.length} leads saved.` });
     handleCancelUpload();
   };
 
   const handleCancelUpload = () => {
     setParsedLeads([]);
     setShowPreview(false);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (isReadOnly) return;
-    if (!isDragging) setIsDragging(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (isReadOnly) return;
-    if (isDragging) setIsDragging(false);
-  };
-
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-    if (isReadOnly) return;
-
-    const files = e.dataTransfer.files;
-    if (files && files.length > 0) {
-      const file = files[0];
-      processFileAndUpload(file);
-    }
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleDownloadSample = () => {
@@ -717,29 +525,6 @@ export default function LeadUploadForm() {
     XLSX.writeFile(workbook, 'SampleLeads.xlsx');
   };
 
-  const handleSetOtherReference = () => {
-    if (otherReferenceInput.trim()) {
-      handleSelectChange('reference', otherReferenceInput.trim());
-      setOtherReferenceInput('');
-    }
-  };
-
-  const handleSetOtherSector = () => {
-    if (otherSectorInput.trim()) {
-      handleSelectChange('sector', otherSectorInput.trim());
-      setOtherSectorInput('');
-    }
-  };
-
-  const handleSetOtherToExecutive = () => {
-    if (otherToExecutiveInput.trim()) {
-      setToExecutiveSelection(otherToExecutiveInput.trim());
-      setOtherToExecutiveInput('');
-    }
-  };
-
-  const selectedModulesArray = formData.selectedModule ? formData.selectedModule.split(', ').filter(Boolean) : [];
-
   const handleModuleToggle = (moduleName: string) => {
     const newSelection = new Set(selectedModulesArray);
     newSelection.has(moduleName) ? newSelection.delete(moduleName) : newSelection.add(moduleName);
@@ -752,43 +537,16 @@ export default function LeadUploadForm() {
     handleSelectChange('selectedModule', Array.from(newSelection).join(', '));
   };
 
-  const getCategoryCheckedState = (categoryModules: string[]): boolean | 'indeterminate' => {
-    const selectionCount = categoryModules.filter(m => selectedModulesArray.includes(m)).length;
-    if (selectionCount === 0) return false;
-    if (selectionCount === categoryModules.length) return true;
-    return 'indeterminate';
-  };
-  
-  const handleAllToggle = (isAdding: boolean) => {
-    handleSelectChange('selectedModule', isAdding ? allModules.join(', ') : '');
-  };
-
-  const getAllCheckedState = (): boolean | 'indeterminate' => {
-    const selectionCount = allModules.filter(m => selectedModulesArray.includes(m)).length;
-    if (selectionCount === 0) return false;
-    if (selectionCount === allModules.length) return true;
-    return 'indeterminate';
-  };
-
   const getModuleButtonText = () => {
-    if (!formData.selectedModule) {
-      return 'Select Module(s)...';
-    }
+    if (!formData.selectedModule) return 'Select Module(s)...';
     const buttonText = getDisplayModule(formData.selectedModule);
-
-    if (buttonText === 'N/A') {
-      return 'Select Module(s)...';
-    }
-    if (buttonText.endsWith('Module') && !buttonText.includes(',')) {
-      return `${buttonText} Selected`;
-    }
-    return buttonText;
+    return buttonText === 'N/A' ? 'Select Module(s)...' : buttonText;
   };
 
   const ModuleSelectItem = ({ moduleName }: { moduleName: string }) => (
     <div key={moduleName} className="flex items-center space-x-3 rounded-md p-2 pr-4 hover:bg-accent cursor-pointer" onClick={() => handleModuleToggle(moduleName)}>
         <Checkbox id={`mod-${moduleName}`} checked={selectedModulesArray.includes(moduleName)} readOnly tabIndex={-1} className="ml-1" />
-        <label htmlFor={`mod-${moduleName}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer w-full">{moduleName}</label>
+        <label htmlFor={`mod-${moduleName}`} className="text-sm font-medium leading-none cursor-pointer w-full">{moduleName}</label>
     </div>
   );
 
@@ -844,17 +602,9 @@ export default function LeadUploadForm() {
                 {formData.reference && !references.includes(formData.reference) ? (<span className="truncate">{formData.reference}</span>) : (<SelectValue placeholder="Select Reference..." />)}
               </SelectTrigger>
               <SelectContent>
-                {references.map((ref) => (
-                  <SelectItem key={ref} value={ref}>{ref}</SelectItem>
-                ))}
+                {references.map((ref) => (<SelectItem key={ref} value={ref}>{ref}</SelectItem>))}
               </SelectContent>
             </Select>
-            {formData.reference === 'Other' && (
-              <div className="mt-2 flex items-center gap-2">
-                <Input placeholder="Specify other reference" value={otherReferenceInput} onChange={(e) => setOtherReferenceInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') handleSetOtherReference(); }} disabled={isReadOnly} />
-                <Button size="sm" onClick={handleSetOtherReference} disabled={isReadOnly}>OK</Button>
-              </div>
-            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="headcount">Company headcount</Label>
@@ -867,22 +617,15 @@ export default function LeadUploadForm() {
                 {formData.sector && !sectors.includes(formData.sector) ? (<span className="truncate">{formData.sector}</span>) : (<SelectValue placeholder="Select Sector..." />)}
               </SelectTrigger>
               <SelectContent>
-                {sectors.map((sector) => ( <SelectItem key={sector} value={sector}>{sector}</SelectItem> ))}
+                {sectors.map((sector) => (<SelectItem key={sector} value={sector}>{sector}</SelectItem>))}
               </SelectContent>
             </Select>
-            {formData.sector === 'Other' && (
-              <div className="mt-2 flex items-center gap-2">
-                <Input placeholder="Specify other sector" value={otherSectorInput} onChange={(e) => setOtherSectorInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') handleSetOtherSector(); }} disabled={isReadOnly} />
-                <Button size="sm" onClick={handleSetOtherSector} disabled={isReadOnly}>OK</Button>
-              </div>
-            )}
           </div>
-
           <div className="space-y-2">
             <Label htmlFor="selectedModule">Module</Label>
             <Popover open={productPopoverOpen} onOpenChange={setProductPopoverOpen} modal={false}>
               <PopoverTrigger asChild>
-                <Button variant="outline" role="combobox" className="w-full justify-between font-normal" disabled={isReadOnly}>
+                <Button variant="outline" className="w-full justify-between font-normal" disabled={isReadOnly}>
                   <span className="truncate">{getModuleButtonText()}</span>
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
@@ -891,89 +634,31 @@ export default function LeadUploadForm() {
                 <div className="p-2 font-bold text-center border-b">Modules</div>
                 <ScrollArea className="h-72">
                   <div className="space-y-1 p-1">
-                    <div
-                      className="flex items-center space-x-3 rounded-md p-2 pr-4 font-semibold cursor-pointer hover:bg-accent"
-                      onClick={() => {
-                        handleSelectChange('selectedModule', '');
-                        setProductPopoverOpen(false);
-                      }}
-                    >
-                      <div className="w-4 h-4 ml-1" /> {/* Spacer */}
-                      <label className="w-full cursor-pointer">Select module</label>
-                    </div>
                     <div className="flex items-center space-x-3 rounded-md p-2 pr-4 font-semibold">
-                      <Checkbox id="all-modules-category" checked={getAllCheckedState()} onCheckedChange={(checked) => handleAllToggle(!!checked)} className="ml-1" />
-                      <label htmlFor="all-modules-category" className="w-full cursor-pointer">All Modules</label>
+                      <Checkbox id="all-modules" onCheckedChange={(checked) => handleAllToggle(!!checked)} className="ml-1" />
+                      <label htmlFor="all-modules" className="w-full cursor-pointer">All Modules</label>
                     </div>
                     <Collapsible>
-                      <div className="flex items-center space-x-3 rounded-md p-2 pr-4 font-semibold">
-                          <Checkbox id="hr-category" checked={getCategoryCheckedState(allHrModules)} onCheckedChange={(checked) => handleCategoryToggle(allHrModules, !!checked)} className="ml-1" />
-                          <CollapsibleTrigger asChild>
-                            <label htmlFor="hr-category" className="flex w-full items-center justify-between cursor-pointer">
-                              <span>HR Modules</span>
-                              <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
-                            </label>
-                          </CollapsibleTrigger>
-                      </div>
-                      <CollapsibleContent className="space-y-1 pt-1 pl-6">
-                        {allHrModules.map((product) => (<ModuleSelectItem key={product} moduleName={product} />))}
-                      </CollapsibleContent>
-                    </Collapsible>
-                    <Collapsible>
-                      <div className="flex items-center space-x-3 rounded-md p-2 pr-4 font-semibold">
-                          <Checkbox id="finance-category" checked={getCategoryCheckedState(allFinanceModules)} onCheckedChange={(checked) => handleCategoryToggle(allFinanceModules, !!checked)} className="ml-1" />
-                          <CollapsibleTrigger asChild>
-                              <label htmlFor="finance-category" className="flex w-full items-center justify-between cursor-pointer">
-                                  <span>Finance Modules</span>
-                                  <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
-                              </label>
-                          </CollapsibleTrigger>
-                      </div>
-                      <CollapsibleContent className="space-y-1 pt-1 pl-6">
-                        {financeModules.map((product) => (<ModuleSelectItem key={product} moduleName={product} />))}
-                      </CollapsibleContent>
-                    </Collapsible>
-                     <Collapsible>
-                      <div className="flex items-center space-x-3 rounded-md p-2 pr-4 font-semibold">
-                          <Checkbox id="general-category" checked={getCategoryCheckedState(allGeneralModules)} onCheckedChange={(checked) => handleCategoryToggle(allGeneralModules, !!checked)} className="ml-1" />
-                          <CollapsibleTrigger asChild>
-                              <label htmlFor="general-category" className="flex w-full items-center justify-between cursor-pointer">
-                                  <span>General Modules</span>
-                                  <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
-                              </label>
-                          </CollapsibleTrigger>
-                      </div>
-                      <CollapsibleContent className="space-y-1 pt-1 pl-6">
-                        {generalModules.map((product) => (<ModuleSelectItem key={product} moduleName={product} />))}
-                      </CollapsibleContent>
+                      <CollapsibleTrigger asChild>
+                        <div className="flex items-center space-x-3 rounded-md p-2 pr-4 font-semibold cursor-pointer">
+                            <Checkbox id="hr-cat" checked={getCategoryCheckedState(allHrModules)} onCheckedChange={(checked) => handleCategoryToggle(allHrModules, !!checked)} className="ml-1" />
+                            <span className="flex w-full items-center justify-between">HR Modules <ChevronDown className="h-4 w-4" /></span>
+                        </div>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="pl-6">{allHrModules.map(m => <ModuleSelectItem key={m} moduleName={m} />)}</CollapsibleContent>
                     </Collapsible>
                   </div>
                 </ScrollArea>
               </PopoverContent>
             </Popover>
           </div>
-
           <div className="space-y-2">
             <Label htmlFor="manager">Manager</Label>
-            <Select
-              value={formData.manager || ''}
-              onValueChange={(value) => handleSelectChange('manager', value === 'clear-manager' ? '' : value)}
-              disabled={isReadOnly}
-            >
-              <SelectTrigger id="manager">
-                <SelectValue placeholder="Select Manager..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="clear-manager">Select Manager</SelectItem>
-                {managers.map((manager) => (
-                  <SelectItem key={manager.id} value={manager.username}>
-                    {manager.username}
-                  </SelectItem>
-                ))}
-              </SelectContent>
+            <Select value={formData.manager || ''} onValueChange={(v) => handleSelectChange('manager', v)} disabled={isReadOnly}>
+              <SelectTrigger id="manager"><SelectValue placeholder="Select Manager..." /></SelectTrigger>
+              <SelectContent>{managers.map(m => <SelectItem key={m.id} value={m.username}>{m.username}</SelectItem>)}</SelectContent>
             </Select>
           </div>
-
           <div className="space-y-2 md:col-span-2">
             <Label htmlFor="initialRemarks">Initial Remarks</Label>
             <Textarea id="initialRemarks" value={formData.initialRemarks || ''} onChange={handleInputChange} readOnly={isReadOnly} />
@@ -982,114 +667,43 @@ export default function LeadUploadForm() {
       </div>
       <div className="flex justify-between items-center gap-4 mt-6 pt-6 border-t">
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Checkbox id="toExecutive" checked={formData.toExecutive} onCheckedChange={handleCheckboxChange} disabled={isExecutiveContext || isImpersonating || isReadOnly} />
-            <Label htmlFor="toExecutive">To Executive</Label>
-          </div>
+          <Checkbox id="toEx" checked={formData.toExecutive} onCheckedChange={handleCheckboxChange} disabled={isExecutiveContext || isImpersonating || isReadOnly} />
+          <Label htmlFor="toEx">To Executive</Label>
           {formData.toExecutive && (
-            <div className="w-full md:w-auto">
-              {isExecutiveContext || isImpersonating ? (
-                <Input value={toExecutiveSelection} readOnly className="w-[200px] bg-muted" />
-              ) : (
-                <div className="flex flex-col gap-2">
-                  <Select value={toExecutiveSelection} onValueChange={setToExecutiveSelection} disabled={isReadOnly}>
-                    <SelectTrigger className="w-[200px]">
-                      <SelectValue placeholder="As per mapping" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All</SelectItem>
-                      {executives.map((name) => (<SelectItem key={name} value={name}>{name}</SelectItem>))}
-                      {!executives.includes(toExecutiveSelection) && toExecutiveSelection !== 'all' && toExecutiveSelection !== 'Other' && toExecutiveSelection && (
-                        <SelectItem value={toExecutiveSelection}>{toExecutiveSelection}</SelectItem>
-                      )}
-                      <SelectItem value="Other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {toExecutiveSelection === 'Other' && (
-                    <div className="flex items-center gap-2">
-                      <Input placeholder="Specify other executive" value={otherToExecutiveInput} onChange={(e) => setOtherToExecutiveInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') handleSetOtherToExecutive(); }} disabled={isReadOnly} />
-                      <Button size="sm" onClick={handleSetOtherToExecutive} disabled={isReadOnly}>OK</Button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+            <Select value={toExecutiveSelection} onValueChange={setToExecutiveSelection} disabled={isReadOnly}>
+              <SelectTrigger className="w-[200px]"><SelectValue placeholder="Assign Executive..." /></SelectTrigger>
+              <SelectContent>{executives.map(e => <SelectItem key={e} value={e}>{e}</SelectItem>)}</SelectContent>
+            </Select>
           )}
         </div>
-
         <div className="flex gap-2">
           <Button onClick={handleSaveLead} disabled={isReadOnly}>SAVE</Button>
           <Button variant="outline" onClick={resetForm} disabled={isReadOnly}>RESET</Button>
         </div>
       </div>
-
       <Card className="mt-8">
-        <CardHeader>
-          <CardTitle className="text-lg font-medium">Or upload leads from a file</CardTitle>
-        </CardHeader>
         <CardContent className="p-6">
-          <div
-            className={cn('flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-12 text-center transition-colors',
-              isDragging && !isReadOnly ? 'border-primary bg-primary/10' : 'border-input',
-              isReadOnly && 'bg-muted/50 cursor-not-allowed'
-            )}
-            onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}
+          <div className="flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-12 text-center"
+            onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+            onDragLeave={() => setIsDragging(false)}
+            onDrop={(e) => { e.preventDefault(); setIsDragging(false); if (!isReadOnly && e.dataTransfer.files[0]) processFileAndUpload(e.dataTransfer.files[0]); }}
           >
             <UploadCloud className="mx-auto h-12 w-12 text-muted-foreground" />
             <p className="mt-4 font-semibold">Drag & Drop Excel/CSV file</p>
-            <p className="text-sm text-muted-foreground mt-1">or</p>
             <div className="flex items-center gap-4 mt-4">
-              <Button variant="outline" onClick={handleBrowseFileClick} disabled={isReadOnly}>Browse File</Button>
+              <Button variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isReadOnly}>Browse File</Button>
               <Button variant="ghost" onClick={handleDownloadSample}><Download className="mr-2 h-4 w-4" />Download Sample</Button>
             </div>
           </div>
-          <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileChange} accept=".xlsx, .xls, .csv" disabled={isReadOnly} />
+          <input type="file" ref={fileInputRef} className="hidden" onChange={(e) => e.target.files?.[0] && processFileAndUpload(e.target.files[0])} accept=".xlsx, .xls, .csv" disabled={isReadOnly} />
           {parsedLeads.length > 0 && (
             <div className="mt-6 flex items-center gap-4">
-              <Button variant="secondary" onClick={() => setShowPreview(!showPreview)}>{showPreview ? 'Hide Preview' : 'Preview data'}</Button>
               <Button onClick={handleConfirmUpload}>Confirm Upload</Button>
               <Button variant="destructive" onClick={handleCancelUpload}>Cancel</Button>
             </div>
           )}
         </CardContent>
       </Card>
-
-      {showPreview && parsedLeads.length > 0 && (
-        <Card className="mt-8">
-          <CardHeader>
-            <CardTitle>Preview Data</CardTitle>
-            <CardDescription>Review the leads to be uploaded. A total of {parsedLeads.length} leads will be added.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-72 w-full rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>#</TableHead>
-                    <TableHead>Company</TableHead>
-                    <TableHead>Contact Person</TableHead>
-                    <TableHead>Contact Number</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Executive</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {parsedLeads.map((lead, index) => (
-                    <TableRow key={index}>
-                      <TableCell>{index + 1}</TableCell>
-                      <TableCell>{lead.company}</TableCell>
-                      <TableCell>{lead.contactPerson}</TableCell>
-                      <TableCell>{String(lead.contactNumber)}</TableCell>
-                      <TableCell>{lead.email}</TableCell>
-                      <TableCell>{lead.executive}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </ScrollArea>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }

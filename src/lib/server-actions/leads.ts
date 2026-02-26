@@ -1,4 +1,3 @@
-
 import { sql, getConnection } from '@/lib/db';
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import { addErrorLog } from './audit';
@@ -12,7 +11,6 @@ function parseLeads(recordset: any[]): LeadFormData[] {
         toExecutive: !!lead.toExecutive,
     }));
 }
-
 
 export async function getLeads(): Promise<LeadFormData[]> {
   try {
@@ -130,7 +128,6 @@ export async function updateLead(id: string, updates: Partial<LeadFormData>): Pr
   }
   
   const [currentLead] = parseLeads(leadResult.recordset);
-
   const mergedLead = { ...currentLead, ...updates };
 
   try {
@@ -162,7 +159,6 @@ export async function updateLead(id: string, updates: Partial<LeadFormData>): Pr
           .input('monthlyContractValue', sql.NVarChar(50), mergedLead.monthlyContractValue || null)
           .input('annualContractValue', sql.NVarChar(50), mergedLead.annualContractValue || null)
           .execute('usp_UpdateLead');
-
 
       if (result.recordset.length > 0) {
           const [updatedLead] = parseLeads(result.recordset);
