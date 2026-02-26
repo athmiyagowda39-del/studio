@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -32,7 +31,7 @@ import {
 } from '@/components/ui/collapsible';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ChevronsUpDown, ChevronDown } from 'lucide-react';
-import { getDisplayModule, allModules, allHrModules, allFinanceModules, allGeneralModules, financeModules, generalModules } from '@/lib/modules';
+import { getDisplayModule } from '@/lib/modules';
 import * as XLSX from 'xlsx';
 import { useToast } from '@/hooks/use-toast';
 
@@ -40,7 +39,7 @@ const LEADS_PER_PAGE = 10;
 type TabValue = 'all' | 'not-viewed' | 'follow-ups-due' | 'zero-follow-ups' | 'search-result';
 
 export default function LeadsUpdatePage() {
-  const { user, isAuthenticated, isLoading, leads: allLeads, users, leadStatuses, leadSubStatuses, leadReferences, addAuditLog } = useApp();
+  const { user, isAuthenticated, isLoading, leads: allLeads, users, leadStatuses, leadSubStatuses, leadReferences, addAuditLog, modules } = useApp();
   const router = useRouter();
   const pageTopRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -110,6 +109,11 @@ export default function LeadsUpdatePage() {
       .filter(u => !excludedNames.includes(u.username))
       .map(u => u.username);
   }, [users]);
+
+  const hrModules = useMemo(() => modules.filter(m => m.category === 'HR').map(m => m.name), [modules]);
+  const financeModules = useMemo(() => modules.filter(m => m.category === 'Finance').map(m => m.name), [modules]);
+  const generalModules = useMemo(() => modules.filter(m => m.category === 'General').map(m => m.name), [modules]);
+  const allModulesNames = useMemo(() => modules.map(m => m.name), [modules]);
   
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -392,7 +396,7 @@ export default function LeadsUpdatePage() {
         'Sl No': index + 1,
         'Lead Id': lead.leadId,
         'Lead Date': lead.creationDate && !isNaN(new Date(lead.creationDate).getTime()) ? format(new Date(lead.creationDate), 'PPP') : 'N/A',
-        'Module': getDisplayModule(lead.selectedModule),
+        'Module': getDisplayModule(lead.selectedModule, modules),
         'Company': lead.company,
         'Contact': lead.contactPerson,
         'Phone': lead.contactNumber,
@@ -520,13 +524,13 @@ export default function LeadsUpdatePage() {
   };
   
   const handleAllToggle = (isAdding: boolean) => {
-    setSelectedModules(isAdding ? allModules.join(', ') : '');
+    setSelectedModules(isAdding ? allModulesNames.join(', ') : '');
   };
 
   const getAllCheckedState = (): boolean | 'indeterminate' => {
-    const selectionCount = allModules.filter(m => selectedModulesArray.includes(m)).length;
+    const selectionCount = allModulesNames.filter(m => selectedModulesArray.includes(m)).length;
     if (selectionCount === 0) return false;
-    if (selectionCount === allModules.length) return true;
+    if (selectionCount === allModulesNames.length) return true;
     return 'indeterminate';
   };
 
@@ -539,11 +543,11 @@ export default function LeadsUpdatePage() {
     if (selected.size === 0) {
         return 'Select Module(s)...';
     }
-    if (selected.size === allModules.length) {
+    if (selected.size === allModulesNames.length) {
         return 'All Modules Selected';
     }
     
-    const buttonText = getDisplayModule(selectedModules);
+    const buttonText = getDisplayModule(selectedModules, modules);
 
     if(buttonText.endsWith(" Module") && !buttonText.includes(',')) {
         return `${buttonText} Selected`;
@@ -697,48 +701,54 @@ export default function LeadsUpdatePage() {
                                 <Checkbox id="all-modules-category-filter" checked={getAllCheckedState()} onCheckedChange={(checked) => handleAllToggle(!!checked)} className="ml-1" />
                                 <label htmlFor="all-modules-category-filter" className="w-full cursor-pointer">All Modules</label>
                               </div>
-                              <Collapsible>
-                                <div className="flex items-center space-x-3 rounded-md p-2 pr-4 font-semibold">
-                                    <Checkbox id="hr-category-filter" checked={getCategoryCheckedState(allHrModules)} onCheckedChange={(checked) => handleCategoryToggle(allHrModules, !!checked)} className="ml-1" />
-                                    <CollapsibleTrigger asChild>
-                                      <label htmlFor="hr-category-filter" className="flex w-full items-center justify-between cursor-pointer">
-                                        <span>HR Modules</span>
-                                        <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
-                                      </label>
-                                    </CollapsibleTrigger>
-                                </div>
-                                <CollapsibleContent className="space-y-1 pt-1 pl-6">
-                                  {allHrModules.map((product) => (<ModuleSelectItem key={product} moduleName={product} />))}
-                                </CollapsibleContent>
-                              </Collapsible>
-                              <Collapsible>
-                                <div className="flex items-center space-x-3 rounded-md p-2 pr-4 font-semibold">
-                                    <Checkbox id="finance-category-filter" checked={getCategoryCheckedState(allFinanceModules)} onCheckedChange={(checked) => handleCategoryToggle(allFinanceModules, !!checked)} className="ml-1" />
-                                    <CollapsibleTrigger asChild>
-                                        <label htmlFor="finance-category-filter" className="flex w-full items-center justify-between cursor-pointer">
-                                            <span>Finance Modules</span>
-                                            <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
+                              {hrModules.length > 0 && (
+                                <Collapsible>
+                                  <div className="flex items-center space-x-3 rounded-md p-2 pr-4 font-semibold">
+                                      <Checkbox id="hr-category-filter" checked={getCategoryCheckedState(hrModules)} onCheckedChange={(checked) => handleCategoryToggle(hrModules, !!checked)} className="ml-1" />
+                                      <CollapsibleTrigger asChild>
+                                        <label htmlFor="hr-category-filter" className="flex w-full items-center justify-between cursor-pointer">
+                                          <span>HR Modules</span>
+                                          <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
                                         </label>
-                                    </CollapsibleTrigger>
-                                </div>
-                                <CollapsibleContent className="space-y-1 pt-1 pl-6">
-                                  {financeModules.map((product) => (<ModuleSelectItem key={product} moduleName={product} />))}
-                                </CollapsibleContent>
-                              </Collapsible>
-                              <Collapsible>
-                                <div className="flex items-center space-x-3 rounded-md p-2 pr-4 font-semibold">
-                                    <Checkbox id="general-category-filter" checked={getCategoryCheckedState(allGeneralModules)} onCheckedChange={(checked) => handleCategoryToggle(allGeneralModules, !!checked)} className="ml-1" />
-                                    <CollapsibleTrigger asChild>
-                                        <label htmlFor="general-category-filter" className="flex w-full items-center justify-between cursor-pointer">
-                                            <span>General Modules</span>
-                                            <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
-                                        </label>
-                                    </CollapsibleTrigger>
-                                </div>
-                                <CollapsibleContent className="space-y-1 pt-1 pl-6">
-                                  {generalModules.map((product) => (<ModuleSelectItem key={product} moduleName={product} />))}
-                                </CollapsibleContent>
-                              </Collapsible>
+                                      </CollapsibleTrigger>
+                                  </div>
+                                  <CollapsibleContent className="space-y-1 pt-1 pl-6">
+                                    {hrModules.map((product) => (<ModuleSelectItem key={product} moduleName={product} />))}
+                                  </CollapsibleContent>
+                                </Collapsible>
+                              )}
+                              {financeModules.length > 0 && (
+                                <Collapsible>
+                                  <div className="flex items-center space-x-3 rounded-md p-2 pr-4 font-semibold">
+                                      <Checkbox id="finance-category-filter" checked={getCategoryCheckedState(financeModules)} onCheckedChange={(checked) => handleCategoryToggle(financeModules, !!checked)} className="ml-1" />
+                                      <CollapsibleTrigger asChild>
+                                          <label htmlFor="finance-category-filter" className="flex w-full items-center justify-between cursor-pointer">
+                                              <span>Finance Modules</span>
+                                              <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
+                                          </label>
+                                      </CollapsibleTrigger>
+                                  </div>
+                                  <CollapsibleContent className="space-y-1 pt-1 pl-6">
+                                    {financeModules.map((product) => (<ModuleSelectItem key={product} moduleName={product} />))}
+                                  </CollapsibleContent>
+                                </Collapsible>
+                              )}
+                              {generalModules.length > 0 && (
+                                <Collapsible>
+                                  <div className="flex items-center space-x-3 rounded-md p-2 pr-4 font-semibold">
+                                      <Checkbox id="general-category-filter" checked={getCategoryCheckedState(generalModules)} onCheckedChange={(checked) => handleCategoryToggle(generalModules, !!checked)} className="ml-1" />
+                                      <CollapsibleTrigger asChild>
+                                          <label htmlFor="general-category-filter" className="flex w-full items-center justify-between cursor-pointer">
+                                              <span>General Modules</span>
+                                              <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
+                                          </label>
+                                      </CollapsibleTrigger>
+                                  </div>
+                                  <CollapsibleContent className="space-y-1 pt-1 pl-6">
+                                    {generalModules.map((product) => (<ModuleSelectItem key={product} moduleName={product} />))}
+                                  </CollapsibleContent>
+                                </Collapsible>
+                              )}
                             </div>
                           </ScrollArea>
                         </PopoverContent>
@@ -1078,7 +1088,7 @@ export default function LeadsUpdatePage() {
                           <TableCell>{(currentPage - 1) * LEADS_PER_PAGE + index + 1}</TableCell>
                           <TableCell>{lead.leadId}</TableCell>
                           <TableCell>{lead.creationDate && !isNaN(new Date(lead.creationDate).getTime()) ? format(new Date(lead.creationDate), 'PPP') : 'N/A'}</TableCell>
-                          <TableCell><div className="max-h-16 overflow-y-auto">{getDisplayModule(lead.selectedModule)}</div></TableCell>
+                          <TableCell><div className="max-h-16 overflow-y-auto">{getDisplayModule(lead.selectedModule, modules)}</div></TableCell>
                           <TableCell>{lead.company}</TableCell>
                           <TableCell>{lead.contactPerson}</TableCell>
                           <TableCell>{lead.contactNumber}</TableCell>

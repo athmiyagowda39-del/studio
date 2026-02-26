@@ -61,7 +61,7 @@ const getFunnelData = (leads: LeadFormData[]) => {
 };
 
 export default function ConversionFunnelReportPage() {
-  const { user, isAuthenticated, isLoading, leads: allLeads } = useApp();
+  const { user, isAuthenticated, isLoading, leads: allLeads, modules } = useApp();
   const router = useRouter();
   const [isClient, setIsClient] = useState(false);
   const [selectedStage, setSelectedStage] = useState<string | null>(null);
@@ -164,7 +164,7 @@ export default function ConversionFunnelReportPage() {
                             <TableCell>{lead.leadId}</TableCell>
                             <TableCell>{lead.company}</TableCell>
                             <TableCell>{lead.contactPerson}</TableCell>
-                            <TableCell>{getDisplayModule(lead.selectedModule)}</TableCell>
+                            <TableCell>{getDisplayModule(lead.selectedModule, modules)}</TableCell>
                             <TableCell>{lead.status}</TableCell>
                             <TableCell>{lead.executive || 'N/A'}</TableCell>
                             <TableCell>

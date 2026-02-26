@@ -24,7 +24,7 @@ import {
   CardContent,
   CardDescription,
 } from '@/components/ui/card';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import * as XLSX from 'xlsx';
 import {
   Table,
@@ -47,7 +47,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { getDisplayModule, allModules, allHrModules, allFinanceModules, allGeneralModules, financeModules, generalModules } from '@/lib/modules';
+import { getDisplayModule } from '@/lib/modules';
 
 type ParsedData = (string | number)[][];
 
@@ -112,7 +112,7 @@ const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate' | 'givenBy'
 };
 
 export default function LeadUploadForm() {
-  const { user, users, isReadOnly, isImpersonating, addLeads, getNextLeadId, leads: allLeads, sectors, leadReferences } = useApp();
+  const { user, users, isReadOnly, isImpersonating, addLeads, getNextLeadId, leads: allLeads, sectors, leadReferences, modules } = useApp();
   const [formData, setFormData] = useState<
     Omit<LeadFormData, 'leadId' | 'creationDate' | 'givenBy' | 'executiveViewDate'>
   >(initialFormState);
@@ -128,6 +128,11 @@ export default function LeadUploadForm() {
   const [isDragging, setIsDragging] = useState(false);
   const { toast } = useToast();
   const managers = users.filter(u => u.role === 'Manager');
+
+  const hrModules = useMemo(() => modules.filter(m => m.category === 'HR').map(m => m.name), [modules]);
+  const financeModules = useMemo(() => modules.filter(m => m.category === 'Finance').map(m => m.name), [modules]);
+  const generalModules = useMemo(() => modules.filter(m => m.category === 'General').map(m => m.name), [modules]);
+  const allModulesNames = useMemo(() => modules.map(m => m.name), [modules]);
 
   useEffect(() => {
     const executiveUsers = users
@@ -502,12 +507,12 @@ export default function LeadUploadForm() {
   };
 
   const handleAllToggle = (isAdding: boolean) => {
-    handleSelectChange('selectedModule', isAdding ? allModules.join(', ') : '');
+    handleSelectChange('selectedModule', isAdding ? allModulesNames.join(', ') : '');
   };
 
   const getModuleButtonText = () => {
     if (!formData.selectedModule) return 'Select Module(s)...';
-    const buttonText = getDisplayModule(formData.selectedModule);
+    const buttonText = getDisplayModule(formData.selectedModule, modules);
     return buttonText === 'N/A' ? 'Select Module(s)...' : buttonText;
   };
 
@@ -606,15 +611,39 @@ export default function LeadUploadForm() {
                       <Checkbox id="all-modules" onCheckedChange={(checked) => handleAllToggle(!!checked)} className="ml-1" />
                       <label htmlFor="all-modules" className="w-full cursor-pointer">All Modules</label>
                     </div>
-                    <Collapsible>
-                      <CollapsibleTrigger asChild>
-                        <div className="flex items-center space-x-3 rounded-md p-2 pr-4 font-semibold cursor-pointer">
-                            <Checkbox id="hr-cat" checked={getCategoryCheckedState(allHrModules)} onCheckedChange={(checked) => handleCategoryToggle(allHrModules, !!checked)} className="ml-1" />
-                            <span className="flex w-full items-center justify-between">HR Modules <ChevronDown className="h-4 w-4" /></span>
-                        </div>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent className="pl-6">{allHrModules.map(m => <ModuleSelectItem key={m} moduleName={m} />)}</CollapsibleContent>
-                    </Collapsible>
+                    {hrModules.length > 0 && (
+                      <Collapsible>
+                        <CollapsibleTrigger asChild>
+                          <div className="flex items-center space-x-3 rounded-md p-2 pr-4 font-semibold cursor-pointer">
+                              <Checkbox id="hr-cat" checked={getCategoryCheckedState(hrModules)} onCheckedChange={(checked) => handleCategoryToggle(hrModules, !!checked)} className="ml-1" />
+                              <span className="flex w-full items-center justify-between">HR Modules <ChevronDown className="h-4 w-4" /></span>
+                          </div>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="pl-6">{hrModules.map(m => <ModuleSelectItem key={m} moduleName={m} />)}</CollapsibleContent>
+                      </Collapsible>
+                    )}
+                    {financeModules.length > 0 && (
+                      <Collapsible>
+                        <CollapsibleTrigger asChild>
+                          <div className="flex items-center space-x-3 rounded-md p-2 pr-4 font-semibold cursor-pointer">
+                              <Checkbox id="finance-cat" checked={getCategoryCheckedState(financeModules)} onCheckedChange={(checked) => handleCategoryToggle(financeModules, !!checked)} className="ml-1" />
+                              <span className="flex w-full items-center justify-between">Finance Modules <ChevronDown className="h-4 w-4" /></span>
+                          </div>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="pl-6">{financeModules.map(m => <ModuleSelectItem key={m} moduleName={m} />)}</CollapsibleContent>
+                      </Collapsible>
+                    )}
+                    {generalModules.length > 0 && (
+                      <Collapsible>
+                        <CollapsibleTrigger asChild>
+                          <div className="flex items-center space-x-3 rounded-md p-2 pr-4 font-semibold cursor-pointer">
+                              <Checkbox id="general-cat" checked={getCategoryCheckedState(generalModules)} onCheckedChange={(checked) => handleCategoryToggle(generalModules, !!checked)} className="ml-1" />
+                              <span className="flex w-full items-center justify-between">General Modules <ChevronDown className="h-4 w-4" /></span>
+                          </div>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="pl-6">{generalModules.map(m => <ModuleSelectItem key={m} moduleName={m} />)}</CollapsibleContent>
+                      </Collapsible>
+                    )}
                   </div>
                 </ScrollArea>
               </PopoverContent>

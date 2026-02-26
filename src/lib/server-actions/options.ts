@@ -29,3 +29,20 @@ export async function getLeadReferences(): Promise<string[]> {
 export async function getSectors(): Promise<string[]> {
     return fetchOptions('Sectors');
 }
+
+export type ModuleOption = {
+  name: string;
+  category: string;
+}
+
+export async function getModules(): Promise<ModuleOption[]> {
+  try {
+      const pool = await getConnection();
+      const result = await pool.request().query(`SELECT name, category FROM Modules ORDER BY category, name`);
+      return result.recordset;
+  } catch (error) {
+      await addErrorLog(`getModules`, error);
+      console.error(`Failed to fetch modules:`, error);
+      throw error;
+  }
+}

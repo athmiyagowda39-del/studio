@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, ReactNode, useEffect, useCa
 import { useRouter } from 'next/navigation';
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import type { AuditLogData } from '@/lib/server-actions/audit';
+import type { ModuleOption } from '@/lib/server-actions/options';
 
 
 export type AppUser = {
@@ -30,6 +31,7 @@ type AppContextType = {
   leadSubStatuses: string[];
   leadReferences: string[];
   sectors: string[];
+  modules: ModuleOption[];
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   impersonate: (userToImpersonate: AppUser) => void;
@@ -70,6 +72,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [leadSubStatuses, setLeadSubStatuses] = useState<string[]>([]);
   const [leadReferences, setLeadReferences] = useState<string[]>([]);
   const [sectors, setSectors] = useState<string[]>([]);
+  const [modules, setModules] = useState<ModuleOption[]>([]);
   const router = useRouter();
 
   const addAuditLog = useCallback(async (logData: AuditLogData) => {
@@ -90,13 +93,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const sessionUserJson = sessionStorage.getItem('user');
       const sessionOriginalUserJson = sessionStorage.getItem('originalUser');
       
-      const [fetchedUsers, fetchedLeads, fetchedStatuses, fetchedSubStatuses, fetchedReferences, fetchedSectors] = await Promise.all([
+      const [fetchedUsers, fetchedLeads, fetchedStatuses, fetchedSubStatuses, fetchedReferences, fetchedSectors, fetchedModules] = await Promise.all([
         fetchAPI('/api/users'),
         fetchAPI('/api/leads'),
         fetchAPI('/api/options/statuses'),
         fetchAPI('/api/options/sub-statuses'),
         fetchAPI('/api/options/references'),
         fetchAPI('/api/options/sectors'),
+        fetchAPI('/api/options/modules'),
       ]);
 
       setUsers(fetchedUsers);
@@ -105,6 +109,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setLeadSubStatuses(fetchedSubStatuses);
       setLeadReferences(fetchedReferences);
       setSectors(fetchedSectors);
+      setModules(fetchedModules);
 
       if (sessionUserJson) {
         const sessionUser = JSON.parse(sessionUserJson);
@@ -366,6 +371,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         leadSubStatuses,
         leadReferences,
         sectors,
+        modules,
         login,
         logout,
         impersonate,

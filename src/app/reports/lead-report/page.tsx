@@ -82,7 +82,7 @@ const getLeadStatusesForFilters = (
 
 
 export default function LeadReportPage() {
-  const { user, isAuthenticated, isLoading, leads: allLeads, leadStatuses: allLeadStatusesFromDb, sectors: sectorsFromDb } = useApp();
+  const { user, isAuthenticated, isLoading, leads: allLeads, leadStatuses: allLeadStatusesFromDb, sectors: sectorsFromDb, modules } = useApp();
   const router = useRouter();
   const [isClient, setIsClient] = useState(false);
 
@@ -323,7 +323,7 @@ export default function LeadReportPage() {
                                     <TableCell>{index + 1}</TableCell>
                                     <TableCell>{lead.leadId || 'N/A'}</TableCell>
                                     <TableCell>{lead.creationDate ? format(new Date(lead.creationDate), 'PPP') : 'N/A'}</TableCell>
-                                    <TableCell>{getDisplayModule(lead.selectedModule)}</TableCell>
+                                    <TableCell>{getDisplayModule(lead.selectedModule, modules)}</TableCell>
                                     <TableCell>{lead.company || 'N/A'}</TableCell>
                                     <TableCell>{lead.contactPerson || 'N/A'}</TableCell>
                                     <TableCell>{lead.contactNumber || 'N/A'}</TableCell>

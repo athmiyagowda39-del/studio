@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,7 +18,7 @@ import { useRouter } from 'next/navigation';
 import { getDisplayModule } from '@/lib/modules';
 
 export default function LeadUpdateStatusReportPage() {
-  const { user, isAuthenticated, isLoading, leads: allLeads } = useApp();
+  const { user, isAuthenticated, isLoading, leads: allLeads, modules } = useApp();
   const router = useRouter();
 
   useEffect(() => {
@@ -102,7 +101,7 @@ export default function LeadUpdateStatusReportPage() {
                                 {lead.creationDate ? format(new Date(lead.creationDate), 'PPP') : 'N/A'}
                               </TableCell>
                               <TableCell>
-                                {getDisplayModule(lead.selectedModule)}
+                                {getDisplayModule(lead.selectedModule, modules)}
                               </TableCell>
                               <TableCell>{lead.company || 'N/A'}</TableCell>
                               <TableCell>

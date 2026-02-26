@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,7 +18,7 @@ import { getDisplayModule } from '@/lib/modules';
 
 
 export default function LeadUploadStatusReportPage() {
-  const { user, isAuthenticated, isLoading, leads: allLeads } = useApp();
+  const { user, isAuthenticated, isLoading, leads: allLeads, modules } = useApp();
   const router = useRouter();
 
   useEffect(() => {
@@ -95,7 +94,7 @@ export default function LeadUploadStatusReportPage() {
                               <TableCell>{lead.headcount || 'N/A'}</TableCell>
                               <TableCell>{lead.sector || 'N/A'}</TableCell>
                               <TableCell>
-                                {getDisplayModule(lead.selectedModule)}
+                                {getDisplayModule(lead.selectedModule, modules)}
                               </TableCell>
                             </TableRow>
                           );
