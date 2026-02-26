@@ -194,6 +194,9 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
     }
   }
 
+  // Consistent background for all inputs
+  const inputBgClass = "bg-muted/50";
+
   return (
     <div className="space-y-6">
       {isReadOnly && <Alert variant="default"><Info className="h-4 w-4" /><AlertTitle>Read-Only Mode</AlertTitle></Alert>}
@@ -206,74 +209,74 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1">
                 <Label className="font-semibold">Lead(id)</Label>
-                <Input value={leadDetails.leadId || ""} placeholder="Select a lead" readOnly className="bg-muted/30" />
+                <Input value={leadDetails.leadId || ""} placeholder="Select a lead" readOnly className={inputBgClass} />
               </div>
               <div className="space-y-1">
                 <Label className="font-semibold">Company</Label>
-                <Input value={leadDetails.company || ""} readOnly className="bg-muted/30" />
+                <Input value={leadDetails.company || ""} readOnly className={inputBgClass} />
               </div>
               
               <div className="space-y-1">
                 <Label className="font-semibold">Contact person</Label>
-                <Input value={leadDetails.contactPerson || ""} onChange={e => handleLeadDetailChange('contactPerson', e.target.value)} readOnly={isReadOnly} />
+                <Input value={leadDetails.contactPerson || ""} onChange={e => handleLeadDetailChange('contactPerson', e.target.value)} readOnly={isReadOnly} className={inputBgClass} />
               </div>
               <div className="space-y-1">
                 <Label className="font-semibold">Contact Number</Label>
-                <Input value={leadDetails.contactNumber || ""} onChange={e => handleLeadDetailChange('contactNumber', e.target.value)} readOnly={isReadOnly} />
+                <Input value={leadDetails.contactNumber || ""} onChange={e => handleLeadDetailChange('contactNumber', e.target.value)} readOnly={isReadOnly} className={inputBgClass} />
               </div>
 
               <div className="space-y-1">
                 <Label className="font-semibold">Address</Label>
-                <Input value={leadDetails.address || ""} onChange={e => handleLeadDetailChange('address', e.target.value)} readOnly={isReadOnly} />
+                <Input value={leadDetails.address || ""} onChange={e => handleLeadDetailChange('address', e.target.value)} readOnly={isReadOnly} className={inputBgClass} />
               </div>
               <div className="space-y-1">
                 <Label className="font-semibold">Email ID</Label>
-                <Input value={leadDetails.email || ""} onChange={e => handleLeadDetailChange('email', e.target.value)} readOnly={isReadOnly} />
+                <Input value={leadDetails.email || ""} onChange={e => handleLeadDetailChange('email', e.target.value)} readOnly={isReadOnly} className={inputBgClass} />
               </div>
 
               <div className="space-y-1">
                 <Label className="font-semibold">District</Label>
-                <Input value={leadDetails.district || ""} onChange={e => handleLeadDetailChange('district', e.target.value)} readOnly={isReadOnly} />
+                <Input value={leadDetails.district || ""} onChange={e => handleLeadDetailChange('district', e.target.value)} readOnly={isReadOnly} className={inputBgClass} />
               </div>
               <div className="space-y-1">
                 <Label className="font-semibold">State</Label>
-                <Input value={leadDetails.state || ""} onChange={e => handleLeadDetailChange('state', e.target.value)} readOnly={isReadOnly} />
+                <Input value={leadDetails.state || ""} onChange={e => handleLeadDetailChange('state', e.target.value)} readOnly={isReadOnly} className={inputBgClass} />
               </div>
 
               <div className="space-y-1">
                 <Label className="font-semibold">Date of lead</Label>
-                <Input value={leadDetails.creationDate ? format(new Date(leadDetails.creationDate), 'PPP') : ""} readOnly className="bg-muted/30" />
+                <Input value={leadDetails.creationDate ? format(new Date(leadDetails.creationDate), 'PPP') : ""} readOnly className={inputBgClass} />
               </div>
               <div className="space-y-1">
                 <Label className="font-semibold">Executive viewed date</Label>
-                <Input value={leadDetails.executiveViewDate ? format(new Date(leadDetails.executiveViewDate), 'PPP p') : "Not yet seen"} readOnly className="bg-muted/30" />
+                <Input value={leadDetails.executiveViewDate ? format(new Date(leadDetails.executiveViewDate), 'PPP p') : "Not yet seen"} readOnly className={inputBgClass} />
               </div>
 
               <div className="space-y-1">
                 <Label className="font-semibold">Reference</Label>
-                <Input value={leadDetails.reference || ""} readOnly className="bg-muted/30" />
+                <Input value={leadDetails.reference || ""} readOnly className={inputBgClass} />
               </div>
               <div className="space-y-1">
                 <Label className="font-semibold">Given By</Label>
-                <Input value={leadDetails.givenBy || ""} readOnly className="bg-muted/30" />
+                <Input value={leadDetails.givenBy || ""} readOnly className={inputBgClass} />
               </div>
 
               <div className="space-y-1">
                 <Label className="font-semibold">Executive</Label>
-                <Input value={leadDetails.executive || ""} readOnly className="bg-muted/30" />
+                <Input value={leadDetails.executive || ""} readOnly className={inputBgClass} />
               </div>
               <div className="space-y-1">
                 <Label className="font-semibold">Manager</Label>
-                <Input value={leadDetails.manager || ""} readOnly className="bg-muted/30" />
+                <Input value={leadDetails.manager || ""} readOnly className={inputBgClass} />
               </div>
 
               <div className="space-y-1">
                 <Label className="font-semibold">Headcount</Label>
-                <Input value={leadDetails.headcount || ""} onChange={e => handleLeadDetailChange('headcount', e.target.value)} readOnly={isReadOnly} />
+                <Input value={leadDetails.headcount || ""} onChange={e => handleLeadDetailChange('headcount', e.target.value)} readOnly={isReadOnly} className={inputBgClass} />
               </div>
               <div className="space-y-1">
                 <Label className="font-semibold">Module</Label>
-                <div className="h-10 px-3 py-2 text-sm border rounded-md bg-muted/30 truncate">
+                <div className={`h-10 px-3 py-2 text-sm border rounded-md truncate ${inputBgClass}`}>
                   {getDisplayModule(leadDetails.selectedModule || "", modules)}
                 </div>
               </div>
