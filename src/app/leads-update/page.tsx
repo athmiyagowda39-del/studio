@@ -818,7 +818,7 @@ export default function LeadsUpdatePage() {
                               <Input
                                 placeholder="Specify who gave it"
                                 value={otherGivenByInput}
-                                onChange={(e) => setOtherGivenByInput(e.target.value)}
+                                onChange={(e) => otherGivenByInput(e.target.value)}
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter') handleSetOtherGivenBy();
                                 }}
@@ -1089,12 +1089,20 @@ export default function LeadsUpdatePage() {
                           <TableCell>{(currentPage - 1) * LEADS_PER_PAGE + index + 1}</TableCell>
                           <TableCell>{lead.leadId}</TableCell>
                           <TableCell>{lead.creationDate && !isNaN(new Date(lead.creationDate).getTime()) ? format(new Date(lead.creationDate), 'PPP') : 'N/A'}</TableCell>
-                          <TableCell><div className="max-h-16 overflow-y-auto">{getDisplayModule(lead.selectedModule, modules)}</div></TableCell>
+                          <TableCell>
+                            <div className="max-h-12 overflow-y-auto whitespace-normal break-words min-w-[200px]">
+                              {getDisplayModule(lead.selectedModule, modules)}
+                            </div>
+                          </TableCell>
                           <TableCell>{lead.company}</TableCell>
                           <TableCell>{lead.contactPerson}</TableCell>
                           <TableCell>{lead.contactNumber}</TableCell>
                           <TableCell>{lead.email}</TableCell>
-                          <TableCell><div className="max-h-16 overflow-y-auto">{lead.address}</div></TableCell>
+                          <TableCell>
+                            <div className="max-h-12 overflow-y-auto whitespace-normal break-words min-w-[300px]">
+                              {lead.address}
+                            </div>
+                          </TableCell>
                           <TableCell>{lead.district}</TableCell>
                           <TableCell>{lead.state}</TableCell>
                           <TableCell>{lead.reference}</TableCell>
@@ -1105,10 +1113,18 @@ export default function LeadsUpdatePage() {
                           <TableCell>{lastFollowUp && lastFollowUp.date ? format(new Date(lastFollowUp.date), 'PPP') : 'N/A'}</TableCell>
                           <TableCell>{lastFollowUp ? lastFollowUp.enteredBy : 'N/A'}</TableCell>
                           <TableCell>{nextFollowupDate}</TableCell>
-                          <TableCell><div className="max-h-16 overflow-y-auto">{lastFollowUp ? lastFollowUp.remarks : 'N/A'}</div></TableCell>
+                          <TableCell>
+                            <div className="max-h-12 overflow-y-auto whitespace-normal break-words min-w-[300px]">
+                              {lastFollowUp ? lastFollowUp.remarks : 'N/A'}
+                            </div>
+                          </TableCell>
                           <TableCell>{lead.status || 'N/A'}</TableCell>
                           <TableCell>{lead.leadSubStatus || 'N/A'}</TableCell>
-                          <TableCell><div className="max-h-16 overflow-y-auto">{lead.initialRemarks || 'N/A'}</div></TableCell>
+                          <TableCell>
+                            <div className="max-h-12 overflow-y-auto whitespace-normal break-words min-w-[300px]">
+                              {lead.initialRemarks || 'N/A'}
+                            </div>
+                          </TableCell>
                           <TableCell>{lead.monthlyContractValue || 'N/A'}</TableCell>
                           <TableCell>{lead.annualContractValue || 'N/A'}</TableCell>
                         </TableRow>
@@ -1124,6 +1140,8 @@ export default function LeadsUpdatePage() {
                       variant="outline"
                       disabled={currentPage === 1}
                       onClick={() => setCurrentPage(p => p - 1)}
+                    >
+                      Previous
                     </Button>
 
                     <span className="self-center text-sm">
