@@ -34,9 +34,45 @@ import { ChevronsUpDown, ChevronDown } from 'lucide-react';
 import { getDisplayModule } from '@/lib/modules';
 import * as XLSX from 'xlsx';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 const LEADS_PER_PAGE = 10;
 type TabValue = 'all' | 'not-viewed' | 'follow-ups-due' | 'zero-follow-ups' | 'search-result';
+
+// Helper component for expandable "box" view
+function ExpandableCell({ content, title }: { content: string | null | undefined, title: string }) {
+  if (!content || content === 'N/A') return <span className="text-muted-foreground">N/A</span>;
+  
+  const isShort = content.length < 35;
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <div className={cn(
+          "flex items-center gap-2 cursor-pointer group transition-colors hover:text-primary",
+          !isShort && "max-w-[200px]"
+        )}>
+          <span className={cn("flex-1", !isShort && "truncate")}>{content}</span>
+          {!isShort && (
+            <span className="shrink-0 text-[9px] font-bold bg-muted px-1.5 py-0.5 rounded-sm opacity-60 group-hover:opacity-100 group-hover:bg-primary group-hover:text-primary-foreground transition-all">
+              VIEW
+            </span>
+          )}
+        </div>
+      </PopoverTrigger>
+      {!isShort && (
+        <PopoverContent className="w-80 p-4 shadow-2xl border-2 z-50 pointer-events-auto">
+          <div className="space-y-2">
+            <h4 className="font-bold text-xs uppercase text-primary border-b pb-1 tracking-wider">{title}</h4>
+            <div className="text-sm whitespace-normal break-words leading-relaxed max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+              {content}
+            </div>
+          </div>
+        </PopoverContent>
+      )}
+    </Popover>
+  );
+}
 
 export default function LeadsUpdatePage() {
   const { user, isAuthenticated, isLoading, leads: allLeads, users, leadStatuses, leadSubStatuses, leadReferences, addAuditLog, modules } = useApp();
@@ -1090,18 +1126,20 @@ export default function LeadsUpdatePage() {
                           <TableCell>{lead.leadId}</TableCell>
                           <TableCell>{lead.creationDate && !isNaN(new Date(lead.creationDate).getTime()) ? format(new Date(lead.creationDate), 'PPP') : 'N/A'}</TableCell>
                           <TableCell>
-                            <div className="max-h-12 overflow-y-auto whitespace-normal break-words min-w-[200px]">
-                              {getDisplayModule(lead.selectedModule, modules)}
-                            </div>
+                            <ExpandableCell 
+                              content={getDisplayModule(lead.selectedModule, modules)} 
+                              title="Selected Modules" 
+                            />
                           </TableCell>
                           <TableCell>{lead.company}</TableCell>
                           <TableCell>{lead.contactPerson}</TableCell>
                           <TableCell>{lead.contactNumber}</TableCell>
                           <TableCell>{lead.email}</TableCell>
                           <TableCell>
-                            <div className="max-h-12 overflow-y-auto whitespace-normal break-words min-w-[300px]">
-                              {lead.address}
-                            </div>
+                            <ExpandableCell 
+                              content={lead.address} 
+                              title="Address" 
+                            />
                           </TableCell>
                           <TableCell>{lead.district}</TableCell>
                           <TableCell>{lead.state}</TableCell>
@@ -1114,16 +1152,18 @@ export default function LeadsUpdatePage() {
                           <TableCell>{lastFollowUp ? lastFollowUp.enteredBy : 'N/A'}</TableCell>
                           <TableCell>{nextFollowupDate}</TableCell>
                           <TableCell>
-                            <div className="max-h-12 overflow-y-auto whitespace-normal break-words min-w-[300px]">
-                              {lastFollowUp ? lastFollowUp.remarks : 'N/A'}
-                            </div>
+                            <ExpandableCell 
+                              content={lastFollowUp ? lastFollowUp.remarks : 'N/A'} 
+                              title="Last Follow-up Remarks" 
+                            />
                           </TableCell>
                           <TableCell>{lead.status || 'N/A'}</TableCell>
                           <TableCell>{lead.leadSubStatus || 'N/A'}</TableCell>
                           <TableCell>
-                            <div className="max-h-12 overflow-y-auto whitespace-normal break-words min-w-[300px]">
-                              {lead.initialRemarks || 'N/A'}
-                            </div>
+                            <ExpandableCell 
+                              content={lead.initialRemarks || 'N/A'} 
+                              title="Status Remarks" 
+                            />
                           </TableCell>
                           <TableCell>{lead.monthlyContractValue || 'N/A'}</TableCell>
                           <TableCell>{lead.annualContractValue || 'N/A'}</TableCell>
