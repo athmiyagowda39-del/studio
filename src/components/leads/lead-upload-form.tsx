@@ -41,7 +41,7 @@ import { useApp } from '@/context/app-context';
 import { cn } from '@/lib/utils';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import {
   Collapsible,
   CollapsibleContent,
@@ -694,9 +694,57 @@ export default function LeadUploadForm() {
           </div>
           <input type="file" ref={fileInputRef} className="hidden" onChange={(e) => e.target.files?.[0] && processFileAndUpload(e.target.files[0])} accept=".xlsx, .xls, .csv" disabled={isReadOnly} />
           {parsedLeads.length > 0 && (
-            <div className="mt-6 flex items-center gap-4">
-              <Button onClick={handleConfirmUpload}>Confirm Upload</Button>
-              <Button variant="destructive" onClick={handleCancelUpload}>Cancel</Button>
+            <div className="mt-6 flex flex-col gap-6">
+              <div className="flex items-center gap-4">
+                <Button variant="outline" onClick={() => setShowPreview(!showPreview)}>
+                  {showPreview ? 'Hide Preview' : 'Preview'}
+                </Button>
+                <Button onClick={handleConfirmUpload}>Confirm Upload</Button>
+                <Button variant="destructive" onClick={handleCancelUpload}>Cancel</Button>
+              </div>
+
+              {showPreview && (
+                <div className="border rounded-md overflow-hidden bg-background">
+                  <div className="p-3 bg-muted/50 border-b font-semibold text-sm">
+                    File Data Preview ({parsedLeads.length} leads)
+                  </div>
+                  <ScrollArea className="h-[400px] w-full">
+                    <Table>
+                      <TableHeader className="bg-muted/30">
+                        <TableRow>
+                          <TableHead className="w-12">#</TableHead>
+                          <TableHead>Company</TableHead>
+                          <TableHead>Contact Person</TableHead>
+                          <TableHead>Phone</TableHead>
+                          <TableHead>Email</TableHead>
+                          <TableHead>Pincode</TableHead>
+                          <TableHead>District</TableHead>
+                          <TableHead>State</TableHead>
+                          <TableHead>Module</TableHead>
+                          <TableHead>Manager</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {parsedLeads.map((lead, idx) => (
+                          <TableRow key={idx}>
+                            <TableCell className="font-medium">{idx + 1}</TableCell>
+                            <TableCell>{lead.company || 'N/A'}</TableCell>
+                            <TableCell>{lead.contactPerson || 'N/A'}</TableCell>
+                            <TableCell>{lead.contactNumber || 'N/A'}</TableCell>
+                            <TableCell className="max-w-[200px] truncate">{lead.email || 'N/A'}</TableCell>
+                            <TableCell>{lead.pincode || 'N/A'}</TableCell>
+                            <TableCell>{lead.district || 'N/A'}</TableCell>
+                            <TableCell>{lead.state || 'N/A'}</TableCell>
+                            <TableCell className="max-w-[200px] truncate">{lead.selectedModule || 'N/A'}</TableCell>
+                            <TableCell>{lead.manager || 'N/A'}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                    <ScrollBar orientation="horizontal" />
+                  </ScrollArea>
+                </div>
+              )}
             </div>
           )}
         </CardContent>
