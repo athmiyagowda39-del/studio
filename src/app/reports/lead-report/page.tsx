@@ -14,11 +14,50 @@ import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { getDisplayModule } from '@/lib/modules';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 const LeadStatusChart = dynamic(
   () => import('@/components/reports/lead-status-chart'),
   { ssr: false, loading: () => <div className="h-[400px] w-full flex items-center justify-center"><p>Loading Chart...</p></div> }
 );
+
+// Helper component for expandable "box" view
+function ExpandableCell({ content, title }: { content: string | null | undefined, title: string }) {
+  if (!content || content === 'N/A') return <span className="text-muted-foreground">N/A</span>;
+  
+  const isShort = content.length < 35;
+
+  if (isShort) {
+    return <span>{content}</span>;
+  }
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <div 
+          onClick={(e) => e.stopPropagation()} 
+          className="flex items-center gap-2 cursor-pointer group transition-colors hover:text-primary max-w-[200px]"
+        >
+          <span className="flex-1 truncate">{content}</span>
+          <span className="shrink-0 text-[9px] font-bold bg-muted px-1.5 py-0.5 rounded-sm opacity-60 group-hover:opacity-100 group-hover:bg-primary group-hover:text-primary-foreground transition-all">
+            VIEW
+          </span>
+        </div>
+      </PopoverTrigger>
+      <PopoverContent 
+        className="w-80 p-4 shadow-2xl border-2 z-50 pointer-events-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="space-y-2">
+          <h4 className="font-bold text-xs uppercase text-primary border-b pb-1 tracking-wider">{title}</h4>
+          <div className="text-sm whitespace-normal break-words leading-relaxed max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+            {content}
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 const allStates = ["All", "Andaman and Nicobar Islands", "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chandigarh", "Chhattisgarh", "Dadra and Nagar Haveli and Daman and Diu", "Delhi", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jammu and Kashmir", "Jharkhand", "Karnataka", "Kerala", "Ladakh", "Lakshadweep", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Puducherry", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"];
 
@@ -323,12 +362,22 @@ export default function LeadReportPage() {
                                     <TableCell>{index + 1}</TableCell>
                                     <TableCell>{lead.leadId || 'N/A'}</TableCell>
                                     <TableCell>{lead.creationDate ? format(new Date(lead.creationDate), 'PPP') : 'N/A'}</TableCell>
-                                    <TableCell>{getDisplayModule(lead.selectedModule, modules)}</TableCell>
+                                    <TableCell>
+                                      <ExpandableCell 
+                                        content={getDisplayModule(lead.selectedModule, modules)} 
+                                        title="Selected Modules" 
+                                      />
+                                    </TableCell>
                                     <TableCell>{lead.company || 'N/A'}</TableCell>
                                     <TableCell>{lead.contactPerson || 'N/A'}</TableCell>
                                     <TableCell>{lead.contactNumber || 'N/A'}</TableCell>
                                     <TableCell>{lead.email || 'N/A'}</TableCell>
-                                    <TableCell>{lead.address || 'N/A'}</TableCell>
+                                    <TableCell>
+                                      <ExpandableCell 
+                                        content={lead.address} 
+                                        title="Address" 
+                                      />
+                                    </TableCell>
                                     <TableCell>{lead.district || 'N/A'}</TableCell>
                                     <TableCell>{lead.state || 'N/A'}</TableCell>
                                     <TableCell>{lead.reference || 'N/A'}</TableCell>
@@ -338,10 +387,20 @@ export default function LeadReportPage() {
                                     <TableCell>{lastFollowUp && lastFollowUp.date ? format(new Date(lastFollowUp.date), 'PPP') : 'N/A'}</TableCell>
                                     <TableCell>{lastFollowUp ? lastFollowUp.enteredBy : 'N/A'}</TableCell>
                                     <TableCell>{nextFollowupDate}</TableCell>
-                                    <TableCell>{lastFollowUp ? lastFollowUp.remarks : 'N/A'}</TableCell>
+                                    <TableCell>
+                                      <ExpandableCell 
+                                        content={lastFollowUp ? lastFollowUp.remarks : 'N/A'} 
+                                        title="Last Follow-up Remarks" 
+                                      />
+                                    </TableCell>
                                     <TableCell>{lead.status || 'N/A'}</TableCell>
                                     <TableCell>{lead.leadSubStatus || 'N/A'}</TableCell>
-                                    <TableCell>{lead.initialRemarks || 'N/A'}</TableCell>
+                                    <TableCell>
+                                      <ExpandableCell 
+                                        content={lead.initialRemarks || 'N/A'} 
+                                        title="Status Remarks" 
+                                      />
+                                    </TableCell>
                                     <TableCell>{lead.givenBy || 'N/A'}</TableCell>
                                     </TableRow>
                                 )

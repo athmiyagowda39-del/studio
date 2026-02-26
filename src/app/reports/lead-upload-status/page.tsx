@@ -15,7 +15,45 @@ import AppContent from '@/components/layout/app-content';
 import { useApp } from '@/context/app-context';
 import { useRouter } from 'next/navigation';
 import { getDisplayModule } from '@/lib/modules';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
+// Helper component for expandable "box" view
+function ExpandableCell({ content, title }: { content: string | null | undefined, title: string }) {
+  if (!content || content === 'N/A') return <span className="text-muted-foreground">N/A</span>;
+  
+  const isShort = content.length < 35;
+
+  if (isShort) {
+    return <span>{content}</span>;
+  }
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <div 
+          onClick={(e) => e.stopPropagation()} 
+          className="flex items-center gap-2 cursor-pointer group transition-colors hover:text-primary max-w-[200px]"
+        >
+          <span className="flex-1 truncate">{content}</span>
+          <span className="shrink-0 text-[9px] font-bold bg-muted px-1.5 py-0.5 rounded-sm opacity-60 group-hover:opacity-100 group-hover:bg-primary group-hover:text-primary-foreground transition-all">
+            VIEW
+          </span>
+        </div>
+      </PopoverTrigger>
+      <PopoverContent 
+        className="w-80 p-4 shadow-2xl border-2 z-50 pointer-events-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="space-y-2">
+          <h4 className="font-bold text-xs uppercase text-primary border-b pb-1 tracking-wider">{title}</h4>
+          <div className="text-sm whitespace-normal break-words leading-relaxed max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+            {content}
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 export default function LeadUploadStatusReportPage() {
   const { user, isAuthenticated, isLoading, leads: allLeads, modules } = useApp();
@@ -82,7 +120,12 @@ export default function LeadUploadStatusReportPage() {
                               <TableCell>
                                 {lead.contactPerson || 'N/A'}
                               </TableCell>
-                              <TableCell>{lead.address || 'NA'}</TableCell>
+                              <TableCell>
+                                <ExpandableCell 
+                                  content={lead.address} 
+                                  title="Address" 
+                                />
+                              </TableCell>
                               <TableCell>{lead.state || 'N/A'}</TableCell>
                               <TableCell>{lead.district || 'N/A'}</TableCell>
                               <TableCell>
@@ -94,7 +137,10 @@ export default function LeadUploadStatusReportPage() {
                               <TableCell>{lead.headcount || 'N/A'}</TableCell>
                               <TableCell>{lead.sector || 'N/A'}</TableCell>
                               <TableCell>
-                                {getDisplayModule(lead.selectedModule, modules)}
+                                <ExpandableCell 
+                                  content={getDisplayModule(lead.selectedModule, modules)} 
+                                  title="Selected Modules" 
+                                />
                               </TableCell>
                             </TableRow>
                           );
