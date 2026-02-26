@@ -149,7 +149,7 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
       leadSubStatus: selectedStatus === "Not interested" ? selectedSubStatus : "",
       monthlyContractValue: selectedStatus === 'Proposal Sent' ? monthlyContractValue : leadDetails.monthlyContractValue,
       annualContractValue: selectedStatus === 'Proposal Sent' ? annualContractValue : leadDetails.annualContractValue,
-      initialRemarks: leadDetails.initialRemarks, // Also save initial remarks if edited
+      initialRemarks: leadDetails.initialRemarks, 
     }
 
     try {
@@ -285,7 +285,7 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
                 <Label htmlFor="ready" className="font-semibold text-sm">Yes, I am Ready to Update.</Label>
               </div>
               <div className="flex gap-2">
-                <Button onClick={handleSaveLeadDetails} disabled={!isReadyToUpdate || isReadOnly} className="bg-primary/90">Save</Button>
+                <Button onClick={handleSaveLeadDetails} disabled={!isReadyToUpdate || isReadOnly} className="bg-primary hover:bg-primary/90">Save</Button>
                 <Button variant="outline" onClick={handleResetLeadDetails}>Reset</Button>
               </div>
             </div>
@@ -309,7 +309,7 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
                     ))}
                   </SelectContent>
                 </Select>
-                <Button onClick={handleTransfer} disabled={!transferredTo || isReadOnly} size="sm" className="bg-primary/80">Transfer</Button>
+                <Button onClick={handleTransfer} disabled={!transferredTo || isReadOnly} size="sm" className="bg-primary hover:bg-primary/90">Transfer</Button>
               </div>
             </div>
 
@@ -325,7 +325,7 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
               </div>
               <div className="flex justify-end gap-2">
                 <Button variant="outline" size="sm" onClick={() => { setRemarks(""); setNextFollowUpDate(""); }}>New</Button>
-                <Button onClick={handleAddFollowUp} disabled={isReadOnly} size="sm" className="bg-primary/90">Add &gt;&gt;</Button>
+                <Button onClick={handleAddFollowUp} disabled={isReadOnly} size="sm" className="bg-primary hover:bg-primary/90">Add &gt;&gt;</Button>
               </div>
             </div>
 
@@ -367,14 +367,13 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
         </Card>
       </div>
 
-      {/* LEAD STATUS SECTION - MATCHING IMAGE LAYOUT */}
+      {/* LEAD STATUS SECTION */}
       <Card>
         <CardHeader className="bg-primary/5">
           <CardTitle className="text-base font-bold text-primary">Lead Status</CardTitle>
         </CardHeader>
         <CardContent className="pt-6 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-            {/* LEFT SIDE: INITIAL REMARKS */}
             <div className="space-y-2">
               <Label className="font-bold text-sm">Initial Remarks</Label>
               <Textarea 
@@ -386,7 +385,6 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
               />
             </div>
 
-            {/* RIGHT SIDE: CURRENT STATUS */}
             <div className="space-y-2">
               <Label className="font-bold text-sm">Current Status</Label>
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
@@ -400,13 +398,12 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
                       {filteredLeadStatuses.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                     </SelectContent>
                   </Select>
-                  <Button onClick={handleUpdateStatus} disabled={!selectedStatus || isReadOnly} className="bg-primary/80 hover:bg-primary px-6">
+                  <Button onClick={handleUpdateStatus} disabled={!selectedStatus || isReadOnly} className="bg-primary hover:bg-primary/90 px-6">
                     Update
                   </Button>
                 </div>
               </div>
               
-              {/* CONDITIONAL FIELDS FOR PROPOSAL/NOT INTERESTED */}
               {selectedStatus === 'Proposal Sent' && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 p-4 bg-muted/10 rounded-lg border">
                   <div className="space-y-1">
