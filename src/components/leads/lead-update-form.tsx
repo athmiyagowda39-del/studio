@@ -83,7 +83,6 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
       setNextFollowUpDate("")
       setIsReadyToUpdate(false)
       
-      // Update executive view date if not set
       if (user?.role === 'Executive' && !foundLead.executiveViewDate) {
         updateLead(id, { executiveViewDate: new Date().toISOString() });
       }
@@ -134,7 +133,7 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
         await updateLead(leadDetails.leadId, {
             executive: transferredTo,
             toExecutive: true,
-            executiveViewDate: undefined // Reset view date for new executive
+            executiveViewDate: undefined
         });
         toast({ title: 'Lead Transferred', description: `Lead successfully transferred to ${transferredTo}.` });
         setTransferredTo("");
@@ -150,6 +149,7 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
       leadSubStatus: selectedStatus === "Not interested" ? selectedSubStatus : "",
       monthlyContractValue: selectedStatus === 'Proposal Sent' ? monthlyContractValue : leadDetails.monthlyContractValue,
       annualContractValue: selectedStatus === 'Proposal Sent' ? annualContractValue : leadDetails.annualContractValue,
+      initialRemarks: leadDetails.initialRemarks, // Also save initial remarks if edited
     }
 
     try {
@@ -184,7 +184,8 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
             headcount: leadDetails.headcount,
             address: leadDetails.address,
             district: leadDetails.district,
-            state: leadDetails.state
+            state: leadDetails.state,
+            initialRemarks: leadDetails.initialRemarks
         })
         toast({ title: "Lead Updated" })
         setIsReadyToUpdate(false)
@@ -205,7 +206,7 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1">
                 <Label className="font-semibold">Lead(id)</Label>
-                <Input value={leadDetails.leadId || ""} placeholder="Select a lead from the table below" readOnly className="bg-muted/30" />
+                <Input value={leadDetails.leadId || ""} placeholder="Select a lead" readOnly className="bg-muted/30" />
               </div>
               <div className="space-y-1">
                 <Label className="font-semibold">Company</Label>
@@ -295,7 +296,6 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
         <Card>
           <CardHeader><CardTitle className="text-base font-bold uppercase">Lead Tracker</CardTitle></CardHeader>
           <CardContent className="space-y-6">
-            {/* TRANSFER SECTION */}
             <div className="space-y-2 p-3 bg-muted/20 rounded-lg border">
               <Label className="font-bold uppercase text-xs text-muted-foreground">Transferred Lead</Label>
               <div className="flex gap-2">
@@ -313,7 +313,6 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
               </div>
             </div>
 
-            {/* FOLLOW UP SECTION */}
             <div className="space-y-4">
               <Label className="font-bold uppercase text-xs text-muted-foreground">Follow Up</Label>
               <div className="space-y-1">
@@ -326,11 +325,10 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
               </div>
               <div className="flex justify-end gap-2">
                 <Button variant="outline" size="sm" onClick={() => { setRemarks(""); setNextFollowUpDate(""); }}>New</Button>
-                <Button onClick={handleAddFollowUp} disabled={isReadOnly} size="sm" className="bg-primary/90">Add&gt;&gt;</Button>
+                <Button onClick={handleAddFollowUp} disabled={isReadOnly} size="sm" className="bg-primary/90">Add &gt;&gt;</Button>
               </div>
             </div>
 
-            {/* FOLLOW UP TABLE */}
             <div className="border rounded-md overflow-hidden">
                 <ScrollArea className="h-[200px]">
                     <Table>
@@ -369,52 +367,74 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
         </Card>
       </div>
 
-      {/* LEAD STATUS UPDATE SECTION */}
+      {/* LEAD STATUS SECTION - MATCHING IMAGE LAYOUT */}
       <Card>
-        <CardHeader><CardTitle className="text-base font-bold uppercase">Lead Status</CardTitle></CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-2">
-                <span className="font-bold text-primary">Current Status:</span>
-                <span className="font-semibold text-muted-foreground">({currentStatus})</span>
+        <CardHeader className="bg-primary/5">
+          <CardTitle className="text-base font-bold text-primary">Lead Status</CardTitle>
+        </CardHeader>
+        <CardContent className="pt-6 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+            {/* LEFT SIDE: INITIAL REMARKS */}
+            <div className="space-y-2">
+              <Label className="font-bold text-sm">Initial Remarks</Label>
+              <Textarea 
+                placeholder="Enter initial remarks for the lead..." 
+                value={leadDetails.initialRemarks || ""} 
+                onChange={e => handleLeadDetailChange('initialRemarks', e.target.value)}
+                readOnly={isReadOnly}
+                className="min-h-[120px] bg-muted/5"
+              />
             </div>
-            <Select value={selectedStatus} onValueChange={setSelectedStatus} disabled={isReadOnly}>
-              <SelectTrigger className="w-[240px]">
-                <SelectValue placeholder="Update Status..." />
-              </SelectTrigger>
-              <SelectContent>
-                {filteredLeadStatuses.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Button onClick={handleUpdateStatus} disabled={!selectedStatus || isReadOnly}>Update</Button>
+
+            {/* RIGHT SIDE: CURRENT STATUS */}
+            <div className="space-y-2">
+              <Label className="font-bold text-sm">Current Status</Label>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                <span className="text-sm font-semibold text-muted-foreground min-w-[60px]">({currentStatus})</span>
+                <div className="flex w-full items-center gap-2">
+                  <Select value={selectedStatus} onValueChange={setSelectedStatus} disabled={isReadOnly}>
+                    <SelectTrigger className="flex-1 bg-muted/5">
+                      <SelectValue placeholder="-- Select --" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {filteredLeadStatuses.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Button onClick={handleUpdateStatus} disabled={!selectedStatus || isReadOnly} className="bg-primary/80 hover:bg-primary px-6">
+                    Update
+                  </Button>
+                </div>
+              </div>
+              
+              {/* CONDITIONAL FIELDS FOR PROPOSAL/NOT INTERESTED */}
+              {selectedStatus === 'Proposal Sent' && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 p-4 bg-muted/10 rounded-lg border">
+                  <div className="space-y-1">
+                    <Label className="text-xs font-semibold">Monthly Value (INR)</Label>
+                    <Input type="number" value={monthlyContractValue} onChange={e => setMonthlyContractValue(e.target.value)} disabled={isReadOnly} placeholder="0.00" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs font-semibold">Annual Value (INR)</Label>
+                    <Input type="number" value={annualContractValue} onChange={e => setAnnualContractValue(e.target.value)} disabled={isReadOnly} placeholder="0.00" />
+                  </div>
+                </div>
+              )}
+              
+              {selectedStatus === 'Not interested' && (
+                <div className="mt-4 p-4 bg-muted/10 rounded-lg border">
+                    <Label className="text-xs font-semibold mb-2 block">Reason for Not Interested</Label>
+                    <Select value={selectedSubStatus} onValueChange={setSelectedSubStatus} disabled={isReadOnly}>
+                    <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select Reason..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {leadSubStatuses.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                    </SelectContent>
+                    </Select>
+                </div>
+              )}
+            </div>
           </div>
-          
-          {selectedStatus === 'Proposal Sent' && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-muted/10 rounded-lg border">
-              <div className="space-y-1">
-                <Label>Monthly Contract Value (INR)</Label>
-                <Input type="number" value={monthlyContractValue} onChange={e => setMonthlyContractValue(e.target.value)} disabled={isReadOnly} placeholder="0.00" />
-              </div>
-              <div className="space-y-1">
-                <Label>Annual Contract Value (INR)</Label>
-                <Input type="number" value={annualContractValue} onChange={e => setAnnualContractValue(e.target.value)} disabled={isReadOnly} placeholder="0.00" />
-              </div>
-            </div>
-          )}
-          
-          {selectedStatus === 'Not interested' && (
-            <div className="p-4 bg-muted/10 rounded-lg border">
-                <Label className="mb-2 block">Reason for Not Interested</Label>
-                <Select value={selectedSubStatus} onValueChange={setSelectedSubStatus} disabled={isReadOnly}>
-                <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select Reason..." />
-                </SelectTrigger>
-                <SelectContent>
-                    {leadSubStatuses.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                </SelectContent>
-                </Select>
-            </div>
-          )}
         </CardContent>
       </Card>
     </div>
