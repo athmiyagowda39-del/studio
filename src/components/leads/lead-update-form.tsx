@@ -326,7 +326,7 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
               </div>
               <div className="flex justify-end gap-2">
                 <Button variant="outline" size="sm" onClick={() => { setRemarks(""); setNextFollowUpDate(""); }}>New</Button>
-                <Button onClick={handleAddFollowUp} disabled={isReadOnly} size="sm" className="bg-primary/90">Add>></Button>
+                <Button onClick={handleAddFollowUp} disabled={isReadOnly} size="sm" className="bg-primary/90">Add&gt;&gt;</Button>
               </div>
             </div>
 
