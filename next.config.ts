@@ -8,8 +8,10 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  serverActions: {
-    allowedOrigins: ['10.0.0.9:9445'],
+  experimental: {
+    serverActions: {
+      allowedOrigins: ['10.0.0.9:9445'],
+    },
   },
   images: {
     remotePatterns: [

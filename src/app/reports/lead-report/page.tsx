@@ -32,6 +32,10 @@ const getLeadStatusesForFilters = (
   status: string,
   allStatuses: string[]
 ) => {
+  if (!allStatuses || !Array.isArray(allStatuses)) {
+    return [];
+  }
+
   const filteredLeads = leads.filter(lead => {
     let matches = true;
     if (state !== 'All') {
@@ -105,10 +109,10 @@ export default function LeadReportPage() {
 
   const [otherSectorInput, setOtherSectorInput] = useState('');
 
-  const sectorsWithAll = useMemo(() => ['All', ...sectorsFromDb], [sectorsFromDb]);
+  const sectorsWithAll = useMemo(() => ['All', ...(sectorsFromDb || [])], [sectorsFromDb]);
 
   const leadStatusesForTable = useMemo(() => {
-    if (!visibleLeads) return [];
+    if (!visibleLeads || !allLeadStatusesFromDb) return [];
     return getLeadStatusesForFilters(visibleLeads, selectedState, selectedSector, selectedHeadcount, selectedStatus, allLeadStatusesFromDb);
   }, [visibleLeads, selectedState, selectedSector, selectedHeadcount, selectedStatus, allLeadStatusesFromDb]);
   
@@ -116,7 +120,6 @@ export default function LeadReportPage() {
   const leadsForDetailedView = useMemo(() => {
     if (!detailedStatusView || !visibleLeads) return [];
     
-    // Base filtering by State, Sector, Headcount
     let leads = visibleLeads.filter(lead => {
         let matches = true;
         if (selectedState !== 'All') {
@@ -152,7 +155,7 @@ export default function LeadReportPage() {
 
 
   const chartData = useMemo(() => {
-    if (!leadStatusesForTable) return [];
+    if (!leadStatusesForTable || leadStatusesForTable.length === 0) return [];
     return leadStatusesForTable
       .filter((s) => s.status !== 'Total Leads')
       .map((item) => ({
@@ -260,7 +263,7 @@ export default function LeadReportPage() {
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="All">All Statuses</SelectItem>
-                            {allLeadStatusesFromDb.map(status => (
+                            {(allLeadStatusesFromDb || []).map(status => (
                                 <SelectItem key={status} value={status}>
                                     {status}
                                 </SelectItem>
@@ -362,7 +365,7 @@ export default function LeadReportPage() {
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
                     <div className="space-y-2">
-                        {leadStatusesForTable.map((item) => (
+                        {(leadStatusesForTable || []).map((item) => (
                         <div
                             key={item.status}
                             className="flex justify-between items-center p-3 border rounded-lg cursor-pointer hover:bg-accent transition-colors"
