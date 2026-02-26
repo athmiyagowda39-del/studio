@@ -195,8 +195,9 @@ export default function LeadReportPage() {
 
   const chartData = useMemo(() => {
     if (!leadStatusesForTable || leadStatusesForTable.length === 0) return [];
+    // Only include statuses that have at least one lead and are not the summary "Total Leads"
     return leadStatusesForTable
-      .filter((s) => s.status !== 'Total Leads')
+      .filter((s) => s.status !== 'Total Leads' && s.value > 0)
       .map((item) => ({
           name: item.status,
           value: item.value,

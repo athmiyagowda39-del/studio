@@ -83,7 +83,7 @@ export default function LeadStatusChart({
   return (
     <ChartContainer
       config={chartConfig}
-      className="mx-auto aspect-square h-[400px]"
+      className="mx-auto aspect-square h-[450px]"
     >
       <PieChart>
         <ChartTooltip
@@ -94,10 +94,12 @@ export default function LeadStatusChart({
           data={chartData}
           dataKey="value"
           nameKey="name"
-          innerRadius={120}
-          strokeWidth={5}
+          innerRadius={60} // Reduced for thicker segments
+          outerRadius={160}
+          strokeWidth={4}
           stroke="hsl(var(--background))"
-          minAngle={3}
+          paddingAngle={2}
+          minAngle={15} // Ensures small slices are very visible and clickable
           onClick={(pieData) => onStatusClick?.(pieData.name)}
           cursor={onStatusClick ? "pointer" : "default"}
         >
