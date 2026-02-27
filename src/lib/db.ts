@@ -1,17 +1,5 @@
 import sql from 'mssql';
 
-const config: sql.config = {
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  server: process.env.DB_SERVER || '',
-  database: process.env.DB_DATABASE,
-  options: {
-    encrypt: true, // Always true for hosted SQL (Azure, AWS, Google Cloud SQL)
-    trustServerCertificate: process.env.DB_TRUST_SERVER_CERTIFICATE === 'true',
-    connectTimeout: 30000,
-  },
-};
-
 let pool: sql.ConnectionPool | null = null;
 
 export async function getConnection() {
@@ -19,7 +7,6 @@ export async function getConnection() {
     return pool;
   }
 
-  // Debugging check for environment variables
   const missingVars = [];
   if (!process.env.DB_SERVER) missingVars.push('DB_SERVER');
   if (!process.env.DB_USER) missingVars.push('DB_USER');
@@ -27,12 +14,25 @@ export async function getConnection() {
   if (!process.env.DB_DATABASE) missingVars.push('DB_DATABASE');
 
   if (missingVars.length > 0) {
-    console.error(`DATABASE CONFIGURATION ERROR: Missing variables: ${missingVars.join(', ')}`);
-    throw new Error(`Database configuration incomplete. Missing: ${missingVars.join(', ')}`);
+    const errorMsg = `DATABASE CONFIGURATION ERROR: Missing variables: ${missingVars.join(', ')}. Ensure these are set in your environment or App Hosting secrets.`;
+    console.error(errorMsg);
+    throw new Error(errorMsg);
   }
 
+  const config: sql.config = {
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    server: process.env.DB_SERVER || '',
+    database: process.env.DB_DATABASE,
+    options: {
+      encrypt: true,
+      trustServerCertificate: process.env.DB_TRUST_SERVER_CERTIFICATE === 'true',
+      connectTimeout: 30000,
+    },
+  };
+
   try {
-    console.log(`Attempting to connect to database: ${config.server}`);
+    console.log(`Attempting to connect to database server: ${config.server}`);
     pool = await new sql.ConnectionPool(config).connect();
     
     pool.on('error', err => {
@@ -44,7 +44,7 @@ export async function getConnection() {
   } catch (err: any) {
     console.error('DATABASE CONNECTION FAILED:', err.message);
     pool = null; 
-    throw new Error(`Could not connect to the database: ${err.message}`);
+    throw new Error(`Could not connect to the database. Connection string might be incorrect or firewall is blocking the request. Original error: ${err.message}`);
   }
 }
 
