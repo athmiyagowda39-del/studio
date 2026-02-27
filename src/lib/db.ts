@@ -1,4 +1,3 @@
-
 import sql from 'mssql';
 
 const config: sql.config = {
@@ -7,50 +6,45 @@ const config: sql.config = {
   server: process.env.DB_SERVER || '',
   database: process.env.DB_DATABASE,
   options: {
-    encrypt: process.env.DB_ENCRYPT === 'true' || true, // Default to true for hosted environments (like Azure/AWS)
+    encrypt: true, // Always true for hosted SQL (Azure, AWS, Google Cloud SQL)
     trustServerCertificate: process.env.DB_TRUST_SERVER_CERTIFICATE === 'true',
-    connectTimeout: 30000, // 30 seconds timeout
+    connectTimeout: 30000,
   },
 };
 
 let pool: sql.ConnectionPool | null = null;
 
 export async function getConnection() {
-  // If pool exists and is connected, return it.
   if (pool && pool.connected) {
     return pool;
   }
 
-  // Check for missing essential configuration
-  if (!process.env.DB_SERVER || !process.env.DB_USER || !process.env.DB_PASSWORD || !process.env.DB_DATABASE) {
-      console.error('DATABASE CONFIGURATION ERROR: Missing environment variables.');
-      console.error('Ensure DB_SERVER, DB_USER, DB_PASSWORD, and DB_DATABASE are set in your hosting secrets/environment.');
-      throw new Error('Database configuration is incomplete.');
+  // Debugging check for environment variables
+  const missingVars = [];
+  if (!process.env.DB_SERVER) missingVars.push('DB_SERVER');
+  if (!process.env.DB_USER) missingVars.push('DB_USER');
+  if (!process.env.DB_PASSWORD) missingVars.push('DB_PASSWORD');
+  if (!process.env.DB_DATABASE) missingVars.push('DB_DATABASE');
+
+  if (missingVars.length > 0) {
+    console.error(`DATABASE CONFIGURATION ERROR: Missing variables: ${missingVars.join(', ')}`);
+    throw new Error(`Database configuration incomplete. Missing: ${missingVars.join(', ')}`);
   }
 
   try {
-    console.log(`Attempting to connect to database server: ${config.server}`);
+    console.log(`Attempting to connect to database: ${config.server}`);
     pool = await new sql.ConnectionPool(config).connect();
     
     pool.on('error', err => {
         console.error('SQL Pool Error:', err);
-        pool = null; // Reset pool on error to force reconnection on next call
+        pool = null;
     });
 
-    console.log('Database connected successfully.');
     return pool;
   } catch (err: any) {
-    console.error('DATABASE CONNECTION FAILED!');
-    console.error('Error Code:', err.code);
-    console.error('Error Message:', err.message);
-    
-    // Help identify firewall issues
-    if (err.code === 'ETIMEOUT') {
-        console.error('Connection timed out. This often means the database server is behind a firewall and your hosting IP needs to be whitelisted.');
-    }
-
+    console.error('DATABASE CONNECTION FAILED:', err.message);
     pool = null; 
-    throw new Error('Could not connect to the database. Check server logs for details.');
+    throw new Error(`Could not connect to the database: ${err.message}`);
   }
 }
 
