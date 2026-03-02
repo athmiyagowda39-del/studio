@@ -19,14 +19,20 @@ export async function getConnection() {
     throw new Error(errorMsg);
   }
 
+  // Detect if server is an IP address to handle tedious TLS restrictions
+  const server = process.env.DB_SERVER || '';
+  const isIP = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(server);
+
   const config: sql.config = {
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
-    server: process.env.DB_SERVER || '',
+    server: server,
     database: process.env.DB_DATABASE,
     options: {
-      encrypt: true,
-      trustServerCertificate: true, // Often needed for hosted environments
+      // Disable encryption for direct IP connections to avoid TLS ServerName restriction
+      // Enable it for hostnames (standard for Azure/Cloud)
+      encrypt: isIP ? false : (process.env.DB_ENCRYPT !== 'false'),
+      trustServerCertificate: true,
       connectTimeout: 30000,
     },
     pool: {
@@ -37,7 +43,7 @@ export async function getConnection() {
   };
 
   try {
-    console.log(`Attempting to connect to database server: ${config.server}`);
+    console.log(`Attempting to connect to database server: ${config.server} (Encrypt: ${config.options?.encrypt})`);
     pool = await new sql.ConnectionPool(config).connect();
     
     pool.on('error', err => {

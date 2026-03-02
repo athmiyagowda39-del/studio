@@ -39,7 +39,7 @@ export async function getNextLeadId(): Promise<string> {
     } catch (error) {
         await addErrorLog('getNextLeadId', error);
         console.error('Failed to get next lead ID from database, using random fallback:', error);
-        // Use a safe 6-digit random number that fits in an INT column
+        // Safe 6-digit integer fallback to avoid SQL INT overflow
         const safeFallbackId = Math.floor(100000 + Math.random() * 899999).toString();
         return safeFallbackId;
     }
@@ -50,6 +50,7 @@ export async function addLeads(leads: LeadFormData[]): Promise<LeadFormData[]> {
     
     const pool = await getConnection();
     
+    // Using exactly 24 columns to match LeadType UDTT as per user database structure
     const table = new sql.Table('LeadType');
     table.columns.add('leadId', sql.NVarChar(50));
     table.columns.add('pincode', sql.NVarChar(10));
