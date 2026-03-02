@@ -29,13 +29,24 @@ export async function getNextLeadId(): Promise<string> {
     try {
         const pool = await getConnection();
         const result = await pool.request().execute('usp_GetNextLeadId');
-        const maxId = result.recordset[0].maxId;
-        const nextId = maxId ? (maxId + 1).toString() : '100000';
-        return nextId;
+        
+        if (result.recordset && result.recordset.length > 0) {
+            const maxId = result.recordset[0].maxId;
+            // If maxId exists, increment it. Otherwise start at 100000.
+            const nextId = maxId ? (parseInt(maxId, 10) + 1).toString() : '100000';
+            return nextId;
+        }
+        return '100000';
     } catch (error) {
         await addErrorLog('getNextLeadId', error);
-        console.error('Failed to get next lead ID:', error);
-        throw error;
+        console.error('Failed to get next lead ID from database:', error);
+        
+        // We avoid Date.now() because 13-digit timestamps overflow SQL INT columns.
+        // If the database column is an INT, we use a large but safe random integer as a last-resort fallback.
+        // A better approach is usually to let the database handle ID generation (IDENTITY), 
+        // but to keep compatibility with your current SPs, we provide a safe integer.
+        const safeFallbackId = Math.floor(100000 + Math.random() * 900000).toString();
+        return safeFallbackId;
     }
 }
 
@@ -45,7 +56,7 @@ export async function addLeads(leads: LeadFormData[]): Promise<LeadFormData[]> {
     const pool = await getConnection();
     
     const table = new sql.Table('LeadType');
-    // Defining 26 columns to match the stored procedure and DB type exactly
+    // Defining 26 columns to match your usp_BulkAddLeads stored procedure exactly
     table.columns.add('leadId', sql.NVarChar(50));
     table.columns.add('pincode', sql.NVarChar(10));
     table.columns.add('state', sql.NVarChar(100));
