@@ -32,7 +32,6 @@ export async function getNextLeadId(): Promise<string> {
         
         if (result.recordset && result.recordset.length > 0) {
             const maxId = result.recordset[0].maxId;
-            // If maxId exists, increment it. Otherwise start at 100000.
             const nextId = maxId ? (parseInt(maxId, 10) + 1).toString() : '100000';
             return nextId;
         }
@@ -40,11 +39,6 @@ export async function getNextLeadId(): Promise<string> {
     } catch (error) {
         await addErrorLog('getNextLeadId', error);
         console.error('Failed to get next lead ID from database:', error);
-        
-        // We avoid Date.now() because 13-digit timestamps overflow SQL INT columns.
-        // If the database column is an INT, we use a large but safe random integer as a last-resort fallback.
-        // A better approach is usually to let the database handle ID generation (IDENTITY), 
-        // but to keep compatibility with your current SPs, we provide a safe integer.
         const safeFallbackId = Math.floor(100000 + Math.random() * 900000).toString();
         return safeFallbackId;
     }
@@ -55,8 +49,8 @@ export async function addLeads(leads: LeadFormData[]): Promise<LeadFormData[]> {
     
     const pool = await getConnection();
     
+    // Adjusted to 24 columns to match the LeadType UDTT in the database
     const table = new sql.Table('LeadType');
-    // Defining 26 columns to match your usp_BulkAddLeads stored procedure exactly
     table.columns.add('leadId', sql.NVarChar(50));
     table.columns.add('pincode', sql.NVarChar(10));
     table.columns.add('state', sql.NVarChar(100));
@@ -81,8 +75,6 @@ export async function addLeads(leads: LeadFormData[]): Promise<LeadFormData[]> {
     table.columns.add('status', sql.NVarChar(100));
     table.columns.add('leadSubStatus', sql.NVarChar(100));
     table.columns.add('initialRemarks', sql.NVarChar(sql.MAX));
-    table.columns.add('monthlyContractValue', sql.NVarChar(50));
-    table.columns.add('annualContractValue', sql.NVarChar(50));
 
     for (const lead of leads) {
         table.rows.add(
@@ -109,9 +101,7 @@ export async function addLeads(leads: LeadFormData[]): Promise<LeadFormData[]> {
             lead.givenBy || null,
             lead.status || null,
             lead.leadSubStatus || null,
-            lead.initialRemarks || null,
-            lead.monthlyContractValue || null,
-            lead.annualContractValue || null
+            lead.initialRemarks || null
         );
     }
     
