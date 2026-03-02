@@ -45,6 +45,7 @@ export async function addLeads(leads: LeadFormData[]): Promise<LeadFormData[]> {
     const pool = await getConnection();
     
     const table = new sql.Table('LeadType');
+    // Defining 26 columns to match the stored procedure and DB type exactly
     table.columns.add('leadId', sql.NVarChar(50));
     table.columns.add('pincode', sql.NVarChar(10));
     table.columns.add('state', sql.NVarChar(100));
@@ -111,7 +112,7 @@ export async function addLeads(leads: LeadFormData[]): Promise<LeadFormData[]> {
     } catch (error) {
         const userDetails = leads.length > 0 ? `User: ${leads[0].givenBy}` : 'User unknown';
         await addErrorLog('addLeads', error, userDetails);
-        console.error('Failed to bulk insert leads using stored procedure:', error);
+        console.error('Failed to bulk insert leads:', error);
         throw new Error('Failed to add leads due to a database error.');
     }
 }
