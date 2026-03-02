@@ -1,4 +1,3 @@
-
 'use server';
 
 import { sql, getConnection } from '@/lib/db';
@@ -34,14 +33,17 @@ export async function getNextLeadId(): Promise<string> {
     try {
         const pool = await getConnection();
         const result = await pool.request().execute('usp_GetNextLeadId');
-        const maxId = result.recordset[0].maxId;
-        const nextId = maxId ? (maxId + 1).toString() : '100000';
-        return nextId;
+        if (result.recordset && result.recordset.length > 0) {
+            const maxId = result.recordset[0].maxId;
+            const nextId = maxId ? (parseInt(maxId, 10) + 1).toString() : '100000';
+            return nextId;
+        }
+        return '100000';
     } catch (error) {
         await addErrorLog('getNextLeadId', error);
-        console.error('Failed to get next lead ID:', error);
-        const fallbackId = Date.now().toString();
-        return fallbackId; // Fallback
+        console.error('Failed to get next lead ID, using random fallback:', error);
+        // Safer random fallback that fits in INT
+        return Math.floor(100000 + Math.random() * 899999).toString();
     }
 }
 
@@ -75,8 +77,6 @@ export async function addLeads(leads: LeadFormData[]): Promise<LeadFormData[]> {
     table.columns.add('status', sql.NVarChar(100));
     table.columns.add('leadSubStatus', sql.NVarChar(100));
     table.columns.add('initialRemarks', sql.NVarChar(sql.MAX));
-    table.columns.add('monthlyContractValue', sql.NVarChar(50));
-    table.columns.add('annualContractValue', sql.NVarChar(50));
 
     for (const lead of leads) {
         table.rows.add(
@@ -103,9 +103,7 @@ export async function addLeads(leads: LeadFormData[]): Promise<LeadFormData[]> {
             lead.givenBy || null,
             lead.status || null,
             lead.leadSubStatus || null,
-            lead.initialRemarks || null,
-            lead.monthlyContractValue || null,
-            lead.annualContractValue || null
+            lead.initialRemarks || null
         );
     }
     
@@ -120,7 +118,7 @@ export async function addLeads(leads: LeadFormData[]): Promise<LeadFormData[]> {
     } catch (error) {
         const userDetails = leads.length > 0 ? `User: ${leads[0].givenBy}` : 'User unknown';
         await addErrorLog('addLeads', error, userDetails);
-        console.error('Failed to bulk insert leads using stored procedure:', error);
+        console.error('Failed to bulk insert leads:', error);
         throw new Error('Failed to add leads due to a database error.');
     }
 }

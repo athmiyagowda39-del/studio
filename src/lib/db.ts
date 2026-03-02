@@ -26,9 +26,14 @@ export async function getConnection() {
     database: process.env.DB_DATABASE,
     options: {
       encrypt: true,
-      trustServerCertificate: process.env.DB_TRUST_SERVER_CERTIFICATE === 'true',
+      trustServerCertificate: true, // Often needed for hosted environments
       connectTimeout: 30000,
     },
+    pool: {
+      max: 10,
+      min: 0,
+      idleTimeoutMillis: 30000
+    }
   };
 
   try {
@@ -44,7 +49,7 @@ export async function getConnection() {
   } catch (err: any) {
     console.error('DATABASE CONNECTION FAILED:', err.message);
     pool = null; 
-    throw new Error(`Could not connect to the database. Connection string might be incorrect or firewall is blocking the request. Original error: ${err.message}`);
+    throw new Error(`Could not connect to the database. Ensure DB_SERVER, DB_USER, DB_PASSWORD, and DB_DATABASE are correct and firewall is open. Original error: ${err.message}`);
   }
 }
 

@@ -38,8 +38,9 @@ export async function getNextLeadId(): Promise<string> {
         return '100000';
     } catch (error) {
         await addErrorLog('getNextLeadId', error);
-        console.error('Failed to get next lead ID from database:', error);
-        const safeFallbackId = Math.floor(100000 + Math.random() * 900000).toString();
+        console.error('Failed to get next lead ID from database, using random fallback:', error);
+        // Use a safe 6-digit random number that fits in an INT column
+        const safeFallbackId = Math.floor(100000 + Math.random() * 899999).toString();
         return safeFallbackId;
     }
 }
@@ -49,7 +50,6 @@ export async function addLeads(leads: LeadFormData[]): Promise<LeadFormData[]> {
     
     const pool = await getConnection();
     
-    // Adjusted to 24 columns to match the LeadType UDTT in the database
     const table = new sql.Table('LeadType');
     table.columns.add('leadId', sql.NVarChar(50));
     table.columns.add('pincode', sql.NVarChar(10));
