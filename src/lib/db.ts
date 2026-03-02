@@ -14,14 +14,14 @@ export async function getConnection() {
   if (!process.env.DB_DATABASE) missingVars.push('DB_DATABASE');
 
   if (missingVars.length > 0) {
-    const errorMsg = `DATABASE CONFIGURATION ERROR: Missing variables: ${missingVars.join(', ')}. Ensure these are set in your environment or App Hosting secrets.`;
+    const errorMsg = `DATABASE CONFIGURATION ERROR: Missing variables: ${missingVars.join(', ')}.`;
     console.error(errorMsg);
     throw new Error(errorMsg);
   }
 
-  // Detect if server is an IP address to handle tedious TLS restrictions
   const server = process.env.DB_SERVER || '';
-  const isIP = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(server);
+  // Enhanced IP detection
+  const isIP = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(server) || server === 'localhost' || server === '127.0.0.1';
 
   const config: sql.config = {
     user: process.env.DB_USER,
@@ -29,9 +29,8 @@ export async function getConnection() {
     server: server,
     database: process.env.DB_DATABASE,
     options: {
-      // Disable encryption for direct IP connections to avoid TLS ServerName restriction
-      // Enable it for hostnames (standard for Azure/Cloud)
-      encrypt: isIP ? false : (process.env.DB_ENCRYPT !== 'false'),
+      // Direct IP connections usually don't support TLS ServerName validation
+      encrypt: isIP ? false : true, 
       trustServerCertificate: true,
       connectTimeout: 30000,
     },
@@ -43,19 +42,13 @@ export async function getConnection() {
   };
 
   try {
-    console.log(`Attempting to connect to database server: ${config.server} (Encrypt: ${config.options?.encrypt})`);
+    console.log(`Connecting to ${config.server} (Encrypt: ${config.options?.encrypt})`);
     pool = await new sql.ConnectionPool(config).connect();
-    
-    pool.on('error', err => {
-        console.error('SQL Pool Error:', err);
-        pool = null;
-    });
-
     return pool;
   } catch (err: any) {
     console.error('DATABASE CONNECTION FAILED:', err.message);
     pool = null; 
-    throw new Error(`Could not connect to the database. Ensure DB_SERVER, DB_USER, DB_PASSWORD, and DB_DATABASE are correct and firewall is open. Original error: ${err.message}`);
+    throw new Error(`Connection failed: ${err.message}`);
   }
 }
 

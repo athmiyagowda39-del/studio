@@ -1,6 +1,7 @@
 import { sql, getConnection } from '@/lib/db';
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import { addErrorLog } from './audit';
+import { revalidatePath } from 'next/cache';
 
 function parseLeads(recordset: any[]): LeadFormData[] {
     return recordset.map(lead => ({
@@ -39,7 +40,7 @@ export async function getNextLeadId(): Promise<string> {
     } catch (error) {
         await addErrorLog('getNextLeadId', error);
         console.error('Failed to get next lead ID from database, using random fallback:', error);
-        // Safe 6-digit integer fallback to avoid SQL INT overflow
+        // Safe 6-digit integer fallback to avoid SQL INT overflow (max ~2.1 billion)
         const safeFallbackId = Math.floor(100000 + Math.random() * 899999).toString();
         return safeFallbackId;
     }
@@ -50,7 +51,8 @@ export async function addLeads(leads: LeadFormData[]): Promise<LeadFormData[]> {
     
     const pool = await getConnection();
     
-    // Using exactly 24 columns to match LeadType UDTT as per user database structure
+    // UPDATED: Using exactly 26 columns to match your new usp_BulkAddLeads
+    // IMPORTANT: Your LeadType UDTT in SQL Server must also be updated to 26 columns
     const table = new sql.Table('LeadType');
     table.columns.add('leadId', sql.NVarChar(50));
     table.columns.add('pincode', sql.NVarChar(10));
@@ -76,6 +78,8 @@ export async function addLeads(leads: LeadFormData[]): Promise<LeadFormData[]> {
     table.columns.add('status', sql.NVarChar(100));
     table.columns.add('leadSubStatus', sql.NVarChar(100));
     table.columns.add('initialRemarks', sql.NVarChar(sql.MAX));
+    table.columns.add('monthlyContractValue', sql.NVarChar(50));
+    table.columns.add('annualContractValue', sql.NVarChar(50));
 
     for (const lead of leads) {
         table.rows.add(
@@ -102,7 +106,9 @@ export async function addLeads(leads: LeadFormData[]): Promise<LeadFormData[]> {
             lead.givenBy || null,
             lead.status || null,
             lead.leadSubStatus || null,
-            lead.initialRemarks || null
+            lead.initialRemarks || null,
+            lead.monthlyContractValue || null,
+            lead.annualContractValue || null
         );
     }
     
@@ -110,12 +116,17 @@ export async function addLeads(leads: LeadFormData[]): Promise<LeadFormData[]> {
         const request = pool.request();
         request.input('leads', table);
         await request.execute('usp_BulkAddLeads');
+        
+        revalidatePath('/leads-upload');
+        revalidatePath('/leads-update');
+        revalidatePath('/dashboard');
+        
         return leads;
-    } catch (error) {
+    } catch (error: any) {
         const userDetails = leads.length > 0 ? `User: ${leads[0].givenBy}` : 'User unknown';
         await addErrorLog('addLeads', error, userDetails);
-        console.error('Failed to bulk insert leads:', error);
-        throw new Error('Failed to add leads due to a database error.');
+        console.error('DATABASE ERROR in addLeads:', error.message);
+        throw new Error(`Failed to add leads: ${error.message}`);
     }
 }
 
@@ -163,15 +174,18 @@ export async function updateLead(id: string, updates: Partial<LeadFormData>): Pr
           .input('annualContractValue', sql.NVarChar(50), mergedLead.annualContractValue || null)
           .execute('usp_UpdateLead');
 
+      revalidatePath('/leads-update');
+      revalidatePath('/dashboard');
+
       if (result.recordset.length > 0) {
           const [updatedLead] = parseLeads(result.recordset);
           return updatedLead;
       } else {
           throw new Error('Lead not found after update.');
       }
-  } catch (error) {
+  } catch (error: any) {
       await addErrorLog('updateLead', error, `LeadId: ${id}`);
-      console.error(`Failed to update lead ${id}:`, error);
-      throw new Error('Failed to update lead due to a database error.');
+      console.error(`Failed to update lead ${id}:`, error.message);
+      throw new Error(`Failed to update lead: ${error.message}`);
   }
 }
