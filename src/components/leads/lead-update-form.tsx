@@ -97,7 +97,9 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
 
   const handleAddFollowUp = async () => {
     if (!leadDetails.leadId) return
-    if (!remarks || (!nextFollowUpDate && !remarks.toLowerCase().includes("order closed"))) {
+    const isOrderClosed = remarks.toLowerCase().includes("order closed")
+    
+    if (!remarks || (!nextFollowUpDate && !isOrderClosed)) {
       toast({ variant: "destructive", title: "Missing Information", description: "Please provide remarks and next follow-up date." })
       return
     }
@@ -106,14 +108,14 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
       id: (followUps?.length || 0) + 1,
       date: new Date().toISOString(),
       remarks: remarks,
-      nextFollowUp: nextFollowUpDate ? format(new Date(nextFollowUpDate + "T00:00:00"), "PPP") : "N/A",
+      nextFollowUp: nextFollowUpDate && !isOrderClosed ? format(new Date(nextFollowUpDate + "T00:00:00"), "PPP") : "N/A",
       enteredBy: user?.username || "System",
     }
 
     try {
       await updateLead(leadDetails.leadId, {
         followUps: [...(followUps || []), newFollowUp],
-        nextFollowUpDate: nextFollowUpDate ? new Date(nextFollowUpDate + "T00:00:00").toISOString() : undefined,
+        nextFollowUpDate: nextFollowUpDate && !isOrderClosed ? new Date(nextFollowUpDate + "T00:00:00").toISOString() : undefined,
       })
       setRemarks("")
       setNextFollowUpDate("")
@@ -194,8 +196,8 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
     }
   }
 
-  // Consistent background for all inputs
   const inputBgClass = "bg-muted/50";
+  const isOrderClosedInRemarks = remarks.toLowerCase().includes("order closed");
 
   return (
     <div className="space-y-6">
@@ -324,7 +326,12 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
               </div>
               <div className="space-y-1">
                 <Label className="text-xs font-semibold">Next Follow-up Date</Label>
-                <Input type="date" value={nextFollowUpDate} onChange={e => setNextFollowUpDate(e.target.value)} disabled={isReadOnly} />
+                <Input 
+                  type="date" 
+                  value={isOrderClosedInRemarks ? "" : nextFollowUpDate} 
+                  onChange={e => setNextFollowUpDate(e.target.value)} 
+                  disabled={isReadOnly || isOrderClosedInRemarks} 
+                />
               </div>
               <div className="flex justify-end gap-2">
                 <Button variant="outline" size="sm" onClick={() => { setRemarks(""); setNextFollowUpDate(""); }}>New</Button>
