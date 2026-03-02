@@ -25,7 +25,7 @@ export async function getLeads(): Promise<LeadFormData[]> {
   } catch (error) {
     await addErrorLog('getLeads', error);
     console.error('Failed to fetch leads:', error);
-    return [];
+    throw error;
   }
 }
 
@@ -35,15 +35,14 @@ export async function getNextLeadId(): Promise<string> {
         const result = await pool.request().execute('usp_GetNextLeadId');
         if (result.recordset && result.recordset.length > 0) {
             const maxId = result.recordset[0].maxId;
-            const nextId = maxId ? (parseInt(maxId, 10) + 1).toString() : '100000';
+            const nextId = maxId ? (BigInt(maxId) + BigInt(1)).toString() : '100000';
             return nextId;
         }
         return '100000';
     } catch (error) {
         await addErrorLog('getNextLeadId', error);
-        console.error('Failed to get next lead ID, using random fallback:', error);
-        // Safer random fallback that fits in INT
-        return Math.floor(100000 + Math.random() * 899999).toString();
+        console.error('Failed to get next lead ID:', error);
+        throw error;
     }
 }
 

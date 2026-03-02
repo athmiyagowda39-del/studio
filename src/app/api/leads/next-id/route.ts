@@ -7,8 +7,6 @@ export async function GET() {
         return NextResponse.json({ nextId });
     } catch (error: any) {
         console.error('API Error: Failed to get next lead ID', error);
-        // Provide a safe random 6-digit fallback on the server side in case of DB error.
-        const fallbackId = Math.floor(100000 + Math.random() * 899999).toString();
-        return NextResponse.json({ nextId: fallbackId });
+        return NextResponse.json({ error: 'Failed to fetch next lead ID from database' }, { status: 500 });
     }
 }

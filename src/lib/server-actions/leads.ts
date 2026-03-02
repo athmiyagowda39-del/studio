@@ -33,16 +33,15 @@ export async function getNextLeadId(): Promise<string> {
         
         if (result.recordset && result.recordset.length > 0) {
             const maxId = result.recordset[0].maxId;
-            const nextId = maxId ? (parseInt(maxId, 10) + 1).toString() : '100000';
+            // Use BigInt to handle large values that might exist in the DB
+            const nextId = maxId ? (BigInt(maxId) + BigInt(1)).toString() : '100000';
             return nextId;
         }
         return '100000';
     } catch (error) {
         await addErrorLog('getNextLeadId', error);
-        console.error('Failed to get next lead ID from database, using random fallback:', error);
-        // Safe 6-digit integer fallback to avoid SQL INT overflow (max ~2.1 billion)
-        const safeFallbackId = Math.floor(100000 + Math.random() * 899999).toString();
-        return safeFallbackId;
+        console.error('Failed to get next lead ID from database:', error);
+        throw error;
     }
 }
 
@@ -51,8 +50,6 @@ export async function addLeads(leads: LeadFormData[]): Promise<LeadFormData[]> {
     
     const pool = await getConnection();
     
-    // UPDATED: Using exactly 26 columns to match your new usp_BulkAddLeads
-    // IMPORTANT: Your LeadType UDTT in SQL Server must also be updated to 26 columns
     const table = new sql.Table('LeadType');
     table.columns.add('leadId', sql.NVarChar(50));
     table.columns.add('pincode', sql.NVarChar(10));
