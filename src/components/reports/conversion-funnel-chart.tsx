@@ -63,16 +63,23 @@ export default function ConversionFunnelChart({
               <Funnel
                 dataKey="value"
                 data={chartData}
-                isAnimationActive
-                onClick={(stage: any) =>
-                  onStageClick?.(stage?.name)
-                }
+                isAnimationActive={false} // Disable animation for instant click response
+                onClick={(stage: any) => {
+                  if (stage && stage.name) {
+                    onStageClick?.(stage.name);
+                  }
+                }}
               >
+                {/* 
+                  We use style pointerEvents: 'none' to ensure clicks pass through 
+                  labels to the funnel sectors themselves.
+                */}
                 <LabelList
                   position="right"
                   fill="hsl(var(--foreground))"
                   dataKey="name"
                   className="font-semibold"
+                  style={{ pointerEvents: 'none' }}
                 />
  
                 <LabelList
@@ -80,6 +87,7 @@ export default function ConversionFunnelChart({
                   fill="#fff"
                   dataKey="value"
                   className="font-bold text-lg"
+                  style={{ pointerEvents: 'none' }}
                 />
               </Funnel>
  

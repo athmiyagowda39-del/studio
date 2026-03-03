@@ -104,7 +104,6 @@ export default function ConversionFunnelReportPage() {
   const router = useRouter();
   const [isClient, setIsClient] = useState(false);
   const [selectedStage, setSelectedStage] = useState<string | null>(null);
-  const [stageLeads, setStageLeads] = useState<LeadFormData[]>([]);
   const detailsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -127,32 +126,33 @@ export default function ConversionFunnelReportPage() {
     return getFunnelData(visibleLeads);
   }, [visibleLeads]);
 
+  const stageLeads = useMemo(() => {
+    if (!selectedStage || !visibleLeads) return [];
+
+    if (selectedStage === 'Total Leads') {
+        return visibleLeads;
+    } else if (selectedStage === 'Attended') {
+        return visibleLeads.filter(l => (stageOrder[l.status || ''] || 0) >= 1);
+    } else if (selectedStage === 'Demo Given') {
+        return visibleLeads.filter(l => (stageOrder[l.status || ''] || 0) >= 2);
+    } else if (selectedStage === 'Pursuing to Purchase') {
+        return visibleLeads.filter(l => (stageOrder[l.status || ''] || 0) >= 3);
+    } else if (selectedStage === 'Order closed') {
+        return visibleLeads.filter(l => l.status === 'Order closed');
+    }
+    return [];
+  }, [selectedStage, visibleLeads]);
+
   const handleStageClick = (stageName: string) => {
     if (selectedStage === stageName) {
       setSelectedStage(null);
-      setStageLeads([]);
-      return;
+    } else {
+      setSelectedStage(stageName);
+      // Wait for the UI to update then scroll
+      setTimeout(() => {
+        detailsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 50);
     }
-
-    let filtered: LeadFormData[] = [];
-    if (stageName === 'Total Leads') {
-        filtered = visibleLeads;
-    } else if (stageName === 'Attended') {
-        filtered = visibleLeads.filter(l => (stageOrder[l.status || ''] || 0) >= 1);
-    } else if (stageName === 'Demo Given') {
-        filtered = visibleLeads.filter(l => (stageOrder[l.status || ''] || 0) >= 2);
-    } else if (stageName === 'Pursuing to Purchase') {
-        filtered = visibleLeads.filter(l => (stageOrder[l.status || ''] || 0) >= 3);
-    } else if (stageName === 'Order closed') {
-        filtered = visibleLeads.filter(l => l.status === 'Order closed');
-    }
-    
-    setSelectedStage(stageName);
-    setStageLeads(filtered);
-
-    setTimeout(() => {
-      detailsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 100);
   };
 
   if (isLoading || !isAuthenticated) {
@@ -168,22 +168,28 @@ export default function ConversionFunnelReportPage() {
         <CardContent className="p-6 space-y-6">
           <div className="w-full">
             <p className="text-center text-muted-foreground mb-4">
-              Showing {visibleLeads.length} total leads. Click on a funnel stage to see details.
+              Showing {visibleLeads.length} total leads. Click on any color box in the funnel to see details.
             </p>
             {isClient && <ConversionFunnelChart data={funnelData} onStageClick={handleStageClick} />}
           </div>
 
           {selectedStage && (
-            <Card ref={detailsRef}>
-              <CardHeader>
-                <CardTitle className="text-lg">
-                  Leads in Stage: "{selectedStage}" ({stageLeads.length} leads)
+            <Card ref={detailsRef} className="border-2 border-primary/20">
+              <CardHeader className="bg-muted/30">
+                <CardTitle className="text-lg flex justify-between items-center">
+                  <span>Leads in Stage: <span className="text-primary font-bold">"{selectedStage}"</span> ({stageLeads.length} records)</span>
+                  <button 
+                    onClick={() => setSelectedStage(null)} 
+                    className="text-xs font-medium text-muted-foreground hover:text-foreground underline"
+                  >
+                    Clear Selection
+                  </button>
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pt-6">
                 <ScrollArea className="w-full whitespace-nowrap rounded-md border">
                   <Table className="min-w-[3000px]">
-                    <TableHeader>
+                    <TableHeader className="bg-muted">
                       <TableRow>
                         <TableHead>Sl No</TableHead>
                         <TableHead>Lead Id</TableHead>
@@ -253,7 +259,9 @@ export default function ConversionFunnelReportPage() {
                                   title="Last Follow-up Remarks" 
                                 />
                               </TableCell>
-                              <TableCell>{lead.status}</TableCell>
+                              <TableCell>
+                                <span className="font-semibold text-primary">{lead.status}</span>
+                              </TableCell>
                               <TableCell>
                                 <ExpandableCell 
                                   content={lead.initialRemarks || 'N/A'} 
