@@ -27,7 +27,7 @@ import {
   TableCell,
 } from "@/components/ui/table"
 import { useApp } from "@/context/app-context"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Alert, AlertDescription, AlertTitle } from "@/components/alert"
 import { Info } from "lucide-react"
 import { getDisplayModule } from "@/lib/modules"
 
@@ -146,11 +146,14 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
 
   const handleUpdateStatus = async () => {
     if (!leadDetails.leadId || !selectedStatus) return
+    
+    const isValueStatus = selectedStatus === 'Proposal Sent' || selectedStatus === 'Order closed';
+    
     const payload: Partial<LeadFormData> = {
       status: selectedStatus,
       leadSubStatus: selectedStatus === "Not interested" ? selectedSubStatus : "",
-      monthlyContractValue: selectedStatus === 'Proposal Sent' ? monthlyContractValue : leadDetails.monthlyContractValue,
-      annualContractValue: selectedStatus === 'Proposal Sent' ? annualContractValue : leadDetails.annualContractValue,
+      monthlyContractValue: isValueStatus ? monthlyContractValue : leadDetails.monthlyContractValue,
+      annualContractValue: isValueStatus ? annualContractValue : leadDetails.annualContractValue,
       initialRemarks: leadDetails.initialRemarks, 
     }
 
@@ -413,7 +416,7 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
                 </div>
               </div>
               
-              {selectedStatus === 'Proposal Sent' && (
+              {(selectedStatus === 'Proposal Sent' || selectedStatus === 'Order closed') && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 p-4 bg-muted/10 rounded-lg border">
                   <div className="space-y-1">
                     <Label className="text-xs font-semibold">Monthly Value (INR)</Label>
