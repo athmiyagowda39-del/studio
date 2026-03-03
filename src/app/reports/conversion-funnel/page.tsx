@@ -148,10 +148,10 @@ export default function ConversionFunnelReportPage() {
       setSelectedStage(null);
     } else {
       setSelectedStage(stageName);
-      // Wait for the UI to update then scroll
+      // Faster response for selecting a stage
       setTimeout(() => {
         detailsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 50);
+      }, 10);
     }
   };
 
@@ -168,28 +168,30 @@ export default function ConversionFunnelReportPage() {
         <CardContent className="p-6 space-y-6">
           <div className="w-full">
             <p className="text-center text-muted-foreground mb-4">
-              Showing {visibleLeads.length} total leads. Click on any color box in the funnel to see details.
+              Showing {visibleLeads.length} total leads. Click on any color section in the funnel to see details.
             </p>
-            {isClient && <ConversionFunnelChart data={funnelData} onStageClick={handleStageClick} />}
+            <div className="bg-card rounded-xl p-4 border shadow-inner">
+              {isClient && <ConversionFunnelChart data={funnelData} onStageClick={handleStageClick} />}
+            </div>
           </div>
 
           {selectedStage && (
-            <Card ref={detailsRef} className="border-2 border-primary/20">
+            <Card ref={detailsRef} className="border-2 border-primary/20 shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-300">
               <CardHeader className="bg-muted/30">
                 <CardTitle className="text-lg flex justify-between items-center">
                   <span>Leads in Stage: <span className="text-primary font-bold">"{selectedStage}"</span> ({stageLeads.length} records)</span>
                   <button 
                     onClick={() => setSelectedStage(null)} 
-                    className="text-xs font-medium text-muted-foreground hover:text-foreground underline"
+                    className="text-xs font-bold uppercase text-muted-foreground hover:text-primary transition-colors border px-2 py-1 rounded bg-background"
                   >
-                    Clear Selection
+                    Close Table
                   </button>
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-6">
                 <ScrollArea className="w-full whitespace-nowrap rounded-md border">
                   <Table className="min-w-[3000px]">
-                    <TableHeader className="bg-muted">
+                    <TableHeader className="bg-muted/50">
                       <TableRow>
                         <TableHead>Sl No</TableHead>
                         <TableHead>Lead Id</TableHead>
@@ -223,9 +225,9 @@ export default function ConversionFunnelReportPage() {
                             : (lastFollowUp ? lastFollowUp.nextFollowUp : 'N/A');
 
                           return (
-                            <TableRow key={lead.leadId}>
+                            <TableRow key={lead.leadId} className="hover:bg-muted/30 transition-colors">
                               <TableCell>{index + 1}</TableCell>
-                              <TableCell>{lead.leadId}</TableCell>
+                              <TableCell className="font-mono font-medium">{lead.leadId}</TableCell>
                               <TableCell>{lead.creationDate ? format(new Date(lead.creationDate), 'PPP') : 'N/A'}</TableCell>
                               <TableCell>
                                 <ExpandableCell 
@@ -233,7 +235,7 @@ export default function ConversionFunnelReportPage() {
                                   title="Selected Modules" 
                                 />
                               </TableCell>
-                              <TableCell>{lead.company}</TableCell>
+                              <TableCell className="font-semibold">{lead.company}</TableCell>
                               <TableCell>{lead.contactPerson}</TableCell>
                               <TableCell>{lead.contactNumber}</TableCell>
                               <TableCell>{lead.email}</TableCell>

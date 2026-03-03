@@ -57,28 +57,31 @@ export default function ConversionFunnelChart({
           className="w-full"
         >
           <ResponsiveContainer width="100%" height={650}>
-            <FunnelChart margin={{ top: 40, bottom: 40, right: 150 }}>
-              <Tooltip />
+            <FunnelChart margin={{ top: 40, bottom: 40, right: 200, left: 50 }}>
+              <Tooltip 
+                cursor={{ fill: 'transparent' }} 
+                wrapperStyle={{ pointerEvents: 'none' }}
+              />
  
               <Funnel
                 dataKey="value"
                 data={chartData}
-                isAnimationActive={false} // Disable animation for instant click response
+                isAnimationActive={false}
+                // neckWidth and neckHeight make the bottom stage wider and taller 
+                // so it's easier to click even if the value is small.
+                neckWidth={120} 
+                neckHeight={100}
                 onClick={(stage: any) => {
                   if (stage && stage.name) {
                     onStageClick?.(stage.name);
                   }
                 }}
               >
-                {/* 
-                  We use style pointerEvents: 'none' to ensure clicks pass through 
-                  labels to the funnel sectors themselves.
-                */}
                 <LabelList
                   position="right"
                   fill="hsl(var(--foreground))"
                   dataKey="name"
-                  className="font-semibold"
+                  className="font-bold text-sm"
                   style={{ pointerEvents: 'none' }}
                 />
  
@@ -86,7 +89,7 @@ export default function ConversionFunnelChart({
                   position="center"
                   fill="#fff"
                   dataKey="value"
-                  className="font-bold text-lg"
+                  className="font-bold text-xl"
                   style={{ pointerEvents: 'none' }}
                 />
               </Funnel>
