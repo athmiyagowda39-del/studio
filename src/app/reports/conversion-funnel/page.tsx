@@ -18,11 +18,50 @@ import {
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { getDisplayModule } from '@/lib/modules';
 import { format } from 'date-fns';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 const ConversionFunnelChart = dynamic(
   () => import('@/components/reports/conversion-funnel-chart'),
   { ssr: false, loading: () => <div className="h-[400px] w-full flex items-center justify-center"><p>Loading Chart...</p></div> }
 );
+
+// Helper component for expandable "box" view
+function ExpandableCell({ content, title }: { content: string | null | undefined, title: string }) {
+  if (!content || content === 'N/A') return <span className="text-muted-foreground">N/A</span>;
+  
+  const isShort = content.length < 35;
+
+  if (isShort) {
+    return <span>{content}</span>;
+  }
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <div 
+          onClick={(e) => e.stopPropagation()} 
+          className="flex items-center gap-2 cursor-pointer group transition-colors hover:text-primary max-w-[200px]"
+        >
+          <span className="flex-1 truncate">{content}</span>
+          <span className="shrink-0 text-[9px] font-bold bg-muted px-1.5 py-0.5 rounded-sm opacity-60 group-hover:opacity-100 group-hover:bg-primary group-hover:text-primary-foreground transition-all">
+            VIEW
+          </span>
+        </div>
+      </PopoverTrigger>
+      <PopoverContent 
+        className="w-80 p-4 shadow-2xl border-2 z-50 pointer-events-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="space-y-2">
+          <h4 className="font-bold text-xs uppercase text-primary border-b pb-1 tracking-wider">{title}</h4>
+          <div className="text-sm whitespace-normal break-words leading-relaxed max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+            {content}
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 const funnelStages = [
   'Total Leads',
@@ -143,40 +182,91 @@ export default function ConversionFunnelReportPage() {
               </CardHeader>
               <CardContent>
                 <ScrollArea className="w-full whitespace-nowrap rounded-md border">
-                  <Table className="min-w-[1200px]">
+                  <Table className="min-w-[3000px]">
                     <TableHeader>
                       <TableRow>
                         <TableHead>Sl No</TableHead>
                         <TableHead>Lead Id</TableHead>
-                        <TableHead>Company</TableHead>
-                        <TableHead>Contact Person</TableHead>
+                        <TableHead>Lead Date</TableHead>
                         <TableHead>Module</TableHead>
-                        <TableHead>Status</TableHead>
+                        <TableHead>Company</TableHead>
+                        <TableHead>Contact</TableHead>
+                        <TableHead>Phone</TableHead>
+                        <TableHead>Emailid</TableHead>
+                        <TableHead>Address</TableHead>
+                        <TableHead>District</TableHead>
+                        <TableHead>State</TableHead>
+                        <TableHead>Reference</TableHead>
                         <TableHead>Executive</TableHead>
-                        <TableHead>Last Follow-up</TableHead>
+                        <TableHead>Manager</TableHead>
+                        <TableHead>Last Followed Date</TableHead>
+                        <TableHead>Enter by</TableHead>
+                        <TableHead>Next followup Date</TableHead>
+                        <TableHead>Last Followup Remarks</TableHead>
+                        <TableHead>Lead Status</TableHead>
+                        <TableHead>Lead Status Remarks</TableHead>
+                        <TableHead>Given By</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {stageLeads.length > 0 ? (
-                        stageLeads.map((lead, index) => (
-                          <TableRow key={lead.leadId}>
-                            <TableCell>{index + 1}</TableCell>
-                            <TableCell>{lead.leadId}</TableCell>
-                            <TableCell>{lead.company}</TableCell>
-                            <TableCell>{lead.contactPerson}</TableCell>
-                            <TableCell>{getDisplayModule(lead.selectedModule, modules)}</TableCell>
-                            <TableCell>{lead.status}</TableCell>
-                            <TableCell>{lead.executive || 'N/A'}</TableCell>
-                            <TableCell>
-                              {lead.followUps && lead.followUps.length > 0
-                                ? format(new Date(lead.followUps[lead.followUps.length - 1].date), 'PPP')
-                                : 'N/A'}
-                            </TableCell>
-                          </TableRow>
-                        ))
+                        stageLeads.map((lead, index) => {
+                          const lastFollowUp = lead.followUps && lead.followUps.length > 0 ? lead.followUps[lead.followUps.length - 1] : null;
+                          const nextFollowupDate = lead.nextFollowUpDate && !isNaN(new Date(lead.nextFollowUpDate).getTime())
+                            ? format(new Date(lead.nextFollowUpDate), 'PPP')
+                            : (lastFollowUp ? lastFollowUp.nextFollowUp : 'N/A');
+
+                          return (
+                            <TableRow key={lead.leadId}>
+                              <TableCell>{index + 1}</TableCell>
+                              <TableCell>{lead.leadId}</TableCell>
+                              <TableCell>{lead.creationDate ? format(new Date(lead.creationDate), 'PPP') : 'N/A'}</TableCell>
+                              <TableCell>
+                                <ExpandableCell 
+                                  content={getDisplayModule(lead.selectedModule || "", modules)} 
+                                  title="Selected Modules" 
+                                />
+                              </TableCell>
+                              <TableCell>{lead.company}</TableCell>
+                              <TableCell>{lead.contactPerson}</TableCell>
+                              <TableCell>{lead.contactNumber}</TableCell>
+                              <TableCell>{lead.email}</TableCell>
+                              <TableCell>
+                                <ExpandableCell 
+                                  content={lead.address} 
+                                  title="Address" 
+                                />
+                              </TableCell>
+                              <TableCell>{lead.district}</TableCell>
+                              <TableCell>{lead.state}</TableCell>
+                              <TableCell>{lead.reference}</TableCell>
+                              <TableCell>{lead.executive || 'N/A'}</TableCell>
+                              <TableCell>{lead.manager || 'N/A'}</TableCell>
+                              <TableCell>
+                                {lastFollowUp && lastFollowUp.date ? format(new Date(lastFollowUp.date), 'PPP') : 'N/A'}
+                              </TableCell>
+                              <TableCell>{lastFollowUp ? lastFollowUp.enteredBy : 'N/A'}</TableCell>
+                              <TableCell>{nextFollowupDate}</TableCell>
+                              <TableCell>
+                                <ExpandableCell 
+                                  content={lastFollowUp ? lastFollowUp.remarks : 'N/A'} 
+                                  title="Last Follow-up Remarks" 
+                                />
+                              </TableCell>
+                              <TableCell>{lead.status}</TableCell>
+                              <TableCell>
+                                <ExpandableCell 
+                                  content={lead.initialRemarks || 'N/A'} 
+                                  title="Status Remarks" 
+                                />
+                              </TableCell>
+                              <TableCell>{lead.givenBy || 'N/A'}</TableCell>
+                            </TableRow>
+                          );
+                        })
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={8} className="h-24 text-center">
+                          <TableCell colSpan={21} className="h-24 text-center">
                             No leads to display for this stage.
                           </TableCell>
                         </TableRow>
