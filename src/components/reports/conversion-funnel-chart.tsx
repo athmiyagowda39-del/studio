@@ -6,7 +6,6 @@ import {
   LabelList,
   ResponsiveContainer,
   Tooltip,
-  Cell,
 } from 'recharts';
  
 import {
@@ -52,42 +51,28 @@ export default function ConversionFunnelChart({
         onStageClick ? 'clickable-funnel' : ''
       }`}
     >
-      <div className="w-full max-w-4xl h-[500px]">
+      <div className="w-full max-w-4xl">
         <ChartContainer
           config={chartConfig}
-          className="w-full h-full"
+          className="w-full"
         >
-          <ResponsiveContainer width="100%" height="100%">
-            <FunnelChart margin={{ top: 20, right: 150, left: 150, bottom: 20 }}>
-              <Tooltip 
-                cursor={{ fill: 'transparent' }} 
-                wrapperStyle={{ pointerEvents: 'none' }}
-              />
+          <ResponsiveContainer width="100%" height={650}>
+            <FunnelChart margin={{ top: 40, bottom: 40 }}>
+              <Tooltip />
  
               <Funnel
                 dataKey="value"
                 data={chartData}
-                isAnimationActive={true}
-                onClick={(stage: any) => {
-                  if (stage && stage.name) {
-                    onStageClick?.(stage.name);
-                  }
-                }}
+                isAnimationActive
+                onClick={(stage: any) =>
+                  onStageClick?.(stage?.name)
+                }
               >
-                {chartData.map((entry, index) => (
-                  <Cell 
-                    key={`cell-${index}`} 
-                    fill={entry.fill} 
-                    className="outline-none cursor-pointer hover:opacity-80 transition-opacity" 
-                  />
-                ))}
-                
                 <LabelList
                   position="right"
                   fill="hsl(var(--foreground))"
                   dataKey="name"
-                  className="font-bold text-xs"
-                  style={{ pointerEvents: 'none' }}
+                  className="font-semibold"
                 />
  
                 <LabelList
@@ -95,7 +80,6 @@ export default function ConversionFunnelChart({
                   fill="#fff"
                   dataKey="value"
                   className="font-bold text-lg"
-                  style={{ pointerEvents: 'none' }}
                 />
               </Funnel>
  
