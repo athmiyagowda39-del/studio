@@ -148,10 +148,9 @@ export default function ConversionFunnelReportPage() {
       setSelectedStage(null);
     } else {
       setSelectedStage(stageName);
-      // Faster response for selecting a stage
       setTimeout(() => {
         detailsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 10);
+      }, 100);
     }
   };
 
@@ -168,9 +167,9 @@ export default function ConversionFunnelReportPage() {
         <CardContent className="p-6 space-y-6">
           <div className="w-full">
             <p className="text-center text-muted-foreground mb-4">
-              Showing {visibleLeads.length} total leads. Click on any color section in the funnel to see details.
+              Showing {visibleLeads.length} total leads. Click on a funnel stage to see details.
             </p>
-            <div className="bg-card rounded-xl p-4 border shadow-inner">
+            <div className="bg-background rounded-xl p-4 flex justify-center">
               {isClient && <ConversionFunnelChart data={funnelData} onStageClick={handleStageClick} />}
             </div>
           </div>

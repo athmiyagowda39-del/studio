@@ -58,7 +58,7 @@ export default function ConversionFunnelChart({
           className="w-full h-full"
         >
           <ResponsiveContainer width="100%" height="100%">
-            <FunnelChart margin={{ top: 20, right: 120, left: 120, bottom: 20 }}>
+            <FunnelChart margin={{ top: 20, right: 150, left: 150, bottom: 20 }}>
               <Tooltip 
                 cursor={{ fill: 'transparent' }} 
                 wrapperStyle={{ pointerEvents: 'none' }}
@@ -67,7 +67,7 @@ export default function ConversionFunnelChart({
               <Funnel
                 dataKey="value"
                 data={chartData}
-                isAnimationActive={false}
+                isAnimationActive={true}
                 onClick={(stage: any) => {
                   if (stage && stage.name) {
                     onStageClick?.(stage.name);
@@ -75,7 +75,11 @@ export default function ConversionFunnelChart({
                 }}
               >
                 {chartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.fill} className="outline-none cursor-pointer" />
+                  <Cell 
+                    key={`cell-${index}`} 
+                    fill={entry.fill} 
+                    className="outline-none cursor-pointer hover:opacity-80 transition-opacity" 
+                  />
                 ))}
                 
                 <LabelList
