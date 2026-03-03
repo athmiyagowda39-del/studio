@@ -183,7 +183,6 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
             contactPerson: leadDetails.contactPerson,
             contactNumber: leadDetails.contactNumber,
             email: leadDetails.email,
-            headcount: leadDetails.headcount,
             address: leadDetails.address,
             district: leadDetails.district,
             state: leadDetails.state,
@@ -274,7 +273,7 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
 
               <div className="space-y-1">
                 <Label className="font-semibold">Headcount</Label>
-                <Input value={leadDetails.headcount || ""} onChange={e => handleLeadDetailChange('headcount', e.target.value)} readOnly={isReadOnly} className={inputBgClass} />
+                <Input value={leadDetails.headcount || ""} readOnly className={inputBgClass} />
               </div>
               <div className="space-y-1">
                 <Label className="font-semibold">Module</Label>
