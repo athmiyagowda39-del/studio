@@ -95,19 +95,33 @@ const getLeadStatusesForFilters = (
       }
     }
     if (status !== 'All') {
-        matches = matches && lead.status === status;
+        // Special case: if filtering for Proposal Sent, also match Quote Sent
+        if (status === 'Proposal Sent') {
+            matches = matches && (lead.status === 'Proposal Sent' || lead.status === 'Quote Sent');
+        } else {
+            matches = matches && lead.status === status;
+        }
     }
     return matches;
   });
 
-  const statusCounts = allStatuses.reduce((acc, status) => {
+  // Filter out "Quote Sent" from the report display list
+  const displayStatuses = allStatuses.filter(s => s !== 'Quote Sent');
+
+  const statusCounts = displayStatuses.reduce((acc, status) => {
     acc[status] = 0;
     return acc;
   }, {} as Record<string, number>);
 
   filteredLeads.forEach(lead => {
-    if (lead.status && statusCounts.hasOwnProperty(lead.status)) {
-      statusCounts[lead.status]++;
+    let effectiveStatus = lead.status;
+    // Merge Quote Sent into Proposal Sent
+    if (effectiveStatus === 'Quote Sent') {
+        effectiveStatus = 'Proposal Sent';
+    }
+
+    if (effectiveStatus && statusCounts.hasOwnProperty(effectiveStatus)) {
+      statusCounts[effectiveStatus]++;
     }
   });
 
@@ -150,6 +164,10 @@ export default function LeadReportPage() {
 
   const sectorsWithAll = useMemo(() => ['All', ...(sectorsFromDb || [])], [sectorsFromDb]);
 
+  const filteredStatusesForDropdown = useMemo(() => {
+    return (allLeadStatusesFromDb || []).filter(s => s !== 'Quote Sent');
+  }, [allLeadStatusesFromDb]);
+
   const leadStatusesForTable = useMemo(() => {
     if (!visibleLeads || !allLeadStatusesFromDb) return [];
     return getLeadStatusesForFilters(visibleLeads, selectedState, selectedSector, selectedHeadcount, selectedStatus, allLeadStatusesFromDb);
@@ -179,13 +197,22 @@ export default function LeadReportPage() {
           }
         }
         if (selectedStatus !== 'All') {
-            matches = matches && lead.status === selectedStatus;
+            if (selectedStatus === 'Proposal Sent') {
+                matches = matches && (lead.status === 'Proposal Sent' || lead.status === 'Quote Sent');
+            } else {
+                matches = matches && lead.status === selectedStatus;
+            }
         }
         return matches;
     });
 
     if (detailedStatusView === 'Total Leads') {
         return leads;
+    }
+    
+    // Special handling for Proposal Sent detailed view: show both Quote Sent and Proposal Sent
+    if (detailedStatusView === 'Proposal Sent') {
+        return leads.filter(lead => lead.status === 'Proposal Sent' || lead.status === 'Quote Sent');
     }
     
     return leads.filter(lead => lead.status === detailedStatusView);
@@ -303,7 +330,7 @@ export default function LeadReportPage() {
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="All">All Statuses</SelectItem>
-                            {(allLeadStatusesFromDb || []).map(status => (
+                            {filteredStatusesForDropdown.map(status => (
                                 <SelectItem key={status} value={status}>
                                     {status}
                                 </SelectItem>
