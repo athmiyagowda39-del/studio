@@ -6,6 +6,7 @@ import {
   LabelList,
   ResponsiveContainer,
   Tooltip,
+  Cell,
 } from 'recharts';
  
 import {
@@ -51,13 +52,13 @@ export default function ConversionFunnelChart({
         onStageClick ? 'clickable-funnel' : ''
       }`}
     >
-      <div className="w-full max-w-4xl">
+      <div className="w-full max-w-4xl h-[650px]">
         <ChartContainer
           config={chartConfig}
-          className="w-full"
+          className="w-full h-full"
         >
-          <ResponsiveContainer width="100%" height={650}>
-            <FunnelChart margin={{ top: 40, bottom: 40, right: 200, left: 50 }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <FunnelChart margin={{ top: 40, bottom: 40, right: 150, left: 150 }}>
               <Tooltip 
                 cursor={{ fill: 'transparent' }} 
                 wrapperStyle={{ pointerEvents: 'none' }}
@@ -67,16 +68,20 @@ export default function ConversionFunnelChart({
                 dataKey="value"
                 data={chartData}
                 isAnimationActive={false}
-                // neckWidth and neckHeight make the bottom stage wider and taller 
-                // so it's easier to click even if the value is small.
-                neckWidth={120} 
-                neckHeight={100}
+                // neckWidth ensures the bottom sections (Order Closed) stay wide enough to click
+                neckWidth={250} 
+                // neckHeight ensures the narrow part of the funnel has enough vertical space
+                neckHeight={150}
                 onClick={(stage: any) => {
                   if (stage && stage.name) {
                     onStageClick?.(stage.name);
                   }
                 }}
               >
+                {chartData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.fill} className="outline-none cursor-pointer" />
+                ))}
+                
                 <LabelList
                   position="right"
                   fill="hsl(var(--foreground))"
