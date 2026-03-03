@@ -27,7 +27,7 @@ import {
   TableCell,
 } from "@/components/ui/table"
 import { useApp } from "@/context/app-context"
-import { Alert, AlertDescription, AlertTitle } from "@/components/alert"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Info } from "lucide-react"
 import { getDisplayModule } from "@/lib/modules"
 
@@ -53,7 +53,7 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
   const [isReadyToUpdate, setIsReadyToUpdate] = useState(false)
 
   const { toast } = useToast()
-  const { users, user, isReadOnly, leads: allLeads, updateLead, leadStatuses, leadSubStatuses, modules, addAuditLog } = useApp()
+  const { users, user, isReadOnly, leads: allLeads, updateLead, leadStatuses, leadSubStatuses, modules } = useApp()
   const filteredLeadStatuses = useMemo(() => leadStatuses.filter(status => status !== 'Quote Sent'), [leadStatuses]);
   
   const executives = useMemo(() => 
@@ -407,6 +407,7 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
                       <SelectValue placeholder="-- Select --" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="All">All</SelectItem>
                       {filteredLeadStatuses.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                     </SelectContent>
                   </Select>
