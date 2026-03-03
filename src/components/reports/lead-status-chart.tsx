@@ -29,11 +29,11 @@ const chartConfig = {
   },
   "Proposal Sent": {
     label: "Proposal Sent",
-    color: "hsl(var(--chart-3))",
+    color: "hsl(var(--chart-1))",
   },
   "Quote Sent": {
     label: "Quote Sent",
-    color: "hsl(var(--chart-3))",
+    color: "hsl(var(--chart-1))",
   },
   "Demo Given": {
     label: "Demo Given",
