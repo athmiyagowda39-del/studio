@@ -32,11 +32,22 @@ export default function ConversionFunnelChart({
   onStageClick,
 }: ConversionFunnelChartProps) {
  
-  // Add color to each stage
-  const chartData = data.map((item, index) => ({
-    ...item,
-    fill: colors[index % colors.length],
-  }));
+  // We use a non-linear scaling for the visual width to ensure that stages with 
+  // small counts (like 1 or 2) are still clearly visible and clickable compared to large counts (587).
+  const maxValue = Math.max(...data.map(d => d.value), 1);
+  
+  const chartData = data.map((item, index) => {
+    // visualValue determines the width. 
+    // We give it a "floor" so it never gets too thin.
+    const visualValue = (item.value / maxValue) * 100;
+    const paddedVisualValue = Math.max(visualValue, 8) + (index === 0 ? 20 : 0); 
+
+    return {
+      ...item,
+      visualValue: paddedVisualValue,
+      fill: colors[index % colors.length],
+    };
+  });
  
   const chartConfig: ChartConfig = Object.fromEntries(
     data.map((item) => [
@@ -51,23 +62,26 @@ export default function ConversionFunnelChart({
         onStageClick ? 'clickable-funnel' : ''
       }`}
     >
-      <div className="w-full max-w-4xl">
+      <div className="w-full max-w-5xl">
         <ChartContainer
           config={chartConfig}
           className="w-full"
         >
-          <ResponsiveContainer width="100%" height={650}>
-            <FunnelChart margin={{ top: 40, bottom: 40, right: 150 }}>
-              <Tooltip />
+          <ResponsiveContainer width="100%" height={700}>
+            <FunnelChart margin={{ top: 40, bottom: 40, right: 250, left: 50 }}>
+              <Tooltip 
+                formatter={(value: any, name: string, props: any) => [props.payload.value, props.payload.name]}
+              />
  
               <Funnel
-                dataKey="value"
+                dataKey="visualValue"
                 data={chartData}
                 isAnimationActive
                 onClick={(stage: any) =>
                   onStageClick?.(stage?.name)
                 }
               >
+                {/* Stage Names on the Right */}
                 <LabelList
                   position="right"
                   dataKey="name"
@@ -75,11 +89,11 @@ export default function ConversionFunnelChart({
                     const { x, y, width, height, value } = props;
                     return (
                       <text
-                        x={x + 15}
+                        x={x + 25}
                         y={y + height / 2}
                         dy={4}
                         fill="hsl(var(--foreground))"
-                        className="font-semibold cursor-pointer hover:fill-primary transition-colors text-[14px]"
+                        className="font-bold cursor-pointer hover:fill-primary transition-colors text-[16px]"
                         onClick={(e) => {
                           e.stopPropagation();
                           onStageClick?.(value);
@@ -91,6 +105,7 @@ export default function ConversionFunnelChart({
                   }}
                 />
  
+                {/* Real Numerical Values in the Center */}
                 <LabelList
                   position="center"
                   dataKey="value"
@@ -101,10 +116,10 @@ export default function ConversionFunnelChart({
                       <text
                         x={x + width / 2}
                         y={y + height / 2}
-                        dy={4}
+                        dy={5}
                         fill="#fff"
                         textAnchor="middle"
-                        className="font-bold text-lg cursor-pointer"
+                        className="font-extrabold text-xl cursor-pointer drop-shadow-md"
                         onClick={(e) => {
                           e.stopPropagation();
                           onStageClick?.(stageName);
