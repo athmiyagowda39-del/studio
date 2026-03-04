@@ -99,6 +99,8 @@ export default function LeadsUpdatePage() {
   const [productPopoverOpen, setProductPopoverOpen] = useState(false);
   const [selectedExecutive, setSelectedExecutive] = useState('all');
   const [otherExecutiveInput, setOtherExecutiveInput] = useState('');
+  const [selectedManager, setSelectedManager] = useState('all');
+  const [otherManagerInput, setOtherManagerInput] = useState('');
   
   const [givenBy, setGivenBy] = useState('all');
   const [otherGivenByInput, setOtherGivenByInput] = useState('');
@@ -124,7 +126,9 @@ export default function LeadsUpdatePage() {
     toDate: '',
     selectedModules: '',
     selectedExecutive: 'all',
+    selectedManager: 'all',
     otherExecutiveInput: '',
+    otherManagerInput: '',
     givenBy: 'all',
     otherGivenByInput: '',
     selectedStatus: 'all',
@@ -145,10 +149,17 @@ export default function LeadsUpdatePage() {
   const filteredLeadStatuses = useMemo(() => leadStatuses.filter(s => s !== 'Quote Sent'), [leadStatuses]);
 
   const allUsernames = useMemo(() => users.map(u => u.username), [users]);
+  
   const executiveDropdownUsers = useMemo(() => {
     const excludedNames = ['Varghese Vincent', 'Sam Devasia', 'Athmiya A G'];
     return users
       .filter(u => !excludedNames.includes(u.username))
+      .map(u => u.username);
+  }, [users]);
+
+  const managerDropdownUsers = useMemo(() => {
+    return users
+      .filter(u => u.role === 'Manager')
       .map(u => u.username);
   }, [users]);
 
@@ -217,6 +228,13 @@ export default function LeadsUpdatePage() {
             // Executive
             if (match && filters.selectedExecutive && filters.selectedExecutive !== 'all') {
                 if (lead.executive !== filters.selectedExecutive) {
+                    match = false;
+                }
+            }
+
+            // Manager
+            if (match && filters.selectedManager && filters.selectedManager !== 'all') {
+                if (lead.manager !== filters.selectedManager) {
                     match = false;
                 }
             }
@@ -347,7 +365,9 @@ export default function LeadsUpdatePage() {
         toDate,
         selectedModules,
         selectedExecutive: selectedExecutive === 'Other' ? otherExecutiveInput : selectedExecutive,
+        selectedManager: selectedManager === 'Other' ? otherManagerInput : selectedManager,
         otherExecutiveInput,
+        otherManagerInput,
         givenBy: givenBy === 'Other' ? otherGivenByInput : givenBy,
         otherGivenByInput,
         selectedStatus: selectedStatus === 'Other' ? otherStatusInput : selectedStatus,
@@ -373,11 +393,11 @@ export default function LeadsUpdatePage() {
   const handleResetFilters = () => {
     const initialFilters = {
       searchTerm: '', searchCategory: 'leadId', fromDate: '', toDate: '',
-      selectedModules: '', selectedExecutive: 'all', givenBy: 'all', selectedStatus: 'all',
+      selectedModules: '', selectedExecutive: 'all', selectedManager: 'all', givenBy: 'all', selectedStatus: 'all',
       selectedSubStatus: 'all', selectedLeadSource: 'all', considerStatus: false,
       applyFollowUpFilter: false,
       followUpStatus: 'pending', followUpFromDate: '', followUpToDate: '', followUpEnteredBy: 'all',
-      otherExecutiveInput: '', otherGivenByInput: '', otherStatusInput: '', otherSubStatusInput: '', otherLeadSourceInput: '', otherFollowUpEnteredByInput: ''
+      otherExecutiveInput: '', otherManagerInput: '', otherGivenByInput: '', otherStatusInput: '', otherSubStatusInput: '', otherLeadSourceInput: '', otherFollowUpEnteredByInput: ''
     };
     
     setSearchTerm(initialFilters.searchTerm);
@@ -386,7 +406,9 @@ export default function LeadsUpdatePage() {
     setToDate(initialFilters.toDate);
     setSelectedModules(initialFilters.selectedModules);
     setSelectedExecutive(initialFilters.selectedExecutive);
+    setSelectedManager(initialFilters.selectedManager);
     setOtherExecutiveInput(initialFilters.otherExecutiveInput);
+    setOtherManagerInput(initialFilters.otherManagerInput);
     setGivenBy(initialFilters.givenBy);
     setOtherGivenByInput(initialFilters.otherGivenByInput);
     setSelectedStatus(initialFilters.selectedStatus);
@@ -490,6 +512,14 @@ export default function LeadsUpdatePage() {
       const newExec = otherExecutiveInput.trim();
       setSelectedExecutive(newExec);
       setOtherExecutiveInput('');
+    }
+  };
+
+  const handleSetOtherManager = () => {
+    if(otherManagerInput.trim()){
+      const newManager = otherManagerInput.trim();
+      setSelectedManager(newManager);
+      setOtherManagerInput('');
     }
   };
 
@@ -700,8 +730,7 @@ export default function LeadsUpdatePage() {
                         {label: 'Phone', value: 'contactNumber'}, 
                         {label: 'District', value: 'district'}, 
                         {label: 'State', value: 'state'}, 
-                        {label: 'Email', value: 'email'}, 
-                        {label: 'Manager Name', value: 'manager'}
+                        {label: 'Email', value: 'email'}
                       ].map(item => (
                         <div key={item.value} className="flex items-center gap-2">
                           <RadioGroupItem value={item.value} id={item.value} /> 
@@ -711,7 +740,7 @@ export default function LeadsUpdatePage() {
                     </RadioGroup>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                     <div className="space-y-1">
                       <Label>From Date</Label>
                       <Input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)}/>
@@ -831,6 +860,41 @@ export default function LeadsUpdatePage() {
                                 }}
                               />
                               <Button size="sm" onClick={handleSetOtherExecutive}>OK</Button>
+                            </div>
+                        </div>
+                      )}
+                    </div>
+                    <div className="space-y-1">
+                      <Label>Manager Name</Label>
+                      <Select value={selectedManager} onValueChange={(value) => setSelectedManager(value)}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="--All--" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All</SelectItem>
+                           {managerDropdownUsers.map(m => (
+                            <SelectItem key={m} value={m}>
+                              {m}
+                            </SelectItem>
+                          ))}
+                          {!managerDropdownUsers.includes(selectedManager) && selectedManager !== 'all' && selectedManager !== 'Other' && (
+                              <SelectItem value={selectedManager}>{selectedManager}</SelectItem>
+                          )}
+                          <SelectItem value="Other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {selectedManager === 'Other' && (
+                        <div className="mt-2">
+                           <div className="flex items-center gap-2">
+                              <Input
+                                placeholder="Specify other manager"
+                                value={otherManagerInput}
+                                onChange={(e) => setOtherManagerInput(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') handleSetOtherManager();
+                                }}
+                              />
+                              <Button size="sm" onClick={handleSetOtherManager}>OK</Button>
                             </div>
                         </div>
                       )}

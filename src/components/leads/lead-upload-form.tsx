@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Input } from '@/components/ui/input';
@@ -653,7 +654,10 @@ export default function LeadUploadForm() {
             <Label htmlFor="manager">Manager</Label>
             <Select value={formData.manager || ''} onValueChange={(v) => handleSelectChange('manager', v)} disabled={isReadOnly}>
               <SelectTrigger id="manager"><SelectValue placeholder="Select Manager..." /></SelectTrigger>
-              <SelectContent>{managers.map(m => <SelectItem key={m.id} value={m.username}>{m.username}</SelectItem>)}</SelectContent>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                {managers.map(m => <SelectItem key={m.id} value={m.username}>{m.username}</SelectItem>)}
+              </SelectContent>
             </Select>
           </div>
           <div className="space-y-2 md:col-span-2">
