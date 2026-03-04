@@ -32,8 +32,6 @@ export default function ConversionFunnelChart({
   onStageClick,
 }: ConversionFunnelChartProps) {
  
-  // We use a non-linear scaling for the visual width to ensure that stages with 
-  // small counts (like 1 or 2) are still clearly visible and clickable compared to large counts (587).
   const maxValue = Math.max(...data.map(d => d.value), 1);
   
   const chartData = data.map((item, index) => {
@@ -68,7 +66,8 @@ export default function ConversionFunnelChart({
           className="w-full"
         >
           <ResponsiveContainer width="100%" height={700}>
-            <FunnelChart margin={{ top: 40, bottom: 40, right: 250, left: 50 }}>
+            {/* Balanced margins (200 left, 200 right) to keep the funnel centered */}
+            <FunnelChart margin={{ top: 40, bottom: 40, right: 200, left: 200 }}>
               <Tooltip 
                 formatter={(value: any, name: string, props: any) => [props.payload.value, props.payload.name]}
               />
