@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -109,6 +110,7 @@ export default function LeadsUpdatePage() {
   const [otherLeadSourceInput, setOtherLeadSourceInput] = useState('');
   const [considerStatus, setConsiderStatus] = useState(false);
 
+  const [applyFollowUpFilter, setApplyFollowUpFilter] = useState(false);
   const [followUpStatus, setFollowUpStatus] = useState('pending');
   const [followUpFromDate, setFollowUpFromDate] = useState('');
   const [followUpToDate, setFollowUpToDate] = useState('');
@@ -132,6 +134,7 @@ export default function LeadsUpdatePage() {
     selectedLeadSource: 'all',
     otherLeadSourceInput: '',
     considerStatus: false,
+    applyFollowUpFilter: false,
     followUpStatus: 'pending',
     followUpFromDate: '',
     followUpToDate: '',
@@ -254,8 +257,8 @@ export default function LeadsUpdatePage() {
                 }
             }
 
-            // Follow-up related filters (only if considerStatus is true)
-            if (match && filters.considerStatus) {
+            // Follow-up related filters (only if applyFollowUpFilter is true)
+            if (match && filters.applyFollowUpFilter) {
                 // Follow-up Status
                 if (filters.followUpStatus === 'pending') {
                     if (!lead.nextFollowUpDate || new Date(lead.nextFollowUpDate) > new Date()) {
@@ -354,6 +357,7 @@ export default function LeadsUpdatePage() {
         selectedLeadSource: selectedLeadSource === 'Other' ? otherLeadSourceInput : selectedLeadSource,
         otherLeadSourceInput,
         considerStatus,
+        applyFollowUpFilter,
         followUpStatus,
         followUpFromDate,
         followUpToDate,
@@ -371,6 +375,7 @@ export default function LeadsUpdatePage() {
       searchTerm: '', searchCategory: 'leadId', fromDate: '', toDate: '',
       selectedModules: '', selectedExecutive: 'all', givenBy: 'all', selectedStatus: 'all',
       selectedSubStatus: 'all', selectedLeadSource: 'all', considerStatus: false,
+      applyFollowUpFilter: false,
       followUpStatus: 'pending', followUpFromDate: '', followUpToDate: '', followUpEnteredBy: 'all',
       otherExecutiveInput: '', otherGivenByInput: '', otherStatusInput: '', otherSubStatusInput: '', otherLeadSourceInput: '', otherFollowUpEnteredByInput: ''
     };
@@ -391,6 +396,7 @@ export default function LeadsUpdatePage() {
     setSelectedLeadSource(initialFilters.selectedLeadSource);
     setOtherLeadSourceInput(initialFilters.otherLeadSourceInput);
     setConsiderStatus(initialFilters.considerStatus);
+    setApplyFollowUpFilter(initialFilters.applyFollowUpFilter);
     setFollowUpStatus(initialFilters.followUpStatus);
     setFollowUpFromDate(initialFilters.followUpFromDate);
     setFollowUpToDate(initialFilters.followUpToDate);
@@ -983,70 +989,78 @@ export default function LeadsUpdatePage() {
                         checked={considerStatus}
                         onCheckedChange={(checked) => setConsiderStatus(checked as boolean)}
                       />
-                      <Label htmlFor="considerStatus">Do not consider Order Closed/Fake/Existing Users/Not Interested</Label>
+                      <Label htmlFor="considerStatus" className="font-semibold">Do not consider Order Closed/Fake/Existing Users/Not Interested</Label>
                     </div>
 
-                    {considerStatus && (
-                      <div className="space-y-4 pl-6 border-l-2 border-muted ml-2 pt-2">
-                        
-                        <RadioGroup value={followUpStatus} onValueChange={setFollowUpStatus} className="flex gap-4">
-                          <div className="flex items-center gap-2">
-                            <RadioGroupItem value="pending" id="pending" />
-                            <Label htmlFor="pending">Follow Up Pending</Label>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <RadioGroupItem value="made" id="made" />
-                            <Label htmlFor="made">Follow Up Made</Label>
-                          </div>
-                        </RadioGroup>
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <div className="space-y-1">
-                              <Label>From Date</Label>
-                              <Input type="date" value={followUpFromDate} onChange={(e) => setFollowUpFromDate(e.target.value)} />
-                          </div>
-                          <div className="space-y-1">
-                              <Label>To Date</Label>
-                              <Input type="date" value={followUpToDate} onChange={(e) => setFollowUpToDate(e.target.value)} />
-                          </div>
-                          <div className="space-y-1">
-                              <Label htmlFor="enteredByFollowUp">Enter by</Label>
-                              <Select value={followUpEnteredBy} onValueChange={(value) => setFollowUpEnteredBy(value)}>
-                                  <SelectTrigger id="enteredByFollowUp">
-                                      <SelectValue placeholder="--All--" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                      <SelectItem value="all">All</SelectItem>
-                                      {allUsernames.map((name) => (
-                                      <SelectItem key={name} value={name}>
-                                          {name}
-                                      </SelectItem>
-                                      ))}
-                                      {!allUsernames.includes(followUpEnteredBy) && followUpEnteredBy !== 'all' && followUpEnteredBy !== 'Other' && (
-                                          <SelectItem value={followUpEnteredBy}>{followUpEnteredBy}</SelectItem>
-                                      )}
-                                      <SelectItem value="Other">Other</SelectItem>
-                                  </SelectContent>
-                              </Select>
-                              {followUpEnteredBy === 'Other' && (
-                                  <div className="mt-2">
-                                      <div className="flex items-center gap-2">
-                                          <Input
-                                              placeholder="Specify who entered it"
-                                              value={otherFollowUpEnteredByInput}
-                                              onChange={(e) => setOtherFollowUpEnteredByInput(e.target.value)}
-                                              onKeyDown={(e) => {
-                                                  if (e.key === 'Enter') handleSetOtherFollowUpEnteredBy();
-                                              }}
-                                          />
-                                          <Button size="sm" onClick={handleSetOtherFollowUpEnteredBy}>OK</Button>
-                                      </div>
-                                  </div>
-                              )}
-                          </div>
+                    <div className="space-y-4 pl-6 border-l-2 border-muted ml-2 pt-2">
+                        <div className="flex items-center gap-2 mb-2">
+                            <Checkbox 
+                                id="applyFollowUpFilter" 
+                                checked={applyFollowUpFilter} 
+                                onCheckedChange={(checked) => setApplyFollowUpFilter(checked as boolean)}
+                            />
+                            <Label htmlFor="applyFollowUpFilter" className="font-bold text-primary">Apply Follow-up Filter</Label>
                         </div>
-                      </div>
-                    )}
+                        
+                        <div className={cn("space-y-4", !applyFollowUpFilter && "opacity-60")}>
+                            <RadioGroup value={followUpStatus} onValueChange={setFollowUpStatus} className="flex gap-4" disabled={!applyFollowUpFilter}>
+                                <div className="flex items-center gap-2">
+                                    <RadioGroupItem value="pending" id="pending" />
+                                    <Label htmlFor="pending">Follow Up Pending</Label>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <RadioGroupItem value="made" id="made" />
+                                    <Label htmlFor="made">Follow Up Made</Label>
+                                </div>
+                            </RadioGroup>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="space-y-1">
+                                    <Label>From Date</Label>
+                                    <Input type="date" value={followUpFromDate} onChange={(e) => setFollowUpFromDate(e.target.value)} disabled={!applyFollowUpFilter} />
+                                </div>
+                                <div className="space-y-1">
+                                    <Label>To Date</Label>
+                                    <Input type="date" value={followUpToDate} onChange={(e) => setFollowUpToDate(e.target.value)} disabled={!applyFollowUpFilter} />
+                                </div>
+                                <div className="space-y-1">
+                                    <Label htmlFor="enteredByFollowUp">Enter by</Label>
+                                    <Select value={followUpEnteredBy} onValueChange={(value) => setFollowUpEnteredBy(value)} disabled={!applyFollowUpFilter}>
+                                        <SelectTrigger id="enteredByFollowUp">
+                                            <SelectValue placeholder="--All--" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">All</SelectItem>
+                                            {allUsernames.map((name) => (
+                                            <SelectItem key={name} value={name}>
+                                                {name}
+                                            </SelectItem>
+                                            ))}
+                                            {!allUsernames.includes(followUpEnteredBy) && followUpEnteredBy !== 'all' && followUpEnteredBy !== 'Other' && (
+                                                <SelectItem value={followUpEnteredBy}>{followUpEnteredBy}</SelectItem>
+                                            )}
+                                            <SelectItem value="Other">Other</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    {followUpEnteredBy === 'Other' && (
+                                        <div className="mt-2">
+                                            <div className="flex items-center gap-2">
+                                                <Input
+                                                    placeholder="Specify who entered it"
+                                                    value={otherFollowUpEnteredByInput}
+                                                    onChange={(e) => setOtherFollowUpEnteredByInput(e.target.value)}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter') handleSetOtherFollowUpEnteredBy();
+                                                    }}
+                                                />
+                                                <Button size="sm" onClick={handleSetOtherFollowUpEnteredBy}>OK</Button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                   </div>
 
                   <div className="flex justify-end gap-3 pt-4 border-t">
