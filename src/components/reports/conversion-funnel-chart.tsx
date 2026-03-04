@@ -57,7 +57,7 @@ export default function ConversionFunnelChart({
           className="w-full"
         >
           <ResponsiveContainer width="100%" height={650}>
-            <FunnelChart margin={{ top: 40, bottom: 40 }}>
+            <FunnelChart margin={{ top: 40, bottom: 40, right: 150 }}>
               <Tooltip />
  
               <Funnel
@@ -70,16 +70,50 @@ export default function ConversionFunnelChart({
               >
                 <LabelList
                   position="right"
-                  fill="hsl(var(--foreground))"
                   dataKey="name"
-                  className="font-semibold"
+                  content={(props: any) => {
+                    const { x, y, width, height, value } = props;
+                    return (
+                      <text
+                        x={x + 15}
+                        y={y + height / 2}
+                        dy={4}
+                        fill="hsl(var(--foreground))"
+                        className="font-semibold cursor-pointer hover:fill-primary transition-colors text-[14px]"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onStageClick?.(value);
+                        }}
+                      >
+                        {value}
+                      </text>
+                    );
+                  }}
                 />
  
                 <LabelList
                   position="center"
-                  fill="#fff"
                   dataKey="value"
-                  className="font-bold text-lg"
+                  content={(props: any) => {
+                    const { x, y, width, height, value, index } = props;
+                    const stageName = chartData[index]?.name;
+                    return (
+                      <text
+                        x={x + width / 2}
+                        y={y + height / 2}
+                        dy={4}
+                        fill="#fff"
+                        textAnchor="middle"
+                        className="font-bold text-lg cursor-pointer"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onStageClick?.(stageName);
+                        }}
+                      >
+                        {value}
+                      </text>
+                    );
+                  }}
                 />
               </Funnel>
  
