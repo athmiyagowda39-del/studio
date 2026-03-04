@@ -47,6 +47,16 @@ type AppContextType = {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
+// Mapping for specific staff phone numbers
+const STAFF_PHONE_MAPPING: Record<string, string> = {
+  'keerthi.taduru@peopleworks.in': '8106875323',
+  'neha.singh@peopleworks.in': '9594529568',
+  'sakshi.trimukhe@peopleworks.in': '9503774560',
+  'yathish.g@peopleworks.in': '8553309892',
+  'hukum@peopleworks.in': '9036010968',
+  'luke.rajkumar@peopleworks.in': '9500038277',
+};
+
 // Helper function for making API requests
 async function fetchAPI(url: string, options: RequestInit = {}) {
     const response = await fetch(url, options);
@@ -103,7 +113,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
         fetchAPI('/api/options/modules'),
       ]);
 
-      setUsers(fetchedUsers);
+      // Enrich users with hardcoded phone numbers if they are missing
+      const enrichedUsers = fetchedUsers.map((u: AppUser) => {
+        const emailLower = u.email.toLowerCase().trim();
+        if (STAFF_PHONE_MAPPING[emailLower] && !u.phoneNumber) {
+          return { ...u, phoneNumber: STAFF_PHONE_MAPPING[emailLower] };
+        }
+        return u;
+      });
+
+      setUsers(enrichedUsers);
       setLeads(fetchedLeads);
       setLeadStatuses(fetchedStatuses);
       setLeadSubStatuses(fetchedSubStatuses);
@@ -113,7 +132,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       if (sessionUserJson) {
         const sessionUser = JSON.parse(sessionUserJson);
-        const freshUserData = fetchedUsers.find((u: AppUser) => u.id === sessionUser.id);
+        const freshUserData = enrichedUsers.find((u: AppUser) => u.id === sessionUser.id);
         if (freshUserData) {
           setUser(freshUserData);
           sessionStorage.setItem('user', JSON.stringify(freshUserData));
@@ -123,7 +142,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
       if (sessionOriginalUserJson) {
         const sessionOriginalUser = JSON.parse(sessionOriginalUserJson);
-        const freshOriginalUserData = fetchedUsers.find((u: AppUser) => u.id === sessionOriginalUser.id);
+        const freshOriginalUserData = enrichedUsers.find((u: AppUser) => u.id === sessionOriginalUser.id);
         if(freshOriginalUserData) {
             setOriginalUser(freshOriginalUserData);
             sessionStorage.setItem('originalUser', JSON.stringify(freshOriginalUserData));
@@ -152,19 +171,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
 
     if (foundUser) {
-      setUser(foundUser);
-      setOriginalUser(foundUser);
-      sessionStorage.setItem('user', JSON.stringify(foundUser));
-      sessionStorage.setItem('originalUser', JSON.stringify(foundUser));
+      // Enrich the logged in user as well
+      const emailLower = foundUser.email.toLowerCase().trim();
+      const enrichedUser = (STAFF_PHONE_MAPPING[emailLower] && !foundUser.phoneNumber) 
+        ? { ...foundUser, phoneNumber: STAFF_PHONE_MAPPING[emailLower] } 
+        : foundUser;
+
+      setUser(enrichedUser);
+      setOriginalUser(enrichedUser);
+      sessionStorage.setItem('user', JSON.stringify(enrichedUser));
+      sessionStorage.setItem('originalUser', JSON.stringify(enrichedUser));
 
       await addAuditLog({
-          userId: foundUser.id,
-          username: foundUser.username,
+          userId: enrichedUser.id,
+          username: enrichedUser.username,
           action: 'LOGIN',
           details: 'User logged in successfully.',
       });
 
-      if(foundUser.forcePasswordChange) {
+      if(enrichedUser.forcePasswordChange) {
         router.push('/profile');
       } else {
         router.push('/dashboard');
@@ -226,17 +251,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(userData),
     });
+    
+    // Enrich newly added user locally
+    const emailLower = newUser.email.toLowerCase().trim();
+    const enrichedNewUser = (STAFF_PHONE_MAPPING[emailLower] && !newUser.phoneNumber)
+      ? { ...newUser, phoneNumber: STAFF_PHONE_MAPPING[emailLower] }
+      : newUser;
+
     if (user) {
       await addAuditLog({
           userId: user.id,
           username: user.username,
           action: 'CREATE_USER',
           targetEntityType: 'USER',
-          targetEntityId: newUser.id,
-          details: `Created new user '${newUser.username}' with role '${newUser.role}'.`,
+          targetEntityId: enrichedNewUser.id,
+          details: `Created new user '${enrichedNewUser.username}' with role '${enrichedNewUser.role}'.`,
       });
     }
-    setUsers(prev => [...prev, newUser]);
+    setUsers(prev => [...prev, enrichedNewUser]);
   };
 
   const updateUser = async (id: string, updates: Partial<Omit<AppUser, 'id'>>) => {
@@ -245,6 +277,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates),
     });
+
+    // Enrich updated user locally
+    const emailLower = updatedUser.email.toLowerCase().trim();
+    const enrichedUpdatedUser = (STAFF_PHONE_MAPPING[emailLower] && !updatedUser.phoneNumber)
+      ? { ...updatedUser, phoneNumber: STAFF_PHONE_MAPPING[emailLower] }
+      : updatedUser;
+
     if (user) {
       const detailParts = Object.entries(updates)
         .filter(([key]) => key !== 'password')
@@ -256,19 +295,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
           action: 'UPDATE_USER',
           targetEntityType: 'USER',
           targetEntityId: id,
-          details: `Updated user '${updatedUser.username}'. Changes: ${detailParts.join(', ')}`,
+          details: `Updated user '${enrichedUpdatedUser.username}'. Changes: ${detailParts.join(', ')}`,
       });
     }
     
-    setUsers(prev => prev.map(u => u.id === id ? updatedUser : u));
+    setUsers(prev => prev.map(u => u.id === id ? enrichedUpdatedUser : u));
     
     if (user?.id === id) {
-      setUser(updatedUser);
-      sessionStorage.setItem('user', JSON.stringify(updatedUser));
+      setUser(enrichedUpdatedUser);
+      sessionStorage.setItem('user', JSON.stringify(enrichedUpdatedUser));
     }
     if (originalUser?.id === id) {
-        setOriginalUser(updatedUser);
-        sessionStorage.setItem('originalUser', JSON.stringify(updatedUser));
+        setOriginalUser(enrichedUpdatedUser);
+        sessionStorage.setItem('originalUser', JSON.stringify(enrichedUpdatedUser));
     }
   };
 
