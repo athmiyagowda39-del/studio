@@ -66,32 +66,26 @@ function ExpandableCell({ content, title }: { content: string | null | undefined
 const getFunnelData = (leads: LeadFormData[]) => {
   const total = leads.length;
   
-  // Leads Processed: Everything except 'Not viewed'
-  const processed = leads.filter(l => l.status !== 'Not viewed').length;
-  
-  // Attended
-  const attended = leads.filter(l => l.status === 'Attended').length;
-  
-  // Demo Given
-  const demo = leads.filter(l => l.status === 'Demo Given').length;
-  
-  // Proposal Sent (including Quote Sent)
-  const proposal = leads.filter(l => l.status === 'Proposal Sent' || l.status === 'Quote Sent').length;
-  
-  // Pursuing to Purchase
+  // Calculate counts for exactly the requested stages
+  const notViewed = leads.filter(l => l.status === 'Not viewed').length;
   const pursuing = leads.filter(l => l.status === 'Pursuing to Purchase').length;
-  
-  // Order Closed
+  const attended = leads.filter(l => l.status === 'Attended').length;
+  const proposal = leads.filter(l => l.status === 'Proposal Sent' || l.status === 'Quote Sent').length;
+  const demo = leads.filter(l => l.status === 'Demo Given').length;
   const closed = leads.filter(l => l.status === 'Order closed').length;
+  const existing = leads.filter(l => l.status === 'Existing Users').length;
+  const notInterested = leads.filter(l => l.status === 'Not interested').length;
 
   const rawData = [
     { name: 'Total Leads', value: total },
-    { name: 'Leads Processed', value: processed },
-    { name: 'Attended', value: attended },
-    { name: 'Demo Given', value: demo },
-    { name: 'Proposal Sent', value: proposal },
+    { name: 'Not viewed', value: notViewed },
     { name: 'Pursuing to Purchase', value: pursuing },
-    { name: 'Order Closed', value: closed },
+    { name: 'Attended', value: attended },
+    { name: 'Proposal Sent', value: proposal },
+    { name: 'Demo Given', value: demo },
+    { name: 'Order closed', value: closed },
+    { name: 'Existing Users', value: existing },
+    { name: 'Not interested', value: notInterested },
   ];
 
   // Only show stages with counts > 0 to keep the funnel meaningful
@@ -99,7 +93,7 @@ const getFunnelData = (leads: LeadFormData[]) => {
 };
 
 export default function ConversionFunnelReportPage() {
-  const { user, isAuthenticated, isLoading, leads: allLeads, leadStatuses, modules } = useApp();
+  const { user, isAuthenticated, isLoading, leads: allLeads, modules } = useApp();
   const router = useRouter();
   const [isClient, setIsClient] = useState(false);
   const [selectedStage, setSelectedStage] = useState<string | null>(null);
@@ -130,10 +124,6 @@ export default function ConversionFunnelReportPage() {
 
     if (selectedStage === 'Total Leads') {
         return visibleLeads;
-    }
-    
-    if (selectedStage === 'Leads Processed') {
-        return visibleLeads.filter(l => l.status !== 'Not viewed');
     }
     
     if (selectedStage === 'Proposal Sent') {
@@ -167,7 +157,7 @@ export default function ConversionFunnelReportPage() {
         <CardContent className="p-6 space-y-6">
           <div className="w-full">
             <p className="text-center text-muted-foreground mb-4">
-              Showing distribution for {visibleLeads.length} total leads. Only stages with counts &gt; 0 are displayed.
+              Showing distribution for {visibleLeads.length} total leads based on current statuses.
             </p>
             <div className="bg-background rounded-xl p-4 flex justify-center">
               {isClient && <ConversionFunnelChart data={funnelData} onStageClick={handleStageClick} />}
