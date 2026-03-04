@@ -65,8 +65,10 @@ function ExpandableCell({ content, title }: { content: string | null | undefined
 
 const funnelStages = [
   'Total Leads',
+  'Leads Processed',
   'Attended',
   'Demo Given',
+  'Proposal Sent',
   'Pursuing to Purchase',
   'Order closed',
 ];
@@ -74,23 +76,27 @@ const funnelStages = [
 const stageOrder: { [key: string]: number } = {
   'Not viewed': 0,
   'Unattended': 0,
-  'Attended': 1,
+  'Attended': 2,
   'Not interested': 1,
   'Do Not Contact': 1,
-  'Demo Given': 2,
-  'Quote Sent': 2,
-  'Proposal Sent': 2,
-  'Pursuing to Purchase': 3,
-  'Order closed': 4,
+  'Demo Given': 3,
+  'Quote Sent': 4,
+  'Proposal Sent': 4,
+  'Pursuing to Purchase': 5,
+  'Order closed': 6,
+  'Fake': 1,
+  'Existing Users': 1,
 };
 
 const getFunnelData = (leads: LeadFormData[]) => {
   const statusCounts = {
     'Total Leads': leads.length,
-    'Attended': leads.filter(l => (stageOrder[l.status || ''] || 0) >= 1).length,
-    'Demo Given': leads.filter(l => (stageOrder[l.status || ''] || 0) >= 2).length,
-    'Pursuing to Purchase': leads.filter(l => (stageOrder[l.status || ''] || 0) >= 3).length,
-    'Order closed': leads.filter(l => (stageOrder[l.status || ''] || 0) >= 4).length,
+    'Leads Processed': leads.filter(l => (stageOrder[l.status || ''] || 0) >= 1).length,
+    'Attended': leads.filter(l => (stageOrder[l.status || ''] || 0) >= 2).length,
+    'Demo Given': leads.filter(l => (stageOrder[l.status || ''] || 0) >= 3).length,
+    'Proposal Sent': leads.filter(l => (stageOrder[l.status || ''] || 0) >= 4).length,
+    'Pursuing to Purchase': leads.filter(l => (stageOrder[l.status || ''] || 0) >= 5).length,
+    'Order closed': leads.filter(l => (stageOrder[l.status || ''] || 0) >= 6).length,
   };
 
   return funnelStages.map((stage) => ({
@@ -131,14 +137,18 @@ export default function ConversionFunnelReportPage() {
 
     if (selectedStage === 'Total Leads') {
         return visibleLeads;
-    } else if (selectedStage === 'Attended') {
+    } else if (selectedStage === 'Leads Processed') {
         return visibleLeads.filter(l => (stageOrder[l.status || ''] || 0) >= 1);
-    } else if (selectedStage === 'Demo Given') {
+    } else if (selectedStage === 'Attended') {
         return visibleLeads.filter(l => (stageOrder[l.status || ''] || 0) >= 2);
-    } else if (selectedStage === 'Pursuing to Purchase') {
+    } else if (selectedStage === 'Demo Given') {
         return visibleLeads.filter(l => (stageOrder[l.status || ''] || 0) >= 3);
+    } else if (selectedStage === 'Proposal Sent') {
+        return visibleLeads.filter(l => (stageOrder[l.status || ''] || 0) >= 4);
+    } else if (selectedStage === 'Pursuing to Purchase') {
+        return visibleLeads.filter(l => (stageOrder[l.status || ''] || 0) >= 5);
     } else if (selectedStage === 'Order closed') {
-        return visibleLeads.filter(l => l.status === 'Order closed');
+        return visibleLeads.filter(l => (stageOrder[l.status || ''] || 0) >= 6);
     }
     return [];
   }, [selectedStage, visibleLeads]);
