@@ -63,50 +63,39 @@ function ExpandableCell({ content, title }: { content: string | null | undefined
   );
 }
 
-const funnelStages = [
-  'Total Leads',
-  'Leads Processed',
-  'Attended',
-  'Demo Given',
-  'Proposal Sent',
-  'Pursuing to Purchase',
-  'Order closed',
-];
-
-const stageOrder: { [key: string]: number } = {
-  'Not viewed': 0,
-  'Unattended': 0,
-  'Attended': 2,
-  'Not interested': 1,
-  'Do Not Contact': 1,
-  'Demo Given': 3,
-  'Quote Sent': 4,
-  'Proposal Sent': 4,
-  'Pursuing to Purchase': 5,
-  'Order closed': 6,
-  'Fake': 1,
-  'Existing Users': 1,
-};
-
-const getFunnelData = (leads: LeadFormData[]) => {
-  const statusCounts = {
-    'Total Leads': leads.length,
-    'Leads Processed': leads.filter(l => (stageOrder[l.status || ''] || 0) >= 1).length,
-    'Attended': leads.filter(l => (stageOrder[l.status || ''] || 0) >= 2).length,
-    'Demo Given': leads.filter(l => (stageOrder[l.status || ''] || 0) >= 3).length,
-    'Proposal Sent': leads.filter(l => (stageOrder[l.status || ''] || 0) >= 4).length,
-    'Pursuing to Purchase': leads.filter(l => (stageOrder[l.status || ''] || 0) >= 5).length,
-    'Order closed': leads.filter(l => (stageOrder[l.status || ''] || 0) >= 6).length,
-  };
-
-  return funnelStages.map((stage) => ({
-    name: stage,
-    value: statusCounts[stage as keyof typeof statusCounts],
+const getFunnelData = (leads: LeadFormData[], allStatuses: string[]) => {
+  // Combine Quote Sent and Proposal Sent logic
+  const normalizedLeads = leads.map(l => ({
+    ...l,
+    status: l.status === 'Quote Sent' ? 'Proposal Sent' : l.status
   }));
+
+  const displayStatuses = allStatuses.filter(s => s !== 'Quote Sent');
+  
+  const counts: Record<string, number> = {};
+  displayStatuses.forEach(status => {
+    counts[status] = normalizedLeads.filter(l => l.status === status).length;
+  });
+
+  // Filter out 0 counts
+  const data = displayStatuses
+    .filter(status => counts[status] > 0)
+    .map(status => ({
+      name: status,
+      value: counts[status]
+    }));
+
+  // Always put Total Leads at the top
+  data.unshift({
+    name: 'Total Leads',
+    value: leads.length
+  });
+
+  return data;
 };
 
 export default function ConversionFunnelReportPage() {
-  const { user, isAuthenticated, isLoading, leads: allLeads, modules } = useApp();
+  const { user, isAuthenticated, isLoading, leads: allLeads, leadStatuses, modules } = useApp();
   const router = useRouter();
   const [isClient, setIsClient] = useState(false);
   const [selectedStage, setSelectedStage] = useState<string | null>(null);
@@ -128,29 +117,22 @@ export default function ConversionFunnelReportPage() {
   }, [allLeads, user]);
 
   const funnelData = useMemo(() => {
-    if (!visibleLeads) return [];
-    return getFunnelData(visibleLeads);
-  }, [visibleLeads]);
+    if (!visibleLeads || !leadStatuses) return [];
+    return getFunnelData(visibleLeads, leadStatuses);
+  }, [visibleLeads, leadStatuses]);
 
   const stageLeads = useMemo(() => {
     if (!selectedStage || !visibleLeads) return [];
 
     if (selectedStage === 'Total Leads') {
         return visibleLeads;
-    } else if (selectedStage === 'Leads Processed') {
-        return visibleLeads.filter(l => (stageOrder[l.status || ''] || 0) >= 1);
-    } else if (selectedStage === 'Attended') {
-        return visibleLeads.filter(l => (stageOrder[l.status || ''] || 0) >= 2);
-    } else if (selectedStage === 'Demo Given') {
-        return visibleLeads.filter(l => (stageOrder[l.status || ''] || 0) >= 3);
-    } else if (selectedStage === 'Proposal Sent') {
-        return visibleLeads.filter(l => (stageOrder[l.status || ''] || 0) >= 4);
-    } else if (selectedStage === 'Pursuing to Purchase') {
-        return visibleLeads.filter(l => (stageOrder[l.status || ''] || 0) >= 5);
-    } else if (selectedStage === 'Order closed') {
-        return visibleLeads.filter(l => (stageOrder[l.status || ''] || 0) >= 6);
     }
-    return [];
+    
+    if (selectedStage === 'Proposal Sent') {
+        return visibleLeads.filter(l => l.status === 'Proposal Sent' || l.status === 'Quote Sent');
+    }
+
+    return visibleLeads.filter(l => l.status === selectedStage);
   }, [selectedStage, visibleLeads]);
 
   const handleStageClick = (stageName: string) => {
@@ -177,7 +159,7 @@ export default function ConversionFunnelReportPage() {
         <CardContent className="p-6 space-y-6">
           <div className="w-full">
             <p className="text-center text-muted-foreground mb-4">
-              Showing {visibleLeads.length} total leads. Click on a funnel stage to see details.
+              Showing {visibleLeads.length} total leads. Only statuses with counts &gt; 0 are displayed in the funnel.
             </p>
             <div className="bg-background rounded-xl p-4 flex justify-center">
               {isClient && <ConversionFunnelChart data={funnelData} onStageClick={handleStageClick} />}
