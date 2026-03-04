@@ -26,16 +26,15 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table"
-import { useApp } from "@/context/app-context"
+import { useApp, type AppUser } from "@/context/app-context"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Info } from "lucide-react"
 import { getDisplayModule } from "@/lib/modules"
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 
 type FollowUp = {
   id: number
@@ -43,6 +42,58 @@ type FollowUp = {
   remarks: string
   nextFollowUp: string
   enteredBy: string
+}
+
+function UserInfoPopover({ username, users }: { username: string | undefined, users: AppUser[] }) {
+  const foundUser = users.find(u => u.username === username);
+  
+  if (!username || username === "N/A" || !foundUser) {
+    return (
+      <Popover>
+        <PopoverTrigger asChild>
+          <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors">
+            <Info className="h-4 w-4" />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent className="w-64 p-4">
+          <p className="text-sm font-medium text-muted-foreground">No user details available for "{username || 'N/A'}"</p>
+        </PopoverContent>
+      </Popover>
+    );
+  }
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors">
+          <Info className="h-4 w-4" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-72 p-4 shadow-xl border-2">
+        <div className="space-y-3">
+          <h4 className="font-bold text-xs uppercase text-primary border-b pb-1 tracking-wider">User Details</h4>
+          <div className="space-y-1.5 text-sm">
+            <div className="flex justify-between gap-2">
+              <span className="font-semibold text-muted-foreground">Name:</span>
+              <span className="text-right">{foundUser.username}</span>
+            </div>
+            <div className="flex justify-between gap-2">
+              <span className="font-semibold text-muted-foreground">Email:</span>
+              <span className="text-right break-all">{foundUser.email}</span>
+            </div>
+            <div className="flex justify-between gap-2">
+              <span className="font-semibold text-muted-foreground">Phone:</span>
+              <span className="text-right">{foundUser.phoneNumber || 'N/A'}</span>
+            </div>
+            <div className="flex justify-between gap-2">
+              <span className="font-semibold text-muted-foreground">Role:</span>
+              <span className="text-right">{foundUser.role}</span>
+            </div>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
 }
 
 export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
@@ -208,273 +259,257 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
   const isOrderClosedInRemarks = remarks.toLowerCase().includes("order closed");
 
   return (
-    <TooltipProvider>
-      <div className="space-y-6">
-        {isReadOnly && <Alert variant="default"><Info className="h-4 w-4" /><AlertTitle>Read-Only Mode</AlertTitle></Alert>}
-        
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-          {/* LEAD CONTACT CARD */}
-          <Card>
-            <CardHeader><CardTitle className="text-base font-bold uppercase">Lead Contact Card</CardTitle></CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <Label className="font-semibold">Lead(id)</Label>
-                  <Input value={leadDetails.leadId || ""} placeholder="Select a lead" readOnly className={inputBgClass} />
-                </div>
-                <div className="space-y-1">
-                  <Label className="font-semibold">Company</Label>
-                  <Input value={leadDetails.company || ""} readOnly className={inputBgClass} />
-                </div>
-                
-                <div className="space-y-1">
-                  <Label className="font-semibold">Contact person</Label>
-                  <Input value={leadDetails.contactPerson || ""} onChange={e => handleLeadDetailChange('contactPerson', e.target.value)} readOnly={isReadOnly} className={inputBgClass} />
-                </div>
-                <div className="space-y-1">
-                  <Label className="font-semibold">Contact Number</Label>
-                  <Input value={leadDetails.contactNumber || ""} onChange={e => handleLeadDetailChange('contactNumber', e.target.value)} readOnly={isReadOnly} className={inputBgClass} />
-                </div>
-
-                <div className="space-y-1">
-                  <Label className="font-semibold">Address</Label>
-                  <Input value={leadDetails.address || ""} onChange={e => handleLeadDetailChange('address', e.target.value)} readOnly={isReadOnly} className={inputBgClass} />
-                </div>
-                <div className="space-y-1">
-                  <Label className="font-semibold">Email ID</Label>
-                  <Input value={leadDetails.email || ""} onChange={e => handleLeadDetailChange('email', e.target.value)} readOnly={isReadOnly} className={inputBgClass} />
-                </div>
-
-                <div className="space-y-1">
-                  <Label className="font-semibold">District</Label>
-                  <Input value={leadDetails.district || ""} onChange={e => handleLeadDetailChange('district', e.target.value)} readOnly={isReadOnly} className={inputBgClass} />
-                </div>
-                <div className="space-y-1">
-                  <Label className="font-semibold">State</Label>
-                  <Input value={leadDetails.state || ""} onChange={e => handleLeadDetailChange('state', e.target.value)} readOnly={isReadOnly} className={inputBgClass} />
-                </div>
-
-                <div className="space-y-1">
-                  <Label className="font-semibold">Date of lead</Label>
-                  <Input value={leadDetails.creationDate ? format(new Date(leadDetails.creationDate), 'PPP') : ""} readOnly className={inputBgClass} />
-                </div>
-                <div className="space-y-1">
-                  <Label className="font-semibold">Executive viewed date</Label>
-                  <Input value={leadDetails.executiveViewDate ? format(new Date(leadDetails.executiveViewDate), 'PPP p') : "Not yet seen"} readOnly className={inputBgClass} />
-                </div>
-
-                <div className="space-y-1">
-                  <Label className="font-semibold">Reference</Label>
-                  <Input value={leadDetails.reference || ""} readOnly className={inputBgClass} />
-                </div>
-                <div className="space-y-1">
-                  <Label className="font-semibold">Given By</Label>
-                  <Input value={leadDetails.givenBy || ""} readOnly className={inputBgClass} />
-                </div>
-
-                <div className="space-y-1">
-                  <div className="flex items-center gap-1.5">
-                    <Label className="font-semibold">Executive</Label>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>The sales executive assigned to manage this lead.</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </div>
-                  <Input value={leadDetails.executive || ""} readOnly className={inputBgClass} />
-                </div>
-                <div className="space-y-1">
-                  <div className="flex items-center gap-1.5">
-                    <Label className="font-semibold">Manager</Label>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>The manager overseeing this lead's progress.</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </div>
-                  <Input value={leadDetails.manager || ""} readOnly className={inputBgClass} />
-                </div>
-
-                <div className="space-y-1">
-                  <Label className="font-semibold">Headcount</Label>
-                  <Input value={leadDetails.headcount || ""} readOnly className={inputBgClass} />
-                </div>
-                <div className="space-y-1">
-                  <Label className="font-semibold">Module</Label>
-                  <div className={`h-10 px-3 py-2 text-sm border rounded-md overflow-x-auto whitespace-nowrap flex items-center no-scrollbar ${inputBgClass}`}>
-                    {getDisplayModule(leadDetails.selectedModule || "", modules)}
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t">
-                <div className="flex items-center gap-2">
-                  <Checkbox id="ready" checked={isReadyToUpdate} onCheckedChange={(c) => setIsReadyToUpdate(!!c)} disabled={isReadOnly} />
-                  <Label htmlFor="ready" className="font-semibold text-sm">Yes, I am Ready to Update.</Label>
-                </div>
-                <div className="flex gap-2">
-                  <Button onClick={handleSaveLeadDetails} disabled={!isReadyToUpdate || isReadOnly} className="bg-primary hover:bg-primary/90">Save</Button>
-                  <Button variant="outline" onClick={handleResetLeadDetails}>Reset</Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* LEAD TRACKER */}
-          <Card>
-            <CardHeader><CardTitle className="text-base font-bold uppercase">Lead Tracker</CardTitle></CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2 p-3 bg-muted/20 rounded-lg border">
-                <Label className="font-bold uppercase text-xs text-muted-foreground">Transferred Lead</Label>
-                <div className="flex gap-2">
-                  <Select value={transferredTo} onValueChange={setTransferredTo} disabled={isReadOnly}>
-                    <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="Select Executive to transfer to..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {executives.map(exec => (
-                          <SelectItem key={exec} value={exec}>{exec}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button onClick={handleTransfer} disabled={!transferredTo || isReadOnly} size="sm" className="bg-primary hover:bg-primary/90">Transfer</Button>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <Label className="font-bold uppercase text-xs text-muted-foreground">Follow Up</Label>
-                <div className="space-y-1">
-                  <Label className="text-xs font-semibold">Remarks</Label>
-                  <Textarea value={remarks} onChange={e => setRemarks(e.target.value)} readOnly={isReadOnly} className="min-h-[100px]" />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs font-semibold">Next Follow-up Date</Label>
-                  <Input 
-                    type="date" 
-                    value={isOrderClosedInRemarks ? "" : nextFollowUpDate} 
-                    onChange={e => setNextFollowUpDate(e.target.value)} 
-                    disabled={isReadOnly || isOrderClosedInRemarks} 
-                  />
-                </div>
-                <div className="flex justify-end gap-2">
-                  <Button variant="outline" size="sm" onClick={() => { setRemarks(""); setNextFollowUpDate(""); }}>New</Button>
-                  <Button onClick={handleAddFollowUp} disabled={isReadOnly} size="sm" className="bg-primary hover:bg-primary/90">Add &gt;&gt;</Button>
-                </div>
-              </div>
-
-              <div className="border rounded-md overflow-hidden">
-                  <ScrollArea className="h-[200px]">
-                      <Table>
-                          <TableHeader className="bg-muted/50">
-                              <TableRow>
-                                  <TableHead className="w-16">Sl No</TableHead>
-                                  <TableHead>Date</TableHead>
-                                  <TableHead>Remarks</TableHead>
-                                  <TableHead>Next Follow-up</TableHead>
-                                  <TableHead>Entered by</TableHead>
-                              </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                              {followUps.length > 0 ? (
-                                  followUps.map((fu, idx) => (
-                                      <TableRow key={fu.id}>
-                                          <TableCell>{idx + 1}</TableCell>
-                                          <TableCell>{format(new Date(fu.date), 'MM/dd/yyyy')}</TableCell>
-                                          <TableCell className="max-w-[200px] truncate" title={fu.remarks}>{fu.remarks}</TableCell>
-                                          <TableCell>{fu.nextFollowUp}</TableCell>
-                                          <TableCell>{fu.enteredBy}</TableCell>
-                                      </TableRow>
-                                  ))
-                              ) : (
-                                  <TableRow>
-                                      <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">
-                                          No follow-ups added yet.
-                                      </TableCell>
-                                  </TableRow>
-                              )}
-                          </TableBody>
-                      </Table>
-                  </ScrollArea>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* LEAD STATUS SECTION */}
+    <div className="space-y-6">
+      {isReadOnly && <Alert variant="default"><Info className="h-4 w-4" /><AlertTitle>Read-Only Mode</AlertTitle></Alert>}
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+        {/* LEAD CONTACT CARD */}
         <Card>
-          <CardHeader className="bg-primary/5">
-            <CardTitle className="text-base font-bold text-primary">Lead Status</CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-              <div className="space-y-2">
-                <Label className="font-bold text-sm">Initial Remarks</Label>
-                <Textarea 
-                  placeholder="Enter initial remarks for the lead..." 
-                  value={leadDetails.initialRemarks || ""} 
-                  onChange={e => handleLeadDetailChange('initialRemarks', e.target.value)}
-                  readOnly={isReadOnly}
-                  className="min-h-[120px] bg-muted/5"
-                />
+          <CardHeader><CardTitle className="text-base font-bold uppercase">Lead Contact Card</CardTitle></CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <Label className="font-semibold">Lead(id)</Label>
+                <Input value={leadDetails.leadId || ""} placeholder="Select a lead" readOnly className={inputBgClass} />
+              </div>
+              <div className="space-y-1">
+                <Label className="font-semibold">Company</Label>
+                <Input value={leadDetails.company || ""} readOnly className={inputBgClass} />
+              </div>
+              
+              <div className="space-y-1">
+                <Label className="font-semibold">Contact person</Label>
+                <Input value={leadDetails.contactPerson || ""} onChange={e => handleLeadDetailChange('contactPerson', e.target.value)} readOnly={isReadOnly} className={inputBgClass} />
+              </div>
+              <div className="space-y-1">
+                <Label className="font-semibold">Contact Number</Label>
+                <Input value={leadDetails.contactNumber || ""} onChange={e => handleLeadDetailChange('contactNumber', e.target.value)} readOnly={isReadOnly} className={inputBgClass} />
               </div>
 
-              <div className="space-y-2">
-                <Label className="font-bold text-sm">Current Status</Label>
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-                  <span className="text-sm font-semibold text-muted-foreground min-w-[60px]">({currentStatus})</span>
-                  <div className="flex w-full items-center gap-2">
-                    <Select value={selectedStatus} onValueChange={setSelectedStatus} disabled={isReadOnly}>
-                      <SelectTrigger className="flex-1 bg-muted/5">
-                        <SelectValue placeholder="-- Select --" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="All">All</SelectItem>
-                        {filteredLeadStatuses.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                    <Button onClick={handleUpdateStatus} disabled={!selectedStatus || isReadOnly} className="bg-primary hover:bg-primary/90 px-6">
-                      Update
-                    </Button>
-                  </div>
+              <div className="space-y-1">
+                <Label className="font-semibold">Address</Label>
+                <Input value={leadDetails.address || ""} onChange={e => handleLeadDetailChange('address', e.target.value)} readOnly={isReadOnly} className={inputBgClass} />
+              </div>
+              <div className="space-y-1">
+                <Label className="font-semibold">Email ID</Label>
+                <Input value={leadDetails.email || ""} onChange={e => handleLeadDetailChange('email', e.target.value)} readOnly={isReadOnly} className={inputBgClass} />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="font-semibold">District</Label>
+                <Input value={leadDetails.district || ""} onChange={e => handleLeadDetailChange('district', e.target.value)} readOnly={isReadOnly} className={inputBgClass} />
+              </div>
+              <div className="space-y-1">
+                <Label className="font-semibold">State</Label>
+                <Input value={leadDetails.state || ""} onChange={e => handleLeadDetailChange('state', e.target.value)} readOnly={isReadOnly} className={inputBgClass} />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="font-semibold">Date of lead</Label>
+                <Input value={leadDetails.creationDate ? format(new Date(leadDetails.creationDate), 'PPP') : ""} readOnly className={inputBgClass} />
+              </div>
+              <div className="space-y-1">
+                <Label className="font-semibold">Executive viewed date</Label>
+                <Input value={leadDetails.executiveViewDate ? format(new Date(leadDetails.executiveViewDate), 'PPP p') : "Not yet seen"} readOnly className={inputBgClass} />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="font-semibold">Reference</Label>
+                <Input value={leadDetails.reference || ""} readOnly className={inputBgClass} />
+              </div>
+              <div className="space-y-1">
+                <Label className="font-semibold">Given By</Label>
+                <Input value={leadDetails.givenBy || ""} readOnly className={inputBgClass} />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="font-semibold">Executive</Label>
+                <div className="relative">
+                  <Input value={leadDetails.executive || ""} readOnly className={`${inputBgClass} pr-10`} />
+                  <UserInfoPopover username={leadDetails.executive} users={users} />
                 </div>
-                
-                {(selectedStatus === 'Proposal Sent' || selectedStatus === 'Order closed') && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 p-4 bg-muted/10 rounded-lg border">
-                    <div className="space-y-1">
-                      <Label className="text-xs font-semibold">Monthly Value (INR)</Label>
-                      <Input type="number" value={monthlyContractValue} onChange={e => setMonthlyContractValue(e.target.value)} disabled={isReadOnly} placeholder="0.00" />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs font-semibold">Annual Value (INR)</Label>
-                      <Input type="number" value={annualContractValue} onChange={e => setAnnualContractValue(e.target.value)} disabled={isReadOnly} placeholder="0.00" />
-                    </div>
-                  </div>
-                )}
-                
-                {selectedStatus === 'Not interested' && (
-                  <div className="mt-4 p-4 bg-muted/10 rounded-lg border">
-                      <Label className="text-xs font-semibold mb-2 block">Reason for Not Interested</Label>
-                      <Select value={selectedSubStatus} onValueChange={setSelectedSubStatus} disabled={isReadOnly}>
-                      <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select Reason..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                          {leadSubStatuses.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                      </SelectContent>
-                      </Select>
-                  </div>
-                )}
+              </div>
+              <div className="space-y-1">
+                <Label className="font-semibold">Manager</Label>
+                <div className="relative">
+                  <Input value={leadDetails.manager || ""} readOnly className={`${inputBgClass} pr-10`} />
+                  <UserInfoPopover username={leadDetails.manager} users={users} />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <Label className="font-semibold">Headcount</Label>
+                <Input value={leadDetails.headcount || ""} readOnly className={inputBgClass} />
+              </div>
+              <div className="space-y-1">
+                <Label className="font-semibold">Module</Label>
+                <div className={`h-10 px-3 py-2 text-sm border rounded-md overflow-x-auto whitespace-nowrap flex items-center no-scrollbar ${inputBgClass}`}>
+                  {getDisplayModule(leadDetails.selectedModule || "", modules)}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t">
+              <div className="flex items-center gap-2">
+                <Checkbox id="ready" checked={isReadyToUpdate} onCheckedChange={(c) => setIsReadyToUpdate(!!c)} disabled={isReadOnly} />
+                <Label htmlFor="ready" className="font-semibold text-sm">Yes, I am Ready to Update.</Label>
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={handleSaveLeadDetails} disabled={!isReadyToUpdate || isReadOnly} className="bg-primary hover:bg-primary/90">Save</Button>
+                <Button variant="outline" onClick={handleResetLeadDetails}>Reset</Button>
               </div>
             </div>
           </CardContent>
         </Card>
+
+        {/* LEAD TRACKER */}
+        <Card>
+          <CardHeader><CardTitle className="text-base font-bold uppercase">Lead Tracker</CardTitle></CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-2 p-3 bg-muted/20 rounded-lg border">
+              <Label className="font-bold uppercase text-xs text-muted-foreground">Transferred Lead</Label>
+              <div className="flex gap-2">
+                <Select value={transferredTo} onValueChange={setTransferredTo} disabled={isReadOnly}>
+                  <SelectTrigger className="flex-1">
+                    <SelectValue placeholder="Select Executive to transfer to..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {executives.map(exec => (
+                        <SelectItem key={exec} value={exec}>{exec}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button onClick={handleTransfer} disabled={!transferredTo || isReadOnly} size="sm" className="bg-primary hover:bg-primary/90">Transfer</Button>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <Label className="font-bold uppercase text-xs text-muted-foreground">Follow Up</Label>
+              <div className="space-y-1">
+                <Label className="text-xs font-semibold">Remarks</Label>
+                <Textarea value={remarks} onChange={e => setRemarks(e.target.value)} readOnly={isReadOnly} className="min-h-[100px]" />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs font-semibold">Next Follow-up Date</Label>
+                <Input 
+                  type="date" 
+                  value={isOrderClosedInRemarks ? "" : nextFollowUpDate} 
+                  onChange={e => setNextFollowUpDate(e.target.value)} 
+                  disabled={isReadOnly || isOrderClosedInRemarks} 
+                />
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" size="sm" onClick={() => { setRemarks(""); setNextFollowUpDate(""); }}>New</Button>
+                <Button onClick={handleAddFollowUp} disabled={isReadOnly} size="sm" className="bg-primary hover:bg-primary/90">Add &gt;&gt;</Button>
+              </div>
+            </div>
+
+            <div className="border rounded-md overflow-hidden">
+                <ScrollArea className="h-[200px]">
+                    <Table>
+                        <TableHeader className="bg-muted/50">
+                            <TableRow>
+                                <TableHead className="w-16">Sl No</TableHead>
+                                <TableHead>Date</TableHead>
+                                <TableHead>Remarks</TableHead>
+                                <TableHead>Next Follow-up</TableHead>
+                                <TableHead>Entered by</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {followUps.length > 0 ? (
+                                followUps.map((fu, idx) => (
+                                    <TableRow key={fu.id}>
+                                        <TableCell>{idx + 1}</TableCell>
+                                        <TableCell>{format(new Date(fu.date), 'MM/dd/yyyy')}</TableCell>
+                                        <TableCell className="max-w-[200px] truncate" title={fu.remarks}>{fu.remarks}</TableCell>
+                                        <TableCell>{fu.nextFollowUp}</TableCell>
+                                        <TableCell>{fu.enteredBy}</TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">
+                                        No follow-ups added yet.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </ScrollArea>
+            </div>
+          </CardContent>
+        </Card>
       </div>
-    </TooltipProvider>
+
+      {/* LEAD STATUS SECTION */}
+      <Card>
+        <CardHeader className="bg-primary/5">
+          <CardTitle className="text-base font-bold text-primary">Lead Status</CardTitle>
+        </CardHeader>
+        <CardContent className="pt-6 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+            <div className="space-y-2">
+              <Label className="font-bold text-sm">Initial Remarks</Label>
+              <Textarea 
+                placeholder="Enter initial remarks for the lead..." 
+                value={leadDetails.initialRemarks || ""} 
+                onChange={e => handleLeadDetailChange('initialRemarks', e.target.value)}
+                readOnly={isReadOnly}
+                className="min-h-[120px] bg-muted/5"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="font-bold text-sm">Current Status</Label>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                <span className="text-sm font-semibold text-muted-foreground min-w-[60px]">({currentStatus})</span>
+                <div className="flex w-full items-center gap-2">
+                  <Select value={selectedStatus} onValueChange={setSelectedStatus} disabled={isReadOnly}>
+                    <SelectTrigger className="flex-1 bg-muted/5">
+                      <SelectValue placeholder="-- Select --" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="All">All</SelectItem>
+                      {filteredLeadStatuses.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Button onClick={handleUpdateStatus} disabled={!selectedStatus || isReadOnly} className="bg-primary hover:bg-primary/90 px-6">
+                    Update
+                  </Button>
+                </div>
+              </div>
+              
+              {(selectedStatus === 'Proposal Sent' || selectedStatus === 'Order closed') && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 p-4 bg-muted/10 rounded-lg border">
+                  <div className="space-y-1">
+                    <Label className="text-xs font-semibold">Monthly Value (INR)</Label>
+                    <Input type="number" value={monthlyContractValue} onChange={e => setMonthlyContractValue(e.target.value)} disabled={isReadOnly} placeholder="0.00" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs font-semibold">Annual Value (INR)</Label>
+                    <Input type="number" value={annualContractValue} onChange={e => setAnnualContractValue(e.target.value)} disabled={isReadOnly} placeholder="0.00" />
+                  </div>
+                </div>
+              )}
+              
+              {selectedStatus === 'Not interested' && (
+                <div className="mt-4 p-4 bg-muted/10 rounded-lg border">
+                    <Label className="text-xs font-semibold mb-2 block">Reason for Not Interested</Label>
+                    <Select value={selectedSubStatus} onValueChange={setSelectedSubStatus} disabled={isReadOnly}>
+                    <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select Reason..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {leadSubStatuses.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                    </SelectContent>
+                    </Select>
+                </div>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   )
 }
