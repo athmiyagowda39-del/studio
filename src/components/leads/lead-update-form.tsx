@@ -307,7 +307,7 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
                 </div>
                 <div className="space-y-1">
                   <Label className="font-semibold">Module</Label>
-                  <div className={`h-10 px-3 py-2 text-sm border rounded-md overflow-x-auto whitespace-nowrap flex items-center ${inputBgClass}`}>
+                  <div className={`h-10 px-3 py-2 text-sm border rounded-md overflow-x-auto whitespace-nowrap flex items-center no-scrollbar ${inputBgClass}`}>
                     {getDisplayModule(leadDetails.selectedModule || "", modules)}
                   </div>
                 </div>
