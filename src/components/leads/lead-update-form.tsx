@@ -69,26 +69,24 @@ function UserInfoPopover({ username, users }: { username: string | undefined, us
           <Info className="h-4 w-4" />
         </button>
       </PopoverTrigger>
-      <PopoverContent className="w-72 p-4 shadow-xl border-2">
-        <div className="space-y-3">
-          <h4 className="font-bold text-xs uppercase text-primary border-b pb-1 tracking-wider">User Details</h4>
-          <div className="space-y-1.5 text-sm">
-            <div className="flex justify-between gap-2">
-              <span className="font-semibold text-muted-foreground">Name:</span>
-              <span className="text-right">{foundUser.username}</span>
-            </div>
-            <div className="flex justify-between gap-2">
-              <span className="font-semibold text-muted-foreground">Email:</span>
-              <span className="text-right break-all">{foundUser.email}</span>
-            </div>
-            <div className="flex justify-between gap-2">
-              <span className="font-semibold text-muted-foreground">Phone:</span>
-              <span className="text-right">{foundUser.phoneNumber || 'N/A'}</span>
-            </div>
-            <div className="flex justify-between gap-2">
-              <span className="font-semibold text-muted-foreground">Role:</span>
-              <span className="text-right">{foundUser.role}</span>
-            </div>
+      <PopoverContent className="w-80 p-5 shadow-2xl border-2 animate-in fade-in zoom-in-95 duration-200">
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 border-b pb-2">
+            <Info className="h-4 w-4 text-primary" />
+            <h4 className="font-bold text-xs uppercase text-primary tracking-widest">User Details</h4>
+          </div>
+          <div className="grid grid-cols-[70px_1fr] gap-x-4 gap-y-3 text-sm">
+            <span className="font-semibold text-muted-foreground">Name:</span>
+            <span className="text-foreground font-medium">{foundUser.username}</span>
+            
+            <span className="font-semibold text-muted-foreground">Email:</span>
+            <span className="text-foreground break-all leading-tight">{foundUser.email}</span>
+            
+            <span className="font-semibold text-muted-foreground">Phone:</span>
+            <span className="text-foreground font-medium">{foundUser.phoneNumber || 'N/A'}</span>
+            
+            <span className="font-semibold text-muted-foreground">Role:</span>
+            <span className="text-foreground font-medium">{foundUser.role}</span>
           </div>
         </div>
       </PopoverContent>
