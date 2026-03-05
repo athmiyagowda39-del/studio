@@ -290,14 +290,14 @@ export default function ConversionFunnelChart({ data, onStageClick }: Conversion
               <span>{data[0]?.value.toLocaleString()}</span> total leads · {data.length} stages
             </p>
           </div>
-          <div className="cfr-badge">
+          {/* <div className="cfr-badge">
             <div className="cfr-badge-num">
               {mounted
                 ? <AnimatedNumber value={data[data.length - 2]?.value} delay={600} />
                 : data[data.length - 1]?.value}
             </div>
             <div className="cfr-badge-lbl">Purchase</div>
-          </div>
+          </div> */}
         </div>
 
         {/* Main grid */}
