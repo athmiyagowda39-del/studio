@@ -10,7 +10,9 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     serverActions: {
-      allowedOrigins: ['10.0.0.9:9445'],
+      // For production, you should ideally list your actual production domain here.
+      // Or remove it if your hosting provider handles the origin header correctly.
+      allowedOrigins: [process.env.NEXT_PUBLIC_APP_URL || 'localhost:3000'],
     },
   },
   images: {

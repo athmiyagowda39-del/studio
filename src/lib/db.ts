@@ -1,45 +1,55 @@
-
 import sql from 'mssql';
-
-const config: sql.config = {
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  server: process.env.DB_SERVER!,
-  database: process.env.DB_DATABASE,
-  options: {
-    encrypt: process.env.DB_ENCRYPT === 'true',
-    trustServerCertificate: process.env.DB_TRUST_SERVER_CERTIFICATE === 'true',
-  },
-};
 
 let pool: sql.ConnectionPool | null = null;
 
-async function getConnection() {
-  // If pool exists and is connected, return it.
+export async function getConnection() {
   if (pool && pool.connected) {
     return pool;
   }
 
-  // Check for missing essential configuration
-  if (!config.server || !config.user || !config.database) {
-      console.error('Database configuration environment variables are not fully set.');
-      throw new Error('Database configuration is missing.');
+  const missingVars = [];
+  if (!process.env.DB_SERVER) missingVars.push('DB_SERVER');
+  if (!process.env.DB_USER) missingVars.push('DB_USER');
+  if (!process.env.DB_PASSWORD) missingVars.push('DB_PASSWORD');
+  if (!process.env.DB_DATABASE) missingVars.push('DB_DATABASE');
+
+  if (missingVars.length > 0) {
+    const errorMsg = `DATABASE CONFIGURATION ERROR: Missing variables: ${missingVars.join(', ')}.`;
+    console.error(errorMsg);
+    throw new Error(errorMsg);
   }
 
-  try {
-    pool = await new sql.ConnectionPool(config).connect();
-    
-    pool.on('error', err => {
-        console.error('SQL Pool Error', err);
-        pool = null; // Reset pool on error to force reconnection on next call
-    });
+  const server = process.env.DB_SERVER || '';
+  // Enhanced IP detection
+  const isIP = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(server) || server === 'localhost' || server === '127.0.0.1';
 
+  const config: sql.config = {
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    server: server,
+    database: process.env.DB_DATABASE,
+    options: {
+      // Direct IP connections usually don't support TLS ServerName validation
+      encrypt: isIP ? false : true, 
+      trustServerCertificate: true,
+      connectTimeout: 30000,
+    },
+    pool: {
+      max: 10,
+      min: 0,
+      idleTimeoutMillis: 30000
+    }
+  };
+
+  try {
+    console.log(`Connecting to ${config.server} (Encrypt: ${config.options?.encrypt})`);
+    pool = await new sql.ConnectionPool(config).connect();
     return pool;
-  } catch (err) {
-    console.error('Database Connection Failed!', err);
-    pool = null; // Ensure pool is null on failure
-    throw new Error('Could not connect to the database.');
+  } catch (err: any) {
+    console.error('DATABASE CONNECTION FAILED:', err.message);
+    pool = null; 
+    throw new Error(`Connection failed: ${err.message}`);
   }
 }
 
-export { sql, getConnection };
+export { sql };

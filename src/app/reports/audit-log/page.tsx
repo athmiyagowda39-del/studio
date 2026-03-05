@@ -11,11 +11,10 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import AppContent from '@/components/layout/app-content';
-import { useApp, type AppUser } from '@/context/app-context';
+import { useApp } from '@/context/app-context';
 import type { AuditLogReportEntry } from '@/lib/server-actions/audit';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-
 
 export default function AuditLogReportPage() {
     const { user, users, isAuthenticated, isLoading } = useApp();
@@ -68,6 +67,23 @@ export default function AuditLogReportPage() {
             });
         } finally {
             setIsFetching(false);
+        }
+    };
+
+    const formatToIST = (utcString: string) => {
+        try {
+            return new Date(utcString).toLocaleString('en-IN', {
+                timeZone: 'Asia/Kolkata',
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true,
+            });
+        } catch (e) {
+            return utcString;
         }
     };
     
@@ -130,7 +146,7 @@ export default function AuditLogReportPage() {
                                     <Table className="min-w-[1200px]">
                                         <TableHeader>
                                             <TableRow>
-                                                <TableHead>Timestamp</TableHead>
+                                                <TableHead>Timestamp (IST)</TableHead>
                                                 <TableHead>Username</TableHead>
                                                 <TableHead>Action</TableHead>
                                                 <TableHead>Entity</TableHead>
@@ -142,7 +158,9 @@ export default function AuditLogReportPage() {
                                             {auditLogs.length > 0 ? (
                                                 auditLogs.map(log => (
                                                     <TableRow key={log.id}>
-                                                        <TableCell>{format(new Date(log.timestamp), 'yyyy-MM-dd HH:mm:ss')}</TableCell>
+                                                        <TableCell className="font-medium">
+                                                            {formatToIST(log.timestamp)}
+                                                        </TableCell>
                                                         <TableCell>{log.username}</TableCell>
                                                         <TableCell>{log.action}</TableCell>
                                                         <TableCell>{log.targetEntityType || 'N/A'}</TableCell>

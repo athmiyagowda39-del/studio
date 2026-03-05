@@ -26,10 +26,26 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table"
-import { useApp } from "@/context/app-context"
+import { useApp, type AppUser } from "@/context/app-context"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Info } from "lucide-react"
+import { Info, Trash2 } from "lucide-react"
 import { getDisplayModule } from "@/lib/modules"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 type FollowUp = {
   id: number
@@ -39,7 +55,57 @@ type FollowUp = {
   enteredBy: string
 }
 
-export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
+function UserInfoPopover({ username, users }: { username: string | undefined, users: AppUser[] }) {
+  const foundUser = users.find(u => u.username === username);
+  
+  if (!username || username === "N/A" || !foundUser) {
+    return (
+      <Popover>
+        <PopoverTrigger asChild>
+          <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors">
+            <Info className="h-4 w-4" />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent className="w-64 p-4">
+          <p className="text-sm font-medium text-muted-foreground">No user details available for "{username || 'N/A'}"</p>
+        </PopoverContent>
+      </Popover>
+    );
+  }
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors">
+          <Info className="h-4 w-4" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-80 p-5 shadow-2xl border-2 animate-in fade-in zoom-in-95 duration-200">
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 border-b pb-2">
+            <Info className="h-4 w-4 text-primary" />
+            <h4 className="font-bold text-xs uppercase text-primary tracking-widest">User Details</h4>
+          </div>
+          <div className="grid grid-cols-[70px_1fr] gap-x-4 gap-y-3 text-sm">
+            <span className="font-semibold text-muted-foreground">Name:</span>
+            <span className="text-foreground font-medium">{foundUser.username}</span>
+            
+            <span className="font-semibold text-muted-foreground">Email:</span>
+            <span className="text-foreground break-all leading-tight">{foundUser.email}</span>
+            
+            <span className="font-semibold text-muted-foreground">Phone:</span>
+            <span className="text-foreground font-medium">{foundUser.phoneNumber || 'N/A'}</span>
+            
+            <span className="font-semibold text-muted-foreground">Role:</span>
+            <span className="text-foreground font-medium">{foundUser.role}</span>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+export default function LeadUpdateForm({ leadId, onClearSelection }: { leadId: string | null, onClearSelection?: () => void }) {
   const [leadDetails, setLeadDetails] = useState<Partial<LeadFormData>>({})
   const [remarks, setRemarks] = useState("")
   const [nextFollowUpDate, setNextFollowUpDate] = useState("")
@@ -51,11 +117,14 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
   const [annualContractValue, setAnnualContractValue] = useState("")
   const [transferredTo, setTransferredTo] = useState("")
   const [isReadyToUpdate, setIsReadyToUpdate] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const { toast } = useToast()
-  const { users, user, isReadOnly, leads: allLeads, updateLead, leadStatuses, leadSubStatuses, modules, addAuditLog } = useApp()
+  const { users, user, isReadOnly, leads: allLeads, updateLead, deleteLead, leadStatuses, leadSubStatuses, modules } = useApp()
   const filteredLeadStatuses = useMemo(() => leadStatuses.filter(status => status !== 'Quote Sent'), [leadStatuses]);
   
+  const isSuperAdmin = user?.role === 'Super Admin';
+
   const executives = useMemo(() => 
     users.filter((u) => u.role === "Executive").map((u) => u.username), 
     [users]
@@ -97,7 +166,9 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
 
   const handleAddFollowUp = async () => {
     if (!leadDetails.leadId) return
-    if (!remarks || (!nextFollowUpDate && !remarks.toLowerCase().includes("order closed"))) {
+    const isOrderClosed = remarks.toLowerCase().includes("order closed")
+    
+    if (!remarks || (!nextFollowUpDate && !isOrderClosed)) {
       toast({ variant: "destructive", title: "Missing Information", description: "Please provide remarks and next follow-up date." })
       return
     }
@@ -106,14 +177,14 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
       id: (followUps?.length || 0) + 1,
       date: new Date().toISOString(),
       remarks: remarks,
-      nextFollowUp: nextFollowUpDate ? format(new Date(nextFollowUpDate + "T00:00:00"), "PPP") : "N/A",
+      nextFollowUp: nextFollowUpDate && !isOrderClosed ? format(new Date(nextFollowUpDate + "T00:00:00"), "PPP") : "N/A",
       enteredBy: user?.username || "System",
     }
 
     try {
       await updateLead(leadDetails.leadId, {
         followUps: [...(followUps || []), newFollowUp],
-        nextFollowUpDate: nextFollowUpDate ? new Date(nextFollowUpDate + "T00:00:00").toISOString() : undefined,
+        nextFollowUpDate: nextFollowUpDate && !isOrderClosed ? new Date(nextFollowUpDate + "T00:00:00").toISOString() : undefined,
       })
       setRemarks("")
       setNextFollowUpDate("")
@@ -144,11 +215,14 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
 
   const handleUpdateStatus = async () => {
     if (!leadDetails.leadId || !selectedStatus) return
+    
+    const isValueStatus = selectedStatus === 'Proposal Sent' || selectedStatus === 'Order closed';
+    
     const payload: Partial<LeadFormData> = {
       status: selectedStatus,
       leadSubStatus: selectedStatus === "Not interested" ? selectedSubStatus : "",
-      monthlyContractValue: selectedStatus === 'Proposal Sent' ? monthlyContractValue : leadDetails.monthlyContractValue,
-      annualContractValue: selectedStatus === 'Proposal Sent' ? annualContractValue : leadDetails.annualContractValue,
+      monthlyContractValue: isValueStatus ? monthlyContractValue : leadDetails.monthlyContractValue,
+      annualContractValue: isValueStatus ? annualContractValue : leadDetails.annualContractValue,
       initialRemarks: leadDetails.initialRemarks, 
     }
 
@@ -181,7 +255,6 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
             contactPerson: leadDetails.contactPerson,
             contactNumber: leadDetails.contactNumber,
             email: leadDetails.email,
-            headcount: leadDetails.headcount,
             address: leadDetails.address,
             district: leadDetails.district,
             state: leadDetails.state,
@@ -194,8 +267,23 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
     }
   }
 
-  // Consistent background for all inputs
+  const handleDeleteLead = async () => {
+    if (!leadDetails.leadId) return;
+    setIsDeleting(true);
+    try {
+      await deleteLead(leadDetails.leadId);
+      toast({ title: "Lead Deleted", description: "The lead has been permanently removed." });
+      if (onClearSelection) onClearSelection();
+      handleResetLeadDetails();
+    } catch (error) {
+      toast({ variant: 'destructive', title: 'Delete Failed', description: 'Failed to delete lead.' });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const inputBgClass = "bg-muted/50";
+  const isOrderClosedInRemarks = remarks.toLowerCase().includes("order closed");
 
   return (
     <div className="space-y-6">
@@ -263,20 +351,26 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
 
               <div className="space-y-1">
                 <Label className="font-semibold">Executive</Label>
-                <Input value={leadDetails.executive || ""} readOnly className={inputBgClass} />
+                <div className="relative">
+                  <Input value={leadDetails.executive || ""} readOnly className={`${inputBgClass} pr-10`} />
+                  <UserInfoPopover username={leadDetails.executive} users={users} />
+                </div>
               </div>
               <div className="space-y-1">
                 <Label className="font-semibold">Manager</Label>
-                <Input value={leadDetails.manager || ""} readOnly className={inputBgClass} />
+                <div className="relative">
+                  <Input value={leadDetails.manager || ""} readOnly className={`${inputBgClass} pr-10`} />
+                  <UserInfoPopover username={leadDetails.manager} users={users} />
+                </div>
               </div>
 
               <div className="space-y-1">
                 <Label className="font-semibold">Headcount</Label>
-                <Input value={leadDetails.headcount || ""} onChange={e => handleLeadDetailChange('headcount', e.target.value)} readOnly={isReadOnly} className={inputBgClass} />
+                <Input value={leadDetails.headcount || ""} readOnly className={inputBgClass} />
               </div>
               <div className="space-y-1">
                 <Label className="font-semibold">Module</Label>
-                <div className={`h-10 px-3 py-2 text-sm border rounded-md truncate ${inputBgClass}`}>
+                <div className={`h-10 px-3 py-2 text-sm border rounded-md overflow-x-auto whitespace-nowrap flex items-center no-scrollbar ${inputBgClass}`}>
                   {getDisplayModule(leadDetails.selectedModule || "", modules)}
                 </div>
               </div>
@@ -288,6 +382,30 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
                 <Label htmlFor="ready" className="font-semibold text-sm">Yes, I am Ready to Update.</Label>
               </div>
               <div className="flex gap-2">
+                {isSuperAdmin && leadDetails.leadId && (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive" size="sm" className="gap-2">
+                        <Trash2 className="h-4 w-4" />
+                        Delete Lead
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This action cannot be undone. This will permanently delete lead <strong>{leadDetails.leadId}</strong> for <strong>{leadDetails.company}</strong>.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDeleteLead} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                          {isDeleting ? 'Deleting...' : 'Permanently Delete'}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                )}
                 <Button onClick={handleSaveLeadDetails} disabled={!isReadyToUpdate || isReadOnly} className="bg-primary hover:bg-primary/90">Save</Button>
                 <Button variant="outline" onClick={handleResetLeadDetails}>Reset</Button>
               </div>
@@ -324,7 +442,12 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
               </div>
               <div className="space-y-1">
                 <Label className="text-xs font-semibold">Next Follow-up Date</Label>
-                <Input type="date" value={nextFollowUpDate} onChange={e => setNextFollowUpDate(e.target.value)} disabled={isReadOnly} />
+                <Input 
+                  type="date" 
+                  value={isOrderClosedInRemarks ? "" : nextFollowUpDate} 
+                  onChange={e => setNextFollowUpDate(e.target.value)} 
+                  disabled={isReadOnly || isOrderClosedInRemarks} 
+                />
               </div>
               <div className="flex justify-end gap-2">
                 <Button variant="outline" size="sm" onClick={() => { setRemarks(""); setNextFollowUpDate(""); }}>New</Button>
@@ -398,6 +521,7 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
                       <SelectValue placeholder="-- Select --" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="All">All</SelectItem>
                       {filteredLeadStatuses.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                     </SelectContent>
                   </Select>
@@ -407,7 +531,7 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
                 </div>
               </div>
               
-              {selectedStatus === 'Proposal Sent' && (
+              {(selectedStatus === 'Proposal Sent' || selectedStatus === 'Order closed') && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 p-4 bg-muted/10 rounded-lg border">
                   <div className="space-y-1">
                     <Label className="text-xs font-semibold">Monthly Value (INR)</Label>

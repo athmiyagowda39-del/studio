@@ -1,6 +1,7 @@
 import { sql, getConnection } from '@/lib/db';
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import { addErrorLog } from './audit';
+import { revalidatePath } from 'next/cache';
 
 function parseLeads(recordset: any[]): LeadFormData[] {
     return recordset.map(lead => ({
@@ -29,12 +30,17 @@ export async function getNextLeadId(): Promise<string> {
     try {
         const pool = await getConnection();
         const result = await pool.request().execute('usp_GetNextLeadId');
-        const maxId = result.recordset[0].maxId;
-        const nextId = maxId ? (maxId + 1).toString() : '100000';
-        return nextId;
+        
+        if (result.recordset && result.recordset.length > 0) {
+            const maxId = result.recordset[0].maxId;
+            // Use BigInt to handle large values that might exist in the DB
+            const nextId = maxId ? (BigInt(maxId) + BigInt(1)).toString() : '100000';
+            return nextId;
+        }
+        return '100000';
     } catch (error) {
         await addErrorLog('getNextLeadId', error);
-        console.error('Failed to get next lead ID:', error);
+        console.error('Failed to get next lead ID from database:', error);
         throw error;
     }
 }
@@ -107,12 +113,17 @@ export async function addLeads(leads: LeadFormData[]): Promise<LeadFormData[]> {
         const request = pool.request();
         request.input('leads', table);
         await request.execute('usp_BulkAddLeads');
+        
+        revalidatePath('/leads-upload');
+        revalidatePath('/leads-update');
+        revalidatePath('/dashboard');
+        
         return leads;
-    } catch (error) {
+    } catch (error: any) {
         const userDetails = leads.length > 0 ? `User: ${leads[0].givenBy}` : 'User unknown';
         await addErrorLog('addLeads', error, userDetails);
-        console.error('Failed to bulk insert leads using stored procedure:', error);
-        throw new Error('Failed to add leads due to a database error.');
+        console.error('DATABASE ERROR in addLeads:', error.message);
+        throw new Error(`Failed to add leads: ${error.message}`);
     }
 }
 
@@ -160,15 +171,35 @@ export async function updateLead(id: string, updates: Partial<LeadFormData>): Pr
           .input('annualContractValue', sql.NVarChar(50), mergedLead.annualContractValue || null)
           .execute('usp_UpdateLead');
 
+      revalidatePath('/leads-update');
+      revalidatePath('/dashboard');
+
       if (result.recordset.length > 0) {
           const [updatedLead] = parseLeads(result.recordset);
           return updatedLead;
       } else {
           throw new Error('Lead not found after update.');
       }
-  } catch (error) {
+  } catch (error: any) {
       await addErrorLog('updateLead', error, `LeadId: ${id}`);
-      console.error(`Failed to update lead ${id}:`, error);
-      throw new Error('Failed to update lead due to a database error.');
+      console.error(`Failed to update lead ${id}:`, error.message);
+      throw new Error(`Failed to update lead: ${error.message}`);
+  }
+}
+
+export async function deleteLead(id: string): Promise<{ success: boolean }> {
+  try {
+    const pool = await getConnection();
+    await pool.request()
+      .input('leadId', sql.NVarChar, id)
+      .execute('usp_DeleteLead');
+    
+    revalidatePath('/leads-update');
+    revalidatePath('/dashboard');
+    return { success: true };
+  } catch (error: any) {
+    await addErrorLog('deleteLead', error, `LeadId: ${id}`);
+    console.error(`Failed to delete lead ${id}:`, error.message);
+    throw new Error(`Failed to delete lead: ${error.message}`);
   }
 }

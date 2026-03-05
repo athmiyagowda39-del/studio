@@ -1,4 +1,4 @@
-'use client';
+"use client"
 
 import { Button } from '@/components/ui/button';
 import { useState, useEffect, useMemo, useRef } from 'react';
@@ -98,6 +98,8 @@ export default function LeadsUpdatePage() {
   const [productPopoverOpen, setProductPopoverOpen] = useState(false);
   const [selectedExecutive, setSelectedExecutive] = useState('all');
   const [otherExecutiveInput, setOtherExecutiveInput] = useState('');
+  const [selectedManager, setSelectedManager] = useState('all');
+  const [otherManagerInput, setOtherManagerInput] = useState('');
   
   const [givenBy, setGivenBy] = useState('all');
   const [otherGivenByInput, setOtherGivenByInput] = useState('');
@@ -109,6 +111,7 @@ export default function LeadsUpdatePage() {
   const [otherLeadSourceInput, setOtherLeadSourceInput] = useState('');
   const [considerStatus, setConsiderStatus] = useState(false);
 
+  const [applyFollowUpFilter, setApplyFollowUpFilter] = useState(false);
   const [followUpStatus, setFollowUpStatus] = useState('pending');
   const [followUpFromDate, setFollowUpFromDate] = useState('');
   const [followUpToDate, setFollowUpToDate] = useState('');
@@ -122,7 +125,9 @@ export default function LeadsUpdatePage() {
     toDate: '',
     selectedModules: '',
     selectedExecutive: 'all',
+    selectedManager: 'all',
     otherExecutiveInput: '',
+    otherManagerInput: '',
     givenBy: 'all',
     otherGivenByInput: '',
     selectedStatus: 'all',
@@ -132,6 +137,7 @@ export default function LeadsUpdatePage() {
     selectedLeadSource: 'all',
     otherLeadSourceInput: '',
     considerStatus: false,
+    applyFollowUpFilter: false,
     followUpStatus: 'pending',
     followUpFromDate: '',
     followUpToDate: '',
@@ -142,10 +148,17 @@ export default function LeadsUpdatePage() {
   const filteredLeadStatuses = useMemo(() => leadStatuses.filter(s => s !== 'Quote Sent'), [leadStatuses]);
 
   const allUsernames = useMemo(() => users.map(u => u.username), [users]);
+  
   const executiveDropdownUsers = useMemo(() => {
     const excludedNames = ['Varghese Vincent', 'Sam Devasia', 'Athmiya A G'];
     return users
       .filter(u => !excludedNames.includes(u.username))
+      .map(u => u.username);
+  }, [users]);
+
+  const managerDropdownUsers = useMemo(() => {
+    return users
+      .filter(u => u.role === 'Manager')
       .map(u => u.username);
   }, [users]);
 
@@ -218,6 +231,13 @@ export default function LeadsUpdatePage() {
                 }
             }
 
+            // Manager
+            if (match && filters.selectedManager && filters.selectedManager !== 'all') {
+                if (lead.manager !== filters.selectedManager) {
+                    match = false;
+                }
+            }
+
             // Given By
             if (match && filters.givenBy && filters.givenBy !== 'all') {
                 if (lead.givenBy !== filters.givenBy) {
@@ -254,8 +274,8 @@ export default function LeadsUpdatePage() {
                 }
             }
 
-            // Follow-up related filters (only if considerStatus is true)
-            if (match && filters.considerStatus) {
+            // Follow-up related filters (only if applyFollowUpFilter is true)
+            if (match && filters.applyFollowUpFilter) {
                 // Follow-up Status
                 if (filters.followUpStatus === 'pending') {
                     if (!lead.nextFollowUpDate || new Date(lead.nextFollowUpDate) > new Date()) {
@@ -344,7 +364,9 @@ export default function LeadsUpdatePage() {
         toDate,
         selectedModules,
         selectedExecutive: selectedExecutive === 'Other' ? otherExecutiveInput : selectedExecutive,
+        selectedManager: selectedManager === 'Other' ? otherManagerInput : selectedManager,
         otherExecutiveInput,
+        otherManagerInput,
         givenBy: givenBy === 'Other' ? otherGivenByInput : givenBy,
         otherGivenByInput,
         selectedStatus: selectedStatus === 'Other' ? otherStatusInput : selectedStatus,
@@ -354,6 +376,7 @@ export default function LeadsUpdatePage() {
         selectedLeadSource: selectedLeadSource === 'Other' ? otherLeadSourceInput : selectedLeadSource,
         otherLeadSourceInput,
         considerStatus,
+        applyFollowUpFilter,
         followUpStatus,
         followUpFromDate,
         followUpToDate,
@@ -369,10 +392,11 @@ export default function LeadsUpdatePage() {
   const handleResetFilters = () => {
     const initialFilters = {
       searchTerm: '', searchCategory: 'leadId', fromDate: '', toDate: '',
-      selectedModules: '', selectedExecutive: 'all', givenBy: 'all', selectedStatus: 'all',
+      selectedModules: '', selectedExecutive: 'all', selectedManager: 'all', givenBy: 'all', selectedStatus: 'all',
       selectedSubStatus: 'all', selectedLeadSource: 'all', considerStatus: false,
+      applyFollowUpFilter: false,
       followUpStatus: 'pending', followUpFromDate: '', followUpToDate: '', followUpEnteredBy: 'all',
-      otherExecutiveInput: '', otherGivenByInput: '', otherStatusInput: '', otherSubStatusInput: '', otherLeadSourceInput: '', otherFollowUpEnteredByInput: ''
+      otherExecutiveInput: '', otherManagerInput: '', otherGivenByInput: '', otherStatusInput: '', otherSubStatusInput: '', otherLeadSourceInput: '', otherFollowUpEnteredByInput: ''
     };
     
     setSearchTerm(initialFilters.searchTerm);
@@ -381,7 +405,9 @@ export default function LeadsUpdatePage() {
     setToDate(initialFilters.toDate);
     setSelectedModules(initialFilters.selectedModules);
     setSelectedExecutive(initialFilters.selectedExecutive);
+    setSelectedManager(initialFilters.selectedManager);
     setOtherExecutiveInput(initialFilters.otherExecutiveInput);
+    setOtherManagerInput(initialFilters.otherManagerInput);
     setGivenBy(initialFilters.givenBy);
     setOtherGivenByInput(initialFilters.otherGivenByInput);
     setSelectedStatus(initialFilters.selectedStatus);
@@ -391,6 +417,7 @@ export default function LeadsUpdatePage() {
     setSelectedLeadSource(initialFilters.selectedLeadSource);
     setOtherLeadSourceInput(initialFilters.otherLeadSourceInput);
     setConsiderStatus(initialFilters.considerStatus);
+    setApplyFollowUpFilter(initialFilters.applyFollowUpFilter);
     setFollowUpStatus(initialFilters.followUpStatus);
     setFollowUpFromDate(initialFilters.followUpFromDate);
     setFollowUpToDate(initialFilters.followUpToDate);
@@ -484,6 +511,14 @@ export default function LeadsUpdatePage() {
       const newExec = otherExecutiveInput.trim();
       setSelectedExecutive(newExec);
       setOtherExecutiveInput('');
+    }
+  };
+
+  const handleSetOtherManager = () => {
+    if(otherManagerInput.trim()){
+      const newManager = otherManagerInput.trim();
+      setSelectedManager(newManager);
+      setOtherManagerInput('');
     }
   };
 
@@ -622,6 +657,7 @@ export default function LeadsUpdatePage() {
 
             <LeadUpdateForm
               leadId={selectedLeadId}
+              onClearSelection={() => setSelectedLeadId(null)}
             />
 
             <div
@@ -694,8 +730,7 @@ export default function LeadsUpdatePage() {
                         {label: 'Phone', value: 'contactNumber'}, 
                         {label: 'District', value: 'district'}, 
                         {label: 'State', value: 'state'}, 
-                        {label: 'Email', value: 'email'}, 
-                        {label: 'Manager Name', value: 'manager'}
+                        {label: 'Email', value: 'email'}
                       ].map(item => (
                         <div key={item.value} className="flex items-center gap-2">
                           <RadioGroupItem value={item.value} id={item.value} /> 
@@ -705,7 +740,7 @@ export default function LeadsUpdatePage() {
                     </RadioGroup>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                     <div className="space-y-1">
                       <Label>From Date</Label>
                       <Input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)}/>
@@ -825,6 +860,41 @@ export default function LeadsUpdatePage() {
                                 }}
                               />
                               <Button size="sm" onClick={handleSetOtherExecutive}>OK</Button>
+                            </div>
+                        </div>
+                      )}
+                    </div>
+                    <div className="space-y-1">
+                      <Label>Manager Name</Label>
+                      <Select value={selectedManager} onValueChange={(value) => setSelectedManager(value)}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="--All--" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All</SelectItem>
+                           {managerDropdownUsers.map(m => (
+                            <SelectItem key={m} value={m}>
+                              {m}
+                            </SelectItem>
+                          ))}
+                          {!managerDropdownUsers.includes(selectedManager) && selectedManager !== 'all' && selectedManager !== 'Other' && (
+                              <SelectItem value={selectedManager}>{selectedManager}</SelectItem>
+                          )}
+                          <SelectItem value="Other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {selectedManager === 'Other' && (
+                        <div className="mt-2">
+                           <div className="flex items-center gap-2">
+                              <Input
+                                placeholder="Specify other manager"
+                                value={otherManagerInput}
+                                onChange={(e) => setOtherManagerInput(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') handleSetOtherManager();
+                                }}
+                              />
+                              <Button size="sm" onClick={handleSetOtherManager}>OK</Button>
                             </div>
                         </div>
                       )}
@@ -983,70 +1053,78 @@ export default function LeadsUpdatePage() {
                         checked={considerStatus}
                         onCheckedChange={(checked) => setConsiderStatus(checked as boolean)}
                       />
-                      <Label htmlFor="considerStatus">Do not consider Order Closed/Fake/Existing Users/Not Interested</Label>
+                      <Label htmlFor="considerStatus" className="font-semibold">Do not consider Order Closed/Fake/Existing Users/Not Interested</Label>
                     </div>
 
-                    {considerStatus && (
-                      <div className="space-y-4 pl-6 border-l-2 border-muted ml-2 pt-2">
-                        
-                        <RadioGroup value={followUpStatus} onValueChange={setFollowUpStatus} className="flex gap-4">
-                          <div className="flex items-center gap-2">
-                            <RadioGroupItem value="pending" id="pending" />
-                            <Label htmlFor="pending">Follow Up Pending</Label>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <RadioGroupItem value="made" id="made" />
-                            <Label htmlFor="made">Follow Up Made</Label>
-                          </div>
-                        </RadioGroup>
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <div className="space-y-1">
-                              <Label>From Date</Label>
-                              <Input type="date" value={followUpFromDate} onChange={(e) => setFollowUpFromDate(e.target.value)} />
-                          </div>
-                          <div className="space-y-1">
-                              <Label>To Date</Label>
-                              <Input type="date" value={followUpToDate} onChange={(e) => setFollowUpToDate(e.target.value)} />
-                          </div>
-                          <div className="space-y-1">
-                              <Label htmlFor="enteredByFollowUp">Enter by</Label>
-                              <Select value={followUpEnteredBy} onValueChange={(value) => setFollowUpEnteredBy(value)}>
-                                  <SelectTrigger id="enteredByFollowUp">
-                                      <SelectValue placeholder="--All--" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                      <SelectItem value="all">All</SelectItem>
-                                      {allUsernames.map((name) => (
-                                      <SelectItem key={name} value={name}>
-                                          {name}
-                                      </SelectItem>
-                                      ))}
-                                      {!allUsernames.includes(followUpEnteredBy) && followUpEnteredBy !== 'all' && followUpEnteredBy !== 'Other' && (
-                                          <SelectItem value={followUpEnteredBy}>{followUpEnteredBy}</SelectItem>
-                                      )}
-                                      <SelectItem value="Other">Other</SelectItem>
-                                  </SelectContent>
-                              </Select>
-                              {followUpEnteredBy === 'Other' && (
-                                  <div className="mt-2">
-                                      <div className="flex items-center gap-2">
-                                          <Input
-                                              placeholder="Specify who entered it"
-                                              value={otherFollowUpEnteredByInput}
-                                              onChange={(e) => setOtherFollowUpEnteredByInput(e.target.value)}
-                                              onKeyDown={(e) => {
-                                                  if (e.key === 'Enter') handleSetOtherFollowUpEnteredBy();
-                                              }}
-                                          />
-                                          <Button size="sm" onClick={handleSetOtherFollowUpEnteredBy}>OK</Button>
-                                      </div>
-                                  </div>
-                              )}
-                          </div>
+                    <div className="space-y-4 pl-6 border-l-2 border-muted ml-2 pt-2">
+                        <div className="flex items-center gap-2 mb-2">
+                            <Checkbox 
+                                id="applyFollowUpFilter" 
+                                checked={applyFollowUpFilter} 
+                                onCheckedChange={(checked) => setApplyFollowUpFilter(checked as boolean)}
+                            />
+                            <Label htmlFor="applyFollowUpFilter" className="font-bold text-primary">Apply Follow-up Filter</Label>
                         </div>
-                      </div>
-                    )}
+                        
+                        <div className={cn("space-y-4", !applyFollowUpFilter && "opacity-60")}>
+                            <RadioGroup value={followUpStatus} onValueChange={setFollowUpStatus} className="flex gap-4" disabled={!applyFollowUpFilter}>
+                                <div className="flex items-center gap-2">
+                                    <RadioGroupItem value="pending" id="pending" />
+                                    <Label htmlFor="pending">Follow Up Pending</Label>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <RadioGroupItem value="made" id="made" />
+                                    <Label htmlFor="made">Follow Up Made</Label>
+                                </div>
+                            </RadioGroup>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="space-y-1">
+                                    <Label>From Date</Label>
+                                    <Input type="date" value={followUpFromDate} onChange={(e) => setFollowUpFromDate(e.target.value)} disabled={!applyFollowUpFilter} />
+                                </div>
+                                <div className="space-y-1">
+                                    <Label>To Date</Label>
+                                    <Input type="date" value={followUpToDate} onChange={(e) => setFollowUpToDate(e.target.value)} disabled={!applyFollowUpFilter} />
+                                </div>
+                                <div className="space-y-1">
+                                    <Label htmlFor="enteredByFollowUp">Enter by</Label>
+                                    <Select value={followUpEnteredBy} onValueChange={(value) => setFollowUpEnteredBy(value)} disabled={!applyFollowUpFilter}>
+                                        <SelectTrigger id="enteredByFollowUp">
+                                            <SelectValue placeholder="--All--" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">All</SelectItem>
+                                            {allUsernames.map((name) => (
+                                            <SelectItem key={name} value={name}>
+                                                {name}
+                                            </SelectItem>
+                                            ))}
+                                            {!allUsernames.includes(followUpEnteredBy) && followUpEnteredBy !== 'all' && followUpEnteredBy !== 'Other' && (
+                                                <SelectItem value={followUpEnteredBy}>{followUpEnteredBy}</SelectItem>
+                                            )}
+                                            <SelectItem value="Other">Other</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    {followUpEnteredBy === 'Other' && (
+                                        <div className="mt-2">
+                                            <div className="flex items-center gap-2">
+                                                <Input
+                                                    placeholder="Specify who entered it"
+                                                    value={otherFollowUpEnteredByInput}
+                                                    onChange={(e) => setOtherFollowUpEnteredByInput(e.target.value)}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter') handleSetOtherFollowUpEnteredBy();
+                                                    }}
+                                                />
+                                                <Button size="sm" onClick={handleSetOtherFollowUpEnteredBy}>OK</Button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                   </div>
 
                   <div className="flex justify-end gap-3 pt-4 border-t">
