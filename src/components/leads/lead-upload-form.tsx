@@ -476,8 +476,14 @@ export default function LeadUploadForm() {
 
   const handleDownloadSample = async () => {
     try {
-      const ExcelJS = (await import('exceljs')).default;
-      const workbook = new ExcelJS.Workbook();
+      const ExcelJS = await import('exceljs');
+      const Workbook = ExcelJS.Workbook || (ExcelJS as any).Workbook || (ExcelJS as any).default?.Workbook;
+
+      if (!Workbook) {
+        throw new Error("ExcelJS Workbook constructor not found");
+      }
+
+      const workbook = new Workbook();
       const worksheet = workbook.addWorksheet('Leads');
 
       const headers = [
@@ -488,29 +494,29 @@ export default function LeadUploadForm() {
 
       // Add a sample data row
       worksheet.addRow([
-        'Sample Corp', 'John Doe', '123 Main St', 'Karnataka', 'Bengaluru', '9876543210', 'john.doe@example.com', '560001', 'Website', '150', 'IT', 'Payroll', 'Varghese Vincent', 'Yathish G'
+        'Sample Corp', 'John Doe', '123 Main St', 'Karnataka', 'Bengaluru', '9876543210', 'john.doe@example.com', '560001', 'Website', '150 ', 'IT', 'Payroll', 'Varghese Vincent', 'Yathish G'
       ]);
 
       // Define lists for dropdowns
       const sectorOptions = [
-        'Construction', 'Education', 'Finance', 'Government', 'Healthcare', 'Hospitality', 'IT', 'Manufacturing', 
-        'Media & Entertainment', 'Non-profit', 'Other', 'Pharmaceutical', 'Real Estate', 'Retail', 'Telecommunication'
+        'Construction', 'Education', 'Finance', 'Government', 'Healthcare', 'Hospitality', 'IT', 'Manufacturing',
+        'Media  & Entertainment', 'Non-profit', 'Other', 'Pharmaceutical', 'Real Estate', 'Retail', 'Telecommunication'
       ];
 
       const referenceOptions = [
-        'Channel Partner', 'Cold Call', 'Cross-selling', 'Demo Request', 'Email Campaign', 'Events / Trade Shows', 
-        'Existing Customer', 'Facebook Ads', 'Google Ads', 'IndiaMART', 'LinkedIn', 'Other', 'Referral', 
+        'Channel Partner', 'Cold Call', 'Cross-selling', 'Demo Request', 'Email Campaign', 'Events / Trade Shows',
+        'Existing Customer', 'Facebook Ads', 'Google Ads', 'IndiaMART', 'LinkedIn', 'Other', 'Referral',
         'Social Media', 'Telecalling', 'Trial Signup', 'Upselling', 'Walk-in', 'Website', 'WhatsApp Campaign'
       ];
 
-      const managerOptions = ['Varghese Vincent', 'Sam Devasia'];
+      const managerOptions = ['Varghese Vincent', 'Sam De vasia'];
 
       // Combine system modules for the dropdown
       const moduleOptions: string[] = [];
       if (hrModules.length > 0) moduleOptions.push('--- HR MODULES ---', ...hrModules);
       if (financeModules.length > 0) moduleOptions.push('--- FINANCE MODULES ---', ...financeModules);
       if (generalModules.length > 0) moduleOptions.push('--- GENERAL MODULES ---', ...generalModules);
-      
+
       if (moduleOptions.length === 0) {
         moduleOptions.push('Payroll', 'Leave', 'Attendance', 'Recruitment', 'Performance', 'Expense', 'Income Tax');
       }
@@ -519,10 +525,22 @@ export default function LeadUploadForm() {
       const listSheet = workbook.addWorksheet('Lists');
       listSheet.state = 'hidden';
 
-      sectorOptions.forEach((val, idx) => listSheet.getCell(`A${idx + 1}`).value = val);
-      referenceOptions.forEach((val, idx) => listSheet.getCell(`B${idx + 1}`).value = val);
-      managerOptions.forEach((val, idx) => listSheet.getCell(`C${idx + 1}`).value = val);
-      moduleOptions.forEach((val, idx) => listSheet.getCell(`D${idx + 1}`).value = val);
+      sectorOptions.forEach((val, idx) => {
+        const cell = listSheet.getCell(`A${idx + 1}`);
+        cell.value = val;
+      });
+      referenceOptions.forEach((val, idx) => {
+        const cell = listSheet.getCell(`B${idx + 1}`);
+        cell.value = val;
+      });
+      managerOptions.forEach((val, idx) => {
+        const cell = listSheet.getCell(`C${idx + 1}`);
+        cell.value = val;
+      });
+      moduleOptions.forEach((val, idx) => {
+        const cell = listSheet.getCell(`D${idx + 1}`);
+        cell.value = val;
+      });
 
       const sectorRange = `Lists!$A$1:$A$${sectorOptions.length}`;
       const referenceRange = `Lists!$B$1:$B$${referenceOptions.length}`;
@@ -558,7 +576,7 @@ export default function LeadUploadForm() {
         title: 'Sample Downloaded',
         description: 'Excel sample with selection dropdowns is now available.',
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Sample generation failed:', error);
       toast({
         variant: 'destructive',
