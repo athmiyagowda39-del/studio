@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Input } from '@/components/ui/input';
@@ -475,15 +474,98 @@ export default function LeadUploadForm() {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const handleDownloadSample = () => {
-    const sampleData = [
-      [ 'company', 'contactPerson', 'address', 'state', 'district', 'contactNumber', 'email', 'pincode', 'reference', 'headcount', 'sector', 'selectedModule', 'manager', 'executive'],
-      [ 'Sample Corp', 'John Doe', '123 Main St', 'Karnataka', 'Bengaluru', '9876543210', 'john.doe@example.com', '560001', 'Website', '150', 'IT', 'Payroll', 'Jane Smith', 'Yathish G'],
-    ];
-    const worksheet = XLSX.utils.aoa_to_sheet(sampleData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Leads');
-    XLSX.writeFile(workbook, 'SampleLeads.xlsx');
+  const handleDownloadSample = async () => {
+    try {
+      const ExcelJS = (await import('exceljs')).default;
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Leads');
+
+      const headers = [
+        'company', 'contactPerson', 'address', 'state', 'district', 'contactNumber', 'email', 'pincode', 'reference', 'headcount', 'sector', 'selectedModule', 'manager', 'executive'
+      ];
+
+      worksheet.addRow(headers);
+
+      // Add a sample data row
+      worksheet.addRow([
+        'Sample Corp', 'John Doe', '123 Main St', 'Karnataka', 'Bengaluru', '9876543210', 'john.doe@example.com', '560001', 'Website', '150', 'IT', 'Payroll', 'Varghese Vincent', 'Yathish G'
+      ]);
+
+      // Define lists for dropdowns
+      const sectorOptions = [
+        'Construction', 'Education', 'Finance', 'Government', 'Healthcare', 'Hospitality', 'IT', 'Manufacturing', 
+        'Media & Entertainment', 'Non-profit', 'Other', 'Pharmaceutical', 'Real Estate', 'Retail', 'Telecommunication'
+      ];
+
+      const referenceOptions = [
+        'Channel Partner', 'Cold Call', 'Cross-selling', 'Demo Request', 'Email Campaign', 'Events / Trade Shows', 
+        'Existing Customer', 'Facebook Ads', 'Google Ads', 'IndiaMART', 'LinkedIn', 'Other', 'Referral', 
+        'Social Media', 'Telecalling', 'Trial Signup', 'Upselling', 'Walk-in', 'Website', 'WhatsApp Campaign'
+      ];
+
+      const managerOptions = ['Varghese Vincent', 'Sam Devasia'];
+
+      // Combine system modules for the dropdown
+      const moduleOptions: string[] = [];
+      if (hrModules.length > 0) moduleOptions.push('--- HR MODULES ---', ...hrModules);
+      if (financeModules.length > 0) moduleOptions.push('--- FINANCE MODULES ---', ...financeModules);
+      if (generalModules.length > 0) moduleOptions.push('--- GENERAL MODULES ---', ...generalModules);
+      
+      if (moduleOptions.length === 0) {
+        moduleOptions.push('Payroll', 'Leave', 'Attendance', 'Recruitment', 'Performance', 'Expense', 'Income Tax');
+      }
+
+      // Create hidden list sheet to manage validation lists (avoids 255 char limit)
+      const listSheet = workbook.addWorksheet('Lists');
+      listSheet.state = 'hidden';
+
+      sectorOptions.forEach((val, idx) => listSheet.getCell(`A${idx + 1}`).value = val);
+      referenceOptions.forEach((val, idx) => listSheet.getCell(`B${idx + 1}`).value = val);
+      managerOptions.forEach((val, idx) => listSheet.getCell(`C${idx + 1}`).value = val);
+      moduleOptions.forEach((val, idx) => listSheet.getCell(`D${idx + 1}`).value = val);
+
+      const sectorRange = `Lists!$A$1:$A$${sectorOptions.length}`;
+      const referenceRange = `Lists!$B$1:$B$${referenceOptions.length}`;
+      const managerRange = `Lists!$C$1:$C$${managerOptions.length}`;
+      const moduleRange = `Lists!$D$1:$D$${moduleOptions.length}`;
+
+      // Apply validations to first 1000 data rows
+      for (let i = 2; i <= 1001; i++) {
+        // Reference (Column 9 / I)
+        worksheet.getCell(i, 9).dataValidation = { type: 'list', allowBlank: true, formulae: [referenceRange] };
+        // Sector (Column 11 / K)
+        worksheet.getCell(i, 11).dataValidation = { type: 'list', allowBlank: true, formulae: [sectorRange] };
+        // Module (Column 12 / L)
+        worksheet.getCell(i, 12).dataValidation = { type: 'list', allowBlank: true, formulae: [moduleRange] };
+        // Manager (Column 13 / M)
+        worksheet.getCell(i, 13).dataValidation = { type: 'list', allowBlank: true, formulae: [managerRange] };
+      }
+
+      // Format Header and Columns
+      worksheet.getRow(1).font = { bold: true };
+      worksheet.columns.forEach(col => { col.width = 22; });
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'LeadUploadSampleWithDropdowns.xlsx';
+      link.click();
+      window.URL.revokeObjectURL(url);
+
+      toast({
+        title: 'Sample Downloaded',
+        description: 'Excel sample with selection dropdowns is now available.',
+      });
+    } catch (error) {
+      console.error('Sample generation failed:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Download Failed',
+        description: 'Could not generate the enhanced Excel sample.',
+      });
+    }
   };
 
   const selectedModulesArray = formData.selectedModule ? formData.selectedModule.split(', ').filter(Boolean) : [];
