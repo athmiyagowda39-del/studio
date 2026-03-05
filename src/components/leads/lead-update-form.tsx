@@ -28,13 +28,24 @@ import {
 } from "@/components/ui/table"
 import { useApp, type AppUser } from "@/context/app-context"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Info } from "lucide-react"
+import { Info, Trash2 } from "lucide-react"
 import { getDisplayModule } from "@/lib/modules"
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 type FollowUp = {
   id: number
@@ -94,7 +105,7 @@ function UserInfoPopover({ username, users }: { username: string | undefined, us
   );
 }
 
-export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
+export default function LeadUpdateForm({ leadId, onClearSelection }: { leadId: string | null, onClearSelection?: () => void }) {
   const [leadDetails, setLeadDetails] = useState<Partial<LeadFormData>>({})
   const [remarks, setRemarks] = useState("")
   const [nextFollowUpDate, setNextFollowUpDate] = useState("")
@@ -106,11 +117,14 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
   const [annualContractValue, setAnnualContractValue] = useState("")
   const [transferredTo, setTransferredTo] = useState("")
   const [isReadyToUpdate, setIsReadyToUpdate] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const { toast } = useToast()
-  const { users, user, isReadOnly, leads: allLeads, updateLead, leadStatuses, leadSubStatuses, modules } = useApp()
+  const { users, user, isReadOnly, leads: allLeads, updateLead, deleteLead, leadStatuses, leadSubStatuses, modules } = useApp()
   const filteredLeadStatuses = useMemo(() => leadStatuses.filter(status => status !== 'Quote Sent'), [leadStatuses]);
   
+  const isSuperAdmin = user?.role === 'Super Admin';
+
   const executives = useMemo(() => 
     users.filter((u) => u.role === "Executive").map((u) => u.username), 
     [users]
@@ -253,6 +267,21 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
     }
   }
 
+  const handleDeleteLead = async () => {
+    if (!leadDetails.leadId) return;
+    setIsDeleting(true);
+    try {
+      await deleteLead(leadDetails.leadId);
+      toast({ title: "Lead Deleted", description: "The lead has been permanently removed." });
+      if (onClearSelection) onClearSelection();
+      handleResetLeadDetails();
+    } catch (error) {
+      toast({ variant: 'destructive', title: 'Delete Failed', description: 'Failed to delete lead.' });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const inputBgClass = "bg-muted/50";
   const isOrderClosedInRemarks = remarks.toLowerCase().includes("order closed");
 
@@ -353,6 +382,30 @@ export default function LeadUpdateForm({ leadId }: { leadId: string | null }) {
                 <Label htmlFor="ready" className="font-semibold text-sm">Yes, I am Ready to Update.</Label>
               </div>
               <div className="flex gap-2">
+                {isSuperAdmin && leadDetails.leadId && (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive" size="sm" className="gap-2">
+                        <Trash2 className="h-4 w-4" />
+                        Delete Lead
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This action cannot be undone. This will permanently delete lead <strong>{leadDetails.leadId}</strong> for <strong>{leadDetails.company}</strong>.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDeleteLead} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                          {isDeleting ? 'Deleting...' : 'Permanently Delete'}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                )}
                 <Button onClick={handleSaveLeadDetails} disabled={!isReadyToUpdate || isReadOnly} className="bg-primary hover:bg-primary/90">Save</Button>
                 <Button variant="outline" onClick={handleResetLeadDetails}>Reset</Button>
               </div>

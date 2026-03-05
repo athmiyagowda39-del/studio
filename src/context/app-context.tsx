@@ -41,6 +41,7 @@ type AppContextType = {
   deleteUser: (id: string) => Promise<void>;
   addLeads: (newLeads: LeadFormData[]) => Promise<void>;
   updateLead: (id: string, updates: Partial<LeadFormData>) => Promise<void>;
+  deleteLead: (id: string) => Promise<void>;
   getNextLeadId: () => Promise<string>;
   addAuditLog: (logData: AuditLogData) => Promise<void>;
 };
@@ -389,6 +390,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setLeads(prev => prev.map(l => l.leadId === id ? updatedLead : l));
   };
 
+  const deleteLead = async (id: string) => {
+    await fetchAPI(`/api/leads/${id}`, { method: 'DELETE' });
+    if (user) {
+      await addAuditLog({
+          userId: user.id,
+          username: user.username,
+          action: 'DELETE_LEAD',
+          targetEntityType: 'LEAD',
+          targetEntityId: id,
+          details: `Permanently deleted lead ID: ${id}`,
+      });
+    }
+    setLeads(prev => prev.filter(l => l.leadId !== id));
+  };
+
   const getNextLeadId = async (): Promise<string> => {
     const data = await fetchAPI('/api/leads/next-id');
     return data.nextId;
@@ -420,6 +436,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         deleteUser,
         addLeads,
         updateLead,
+        deleteLead,
         getNextLeadId,
         addAuditLog,
       };

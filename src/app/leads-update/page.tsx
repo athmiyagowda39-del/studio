@@ -1,5 +1,4 @@
-
-'use client';
+"use client"
 
 import { Button } from '@/components/ui/button';
 import { useState, useEffect, useMemo, useRef } from 'react';
@@ -658,6 +657,7 @@ export default function LeadsUpdatePage() {
 
             <LeadUpdateForm
               leadId={selectedLeadId}
+              onClearSelection={() => setSelectedLeadId(null)}
             />
 
             <div

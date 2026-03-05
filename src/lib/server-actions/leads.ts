@@ -186,3 +186,20 @@ export async function updateLead(id: string, updates: Partial<LeadFormData>): Pr
       throw new Error(`Failed to update lead: ${error.message}`);
   }
 }
+
+export async function deleteLead(id: string): Promise<{ success: boolean }> {
+  try {
+    const pool = await getConnection();
+    await pool.request()
+      .input('leadId', sql.NVarChar, id)
+      .execute('usp_DeleteLead');
+    
+    revalidatePath('/leads-update');
+    revalidatePath('/dashboard');
+    return { success: true };
+  } catch (error: any) {
+    await addErrorLog('deleteLead', error, `LeadId: ${id}`);
+    console.error(`Failed to delete lead ${id}:`, error.message);
+    throw new Error(`Failed to delete lead: ${error.message}`);
+  }
+}
