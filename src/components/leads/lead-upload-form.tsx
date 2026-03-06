@@ -306,27 +306,52 @@ export default function LeadUploadForm() {
     return true;
   };
 
+  const [isSaving, setIsSaving] = useState(false);
+
   const handleSaveLead = async () => {
+
+  if (isSaving) return; // prevent double click
+  setIsSaving(true);
+
+  try {
+
     if (!validateLead(formData)) {
+      setIsSaving(false);
       return;
     }
 
     if (companyError) {
-      toast({ variant: 'destructive', title: 'Duplicate Company', description: companyError });
+      toast({
+        variant: 'destructive',
+        title: 'Duplicate Company',
+        description: companyError
+      });
+      setIsSaving(false);
       return;
     }
 
-    const isDuplicate = allLeads.some(lead => 
-      (lead.contactNumber && formData.contactNumber && lead.contactNumber.trim() === formData.contactNumber.trim()) ||
-      (lead.email && formData.email && lead.email.trim().toLowerCase() === formData.email.trim().toLowerCase())
+    const isDuplicate = allLeads.some(
+      lead =>
+        (lead.contactNumber &&
+          formData.contactNumber &&
+          lead.contactNumber.trim() === formData.contactNumber.trim()) ||
+        (lead.email &&
+          formData.email &&
+          lead.email.trim().toLowerCase() === formData.email.trim().toLowerCase())
     );
 
     if (isDuplicate) {
-        toast({ variant: 'destructive', title: 'Duplicate Lead', description: 'A lead with this contact number or email already exists.' });
-        return;
+      toast({
+        variant: 'destructive',
+        title: 'Duplicate Lead',
+        description: 'A lead with this contact number or email already exists.'
+      });
+      setIsSaving(false);
+      return;
     }
-    
+
     const newLeadId = await getNextLeadId();
+
     const newLead: LeadFormData = {
       ...formData,
       givenBy: user?.username || 'Manual',
@@ -339,7 +364,13 @@ export default function LeadUploadForm() {
     await addLeads([newLead]);
     toast({ title: 'Lead saved successfully' });
     resetForm();
-  };
+
+  } catch (error) {
+    console.error(error);
+  } finally {
+    setIsSaving(false);
+  }
+};
 
   const processFileAndUpload = (file: File) => {
     const validExtensions = ['.xlsx', '.xls', '.csv'];
@@ -743,7 +774,9 @@ export default function LeadUploadForm() {
           )}
         </div>
         <div className="flex gap-2">
-          <Button onClick={handleSaveLead} disabled={isReadOnly}>SAVE</Button>
+         <Button onClick={handleSaveLead} disabled={isReadOnly || isSaving}>
+          {isSaving ? 'Saving...' : 'SAVE'}
+        </Button>
           <Button variant="outline" onClick={resetForm} disabled={isReadOnly}>RESET</Button>
         </div>
       </div>
