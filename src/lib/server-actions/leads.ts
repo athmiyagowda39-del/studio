@@ -190,10 +190,11 @@ export async function updateLead(id: string, updates: Partial<LeadFormData>): Pr
 export async function deleteLead(id: string): Promise<{ success: boolean }> {
   try {
     const pool = await getConnection();
-    // Using parameter name @leadId to match usp_GetLeadById conventions
+    // Using a direct query because the stored procedure 'usp_DeleteLead' is missing in the database.
+    // The main table is assumed to be 'Leads' based on application conventions.
     await pool.request()
       .input('leadId', sql.NVarChar, id)
-      .execute('usp_DeleteLead');
+      .query('DELETE FROM Leads WHERE leadId = @leadId');
     
     revalidatePath('/leads-update');
     revalidatePath('/dashboard');
