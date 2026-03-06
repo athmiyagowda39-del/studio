@@ -120,6 +120,13 @@ export default function LeadUploadForm() {
   const [productPopoverOpen, setProductPopoverOpen] = useState(false);
   const [executives, setExecutives] = useState<string[]>([]);
   const [companyError, setCompanyError] = useState('');
+  
+  // States for "Other" inputs
+  const [showOtherSector, setShowOtherSector] = useState(false);
+  const [otherSectorInput, setOtherSectorInput] = useState('');
+  const [showOtherReference, setShowOtherReference] = useState(false);
+  const [otherReferenceInput, setOtherReferenceInput] = useState('');
+
   const isExecutiveContext = user?.role === 'Executive';
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -241,7 +248,28 @@ export default function LeadUploadForm() {
   };
 
   const handleSelectChange = (id: string, value: string) => {
+    if (value === 'Other') {
+      if (id === 'sector') setShowOtherSector(true);
+      if (id === 'reference') setShowOtherReference(true);
+      return;
+    }
     setFormData((prev) => ({ ...prev, [id]: value }));
+  };
+
+  const handleCommitOtherSector = () => {
+    if (otherSectorInput.trim()) {
+      setFormData(prev => ({ ...prev, sector: otherSectorInput.trim() }));
+      setOtherSectorInput('');
+      setShowOtherSector(false);
+    }
+  };
+
+  const handleCommitOtherReference = () => {
+    if (otherReferenceInput.trim()) {
+      setFormData(prev => ({ ...prev, reference: otherReferenceInput.trim() }));
+      setOtherReferenceInput('');
+      setShowOtherReference(false);
+    }
   };
 
   const handleCheckboxChange = (checked: boolean) => {
@@ -255,6 +283,10 @@ export default function LeadUploadForm() {
     setFormData(initialFormState);
     setCompanyError('');
     handleCancelUpload();
+    setShowOtherSector(false);
+    setShowOtherReference(false);
+    setOtherSectorInput('');
+    setOtherReferenceInput('');
     
     const validUser = user as { role?: string; username: string };
     if (validUser?.role === 'Executive' || (isImpersonating && validUser?.role === 'Executive')) {
@@ -309,68 +341,66 @@ export default function LeadUploadForm() {
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSaveLead = async () => {
+    if (isSaving) return;
+    setIsSaving(true);
 
-  if (isSaving) return; // prevent double click
-  setIsSaving(true);
+    try {
+      if (!validateLead(formData)) {
+        setIsSaving(false);
+        return;
+      }
 
-  try {
+      if (companyError) {
+        toast({
+          variant: 'destructive',
+          title: 'Duplicate Company',
+          description: companyError
+        });
+        setIsSaving(false);
+        return;
+      }
 
-    if (!validateLead(formData)) {
+      const isDuplicate = allLeads.some(
+        lead =>
+          (lead.contactNumber &&
+            formData.contactNumber &&
+            lead.contactNumber.trim() === formData.contactNumber.trim()) ||
+          (lead.email &&
+            formData.email &&
+            lead.email.trim().toLowerCase() === formData.email.trim().toLowerCase())
+      );
+
+      if (isDuplicate) {
+        toast({
+          variant: 'destructive',
+          title: 'Duplicate Lead',
+          description: 'A lead with this contact number or email already exists.'
+        });
+        setIsSaving(false);
+        return;
+      }
+
+      const newLeadId = await getNextLeadId();
+
+      const newLead: LeadFormData = {
+        ...formData,
+        givenBy: user?.username || 'Manual',
+        leadId: newLeadId,
+        creationDate: new Date().toISOString(),
+        status: 'Not viewed',
+        executive: formData.toExecutive ? toExecutiveSelection : undefined,
+      };
+
+      await addLeads([newLead]);
+      toast({ title: 'Lead saved successfully' });
+      resetForm();
+
+    } catch (error) {
+      console.error(error);
+    } finally {
       setIsSaving(false);
-      return;
     }
-
-    if (companyError) {
-      toast({
-        variant: 'destructive',
-        title: 'Duplicate Company',
-        description: companyError
-      });
-      setIsSaving(false);
-      return;
-    }
-
-    const isDuplicate = allLeads.some(
-      lead =>
-        (lead.contactNumber &&
-          formData.contactNumber &&
-          lead.contactNumber.trim() === formData.contactNumber.trim()) ||
-        (lead.email &&
-          formData.email &&
-          lead.email.trim().toLowerCase() === formData.email.trim().toLowerCase())
-    );
-
-    if (isDuplicate) {
-      toast({
-        variant: 'destructive',
-        title: 'Duplicate Lead',
-        description: 'A lead with this contact number or email already exists.'
-      });
-      setIsSaving(false);
-      return;
-    }
-
-    const newLeadId = await getNextLeadId();
-
-    const newLead: LeadFormData = {
-      ...formData,
-      givenBy: user?.username || 'Manual',
-      leadId: newLeadId,
-      creationDate: new Date().toISOString(),
-      status: 'Not viewed',
-      executive: formData.toExecutive ? toExecutiveSelection : undefined,
-    };
-
-    await addLeads([newLead]);
-    toast({ title: 'Lead saved successfully' });
-    resetForm();
-
-  } catch (error) {
-    console.error(error);
-  } finally {
-    setIsSaving(false);
-  }
-};
+  };
 
   const processFileAndUpload = (file: File) => {
     const validExtensions = ['.xlsx', '.xls', '.csv'];
@@ -497,7 +527,6 @@ export default function LeadUploadForm() {
       ];
       worksheet.addRow(headers);
 
-      // Define lists for dropdowns
       const sectorOptions = [
         'Construction', 'Education', 'Finance', 'Government', 'Healthcare', 'Hospitality', 'IT', 'Manufacturing',
         'Media & Entertainment', 'Non-profit', 'Other', 'Pharmaceutical', 'Real Estate', 'Retail', 'Telecommunication'
@@ -511,7 +540,6 @@ export default function LeadUploadForm() {
 
       const managerOptions = ['Varghese Vincent', 'Sam Devasia'];
 
-      // Hierarchical Module Options
       const moduleOptions: string[] = ['All Modules'];
       if (hrModules.length > 0) {
         moduleOptions.push('--- HR MODULES ---', 'HR Module');
@@ -526,7 +554,6 @@ export default function LeadUploadForm() {
         generalModules.forEach(m => moduleOptions.push(`  ${m}`));
       }
 
-      // Hidden sheet for validation lists
       const listSheet = workbook.addWorksheet('Lists');
       listSheet.state = 'veryHidden';
 
@@ -547,7 +574,6 @@ export default function LeadUploadForm() {
         worksheet.getCell(`M${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [managerRange] };
       }
 
-      // Add Notes for Multi-select
       const addNote = (cellRef: string, fieldName: string) => {
         const cell = worksheet.getCell(cellRef);
         cell.note = {
@@ -667,14 +693,28 @@ export default function LeadUploadForm() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="reference">Reference</Label>
-            <Select value={formData.reference} onValueChange={(value) => handleSelectChange('reference', value)} disabled={isReadOnly}>
-              <SelectTrigger id="reference">
-                {formData.reference && !leadReferences.includes(formData.reference) ? (<span className="truncate">{formData.reference}</span>) : (<SelectValue placeholder="Select Reference..." />)}
-              </SelectTrigger>
-              <SelectContent>
-                {leadReferences.map((ref) => (<SelectItem key={ref} value={ref}>{ref}</SelectItem>))}
-              </SelectContent>
-            </Select>
+            <div className="flex flex-col gap-2">
+              <Select value={formData.reference} onValueChange={(value) => handleSelectChange('reference', value)} disabled={isReadOnly}>
+                <SelectTrigger id="reference">
+                  {formData.reference && !leadReferences.includes(formData.reference) ? (<span className="truncate">{formData.reference}</span>) : (<SelectValue placeholder="Select Reference..." />)}
+                </SelectTrigger>
+                <SelectContent>
+                  {leadReferences.map((ref) => (<SelectItem key={ref} value={ref}>{ref}</SelectItem>))}
+                  <SelectItem value="Other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+              {showOtherReference && (
+                <div className="flex items-center gap-2 mt-1">
+                  <Input 
+                    placeholder="Enter other reference..." 
+                    value={otherReferenceInput} 
+                    onChange={(e) => setOtherReferenceInput(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') handleCommitOtherReference(); }}
+                  />
+                  <Button size="sm" onClick={handleCommitOtherReference}>OK</Button>
+                </div>
+              )}
+            </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="headcount">Company headcount</Label>
@@ -682,14 +722,28 @@ export default function LeadUploadForm() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="sector">Sector</Label>
-            <Select value={formData.sector} onValueChange={(value) => handleSelectChange('sector', value)} disabled={isReadOnly}>
-              <SelectTrigger id="sector">
-                {formData.sector && !sectors.includes(formData.sector) ? (<span className="truncate">{formData.sector}</span>) : (<SelectValue placeholder="Select Sector..." />)}
-              </SelectTrigger>
-              <SelectContent>
-                {sectors.map((sector) => (<SelectItem key={sector} value={sector}>{sector}</SelectItem>))}
-              </SelectContent>
-            </Select>
+            <div className="flex flex-col gap-2">
+              <Select value={formData.sector} onValueChange={(value) => handleSelectChange('sector', value)} disabled={isReadOnly}>
+                <SelectTrigger id="sector">
+                  {formData.sector && !sectors.includes(formData.sector) ? (<span className="truncate">{formData.sector}</span>) : (<SelectValue placeholder="Select Sector..." />)}
+                </SelectTrigger>
+                <SelectContent>
+                  {sectors.map((sector) => (<SelectItem key={sector} value={sector}>{sector}</SelectItem>))}
+                  <SelectItem value="Other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+              {showOtherSector && (
+                <div className="flex items-center gap-2 mt-1">
+                  <Input 
+                    placeholder="Enter other sector..." 
+                    value={otherSectorInput} 
+                    onChange={(e) => setOtherSectorInput(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') handleCommitOtherSector(); }}
+                  />
+                  <Button size="sm" onClick={handleCommitOtherSector}>OK</Button>
+                </div>
+              )}
+            </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="selectedModule">Module</Label>
