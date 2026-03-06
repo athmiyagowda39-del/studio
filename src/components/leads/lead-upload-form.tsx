@@ -499,12 +499,12 @@ export default function LeadUploadForm() {
 
       // Define lists for dropdowns
       const sectorOptions = [
-        'Construction', 'Education', 'Finance', 'Government', 'Healthcare', 'Hospitality', 'IT', 'Manufacturing',
+        'All', 'Construction', 'Education', 'Finance', 'Government', 'Healthcare', 'Hospitality', 'IT', 'Manufacturing',
         'Media  & Entertainment', 'Non-profit', 'Other', 'Pharmaceutical', 'Real Estate', 'Retail', 'Telecommunication'
       ];
 
       const referenceOptions = [
-        'Channel Partner', 'Cold Call', 'Cross-selling', 'Demo Request', 'Email Campaign', 'Events / Trade Shows',
+        'All', 'Channel Partner', 'Cold Call', 'Cross-selling', 'Demo Request', 'Email Campaign', 'Events / Trade Shows',
         'Existing Customer', 'Facebook Ads', 'Google Ads', 'IndiaMART', 'LinkedIn', 'Other', 'Referral',
         'Social Media', 'Telecalling', 'Trial Signup', 'Upselling', 'Walk-in', 'Website', 'WhatsApp Campaign'
       ];
@@ -567,7 +567,25 @@ export default function LeadUploadForm() {
         worksheet.getCell(i, 13).dataValidation = { type: 'list', allowBlank: true, formulae: [managerRange] };
       }
 
-      // Add a comment to the Module header explaining multi-select
+      // Add multi-select instructions to headers
+      const referenceHeaderCell = worksheet.getCell(1, 9);
+      referenceHeaderCell.note = {
+        texts: [
+          { font: { bold: true, size: 10, color: { argb: 'FF000000' }, name: 'Calibri' }, text: 'How to select References:\n' },
+          { font: { size: 9, color: { argb: 'FF000000' }, name: 'Calibri' }, text: '1. Select an option from the dropdown.\n2. To select MULTIPLE references, type them manually separated by commas (e.g., Cold Call, Website).' }
+        ],
+        margins: { insetmode: 'custom', inset: [0.25, 0.25, 0.35, 0.35] }
+      };
+
+      const sectorHeaderCell = worksheet.getCell(1, 11);
+      sectorHeaderCell.note = {
+        texts: [
+          { font: { bold: true, size: 10, color: { argb: 'FF000000' }, name: 'Calibri' }, text: 'How to select Sectors:\n' },
+          { font: { size: 9, color: { argb: 'FF000000' }, name: 'Calibri' }, text: '1. Select an option from the dropdown.\n2. To select MULTIPLE sectors, type them manually separated by commas (e.g., IT, Retail).' }
+        ],
+        margins: { insetmode: 'custom', inset: [0.25, 0.25, 0.35, 0.35] }
+      };
+
       const moduleHeaderCell = worksheet.getCell(1, 12);
       moduleHeaderCell.note = {
         texts: [
@@ -592,7 +610,7 @@ export default function LeadUploadForm() {
 
       toast({
         title: 'Sample Downloaded',
-        description: 'Excel sample with selection dropdowns and module instructions is now available.',
+        description: 'Excel sample with selection dropdowns and multi-select instructions is now available.',
       });
     } catch (error: any) {
       console.error('Sample generation failed:', error);
@@ -691,9 +709,10 @@ export default function LeadUploadForm() {
             <Label htmlFor="reference">Reference</Label>
             <Select value={formData.reference} onValueChange={(value) => handleSelectChange('reference', value)} disabled={isReadOnly}>
               <SelectTrigger id="reference">
-                {formData.reference && !leadReferences.includes(formData.reference) ? (<span className="truncate">{formData.reference}</span>) : (<SelectValue placeholder="Select Reference..." />)}
+                {formData.reference && !leadReferences.includes(formData.reference) && formData.reference !== 'All' ? (<span className="truncate">{formData.reference}</span>) : (<SelectValue placeholder="Select Reference..." />)}
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="All">All</SelectItem>
                 {leadReferences.map((ref) => (<SelectItem key={ref} value={ref}>{ref}</SelectItem>))}
               </SelectContent>
             </Select>
@@ -706,9 +725,10 @@ export default function LeadUploadForm() {
             <Label htmlFor="sector">Sector</Label>
             <Select value={formData.sector} onValueChange={(value) => handleSelectChange('sector', value)} disabled={isReadOnly}>
               <SelectTrigger id="sector">
-                {formData.sector && !sectors.includes(formData.sector) ? (<span className="truncate">{formData.sector}</span>) : (<SelectValue placeholder="Select Sector..." />)}
+                {formData.sector && !sectors.includes(formData.sector) && formData.sector !== 'All' ? (<span className="truncate">{formData.sector}</span>) : (<SelectValue placeholder="Select Sector..." />)}
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="All">All</SelectItem>
                 {sectors.map((sector) => (<SelectItem key={sector} value={sector}>{sector}</SelectItem>))}
               </SelectContent>
             </Select>
