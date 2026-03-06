@@ -30,11 +30,11 @@ export default function LoginPage() {
     setIsSubmitting(true);
     try {
       await login(email, password);
+      router.push('/dashboard');
       toast({
         title: 'Login Successful',
         description: 'Welcome back!',
       });
-      router.push('/dashboard');
     } catch (error: any) {
       toast({
         variant: 'destructive',

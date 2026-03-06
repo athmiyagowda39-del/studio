@@ -1,4 +1,3 @@
-
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
@@ -15,6 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
@@ -23,125 +23,126 @@ import { useApp } from '@/context/app-context';
 export default function Header() {
   const pathname = usePathname();
   const showLoginDetails = pathname !== '/leads-upload';
+
   const { toast } = useToast();
+  const router = useRouter();
+  const { user, logout } = useApp();
+
   const [isClient, setIsClient] = useState(false);
   const [lastLoginDate, setLastLoginDate] = useState('N/A');
   const [currentDate, setCurrentDate] = useState(new Date());
-  const { user, logout } = useApp();
-  const router = useRouter();
+
   const loginTimeProcessed = useRef(false);
 
   useEffect(() => {
     setIsClient(true);
-    
+
     if (!loginTimeProcessed.current) {
-        const storedLastLogin = localStorage.getItem('lastLoginDate');
-        if (storedLastLogin) {
+      const storedLastLogin = localStorage.getItem('lastLoginDate');
+
+      if (storedLastLogin) {
         setLastLoginDate(storedLastLogin);
-        }
-        
-        const currentLoginDate = format(new Date(), 'EEEE, MMMM d, yyyy p');
-        localStorage.setItem('lastLoginDate', currentLoginDate);
-        
-        loginTimeProcessed.current = true;
+      }
+
     }
 
     const timer = setInterval(() => {
-        setCurrentDate(new Date());
+      setCurrentDate(new Date());
     }, 60000);
 
-    return () => {
-        clearInterval(timer);
-    };
+    return () => clearInterval(timer);
 
   }, []);
 
   const handleLogout = () => {
     logout();
+
     toast({
       title: 'Logged Out',
       description: 'You have been successfully logged out.',
     });
+
     router.push('/login');
   };
 
-  if (!isClient) {
-    return (
-      <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
-        <div className="flex w-full items-center justify-end gap-4">
-          <Button
-            variant="ghost"
-            className="relative h-10 w-16 rounded-full p-0"
-            disabled
-          >
-            <Avatar className="h-10 w-10 overflow-hidden rounded-full">
-              <AvatarFallback></AvatarFallback>
-            </Avatar>
-          </Button>
-        </div>
-      </header>
-    );
-  }
+  if (!isClient) return null;
 
   return (
-    <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
-      <SidebarTrigger className="md:hidden" />
+    <header className="sticky top-0 z-20 flex h-16 items-center border-b bg-background px-4 md:px-6">
 
-      <div className="flex w-full items-center justify-between gap-4 md:gap-2 lg:gap-4">
-        <div className="flex items-center gap-4">
-          {showLoginDetails && user && (
-            <div className="flex flex-col text-sm">
-              <span className="font-medium">
-                Logged in as: {user.username.toUpperCase()}
-              </span>
-              <div className="flex items-baseline gap-4">
-                <span className="text-sm text-muted-foreground">
-                  Type: {user.role}
-                </span>
-                <span className="text-sm text-muted-foreground">
-                  Last login: {lastLoginDate}
-                </span>
-              </div>
+      {/* LEFT SECTION */}
+      <div className="flex items-center gap-4">
+        <SidebarTrigger className="md:hidden" />
+
+        {showLoginDetails && user && (
+          <div className="hidden sm:flex flex-col">
+            <span className="text-sm font-semibold">
+              Welcome, {user.username}
+            </span>
+
+            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+              <span>Role: {user.role}</span>
+              <span>Last Login: {lastLoginDate}</span>
             </div>
-          )}
+          </div>
+        )}
+      </div>
+
+      {/* RIGHT SECTION */}
+      <div className="ml-auto flex items-center gap-6">
+
+        {/* CLOCK */}
+        <div className="hidden md:flex flex-col text-right leading-tight">
+          <span className="text-sm font-semibold">
+            {format(currentDate, 'p')}
+          </span>
+
+          <span className="text-xs text-muted-foreground">
+            {format(currentDate, 'EEE, MMM d yyyy')}
+          </span>
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="text-right text-sm">
-              <p className="font-medium">{format(currentDate, 'p')}</p>
-              <p className="text-muted-foreground">{format(currentDate, 'E, MMM d, yyyy')}</p>
-          </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                className="relative h-10 w-16 rounded-full p-0"
-              >
-                <Avatar className="h-10 w-10 overflow-hidden rounded-full">
-                  <AvatarFallback>
-                    {user?.username.charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>
-                {user?.username.toUpperCase()}
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href="/profile">
-                  <User className="mr-2 h-4 w-4" />
-                  <span>Profile</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleLogout}>
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Log out</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+        {/* USER MENU */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              className="relative h-10 w-10 rounded-full p-0"
+            >
+              <Avatar className="h-10 w-10">
+                <AvatarFallback>
+                  {user?.username?.charAt(0).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+            </Button>
+          </DropdownMenuTrigger>
+
+          <DropdownMenuContent align="end" className="w-48">
+
+            <DropdownMenuLabel className="flex flex-col">
+              <span>{user?.username}</span>
+              <span className="text-xs text-muted-foreground">
+                {user?.role}
+              </span>
+            </DropdownMenuLabel>
+
+            <DropdownMenuSeparator />
+
+            <DropdownMenuItem asChild>
+              <Link href="/profile">
+                <User className="mr-2 h-4 w-4" />
+                Profile
+              </Link>
+            </DropdownMenuItem>
+
+            <DropdownMenuItem onClick={handleLogout}>
+              <LogOut className="mr-2 h-4 w-4" />
+              Logout
+            </DropdownMenuItem>
+
+          </DropdownMenuContent>
+        </DropdownMenu>
+
       </div>
     </header>
   );
