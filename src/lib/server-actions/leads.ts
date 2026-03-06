@@ -190,11 +190,37 @@ export async function updateLead(id: string, updates: Partial<LeadFormData>): Pr
 export async function deleteLead(id: string): Promise<{ success: boolean }> {
   try {
     const pool = await getConnection();
-    // Using a direct query because the stored procedure 'usp_DeleteLead' is missing in the database.
-    // The main table is assumed to be 'Leads' based on application conventions.
-    await pool.request()
-      .input('leadId', sql.NVarChar, id)
-      .query('DELETE FROM Leads WHERE leadId = @leadId');
+    
+    // Attempt 1: Call Stored Procedure
+    try {
+      await pool.request()
+        .input('leadId', sql.NVarChar, id)
+        .execute('usp_DeleteLead');
+    } catch (err: any) {
+      // If SP is missing, move to fallback
+      if (err.message.toLowerCase().includes('could not find stored procedure')) {
+        console.warn(`usp_DeleteLead not found, attempting direct SQL deletion for ID: ${id}`);
+        
+        // Attempt 2: Direct SQL Delete from 'Leads' table
+        try {
+          await pool.request()
+            .input('id', sql.NVarChar, id)
+            .query('DELETE FROM Leads WHERE leadId = @id');
+        } catch (directErr: any) {
+          // Attempt 3: Try numeric ID if NVarChar comparison fails
+          if (!isNaN(Number(id))) {
+            await pool.request()
+              .input('idNum', sql.Int, Number(id))
+              .query('DELETE FROM Leads WHERE leadId = @idNum');
+          } else {
+            throw directErr;
+          }
+        }
+      } else {
+        // Some other error (e.g. Foreign Key constraint or Permissions)
+        throw err;
+      }
+    }
     
     revalidatePath('/leads-update');
     revalidatePath('/dashboard');
@@ -203,6 +229,6 @@ export async function deleteLead(id: string): Promise<{ success: boolean }> {
     await addErrorLog('deleteLead', error, `LeadId: ${id}`);
     console.error(`DATABASE ERROR in deleteLead for ID ${id}:`, error.message);
     // Provide a descriptive error message back to the UI
-    throw new Error(error.message || 'The database failed to delete the lead.');
+    throw new Error(error.message || 'The database failed to delete the lead. It may have related records preventing removal.');
   }
 }

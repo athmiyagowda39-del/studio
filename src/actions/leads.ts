@@ -181,3 +181,21 @@ export async function updateLead(id: string, updates: Partial<LeadFormData>): Pr
       throw new Error('Failed to update lead due to a database error.');
   }
 }
+
+export async function deleteLead(id: string): Promise<{ success: boolean }> {
+  try {
+    const pool = await getConnection();
+    
+    // Use direct SQL deletion as a reliable fallback if SP is missing
+    await pool.request()
+      .input('id', sql.NVarChar, id)
+      .query('DELETE FROM Leads WHERE leadId = @id');
+    
+    revalidatePath('/leads-update');
+    revalidatePath('/dashboard');
+    return { success: true };
+  } catch (error: any) {
+    await addErrorLog('deleteLead', error, `LeadId: ${id}`);
+    throw new Error(error.message || 'Failed to delete lead from database.');
+  }
+}

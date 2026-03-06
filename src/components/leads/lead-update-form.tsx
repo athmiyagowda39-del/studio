@@ -271,15 +271,23 @@ export default function LeadUpdateForm({ leadId, onClearSelection }: { leadId: s
     if (!leadDetails.leadId) return;
     setIsDeleting(true);
     try {
+      // We pass the leadId to the delete action
       await deleteLead(leadDetails.leadId);
-      toast({ title: "Lead Deleted", description: "The lead has been permanently removed." });
+      
+      toast({ 
+        title: "Lead Deleted", 
+        description: `Lead ${leadDetails.leadId} has been successfully removed.` 
+      });
+      
+      // Cleanup UI
       if (onClearSelection) onClearSelection();
       handleResetLeadDetails();
     } catch (error: any) {
+      console.error("Delete Lead Error:", error);
       toast({ 
         variant: 'destructive', 
         title: 'Delete Failed', 
-        description: error.message || 'Failed to delete lead. It may have related records preventing removal.' 
+        description: error.message || 'Database error: Ensure the lead has no dependencies and you have sufficient permissions.' 
       });
     } finally {
       setIsDeleting(false);
@@ -403,7 +411,11 @@ export default function LeadUpdateForm({ leadId, onClearSelection }: { leadId: s
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDeleteLead} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                        <AlertDialogAction 
+                          onClick={handleDeleteLead} 
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          disabled={isDeleting}
+                        >
                           {isDeleting ? 'Deleting...' : 'Permanently Delete'}
                         </AlertDialogAction>
                       </AlertDialogFooter>
