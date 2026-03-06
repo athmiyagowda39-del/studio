@@ -60,7 +60,7 @@ function UserInfoPopover({ username, users }: { username: string | undefined, us
   
   if (!username || username === "N/A" || !foundUser) {
     return (
-      <Popover>
+      <Popover modal={false}>
         <PopoverTrigger asChild>
           <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors">
             <Info className="h-4 w-4" />
@@ -74,7 +74,7 @@ function UserInfoPopover({ username, users }: { username: string | undefined, us
   }
 
   return (
-    <Popover>
+    <Popover modal={false}>
       <PopoverTrigger asChild>
         <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors">
           <Info className="h-4 w-4" />
@@ -275,8 +275,12 @@ export default function LeadUpdateForm({ leadId, onClearSelection }: { leadId: s
       toast({ title: "Lead Deleted", description: "The lead has been permanently removed." });
       if (onClearSelection) onClearSelection();
       handleResetLeadDetails();
-    } catch (error) {
-      toast({ variant: 'destructive', title: 'Delete Failed', description: 'Failed to delete lead.' });
+    } catch (error: any) {
+      toast({ 
+        variant: 'destructive', 
+        title: 'Delete Failed', 
+        description: error.message || 'Failed to delete lead. It may have related records preventing removal.' 
+      });
     } finally {
       setIsDeleting(false);
     }
@@ -420,7 +424,7 @@ export default function LeadUpdateForm({ leadId, onClearSelection }: { leadId: s
             <div className="space-y-2 p-3 bg-muted/20 rounded-lg border">
               <Label className="font-bold uppercase text-xs text-muted-foreground">Transferred Lead</Label>
               <div className="flex gap-2">
-                <Select value={transferredTo} onValueChange={setTransferredTo} disabled={isReadOnly}>
+                <Select value={transferredTo} onValueChange={setTransferredTo} disabled={isReadOnly} modal={false}>
                   <SelectTrigger className="flex-1">
                     <SelectValue placeholder="Select Executive to transfer to..." />
                   </SelectTrigger>
@@ -516,7 +520,7 @@ export default function LeadUpdateForm({ leadId, onClearSelection }: { leadId: s
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
                 <span className="text-sm font-semibold text-muted-foreground min-w-[60px]">({currentStatus})</span>
                 <div className="flex w-full items-center gap-2">
-                  <Select value={selectedStatus} onValueChange={setSelectedStatus} disabled={isReadOnly}>
+                  <Select value={selectedStatus} onValueChange={setSelectedStatus} disabled={isReadOnly} modal={false}>
                     <SelectTrigger className="flex-1 bg-muted/5">
                       <SelectValue placeholder="-- Select --" />
                     </SelectTrigger>
@@ -547,7 +551,7 @@ export default function LeadUpdateForm({ leadId, onClearSelection }: { leadId: s
               {selectedStatus === 'Not interested' && (
                 <div className="mt-4 p-4 bg-muted/10 rounded-lg border">
                     <Label className="text-xs font-semibold mb-2 block">Reason for Not Interested</Label>
-                    <Select value={selectedSubStatus} onValueChange={setSelectedSubStatus} disabled={isReadOnly}>
+                    <Select value={selectedSubStatus} onValueChange={setSelectedSubStatus} disabled={isReadOnly} modal={false}>
                     <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select Reason..." />
                     </SelectTrigger>

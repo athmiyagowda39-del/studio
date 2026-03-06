@@ -190,6 +190,7 @@ export async function updateLead(id: string, updates: Partial<LeadFormData>): Pr
 export async function deleteLead(id: string): Promise<{ success: boolean }> {
   try {
     const pool = await getConnection();
+    // Using parameter name @leadId to match usp_GetLeadById conventions
     await pool.request()
       .input('leadId', sql.NVarChar, id)
       .execute('usp_DeleteLead');
@@ -199,7 +200,8 @@ export async function deleteLead(id: string): Promise<{ success: boolean }> {
     return { success: true };
   } catch (error: any) {
     await addErrorLog('deleteLead', error, `LeadId: ${id}`);
-    console.error(`Failed to delete lead ${id}:`, error.message);
-    throw new Error(`Failed to delete lead: ${error.message}`);
+    console.error(`DATABASE ERROR in deleteLead for ID ${id}:`, error.message);
+    // Provide a descriptive error message back to the UI
+    throw new Error(error.message || 'The database failed to delete the lead.');
   }
 }
