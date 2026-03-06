@@ -12,7 +12,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useApp } from '@/context/app-context';
-import { Eye, EyeOff, Target } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function LoginPage() {
@@ -53,7 +53,9 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
       <div className="mb-8 flex items-center gap-3 text-2xl font-bold text-primary">
-        <Target className="h-8 w-8" />
+        <div className="h-10 w-10 rounded-lg bg-primary text-white flex items-center justify-center font-bold text-xl shadow-sm">
+          PW
+        </div>
         <span>Sales Lead Tracking</span>
       </div>
       <p className="mb-6 text-muted-foreground">
