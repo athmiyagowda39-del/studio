@@ -468,12 +468,12 @@ export default function LeadUploadForm() {
 
       // Define lists for dropdowns
       const sectorOptions = [
-        'All', 'Construction', 'Education', 'Finance', 'Government', 'Healthcare', 'Hospitality', 'IT', 'Manufacturing',
+        'Construction', 'Education', 'Finance', 'Government', 'Healthcare', 'Hospitality', 'IT', 'Manufacturing',
         'Media & Entertainment', 'Non-profit', 'Other', 'Pharmaceutical', 'Real Estate', 'Retail', 'Telecommunication'
       ];
 
       const referenceOptions = [
-        'All', 'Channel Partner', 'Cold Call', 'Cross-selling', 'Demo Request', 'Email Campaign', 'Events / Trade Shows',
+        'Channel Partner', 'Cold Call', 'Cross-selling', 'Demo Request', 'Email Campaign', 'Events / Trade Shows',
         'Existing Customer', 'Facebook Ads', 'Google Ads', 'IndiaMART', 'LinkedIn', 'Other', 'Referral',
         'Social Media', 'Telecalling', 'Trial Signup', 'Upselling', 'Walk-in', 'Website', 'WhatsApp Campaign'
       ];
@@ -638,10 +638,9 @@ export default function LeadUploadForm() {
             <Label htmlFor="reference">Reference</Label>
             <Select value={formData.reference} onValueChange={(value) => handleSelectChange('reference', value)} disabled={isReadOnly}>
               <SelectTrigger id="reference">
-                {formData.reference && !leadReferences.includes(formData.reference) && formData.reference !== 'All' ? (<span className="truncate">{formData.reference}</span>) : (<SelectValue placeholder="Select Reference..." />)}
+                {formData.reference && !leadReferences.includes(formData.reference) ? (<span className="truncate">{formData.reference}</span>) : (<SelectValue placeholder="Select Reference..." />)}
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="All">All</SelectItem>
                 {leadReferences.map((ref) => (<SelectItem key={ref} value={ref}>{ref}</SelectItem>))}
               </SelectContent>
             </Select>
@@ -654,10 +653,9 @@ export default function LeadUploadForm() {
             <Label htmlFor="sector">Sector</Label>
             <Select value={formData.sector} onValueChange={(value) => handleSelectChange('sector', value)} disabled={isReadOnly}>
               <SelectTrigger id="sector">
-                {formData.sector && !sectors.includes(formData.sector) && formData.sector !== 'All' ? (<span className="truncate">{formData.sector}</span>) : (<SelectValue placeholder="Select Sector..." />)}
+                {formData.sector && !sectors.includes(formData.sector) ? (<span className="truncate">{formData.sector}</span>) : (<SelectValue placeholder="Select Sector..." />)}
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="All">All</SelectItem>
                 {sectors.map((sector) => (<SelectItem key={sector} value={sector}>{sector}</SelectItem>))}
               </SelectContent>
             </Select>
