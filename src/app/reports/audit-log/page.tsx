@@ -70,22 +70,23 @@ export default function AuditLogReportPage() {
         }
     };
 
-    const formatToIST = (utcString: string) => {
-        try {
-            return new Date(utcString).toLocaleString('en-IN', {
-                timeZone: 'Asia/Kolkata',
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-                hour12: true,
-            });
-        } catch (e) {
-            return utcString;
-        }
-    };
+    const formatISTTime = (timestamp: string) => {
+  try {
+    const cleanedTimestamp = timestamp.replace('Z', '');
+
+    return new Date(cleanedTimestamp).toLocaleString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true,
+    });
+  } catch (e) {
+    return timestamp;
+  }
+};
     
     if (isLoading || !isAuthenticated || !['Manager', 'Admin', 'Super Admin'].includes(user?.role as string)) {
         return null;
@@ -159,7 +160,8 @@ export default function AuditLogReportPage() {
                                                 auditLogs.map(log => (
                                                     <TableRow key={log.id}>
                                                         <TableCell className="font-medium">
-                                                            {formatToIST(log.timestamp)}
+                                                            {formatISTTime(log.timestamp)}
+                                                            {/* {log.timestamp} */}
                                                         </TableCell>
                                                         <TableCell>{log.username}</TableCell>
                                                         <TableCell>{log.action}</TableCell>

@@ -22,7 +22,6 @@ import {
   CardHeader,
   CardTitle,
   CardContent,
-  CardDescription,
 } from '@/components/ui/card';
 import { useState, useRef, useEffect, useMemo } from 'react';
 import * as XLSX from 'xlsx';
@@ -38,7 +37,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useApp } from '@/context/app-context';
-import { cn } from '@/lib/utils';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
@@ -270,24 +268,7 @@ export default function LeadUploadForm() {
   const validateLead = (
     lead: Omit<LeadFormData, 'leadId' | 'creationDate' | 'givenBy' | 'executiveViewDate'>
   ) => {
-    const fieldDisplayNames: { [key: string]: string } = {
-      pincode: 'Pin code',
-      company: 'Company',
-      contactPerson: 'Contact person',
-      address: 'Address',
-      state: 'State',
-      district: 'District',
-      contactNumber: 'Contact Number',
-      email: 'Email',
-      reference: 'Reference',
-      headcount: 'Company headcount',
-      sector: 'Sector',
-      selectedModule: 'Module',
-      manager: 'Manager',
-      initialRemarks: 'Initial Remarks',
-    };
-
-    const requiredFields: (keyof typeof fieldDisplayNames)[] = [
+    const requiredFields: (keyof typeof lead)[] = [
       'pincode', 'company', 'contactPerson', 'address', 'state', 'district', 'contactNumber', 
       'email', 'reference', 'headcount', 'sector', 'selectedModule', 'manager', 'initialRemarks'
     ];
@@ -297,7 +278,7 @@ export default function LeadUploadForm() {
         toast({
           variant: 'destructive',
           title: 'Missing Information',
-          description: `Please fill in the '${fieldDisplayNames[field]}' field.`,
+          description: `Please fill in all required fields.`,
         });
         return false;
       }
@@ -308,16 +289,16 @@ export default function LeadUploadForm() {
       toast({
         variant: 'destructive',
         title: 'Invalid Email',
-        description: 'Please enter a valid email address (e.g., name@example.com).',
+        description: 'Please enter a valid email address.',
       });
       return false;
     }
 
-    if (!toExecutiveSelection || toExecutiveSelection === 'all') {
+    if (formData.toExecutive && (!toExecutiveSelection || toExecutiveSelection === 'all')) {
       toast({
         variant: 'destructive',
         title: 'Executive Not Assigned',
-        description: 'You must assign a specific executive before saving the lead.',
+        description: 'Please assign an executive.',
       });
       return false;
     }
@@ -356,7 +337,7 @@ export default function LeadUploadForm() {
     };
 
     await addLeads([newLead]);
-    toast({ title: 'Lead saved successfully', description: `Lead for ${newLead.company} has been saved.` });
+    toast({ title: 'Lead saved successfully' });
     resetForm();
   };
 
@@ -366,7 +347,7 @@ export default function LeadUploadForm() {
       toast({
         variant: 'destructive',
         title: 'Invalid File Type',
-        description: 'Please upload a valid Excel or CSV file (e.g., .xlsx, .xls, .csv).',
+        description: 'Please upload a valid Excel or CSV file.',
       });
       return;
     }
@@ -381,7 +362,7 @@ export default function LeadUploadForm() {
         const json: ParsedData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
         if (json.length < 2) {
-          toast({ variant: 'destructive', title: 'Empty File', description: 'The file has no data rows to import.' });
+          toast({ variant: 'destructive', title: 'Empty File', description: 'The file has no data rows.' });
           return;
         }
 
@@ -408,7 +389,7 @@ export default function LeadUploadForm() {
         }).filter((lead) => Object.values(lead).some(val => val !== ''));
 
         if (leadsData.length === 0) {
-          toast({ variant: 'destructive', title: 'No Data Found', description: 'The file appears to be empty or formatted incorrectly.' });
+          toast({ variant: 'destructive', title: 'No Data Found' });
           return;
         }
         
@@ -416,7 +397,7 @@ export default function LeadUploadForm() {
         setShowPreview(false);
         toast({ title: `File Processed: ${leadsData.length} leads found.` });
       } catch (error) {
-        toast({ variant: 'destructive', title: 'Error parsing file', description: "Could not read the file correctly." });
+        toast({ variant: 'destructive', title: 'Error parsing file' });
       }
     };
     reader.readAsBinaryString(file);
@@ -431,8 +412,8 @@ export default function LeadUploadForm() {
       if (lead.email && !emailRegex.test(lead.email)) {
         toast({
           variant: 'destructive',
-          title: `Invalid Email in Uploaded File`,
-          description: `Row ${i + 2} has an invalid email: "${lead.email}".`,
+          title: `Invalid Email`,
+          description: `Row ${i + 2} has an invalid email.`,
         });
         return;
       }
@@ -477,30 +458,18 @@ export default function LeadUploadForm() {
   const handleDownloadSample = async () => {
     try {
       const ExcelJS = await import('exceljs');
-      const Workbook = ExcelJS.Workbook || (ExcelJS as any).Workbook || (ExcelJS as any).default?.Workbook;
-
-      if (!Workbook) {
-        throw new Error("ExcelJS Workbook constructor not found");
-      }
-
-      const workbook = new Workbook();
+      const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet('Leads');
 
       const headers = [
         'company', 'contactPerson', 'address', 'state', 'district', 'contactNumber', 'email', 'pincode', 'reference', 'headcount', 'sector', 'selectedModule', 'manager', 'executive'
       ];
-
       worksheet.addRow(headers);
-
-      // Add a sample data row
-      worksheet.addRow([
-        'Sample Corp', 'John Doe', '123 Main St', 'Karnataka', 'Bengaluru', '9876543210', 'john.doe@example.com', '560001', 'Website', '150 ', 'IT', 'Payroll', 'Varghese Vincent', 'Yathish G'
-      ]);
 
       // Define lists for dropdowns
       const sectorOptions = [
         'All', 'Construction', 'Education', 'Finance', 'Government', 'Healthcare', 'Hospitality', 'IT', 'Manufacturing',
-        'Media  & Entertainment', 'Non-profit', 'Other', 'Pharmaceutical', 'Real Estate', 'Retail', 'Telecommunication'
+        'Media & Entertainment', 'Non-profit', 'Other', 'Pharmaceutical', 'Real Estate', 'Retail', 'Telecommunication'
       ];
 
       const referenceOptions = [
@@ -509,11 +478,10 @@ export default function LeadUploadForm() {
         'Social Media', 'Telecalling', 'Trial Signup', 'Upselling', 'Walk-in', 'Website', 'WhatsApp Campaign'
       ];
 
-      const managerOptions = ['Varghese Vincent', 'Sam De vasia'];
+      const managerOptions = ['Varghese Vincent', 'Sam Devasia'];
 
-      // Hierarchical Module Options for Excel
+      // Hierarchical Module Options
       const moduleOptions: string[] = ['All Modules'];
-      
       if (hrModules.length > 0) {
         moduleOptions.push('--- HR MODULES ---', 'HR Module');
         hrModules.forEach(m => moduleOptions.push(`  ${m}`));
@@ -527,98 +495,59 @@ export default function LeadUploadForm() {
         generalModules.forEach(m => moduleOptions.push(`  ${m}`));
       }
 
-      // If no modules fetched, add defaults
-      if (moduleOptions.length === 1) {
-        moduleOptions.push('--- HR MODULES ---', 'HR Module', '  Payroll', '  Leave', '  Attendance');
-        moduleOptions.push('--- FINANCE MODULES ---', 'Finance Module', '  Expense', '  Income Tax');
-      }
-
-      // Create hidden list sheet to manage validation lists (avoids 255 char limit)
+      // Hidden sheet for validation lists
       const listSheet = workbook.addWorksheet('Lists');
-      listSheet.state = 'hidden';
+      listSheet.state = 'veryHidden';
 
-      sectorOptions.forEach((val, idx) => {
-        listSheet.getCell(`A${idx + 1}`).value = val;
-      });
-      referenceOptions.forEach((val, idx) => {
-        listSheet.getCell(`B${idx + 1}`).value = val;
-      });
-      managerOptions.forEach((val, idx) => {
-        listSheet.getCell(`C${idx + 1}`).value = val;
-      });
-      moduleOptions.forEach((val, idx) => {
-        listSheet.getCell(`D${idx + 1}`).value = val;
-      });
+      sectorOptions.forEach((v, i) => listSheet.getCell(`A${i + 1}`).value = v);
+      referenceOptions.forEach((v, i) => listSheet.getCell(`B${i + 1}`).value = v);
+      managerOptions.forEach((v, i) => listSheet.getCell(`C${i + 1}`).value = v);
+      moduleOptions.forEach((v, i) => listSheet.getCell(`D${i + 1}`).value = v);
 
       const sectorRange = `Lists!$A$1:$A$${sectorOptions.length}`;
       const referenceRange = `Lists!$B$1:$B$${referenceOptions.length}`;
       const managerRange = `Lists!$C$1:$C$${managerOptions.length}`;
       const moduleRange = `Lists!$D$1:$D$${moduleOptions.length}`;
 
-      // Apply validations to first 1000 data rows
       for (let i = 2; i <= 1001; i++) {
-        // Reference (Column 9 / I)
-        worksheet.getCell(i, 9).dataValidation = { type: 'list', allowBlank: true, formulae: [referenceRange] };
-        // Sector (Column 11 / K)
-        worksheet.getCell(i, 11).dataValidation = { type: 'list', allowBlank: true, formulae: [sectorRange] };
-        // Module (Column 12 / L)
-        worksheet.getCell(i, 12).dataValidation = { type: 'list', allowBlank: true, formulae: [moduleRange] };
-        // Manager (Column 13 / M)
-        worksheet.getCell(i, 13).dataValidation = { type: 'list', allowBlank: true, formulae: [managerRange] };
+        worksheet.getCell(`I${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [referenceRange] };
+        worksheet.getCell(`K${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [sectorRange] };
+        worksheet.getCell(`L${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [moduleRange] };
+        worksheet.getCell(`M${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [managerRange] };
       }
 
-      // Add multi-select instructions to headers
-      const referenceHeaderCell = worksheet.getCell(1, 9);
-      referenceHeaderCell.note = {
-        texts: [
-          { font: { bold: true, size: 10, color: { argb: 'FF000000' }, name: 'Calibri' }, text: 'How to select References:\n' },
-          { font: { size: 9, color: { argb: 'FF000000' }, name: 'Calibri' }, text: '1. Select an option from the dropdown.\n2. To select MULTIPLE references, type them manually separated by commas (e.g., Cold Call, Website).' }
-        ],
-        margins: { insetmode: 'custom', inset: [0.25, 0.25, 0.35, 0.35] }
+      // Add Notes for Multi-select
+      const addNote = (cellRef: string, fieldName: string) => {
+        const cell = worksheet.getCell(cellRef);
+        cell.note = {
+          texts: [
+            { font: { bold: true, size: 10 }, text: `How to select ${fieldName}:\n` },
+            { font: { size: 9 }, text: `1. Select an option from the dropdown.\n2. To select MULTIPLE values, type them manually separated by commas (e.g., Value1, Value2).` }
+          ]
+        };
       };
 
-      const sectorHeaderCell = worksheet.getCell(1, 11);
-      sectorHeaderCell.note = {
-        texts: [
-          { font: { bold: true, size: 10, color: { argb: 'FF000000' }, name: 'Calibri' }, text: 'How to select Sectors:\n' },
-          { font: { size: 9, color: { argb: 'FF000000' }, name: 'Calibri' }, text: '1. Select an option from the dropdown.\n2. To select MULTIPLE sectors, type them manually separated by commas (e.g., IT, Retail).' }
-        ],
-        margins: { insetmode: 'custom', inset: [0.25, 0.25, 0.35, 0.35] }
-      };
+      addNote('I1', 'References');
+      addNote('K1', 'Sectors');
+      addNote('L1', 'Modules');
 
-      const moduleHeaderCell = worksheet.getCell(1, 12);
-      moduleHeaderCell.note = {
-        texts: [
-          { font: { bold: true, size: 10, color: { argb: 'FF000000' }, name: 'Calibri' }, text: 'How to select Modules:\n' },
-          { font: { size: 9, color: { argb: 'FF000000' }, name: 'Calibri' }, text: '1. Select a Category or individual module from the dropdown.\n2. To select MULTIPLE modules, type them manually separated by commas (e.g., Payroll, Leave, Attendance).' }
-        ],
-        margins: { insetmode: 'custom', inset: [0.25, 0.25, 0.35, 0.35] }
-      };
-
-      // Format Header and Columns
       worksheet.getRow(1).font = { bold: true };
-      worksheet.columns.forEach(col => { col.width = 22; });
+      worksheet.columns.forEach(col => col.width = 22);
 
       const buffer = await workbook.xlsx.writeBuffer();
       const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'LeadUploadSampleWithDropdowns.xlsx';
-      link.click();
-      window.URL.revokeObjectURL(url);
+      const url = URL.createObjectURL(blob);
+      const a = document.body.appendChild(document.createElement('a'));
+      a.href = url;
+      a.download = 'LeadUploadSample.xlsx';
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
 
-      toast({
-        title: 'Sample Downloaded',
-        description: 'Excel sample with selection dropdowns and multi-select instructions is now available.',
-      });
-    } catch (error: any) {
-      console.error('Sample generation failed:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Download Failed',
-        description: 'Could not generate the enhanced Excel sample.',
-      });
+      toast({ title: 'Sample Downloaded' });
+    } catch (error) {
+      console.error(error);
+      toast({ variant: 'destructive', title: 'Download Failed' });
     }
   };
 
