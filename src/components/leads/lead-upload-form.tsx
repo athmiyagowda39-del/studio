@@ -511,14 +511,26 @@ export default function LeadUploadForm() {
 
       const managerOptions = ['Varghese Vincent', 'Sam De vasia'];
 
-      // Combine system modules for the dropdown
-      const moduleOptions: string[] = [];
-      if (hrModules.length > 0) moduleOptions.push('--- HR MODULES ---', ...hrModules);
-      if (financeModules.length > 0) moduleOptions.push('--- FINANCE MODULES ---', ...financeModules);
-      if (generalModules.length > 0) moduleOptions.push('--- GENERAL MODULES ---', ...generalModules);
+      // Hierarchical Module Options for Excel
+      const moduleOptions: string[] = ['All Modules'];
+      
+      if (hrModules.length > 0) {
+        moduleOptions.push('--- HR MODULES ---', 'HR Module');
+        hrModules.forEach(m => moduleOptions.push(`  ${m}`));
+      }
+      if (financeModules.length > 0) {
+        moduleOptions.push('--- FINANCE MODULES ---', 'Finance Module');
+        financeModules.forEach(m => moduleOptions.push(`  ${m}`));
+      }
+      if (generalModules.length > 0) {
+        moduleOptions.push('--- GENERAL MODULES ---', 'General Module');
+        generalModules.forEach(m => moduleOptions.push(`  ${m}`));
+      }
 
-      if (moduleOptions.length === 0) {
-        moduleOptions.push('Payroll', 'Leave', 'Attendance', 'Recruitment', 'Performance', 'Expense', 'Income Tax');
+      // If no modules fetched, add defaults
+      if (moduleOptions.length === 1) {
+        moduleOptions.push('--- HR MODULES ---', 'HR Module', '  Payroll', '  Leave', '  Attendance');
+        moduleOptions.push('--- FINANCE MODULES ---', 'Finance Module', '  Expense', '  Income Tax');
       }
 
       // Create hidden list sheet to manage validation lists (avoids 255 char limit)
@@ -526,20 +538,16 @@ export default function LeadUploadForm() {
       listSheet.state = 'hidden';
 
       sectorOptions.forEach((val, idx) => {
-        const cell = listSheet.getCell(`A${idx + 1}`);
-        cell.value = val;
+        listSheet.getCell(`A${idx + 1}`).value = val;
       });
       referenceOptions.forEach((val, idx) => {
-        const cell = listSheet.getCell(`B${idx + 1}`);
-        cell.value = val;
+        listSheet.getCell(`B${idx + 1}`).value = val;
       });
       managerOptions.forEach((val, idx) => {
-        const cell = listSheet.getCell(`C${idx + 1}`);
-        cell.value = val;
+        listSheet.getCell(`C${idx + 1}`).value = val;
       });
       moduleOptions.forEach((val, idx) => {
-        const cell = listSheet.getCell(`D${idx + 1}`);
-        cell.value = val;
+        listSheet.getCell(`D${idx + 1}`).value = val;
       });
 
       const sectorRange = `Lists!$A$1:$A$${sectorOptions.length}`;
@@ -559,6 +567,16 @@ export default function LeadUploadForm() {
         worksheet.getCell(i, 13).dataValidation = { type: 'list', allowBlank: true, formulae: [managerRange] };
       }
 
+      // Add a comment to the Module header explaining multi-select
+      const moduleHeaderCell = worksheet.getCell(1, 12);
+      moduleHeaderCell.note = {
+        texts: [
+          { font: { bold: true, size: 10, color: { argb: 'FF000000' }, name: 'Calibri' }, text: 'How to select Modules:\n' },
+          { font: { size: 9, color: { argb: 'FF000000' }, name: 'Calibri' }, text: '1. Select a Category or individual module from the dropdown.\n2. To select MULTIPLE modules, type them manually separated by commas (e.g., Payroll, Leave, Attendance).' }
+        ],
+        margins: { insetmode: 'custom', inset: [0.25, 0.25, 0.35, 0.35] }
+      };
+
       // Format Header and Columns
       worksheet.getRow(1).font = { bold: true };
       worksheet.columns.forEach(col => { col.width = 22; });
@@ -574,7 +592,7 @@ export default function LeadUploadForm() {
 
       toast({
         title: 'Sample Downloaded',
-        description: 'Excel sample with selection dropdowns is now available.',
+        description: 'Excel sample with selection dropdowns and module instructions is now available.',
       });
     } catch (error: any) {
       console.error('Sample generation failed:', error);
