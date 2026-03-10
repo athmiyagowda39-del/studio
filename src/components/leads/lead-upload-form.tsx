@@ -527,18 +527,22 @@ export default function LeadUploadForm() {
       ];
       worksheet.addRow(headers);
 
-      const sectorOptions = [
+      // Dynamically pick options from database tables/users
+      const sectorOptions = sectors.length > 0 ? [...sectors] : [
         'Construction', 'Education', 'Finance', 'Government', 'Healthcare', 'Hospitality', 'IT', 'Manufacturing',
         'Media & Entertainment', 'Non-profit', 'Other', 'Pharmaceutical', 'Real Estate', 'Retail', 'Telecommunication'
       ];
+      if (!sectorOptions.includes('Other')) sectorOptions.push('Other');
 
-      const referenceOptions = [
+      const referenceOptions = leadReferences.length > 0 ? [...leadReferences] : [
         'Channel Partner', 'Cold Call', 'Cross-selling', 'Demo Request', 'Email Campaign', 'Events / Trade Shows',
         'Existing Customer', 'Facebook Ads', 'Google Ads', 'IndiaMART', 'LinkedIn', 'Other', 'Referral',
         'Social Media', 'Telecalling', 'Trial Signup', 'Upselling', 'Walk-in', 'Website', 'WhatsApp Campaign'
       ];
+      if (!referenceOptions.includes('Other')) referenceOptions.push('Other');
 
-      const managerOptions = ['Varghese Vincent', 'Sam Devasia'];
+      const managerOptions = users.filter(u => u.role === 'Manager').map(u => u.username);
+      const executiveOptions = users.filter(u => u.role === 'Executive').map(u => u.username);
 
       const moduleOptions: string[] = ['All Modules'];
       if (hrModules.length > 0) {
@@ -561,17 +565,21 @@ export default function LeadUploadForm() {
       referenceOptions.forEach((v, i) => listSheet.getCell(`B${i + 1}`).value = v);
       managerOptions.forEach((v, i) => listSheet.getCell(`C${i + 1}`).value = v);
       moduleOptions.forEach((v, i) => listSheet.getCell(`D${i + 1}`).value = v);
+      executiveOptions.forEach((v, i) => listSheet.getCell(`E${i + 1}`).value = v);
 
       const sectorRange = `Lists!$A$1:$A$${sectorOptions.length}`;
       const referenceRange = `Lists!$B$1:$B$${referenceOptions.length}`;
-      const managerRange = `Lists!$C$1:$C$${managerOptions.length}`;
+      const managerRange = `Lists!$C$1:$C$${Math.max(managerOptions.length, 1)}`;
       const moduleRange = `Lists!$D$1:$D$${moduleOptions.length}`;
+      const executiveRange = `Lists!$E$1:$E$${Math.max(executiveOptions.length, 1)}`;
 
       for (let i = 2; i <= 1001; i++) {
+        // I: reference, K: sector, L: selectedModule, M: manager, N: executive
         worksheet.getCell(`I${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [referenceRange] };
         worksheet.getCell(`K${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [sectorRange] };
         worksheet.getCell(`L${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [moduleRange] };
         worksheet.getCell(`M${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [managerRange] };
+        worksheet.getCell(`N${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [executiveRange] };
       }
 
       const addNote = (cellRef: string, fieldName: string) => {
