@@ -1,3 +1,4 @@
+
 "use client"
 
 import { Input } from "@/components/ui/input"
@@ -152,9 +153,8 @@ export default function LeadUpdateForm({ leadId, onClearSelection }: { leadId: s
       setNextFollowUpDate("")
       setIsReadyToUpdate(false)
       
-      if (user?.role === 'Executive' && !foundLead.executiveViewDate) {
-        updateLead(id, { executiveViewDate: new Date().toISOString() });
-      }
+      // Automatic viewed date recording removed as per user request.
+      // It will now only record upon status update.
     } else {
       handleResetLeadDetails()
     }
@@ -226,6 +226,11 @@ export default function LeadUpdateForm({ leadId, onClearSelection }: { leadId: s
       initialRemarks: leadDetails.initialRemarks, 
     }
 
+    // Set executiveViewDate if it's the first time a status is being updated
+    if (!leadDetails.executiveViewDate) {
+        payload.executiveViewDate = new Date().toISOString();
+    }
+
     try {
       await updateLead(leadDetails.leadId, payload)
       toast({ title: "Status Updated" })
@@ -271,7 +276,6 @@ export default function LeadUpdateForm({ leadId, onClearSelection }: { leadId: s
     if (!leadDetails.leadId) return;
     setIsDeleting(true);
     try {
-      // We pass the leadId to the delete action
       await deleteLead(leadDetails.leadId);
       
       toast({ 
@@ -279,7 +283,6 @@ export default function LeadUpdateForm({ leadId, onClearSelection }: { leadId: s
         description: `Lead ${leadDetails.leadId} has been successfully removed.` 
       });
       
-      // Cleanup UI
       if (onClearSelection) onClearSelection();
       handleResetLeadDetails();
     } catch (error: any) {
