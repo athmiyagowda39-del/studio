@@ -46,6 +46,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { getDisplayModule } from '@/lib/modules';
+import { generateLeadSampleExcel } from '@/actions/leads';
 
 type ParsedData = (string | number)[][];
 
@@ -570,85 +571,16 @@ export default function LeadUploadForm() {
 
   const handleDownloadSample = async () => {
     try {
-      const ExcelJSModule = await import('exceljs');
-      const ExcelJS = (ExcelJSModule as any).default || ExcelJSModule;
-      if (!ExcelJS || !ExcelJS.Workbook) {
-        throw new Error('ExcelJS Workbook class not found in the imported module.');
+      const base64 = await generateLeadSampleExcel();
+      
+      const binaryString = window.atob(base64);
+      const len = binaryString.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
       }
       
-      const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet('Leads');
-
-      const headers = [
-        'company', 'contactPerson', 'address', 'state', 'district', 'contactNumber', 'email', 'pincode', 'reference', 'headcount', 'sector', 'selectedModule', 'manager', 'executive'
-      ];
-      worksheet.addRow(headers);
-
-      // Fetch options
-      const sectorOptions = sectors.length > 0 ? [...sectors] : ['IT', 'Real Estate', 'Retail', 'Other'];
-      if (!sectorOptions.includes('Other')) sectorOptions.push('Other');
-
-      const referenceOptions = leadReferences.length > 0 ? [...leadReferences] : ['LinkedIn', 'Cold Call', 'Website', 'Other'];
-      if (!referenceOptions.includes('Other')) referenceOptions.push('Other');
-
-      const managerOptions = users.filter(u => u.role === 'Manager').map(u => u.username);
-      const executiveOptions = users.filter(u => u.role === 'Executive').map(u => u.username);
-
-      // Build module options with categories and "All" selectors
-      const moduleOptions: string[] = ['All Modules'];
-      const categories = Array.from(new Set(modules.map(m => m.category))).sort();
-      
-      categories.forEach(cat => {
-        moduleOptions.push(`--- ${cat.toUpperCase()} MODULES ---`);
-        moduleOptions.push(`${cat} Module`);
-        const catModules = modules.filter(m => m.category === cat).map(m => m.name).sort();
-        catModules.forEach(mName => moduleOptions.push(`  ${mName}`));
-      });
-
-      const listSheet = workbook.addWorksheet('Lists');
-      listSheet.state = 'hidden';
-
-      sectorOptions.forEach((v, i) => listSheet.getCell(`A${i + 1}`).value = v);
-      referenceOptions.forEach((v, i) => listSheet.getCell(`B${i + 1}`).value = v);
-      managerOptions.forEach((v, i) => listSheet.getCell(`C${i + 1}`).value = v);
-      moduleOptions.forEach((v, i) => listSheet.getCell(`D${i + 1}`).value = v);
-      executiveOptions.forEach((v, i) => listSheet.getCell(`E${i + 1}`).value = v);
-
-      const sectorRange = `Lists!$A$1:$A$${Math.max(sectorOptions.length, 1)}`;
-      const referenceRange = `Lists!$B$1:$B$${Math.max(referenceOptions.length, 1)}`;
-      const managerRange = `Lists!$C$1:$C$${Math.max(managerOptions.length, 1)}`;
-      const moduleRange = `Lists!$D$1:$D$${Math.max(moduleOptions.length, 1)}`;
-      const executiveRange = `Lists!$E$1:$E$${Math.max(executiveOptions.length, 1)}`;
-
-      // Apply data validation to first 1000 rows
-      for (let i = 2; i <= 1001; i++) {
-        worksheet.getCell(`I${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [referenceRange] };
-        worksheet.getCell(`K${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [sectorRange] };
-        worksheet.getCell(`L${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [moduleRange] };
-        worksheet.getCell(`M${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [managerRange] };
-        worksheet.getCell(`N${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [executiveRange] };
-      }
-
-      // Add helper notes for multi-select columns
-      const addNote = (cellRef: string, fieldName: string) => {
-        const cell = worksheet.getCell(cellRef);
-        cell.note = {
-          texts: [
-            { font: { bold: true, size: 10 }, text: `How to fill ${fieldName}:\n` },
-            { font: { size: 9 }, text: `1. Select an option from the dropdown for a single value.\n2. To select MULTIPLE values, type them manually separated by commas (e.g., Value1, Value2).\n3. Use 'All Modules' or 'HR Module' to select groups.` }
-          ]
-        };
-      };
-
-      addNote('I1', 'References');
-      addNote('K1', 'Sectors');
-      addNote('L1', 'Modules');
-
-      worksheet.getRow(1).font = { bold: true };
-      worksheet.columns.forEach(col => col.width = 22);
-
-      const buffer = await workbook.xlsx.writeBuffer();
-      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       const url = URL.createObjectURL(blob);
       const a = document.body.appendChild(document.createElement('a'));
       a.href = url;
@@ -658,9 +590,9 @@ export default function LeadUploadForm() {
       setTimeout(() => URL.revokeObjectURL(url), 1000);
 
       toast({ title: 'Sample Downloaded' });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Download Failed:', error);
-      toast({ variant: 'destructive', title: 'Download Failed', description: 'Could not generate the Excel sample. Check browser console for details.' });
+      toast({ variant: 'destructive', title: 'Download Failed', description: error.message || 'Could not generate the Excel sample.' });
     }
   };
 

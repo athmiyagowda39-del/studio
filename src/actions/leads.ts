@@ -4,6 +4,7 @@ import { sql, getConnection } from '@/lib/db';
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import { revalidatePath } from 'next/cache';
 import { addErrorLog } from './audit';
+import ExcelJS from 'exceljs';
 
 function parseLeads(recordset: any[]): LeadFormData[] {
     return recordset.map(lead => ({
@@ -197,5 +198,94 @@ export async function deleteLead(id: string): Promise<{ success: boolean }> {
   } catch (error: any) {
     await addErrorLog('deleteLead', error, `LeadId: ${id}`);
     throw new Error(error.message || 'Failed to delete lead from database.');
+  }
+}
+
+export async function generateLeadSampleExcel() {
+  try {
+    const pool = await getConnection();
+    
+    // Fetch data for dropdowns
+    const [sectorsRes, referencesRes, usersRes, modulesRes] = await Promise.all([
+      pool.request().query('SELECT name FROM Sectors ORDER BY name'),
+      pool.request().query('SELECT name FROM LeadReferences ORDER BY name'),
+      pool.request().query('SELECT username, role FROM Users ORDER BY username'),
+      pool.request().query('SELECT name, category FROM Modules ORDER BY category, name')
+    ]);
+
+    const sectors = sectorsRes.recordset.map(r => r.name);
+    const references = referencesRes.recordset.map(r => r.name);
+    const managers = usersRes.recordset.filter(u => u.role === 'Manager').map(u => u.username);
+    const executives = usersRes.recordset.filter(u => u.role === 'Executive').map(u => u.username);
+    const modulesRaw = modulesRes.recordset;
+
+    // Build module options with categories and "All" selectors
+    const moduleOptions: string[] = ['All Modules'];
+    const categories = Array.from(new Set(modulesRaw.map((m: any) => m.category))).sort();
+    
+    categories.forEach(cat => {
+      moduleOptions.push(`--- ${String(cat).toUpperCase()} MODULES ---`);
+      moduleOptions.push(`${cat} Module`);
+      const catModules = modulesRaw.filter((m: any) => m.category === cat).map((m: any) => m.name).sort();
+      catModules.forEach((mName: string) => moduleOptions.push(`  ${mName}`));
+    });
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Leads');
+
+    const headers = [
+      'company', 'contactPerson', 'address', 'state', 'district', 'contactNumber', 'email', 'pincode', 'reference', 'headcount', 'sector', 'selectedModule', 'manager', 'executive'
+    ];
+    worksheet.addRow(headers);
+
+    // Lists sheet for validation
+    const listSheet = workbook.addWorksheet('Lists');
+    listSheet.state = 'hidden';
+
+    // Populate lists
+    sectors.forEach((v, i) => listSheet.getCell(`A${i + 1}`).value = v);
+    references.forEach((v, i) => listSheet.getCell(`B${i + 1}`).value = v);
+    managers.forEach((v, i) => listSheet.getCell(`C${i + 1}`).value = v);
+    moduleOptions.forEach((v, i) => listSheet.getCell(`D${i + 1}`).value = v);
+    executives.forEach((v, i) => listSheet.getCell(`E${i + 1}`).value = v);
+
+    const sectorRange = `Lists!$A$1:$A$${Math.max(sectors.length, 1)}`;
+    const referenceRange = `Lists!$B$1:$B$${Math.max(references.length, 1)}`;
+    const managerRange = `Lists!$C$1:$C$${Math.max(managers.length, 1)}`;
+    const moduleRange = `Lists!$D$1:$D$${Math.max(moduleOptions.length, 1)}`;
+    const executiveRange = `Lists!$E$1:$E$${Math.max(executives.length, 1)}`;
+
+    // Apply data validation to first 1000 rows
+    for (let i = 2; i <= 1001; i++) {
+      worksheet.getCell(`I${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [referenceRange] };
+      worksheet.getCell(`K${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [sectorRange] };
+      worksheet.getCell(`L${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [moduleRange] };
+      worksheet.getCell(`M${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [managerRange] };
+      worksheet.getCell(`N${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [executiveRange] };
+    }
+
+    // Add helper notes for multi-select columns
+    const addNote = (cellRef: string, fieldName: string) => {
+      const cell = worksheet.getCell(cellRef);
+      cell.note = {
+        texts: [
+          { font: { bold: true, size: 10 }, text: `How to fill ${fieldName}:\n` },
+          { font: { size: 9 }, text: `1. Select an option from the dropdown for a single value.\n2. To select MULTIPLE values, type them manually separated by commas (e.g., Value1, Value2).\n3. For Modules, you can use 'All Modules' or 'HR Module' to select groups.` }
+        ]
+      };
+    };
+
+    addNote('I1', 'References');
+    addNote('K1', 'Sectors');
+    addNote('L1', 'Modules');
+
+    worksheet.getRow(1).font = { bold: true };
+    worksheet.columns.forEach(col => col.width = 22);
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    return Buffer.from(buffer).toString('base64');
+  } catch (error: any) {
+    console.error('Excel Generation Error:', error);
+    throw new Error('Failed to generate Excel file: ' + error.message);
   }
 }

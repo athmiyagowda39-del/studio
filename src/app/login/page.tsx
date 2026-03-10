@@ -52,18 +52,26 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
-      <div className="mb-8 flex items-center gap-3 text-2xl font-bold text-primary">
-        <div className="h-10 w-10 rounded-lg bg-primary text-white flex items-center justify-center font-bold text-xl shadow-sm">
+      <div className="mb-8 flex flex-col items-center gap-4 text-center">
+        <div className="h-16 w-16 rounded-2xl bg-primary text-white flex items-center justify-center font-bold text-3xl shadow-xl transform rotate-3 hover:rotate-0 transition-transform duration-300">
           PW
         </div>
-        <span>Sales Lead Tracking</span>
+        <div className="space-y-1">
+          <h1 className="text-3xl font-extrabold tracking-tight text-primary">
+            PeopleWorks
+          </h1>
+          <p className="text-sm font-medium uppercase tracking-widest text-muted-foreground/80">
+            Sales Lead Tracking
+          </p>
+        </div>
       </div>
-      <p className="mb-6 text-muted-foreground">
-        Enter your credentials to access your dashboard
-      </p>
-      <Card className="w-full max-w-sm">
+      
+      <Card className="w-full max-w-sm border-2 shadow-2xl">
         <CardHeader>
-          <CardTitle className="text-2xl text-center">Login</CardTitle>
+          <CardTitle className="text-2xl text-center font-bold">Welcome Back</CardTitle>
+          <p className="text-xs text-center text-muted-foreground">
+            Enter your credentials to access your dashboard
+          </p>
         </CardHeader>
         <CardContent>
           <form
@@ -72,11 +80,11 @@ export default function LoginPage() {
             autoComplete="off"
           >
             <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="font-semibold">Email</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="Enter your email"
+                placeholder="name@peopleworks.in"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -84,15 +92,16 @@ export default function LoginPage() {
                 disabled={isSubmitting}
                 readOnly={isReadOnly}
                 onFocus={handleFocus}
+                className="bg-muted/30 focus:bg-background transition-colors"
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" title="Password" className="font-semibold">Password</Label>
               <div className="relative">
                 <Input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="Enter your password"
+                  placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -100,6 +109,7 @@ export default function LoginPage() {
                   disabled={isSubmitting}
                   readOnly={isReadOnly}
                   onFocus={handleFocus}
+                  className="bg-muted/30 focus:bg-background transition-colors"
                 />
                 <Button
                   type="button"
@@ -117,12 +127,16 @@ export default function LoginPage() {
                 </Button>
               </div>
             </div>
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? 'Logging in...' : 'Login'}
+            <Button type="submit" className="w-full h-11 font-bold text-base mt-2 shadow-lg hover:shadow-primary/30 transition-all" disabled={isSubmitting}>
+              {isSubmitting ? 'Verifying...' : 'Login to Dashboard'}
             </Button>
           </form>
         </CardContent>
       </Card>
+      
+      <p className="mt-8 text-xs text-muted-foreground font-medium">
+        © {new Date().getFullYear()} PeopleWorks Sales CRM System
+      </p>
     </div>
   );
 }
