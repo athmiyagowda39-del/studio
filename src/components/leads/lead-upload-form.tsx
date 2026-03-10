@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Input } from '@/components/ui/input';
@@ -580,7 +579,7 @@ export default function LeadUploadForm() {
       ];
       worksheet.addRow(headers);
 
-      // Dynamically pick options from database tables/users
+      // Fetch options from the app context (which gets them from the database)
       const sectorOptions = sectors.length > 0 ? [...sectors] : [
         'Construction', 'Education', 'Finance', 'Government', 'Healthcare', 'Hospitality', 'IT', 'Manufacturing',
         'Media & Entertainment', 'Non-profit', 'Other', 'Pharmaceutical', 'Real Estate', 'Retail', 'Telecommunication'
@@ -597,19 +596,16 @@ export default function LeadUploadForm() {
       const managerOptions = users.filter(u => u.role === 'Manager').map(u => u.username);
       const executiveOptions = users.filter(u => u.role === 'Executive').map(u => u.username);
 
+      // Build module options with categories and "All" selectors
       const moduleOptions: string[] = ['All Modules'];
-      if (hrModules.length > 0) {
-        moduleOptions.push('--- HR MODULES ---', 'HR Module');
-        hrModules.forEach(m => moduleOptions.push(`  ${m}`));
-      }
-      if (financeModules.length > 0) {
-        moduleOptions.push('--- FINANCE MODULES ---', 'Finance Module');
-        financeModules.forEach(m => moduleOptions.push(`  ${m}`));
-      }
-      if (generalModules.length > 0) {
-        moduleOptions.push('--- GENERAL MODULES ---', 'General Module');
-        generalModules.forEach(m => moduleOptions.push(`  ${m}`));
-      }
+      const categories = Array.from(new Set(modules.map(m => m.category))).sort();
+      
+      categories.forEach(cat => {
+        moduleOptions.push(`--- ${cat.toUpperCase()} MODULES ---`);
+        moduleOptions.push(`${cat} Module`); // Acts as "All HR Modules" etc.
+        const catModules = modules.filter(m => m.category === cat).map(m => m.name).sort();
+        catModules.forEach(mName => moduleOptions.push(`  ${mName}`));
+      });
 
       const listSheet = workbook.addWorksheet('Lists');
       listSheet.state = 'veryHidden';
@@ -626,8 +622,8 @@ export default function LeadUploadForm() {
       const moduleRange = `Lists!$D$1:$D$${moduleOptions.length}`;
       const executiveRange = `Lists!$E$1:$E$${Math.max(executiveOptions.length, 1)}`;
 
+      // Apply data validation to first 1000 rows
       for (let i = 2; i <= 1001; i++) {
-        // I: reference, K: sector, L: selectedModule, M: manager, N: executive
         worksheet.getCell(`I${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [referenceRange] };
         worksheet.getCell(`K${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [sectorRange] };
         worksheet.getCell(`L${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [moduleRange] };
@@ -635,12 +631,13 @@ export default function LeadUploadForm() {
         worksheet.getCell(`N${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [executiveRange] };
       }
 
+      // Add helper notes for multi-select columns
       const addNote = (cellRef: string, fieldName: string) => {
         const cell = worksheet.getCell(cellRef);
         cell.note = {
           texts: [
-            { font: { bold: true, size: 10 }, text: `How to select ${fieldName}:\n` },
-            { font: { size: 9 }, text: `1. Select an option from the dropdown.\n2. To select MULTIPLE values, type them manually separated by commas (e.g., Value1, Value2).` }
+            { font: { bold: true, size: 10 }, text: `How to fill ${fieldName}:\n` },
+            { font: { size: 9 }, text: `1. Select an option from the dropdown for a single value.\n2. To select MULTIPLE values, type them manually separated by commas (e.g., Value1, Value2).\n3. Use 'All Modules' or 'HR Module' to select groups.` }
           ]
         };
       };
@@ -664,8 +661,8 @@ export default function LeadUploadForm() {
 
       toast({ title: 'Sample Downloaded' });
     } catch (error) {
-      console.error(error);
-      toast({ variant: 'destructive', title: 'Download Failed' });
+      console.error('Download Failed:', error);
+      toast({ variant: 'destructive', title: 'Download Failed', description: 'Could not generate the Excel sample.' });
     }
   };
 
