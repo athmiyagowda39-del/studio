@@ -69,7 +69,7 @@ export default function LoginPage() {
       
       <Card className="w-full max-w-sm border-2 shadow-2xl">
         <CardHeader>
-          <CardTitle className="text-2xl text-center font-bold">Welcome Back</CardTitle>
+          <CardTitle className="text-2xl text-center font-bold">Login</CardTitle>
           <p className="text-xs text-center text-muted-foreground">
             Enter your credentials to access your dashboard
           </p>
@@ -85,7 +85,7 @@ export default function LoginPage() {
               <Input
                 id="email"
                 type="email"
-                placeholder="name@peopleworks.in"
+                placeholder=""
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -104,7 +104,7 @@ export default function LoginPage() {
                 <Input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="••••••••"
+                  placeholder=""
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -131,7 +131,7 @@ export default function LoginPage() {
               </div>
             </div>
             <Button type="submit" className="w-full h-11 font-bold text-base mt-2 shadow-lg hover:shadow-primary/30 transition-all" disabled={isSubmitting}>
-              {isSubmitting ? 'Verifying...' : 'Login to Dashboard'}
+              {isSubmitting ? 'Verifying...' : 'Login'}
             </Button>
           </form>
         </CardContent>
