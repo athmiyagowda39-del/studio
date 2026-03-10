@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Input } from '@/components/ui/input';
@@ -468,46 +469,98 @@ export default function LeadUploadForm() {
     if (parsedLeads.length === 0) return;
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const newLeads: LeadFormData[] = [];
+    let nextIdInt = parseInt(await getNextLeadId(), 10);
+
+    // Duplicate and Format Validation loop
     for (let i = 0; i < parsedLeads.length; i++) {
-      const lead = parsedLeads[i];
-      if (lead.email && !emailRegex.test(lead.email)) {
+      const parsedLead = parsedLeads[i];
+      const rowNum = i + 2;
+
+      // Email Format Check
+      if (parsedLead.email && !emailRegex.test(parsedLead.email)) {
         toast({
           variant: 'destructive',
           title: `Invalid Email`,
-          description: `Row ${i + 2} has an invalid email.`,
+          description: `Row ${rowNum} has an invalid email format.`,
         });
         return;
       }
+
+      const email = parsedLead.email?.trim().toLowerCase();
+      const phone = String(parsedLead.contactNumber || '').trim();
+      const company = parsedLead.company?.trim().toLowerCase();
+
+      // Check against existing database leads
+      const duplicateInDb = allLeads.find(l => 
+        (email && l.email?.trim().toLowerCase() === email) ||
+        (phone && l.contactNumber?.trim() === phone) ||
+        (company && l.company?.trim().toLowerCase() === company)
+      );
+
+      if (duplicateInDb) {
+        toast({
+          variant: 'destructive',
+          title: `Duplicate Found (Row ${rowNum})`,
+          description: `Company/Email/Phone already exists in the system (Lead ID: ${duplicateInDb.leadId}).`,
+        });
+        return;
+      }
+
+      // Check against other leads in the same batch
+      const duplicateInBatch = newLeads.find(l => 
+        (email && l.email?.trim().toLowerCase() === email) ||
+        (phone && l.contactNumber?.trim() === phone) ||
+        (company && l.company?.trim().toLowerCase() === company)
+      );
+
+      if (duplicateInBatch) {
+        toast({
+          variant: 'destructive',
+          title: `Internal Duplicate (Row ${rowNum})`,
+          description: `Row ${rowNum} is a duplicate of another lead in this Excel file.`,
+        });
+        return;
+      }
+
+      // Construct lead object if validation passes
+      newLeads.push({
+        pincode: parsedLead.pincode || '',
+        state: parsedLead.state || '',
+        district: parsedLead.district || '',
+        address: parsedLead.address || '',
+        contactPerson: parsedLead.contactPerson || '',
+        contactNumber: phone,
+        reference: parsedLead.reference || '',
+        email: parsedLead.email || '',
+        company: parsedLead.company || '',
+        headcount: String(parsedLead.headcount || ''),
+        sector: parsedLead.sector || '',
+        selectedModule: parsedLead.selectedModule || '',
+        manager: parsedLead.manager || '',
+        executive: parsedLead.executive || '',
+        toExecutive: !!parsedLead.executive,
+        leadId: (nextIdInt++).toString(),
+        creationDate: new Date().toISOString(),
+        givenBy: user?.username || 'File Upload',
+        status: 'Not viewed',
+        monthlyContractValue: parsedLead.monthlyContractValue || '',
+        annualContractValue: parsedLead.annualContractValue || '',
+      });
     }
 
-    let nextId = parseInt(await getNextLeadId(), 10);
-    const newLeads: LeadFormData[] = parsedLeads.map((parsedLead) => ({
-      pincode: parsedLead.pincode || '',
-      state: parsedLead.state || '',
-      district: parsedLead.district || '',
-      address: parsedLead.address || '',
-      contactPerson: parsedLead.contactPerson || '',
-      contactNumber: String(parsedLead.contactNumber || ''),
-      reference: parsedLead.reference || '',
-      email: parsedLead.email || '',
-      company: parsedLead.company || '',
-      headcount: String(parsedLead.headcount || ''),
-      sector: parsedLead.sector || '',
-      selectedModule: parsedLead.selectedModule || '',
-      manager: parsedLead.manager || '',
-      executive: parsedLead.executive || '',
-      toExecutive: !!parsedLead.executive,
-      leadId: (nextId++).toString(),
-      creationDate: new Date().toISOString(),
-      givenBy: user?.username || 'File Upload',
-      status: 'Not viewed',
-      monthlyContractValue: parsedLead.monthlyContractValue || '',
-      annualContractValue: parsedLead.annualContractValue || '',
-    }));
-
-    await addLeads(newLeads);
-    toast({ title: 'Upload Successful', description: `${newLeads.length} leads saved.` });
-    handleCancelUpload();
+    // Perform bulk add
+    try {
+      await addLeads(newLeads);
+      toast({ title: 'Upload Successful', description: `${newLeads.length} leads saved.` });
+      handleCancelUpload();
+    } catch (error: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Upload Failed',
+        description: error.message || 'An error occurred while saving the leads.',
+      });
+    }
   };
 
   const handleCancelUpload = () => {
