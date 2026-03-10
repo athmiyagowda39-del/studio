@@ -570,7 +570,12 @@ export default function LeadUploadForm() {
 
   const handleDownloadSample = async () => {
     try {
-      const ExcelJS = await import('exceljs');
+      const ExcelJSModule = await import('exceljs');
+      const ExcelJS = (ExcelJSModule as any).default || ExcelJSModule;
+      if (!ExcelJS || !ExcelJS.Workbook) {
+        throw new Error('ExcelJS Workbook class not found in the imported module.');
+      }
+      
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet('Leads');
 
@@ -579,18 +584,11 @@ export default function LeadUploadForm() {
       ];
       worksheet.addRow(headers);
 
-      // Fetch options from the app context (which gets them from the database)
-      const sectorOptions = sectors.length > 0 ? [...sectors] : [
-        'Construction', 'Education', 'Finance', 'Government', 'Healthcare', 'Hospitality', 'IT', 'Manufacturing',
-        'Media & Entertainment', 'Non-profit', 'Other', 'Pharmaceutical', 'Real Estate', 'Retail', 'Telecommunication'
-      ];
+      // Fetch options
+      const sectorOptions = sectors.length > 0 ? [...sectors] : ['IT', 'Real Estate', 'Retail', 'Other'];
       if (!sectorOptions.includes('Other')) sectorOptions.push('Other');
 
-      const referenceOptions = leadReferences.length > 0 ? [...leadReferences] : [
-        'Channel Partner', 'Cold Call', 'Cross-selling', 'Demo Request', 'Email Campaign', 'Events / Trade Shows',
-        'Existing Customer', 'Facebook Ads', 'Google Ads', 'IndiaMART', 'LinkedIn', 'Other', 'Referral',
-        'Social Media', 'Telecalling', 'Trial Signup', 'Upselling', 'Walk-in', 'Website', 'WhatsApp Campaign'
-      ];
+      const referenceOptions = leadReferences.length > 0 ? [...leadReferences] : ['LinkedIn', 'Cold Call', 'Website', 'Other'];
       if (!referenceOptions.includes('Other')) referenceOptions.push('Other');
 
       const managerOptions = users.filter(u => u.role === 'Manager').map(u => u.username);
@@ -602,13 +600,13 @@ export default function LeadUploadForm() {
       
       categories.forEach(cat => {
         moduleOptions.push(`--- ${cat.toUpperCase()} MODULES ---`);
-        moduleOptions.push(`${cat} Module`); // Acts as "All HR Modules" etc.
+        moduleOptions.push(`${cat} Module`);
         const catModules = modules.filter(m => m.category === cat).map(m => m.name).sort();
         catModules.forEach(mName => moduleOptions.push(`  ${mName}`));
       });
 
       const listSheet = workbook.addWorksheet('Lists');
-      listSheet.state = 'veryHidden';
+      listSheet.state = 'hidden';
 
       sectorOptions.forEach((v, i) => listSheet.getCell(`A${i + 1}`).value = v);
       referenceOptions.forEach((v, i) => listSheet.getCell(`B${i + 1}`).value = v);
@@ -616,10 +614,10 @@ export default function LeadUploadForm() {
       moduleOptions.forEach((v, i) => listSheet.getCell(`D${i + 1}`).value = v);
       executiveOptions.forEach((v, i) => listSheet.getCell(`E${i + 1}`).value = v);
 
-      const sectorRange = `Lists!$A$1:$A$${sectorOptions.length}`;
-      const referenceRange = `Lists!$B$1:$B$${referenceOptions.length}`;
+      const sectorRange = `Lists!$A$1:$A$${Math.max(sectorOptions.length, 1)}`;
+      const referenceRange = `Lists!$B$1:$B$${Math.max(referenceOptions.length, 1)}`;
       const managerRange = `Lists!$C$1:$C$${Math.max(managerOptions.length, 1)}`;
-      const moduleRange = `Lists!$D$1:$D$${moduleOptions.length}`;
+      const moduleRange = `Lists!$D$1:$D$${Math.max(moduleOptions.length, 1)}`;
       const executiveRange = `Lists!$E$1:$E$${Math.max(executiveOptions.length, 1)}`;
 
       // Apply data validation to first 1000 rows
@@ -662,7 +660,7 @@ export default function LeadUploadForm() {
       toast({ title: 'Sample Downloaded' });
     } catch (error) {
       console.error('Download Failed:', error);
-      toast({ variant: 'destructive', title: 'Download Failed', description: 'Could not generate the Excel sample.' });
+      toast({ variant: 'destructive', title: 'Download Failed', description: 'Could not generate the Excel sample. Check browser console for details.' });
     }
   };
 
