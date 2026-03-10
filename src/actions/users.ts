@@ -1,4 +1,3 @@
-
 'use server';
 
 import { sql, getConnection } from '@/lib/db';
@@ -106,6 +105,11 @@ export async function updateUser(id: string, updates: Partial<Omit<AppUser, 'id'
         forceChange = false;
     }
 
+    // Explicitly check for forcePasswordChange in updates (e.g. for reset)
+    if (updates.forcePasswordChange !== undefined) {
+        forceChange = updates.forcePasswordChange;
+    }
+
     // Call the update stored procedure with the full user object
     const result = await pool.request()
         .input('id', sql.NVarChar, id)
@@ -121,13 +125,25 @@ export async function updateUser(id: string, updates: Partial<Omit<AppUser, 'id'
     revalidatePath('/users');
     revalidatePath('/profile');
     
-    const updatedUser = result.recordset[0];
-    return { ...updatedUser, forcePasswordChange: !!updatedUser.forcePasswordChange };
+    // Safer recordset handling
+    const updatedUserFromDb = result.recordset && result.recordset.length > 0 ? result.recordset[0] : null;
+    
+    if (updatedUserFromDb) {
+        return { 
+            ...updatedUserFromDb, 
+            forcePasswordChange: !!updatedUserFromDb.forcePasswordChange 
+        };
+    }
+    
+    return {
+        ...mergedUser,
+        forcePasswordChange: forceChange
+    };
 
-  } catch (error) {
+  } catch (error: any) {
     await addErrorLog('updateUser', error, `UserId: ${id}, Updates: ${JSON.stringify(updates)}`);
     console.error(`Failed to update user ${id}:`, error);
-    throw new Error('Failed to update user due to a database error.');
+    throw new Error(error.message || 'Failed to update user due to a database error.');
   }
 }
 

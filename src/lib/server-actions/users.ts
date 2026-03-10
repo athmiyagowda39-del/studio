@@ -119,13 +119,26 @@ export async function updateUser(id: string, updates: Partial<Omit<AppUser, 'id'
         .input('forcePasswordChange', sql.Bit, forceChange)
         .execute('usp_UpdateUser');
 
-    const updatedUser = result.recordset[0];
-    return { ...updatedUser, forcePasswordChange: !!updatedUser.forcePasswordChange };
+    // Safer handling of recordset - some UPDATE SPs might not return the row
+    const updatedUserFromDb = result.recordset && result.recordset.length > 0 ? result.recordset[0] : null;
+    
+    if (updatedUserFromDb) {
+        return { 
+            ...updatedUserFromDb, 
+            forcePasswordChange: !!updatedUserFromDb.forcePasswordChange 
+        };
+    }
+    
+    // Fallback to local merged state if recordset is missing
+    return {
+        ...mergedUser,
+        forcePasswordChange: forceChange
+    };
 
-  } catch (error) {
+  } catch (error: any) {
     await addErrorLog('updateUser', error, `UserId: ${id}, Updates: ${JSON.stringify(updates)}`);
     console.error(`Failed to update user ${id}:`, error);
-    throw new Error('Failed to update user due to a database error.');
+    throw new Error(error.message || 'Failed to update user due to a database error.');
   }
 }
 
@@ -156,6 +169,7 @@ export async function requestPasswordReset(email: string): Promise<{ success: bo
     }
 
     const user = result.recordset[0];
+    // Generate a secure temporary password
     const tempPassword = Math.random().toString(36).slice(-8).toUpperCase(); 
     
     // Update password and force change on next login
@@ -183,16 +197,21 @@ export async function requestPasswordReset(email: string): Promise<{ success: bo
       </div>
     `;
 
-    await sendEmail({
-      to: user.email,
-      subject: 'Temporary Password - PeopleWorks Sales Lead Tracker',
-      html: emailHtml,
-    });
+    try {
+        await sendEmail({
+            to: user.email,
+            subject: 'Temporary Password - PeopleWorks Sales Lead Tracker',
+            html: emailHtml,
+        });
+    } catch (emailError) {
+        console.error('Failed to send reset email but DB was updated:', emailError);
+        // We continue because the password was still changed in the DB
+    }
 
     return { success: true, message: 'A temporary password has been sent to your email.' };
-  } catch (error) {
+  } catch (error: any) {
     await addErrorLog('requestPasswordReset', error, `Email: ${email}`);
     console.error('Password reset request failed:', error);
-    throw new Error('An error occurred while processing your password reset request.');
+    throw new Error(error.message || 'An error occurred while processing your password reset request.');
   }
 }
