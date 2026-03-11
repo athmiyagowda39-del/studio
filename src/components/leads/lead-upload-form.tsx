@@ -14,8 +14,6 @@ import {
   Download,
   UploadCloud,
   Info,
-  ChevronsUpDown,
-  ChevronDown,
 } from 'lucide-react';
 import {
   Card,
@@ -23,7 +21,7 @@ import {
   CardTitle,
   CardContent,
 } from '@/components/ui/card';
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import * as XLSX from 'xlsx';
 import {
   Table,
@@ -38,14 +36,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useApp } from '@/context/app-context';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
-import { getDisplayModule } from '@/lib/modules';
 import { generateLeadSampleExcel } from '@/actions/leads';
 
 type ParsedData = (string | number)[][];
@@ -111,14 +102,13 @@ const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate' | 'givenBy'
 };
 
 export default function LeadUploadForm() {
-  const { user, users, isReadOnly, isImpersonating, addLeads, getNextLeadId, leads: allLeads, sectors, leadReferences, modules } = useApp();
+  const { user, users, isReadOnly, isImpersonating, addLeads, getNextLeadId, leads: allLeads, sectors, leadReferences } = useApp();
   const [formData, setFormData] = useState<
     Omit<LeadFormData, 'leadId' | 'creationDate' | 'givenBy' | 'executiveViewDate'>
   >(initialFormState);
   const [parsedLeads, setParsedLeads] = useState<Partial<LeadFormData>[]>([]);
   const [showPreview, setShowPreview] = useState(false);
   const [toExecutiveSelection, setToExecutiveSelection] = useState('');
-  const [productPopoverOpen, setProductPopoverOpen] = useState(false);
   const [executives, setExecutives] = useState<string[]>([]);
   const [companyError, setCompanyError] = useState('');
   
@@ -134,11 +124,6 @@ export default function LeadUploadForm() {
   const [isDragging, setIsDragging] = useState(false);
   const { toast } = useToast();
   const managers = users.filter(u => u.role === 'Manager');
-
-  const hrModules = useMemo(() => modules.filter(m => m.category === 'HR').map(m => m.name), [modules]);
-  const financeModules = useMemo(() => modules.filter(m => m.category === 'Finance').map(m => m.name), [modules]);
-  const generalModules = useMemo(() => modules.filter(m => m.category === 'General').map(m => m.name), [modules]);
-  const allModulesNames = useMemo(() => modules.map(m => m.name), [modules]);
 
   useEffect(() => {
     const executiveUsers = users
@@ -432,7 +417,7 @@ export default function LeadUploadForm() {
         const keyMap: { [key: string]: keyof Partial<LeadFormData> } = {
           pincode: 'pincode', company: 'company', contactperson: 'contactPerson', address: 'address',
           state: 'state', district: 'district', contactnumber: 'contactNumber', email: 'email',
-          reference: 'reference', headcount: 'headcount', sector: 'sector', 'modulelist': 'selectedModule',
+          reference: 'reference', headcount: 'headcount', sector: 'sector', 'module': 'selectedModule',
           manager: 'manager', executive: 'executive', monthlycontractvalue: 'monthlyContractValue', annualcontractvalue: 'annualContractValue',
         };
 
@@ -443,7 +428,6 @@ export default function LeadUploadForm() {
               const formKey = keyMap[header];
               if (formKey) {
                 const value = row[index];
-                // Clean up indented module names if they come from the dropdown
                 let cleanValue = value !== null && value !== undefined ? String(value) : '';
                 if (formKey === 'selectedModule') {
                   cleanValue = cleanValue.trim();
@@ -601,44 +585,6 @@ export default function LeadUploadForm() {
     }
   };
 
-  const selectedModulesArray = formData.selectedModule ? formData.selectedModule.split(', ').filter(Boolean) : [];
-
-  const handleModuleToggle = (moduleName: string) => {
-    const newSelection = new Set(selectedModulesArray);
-    newSelection.has(moduleName) ? newSelection.delete(moduleName) : newSelection.add(moduleName);
-    handleSelectChange('selectedModule', Array.from(newSelection).join(', '));
-  };
-
-  const handleCategoryToggle = (categoryModules: string[], isAdding: boolean) => {
-    const newSelection = new Set(selectedModulesArray);
-    categoryModules.forEach(m => isAdding ? newSelection.add(m) : newSelection.delete(m));
-    handleSelectChange('selectedModule', Array.from(newSelection).join(', '));
-  };
-
-  const getCategoryCheckedState = (categoryModules: string[]): boolean | 'indeterminate' => {
-    const selectionCount = categoryModules.filter(m => selectedModulesArray.includes(m)).length;
-    if (selectionCount === 0) return false;
-    if (selectionCount === categoryModules.length) return true;
-    return 'indeterminate';
-  };
-
-  const handleAllToggle = (isAdding: boolean) => {
-    handleSelectChange('selectedModule', isAdding ? allModulesNames.join(', ') : '');
-  };
-
-  const getModuleButtonText = () => {
-    if (!formData.selectedModule) return 'Select Module(s)...';
-    const buttonText = getDisplayModule(formData.selectedModule, modules);
-    return buttonText === 'N/A' ? 'Select Module(s)...' : buttonText;
-  };
-
-  const ModuleSelectItem = ({ moduleName }: { moduleName: string }) => (
-    <div key={moduleName} className="flex items-center space-x-3 rounded-md p-2 pr-4 hover:bg-accent cursor-pointer" onClick={() => handleModuleToggle(moduleName)}>
-        <Checkbox id={`mod-${moduleName}`} checked={selectedModulesArray.includes(moduleName)} readOnly tabIndex={-1} className="ml-1" />
-        <label htmlFor={`mod-${moduleName}`} className="text-sm font-medium leading-none cursor-pointer w-full">{moduleName}</label>
-    </div>
-  );
-
   return (
     <div className="space-y-6">
       {isReadOnly && (
@@ -740,58 +686,17 @@ export default function LeadUploadForm() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="selectedModule">Module</Label>
-            <Popover open={productPopoverOpen} onOpenChange={setProductPopoverOpen} modal={false}>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full justify-between font-normal" disabled={isReadOnly}>
-                  <span className="truncate">{getModuleButtonText()}</span>
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                <div className="p-2 font-bold text-center border-b">Modules</div>
-                <ScrollArea className="h-72">
-                  <div className="space-y-1 p-1">
-                    <div className="flex items-center space-x-3 rounded-md p-2 pr-4 font-semibold">
-                      <Checkbox id="all-modules" onCheckedChange={(checked) => handleAllToggle(!!checked)} className="ml-1" />
-                      <label htmlFor="all-modules" className="w-full cursor-pointer">All Modules</label>
-                    </div>
-                    {hrModules.length > 0 && (
-                      <Collapsible>
-                        <CollapsibleTrigger asChild>
-                          <div className="flex items-center space-x-3 rounded-md p-2 pr-4 font-semibold cursor-pointer">
-                              <Checkbox id="hr-cat" checked={getCategoryCheckedState(hrModules)} onCheckedChange={(checked) => handleCategoryToggle(hrModules, !!checked)} className="ml-1" />
-                              <span className="flex w-full items-center justify-between">HR Modules <ChevronDown className="h-4 w-4" /></span>
-                          </div>
-                        </CollapsibleTrigger>
-                        <CollapsibleContent className="pl-6">{hrModules.map(m => <ModuleSelectItem key={m} moduleName={m} />)}</CollapsibleContent>
-                      </Collapsible>
-                    )}
-                    {financeModules.length > 0 && (
-                      <Collapsible>
-                        <CollapsibleTrigger asChild>
-                          <div className="flex items-center space-x-3 rounded-md p-2 pr-4 font-semibold cursor-pointer">
-                              <Checkbox id="finance-cat" checked={getCategoryCheckedState(financeModules)} onCheckedChange={(checked) => handleCategoryToggle(financeModules, !!checked)} className="ml-1" />
-                              <span className="flex w-full items-center justify-between">Finance Modules <ChevronDown className="h-4 w-4" /></span>
-                          </div>
-                        </CollapsibleTrigger>
-                        <CollapsibleContent className="pl-6">{financeModules.map(m => <ModuleSelectItem key={m} moduleName={m} />)}</CollapsibleContent>
-                      </Collapsible>
-                    )}
-                    {generalModules.length > 0 && (
-                      <Collapsible>
-                        <CollapsibleTrigger asChild>
-                          <div className="flex items-center space-x-3 rounded-md p-2 pr-4 font-semibold cursor-pointer">
-                              <Checkbox id="general-cat" checked={getCategoryCheckedState(generalModules)} onCheckedChange={(checked) => handleCategoryToggle(generalModules, !!checked)} className="ml-1" />
-                              <span className="flex w-full items-center justify-between">General Modules <ChevronDown className="h-4 w-4" /></span>
-                          </div>
-                        </CollapsibleTrigger>
-                        <CollapsibleContent className="pl-6">{generalModules.map(m => <ModuleSelectItem key={m} moduleName={m} />)}</CollapsibleContent>
-                      </Collapsible>
-                    )}
-                  </div>
-                </ScrollArea>
-              </PopoverContent>
-            </Popover>
+            <Textarea
+              id="selectedModule"
+              value={formData.selectedModule}
+              onChange={handleInputChange}
+              placeholder="Enter module names..."
+              readOnly={isReadOnly}
+              className="min-h-[80px]"
+            />
+            <p className="text-[10px] text-muted-foreground mt-1">
+              Disclaimer: For multiple module to be added use comma and add it.
+            </p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="manager">Manager</Label>

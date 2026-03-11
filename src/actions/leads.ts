@@ -206,28 +206,30 @@ export async function generateLeadSampleExcel() {
     const pool = await getConnection();
     
     // Fetch data for dropdowns
-    const [sectorsRes, referencesRes, usersRes] = await Promise.all([
+    const [sectorsRes, referencesRes, usersRes, modulesRes] = await Promise.all([
       pool.request().query('SELECT name FROM Sectors ORDER BY name'),
       pool.request().query('SELECT name FROM LeadReferences ORDER BY name'),
-      pool.request().query('SELECT username, role FROM Users ORDER BY username')
+      pool.request().query('SELECT username, role FROM Users ORDER BY username'),
+      pool.request().query('SELECT name, category FROM Modules ORDER BY category, name')
     ]);
 
     const sectors = sectorsRes.recordset.map(r => r.name);
     const references = referencesRes.recordset.map(r => r.name);
     const managers = usersRes.recordset.filter(u => u.role === 'Manager').map(u => u.username);
     const executives = usersRes.recordset.filter(u => u.role === 'Executive').map(u => u.username);
+    const dbModules = modulesRes.recordset;
 
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Leads');
 
     const headers = [
-      'company', 'contactPerson', 'address', 'state', 'district', 'contactNumber', 'email', 'pincode', 'reference', 'headcount', 'sector', 'Module list', 'manager', 'executive'
+      'company', 'contactPerson', 'address', 'state', 'district', 'contactNumber', 'email', 'pincode', 'reference', 'headcount', 'sector', 'module', 'manager', 'executive'
     ];
     worksheet.addRow(headers);
 
     // Lists sheet for validation
     const listSheet = workbook.addWorksheet('Lists');
-    listSheet.state = 'hidden';
+    // listSheet.state = 'hidden';
 
     // Populate lists
     sectors.forEach((v, i) => listSheet.getCell(`A${i + 1}`).value = v);
@@ -235,35 +237,22 @@ export async function generateLeadSampleExcel() {
     managers.forEach((v, i) => listSheet.getCell(`C${i + 1}`).value = v);
     executives.forEach((v, i) => listSheet.getCell(`E${i + 1}`).value = v);
 
-    // Module list items
-    const moduleItems = [
-      'All Module',
-      'HR Module',
-      '  Attendance Management',
-      '  Desktop Attendance Marking Only',
-      '  Employee Database Management',
-      '  Employee Movement / Transfer',
-      '  Employee Self Service',
-      '  Geo Fencing',
-      '  Geo Tracking',
-      'Finance Module',
-      '  Payroll',
-      '  Separation',
-      '  Travel and Expense',
-      'General Module',
-      '  Asset Tracking',
-      '  Broadcast | Survey',
-      '  Declaration | Reprimands',
-      '  Ex-Employee Portal',
-      '  Organogram',
-      '  Query Management',
-      '  Rewards Recognition'
-    ];
+    // Dynamic Module list based on categories
+    const moduleItems: string[] = ['All Module'];
+    const categories = Array.from(new Set(dbModules.map((m: any) => m.category)));
+    
+    categories.forEach(cat => {
+      moduleItems.push(`${cat} Module`);
+      const catModules = dbModules.filter((m: any) => m.category === cat);
+      catModules.forEach((m: any) => {
+        moduleItems.push(`  ${m.name}`);
+      });
+    });
 
     moduleItems.forEach((v, i) => {
       const cell = listSheet.getCell(`D${i + 1}`);
       cell.value = v;
-      if (['HR Module', 'Finance Module', 'General Module'].includes(v)) {
+      if (v.endsWith(' Module')) {
         cell.font = { bold: true };
       }
     });
@@ -289,7 +278,7 @@ export async function generateLeadSampleExcel() {
       cell.note = text;
     };
 
-    addNote('L1', 'To select multiple modules, type them manually separated by commas.');
+    addNote('L1', 'For multiple module to be added use comma and add it');
 
     worksheet.getRow(1).font = { bold: true };
     worksheet.columns.forEach(col => col.width = 22);
