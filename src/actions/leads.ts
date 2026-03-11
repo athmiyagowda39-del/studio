@@ -220,14 +220,28 @@ export async function generateLeadSampleExcel() {
     const modulesRaw = modulesRes.recordset;
 
     // Build module options with categories and "All" selectors
-    const moduleOptions: string[] = ['All Modules'];
-    const categories = Array.from(new Set(modulesRaw.map((m: any) => m.category))).sort();
+    const moduleOptions: string[] = ['All Module'];
+    const categories = ['HR', 'Finance', 'General'];
     
+    const hrSubModules = [
+      'Attendance Management',
+      'Desktop Attendance Marking Only',
+      'Employee Database Management',
+      'Employee Movement / Transfer',
+      'Employee Self Service',
+      'Geo Fencing',
+      'Geo Tracking'
+    ];
+
     categories.forEach(cat => {
-      moduleOptions.push(`--- ${String(cat).toUpperCase()} MODULES ---`);
       moduleOptions.push(`${cat} Module`);
-      const catModules = modulesRaw.filter((m: any) => m.category === cat).map((m: any) => m.name).sort();
-      catModules.forEach((mName: string) => moduleOptions.push(`  ${mName}`));
+      
+      if (cat === 'HR') {
+        hrSubModules.forEach(sub => moduleOptions.push(`  ${sub}`));
+      } else {
+        const catModules = modulesRaw.filter((m: any) => m.category === cat).map((m: any) => m.name).sort();
+        catModules.forEach((mName: string) => moduleOptions.push(`  ${mName}`));
+      }
     });
 
     const workbook = new ExcelJS.Workbook();
@@ -270,7 +284,7 @@ export async function generateLeadSampleExcel() {
       cell.note = {
         texts: [
           { font: { bold: true, size: 10 }, text: `How to fill ${fieldName}:\n` },
-          { font: { size: 9 }, text: `1. Select an option from the dropdown for a single value.\n2. To select MULTIPLE values, type them manually separated by commas (e.g., Value1, Value2).\n3. For Modules, you can use 'All Modules' or 'HR Module' to select groups.` }
+          { font: { size: 9 }, text: `1. Select an option from the dropdown for a single value.\n2. To select MULTIPLE values, type them manually separated by commas (e.g., Value1, Value2).\n3. For Modules, you can use 'All Module' or 'HR Module' to select groups.` }
         ]
       };
     };
