@@ -267,7 +267,7 @@ export async function generateLeadSampleExcel() {
     detailedModules.forEach((v, i) => {
       const cell = listSheet.getCell(`F${i + 1}`);
       cell.value = v;
-      // Style HR Module and Finance Module as bold thick black
+      // Style HR Module, Finance Module and General Module as bold thick black
       if (v === 'HR Module' || v === 'Finance Module' || v === 'General Module') {
         cell.font = { bold: true, color: { argb: 'FF000000' } };
       }
