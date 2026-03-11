@@ -235,7 +235,6 @@ export async function generateLeadSampleExcel() {
 
     // Lists sheet for validation
     const listSheet = workbook.addWorksheet('Lists');
-    // listSheet.state = 'hidden';
 
     // Populate lists
     sectors.forEach((v, i) => listSheet.getCell(`A${i + 1}`).value = v);
@@ -243,12 +242,13 @@ export async function generateLeadSampleExcel() {
     managers.forEach((v, i) => listSheet.getCell(`C${i + 1}`).value = v);
     executives.forEach((v, i) => listSheet.getCell(`E${i + 1}`).value = v);
 
-    // Dynamic Module list based on categories
-    const moduleItems: string[] = ['Module Category', 'All Modules'];
-    const categories = Array.from(new Set(dbModules.map((m: any) => m.category)));
+    // Structured Module list for the dropdown
+    const moduleItems: string[] = ['Module Category', 'All Module'];
+    const categories = ['HR', 'Finance', 'General'];
     
     categories.forEach(cat => {
-      moduleItems.push(`${cat} Modules`);
+      const catTitle = `${cat} Module`;
+      moduleItems.push(catTitle);
       const catModules = dbModules.filter((m: any) => m.category === cat);
       catModules.forEach((m: any) => {
         moduleItems.push(`  ${m.name}`);
@@ -258,8 +258,9 @@ export async function generateLeadSampleExcel() {
     moduleItems.forEach((v, i) => {
       const cell = listSheet.getCell(`D${i + 1}`);
       cell.value = v;
-      if (v === 'Module Category' || v.endsWith(' Modules')) {
-        cell.font = { bold: true };
+      // Apply thick bold formatting to categories
+      if (v === 'Module Category' || v === 'All Module' || v === 'HR Module' || v === 'Finance Module' || v === 'General Module') {
+        cell.font = { bold: true, size: 12 };
       }
     });
 

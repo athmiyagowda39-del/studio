@@ -761,7 +761,7 @@ export default function LeadUploadForm() {
                               onClick={(e) => { e.stopPropagation(); handleToggleCategory(cat); }}
                             >
                               <Checkbox checked={isCategorySelected(cat)} onCheckedChange={() => handleToggleCategory(cat)} />
-                              <span className="text-sm font-semibold">{cat} Modules</span>
+                              <span className="text-sm font-semibold">{cat} Module</span>
                             </div>
                             <AccordionTrigger className="p-2 hover:bg-muted rounded-r-md transition-colors w-auto" />
                           </div>
