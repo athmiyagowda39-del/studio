@@ -212,28 +212,27 @@ export async function generateLeadSampleExcel() {
     const pool = await getConnection();
     
     // Fetch data for dropdowns
-    const [sectorsRes, referencesRes, usersRes, modulesRes] = await Promise.all([
+    const [sectorsRes, referencesRes, usersRes] = await Promise.all([
       pool.request().query('SELECT name FROM Sectors ORDER BY name'),
       pool.request().query('SELECT name FROM LeadReferences ORDER BY name'),
       pool.request().query('SELECT username, role FROM Users ORDER BY username'),
-      pool.request().query('SELECT name, category FROM Modules ORDER BY category, name')
     ]);
 
     const sectors = sectorsRes.recordset.map(r => r.name);
     const references = referencesRes.recordset.map(r => r.name);
     const managers = usersRes.recordset.filter(u => u.role === 'Manager').map(u => u.username);
     const executives = usersRes.recordset.filter(u => u.role === 'Executive').map(u => u.username);
-    const dbModules = modulesRes.recordset;
 
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Leads');
 
+    // Renamed header to 'module list' as per user request
     const headers = [
       'company', 'contactPerson', 'address', 'state', 'district', 'contactNumber', 'email', 'pincode', 'reference', 'headcount', 'sector', 'module list', 'manager', 'executive'
     ];
     worksheet.addRow(headers);
 
-    // Lists sheet for validation
+    // Lists sheet for validation (Hidden)
     const listSheet = workbook.addWorksheet('Lists');
 
     // Populate lists
@@ -244,16 +243,41 @@ export async function generateLeadSampleExcel() {
 
     // Structured Module list for the dropdown
     const moduleItems: string[] = ['Module Category', 'All Module'];
-    const categories = ['HR', 'Finance', 'General'];
     
-    categories.forEach(cat => {
-      const catTitle = `${cat} Module`;
-      moduleItems.push(catTitle);
-      const catModules = dbModules.filter((m: any) => m.category === cat);
-      catModules.forEach((m: any) => {
-        moduleItems.push(`  ${m.name}`);
-      });
-    });
+    // HR Modules
+    const hrSubModules = [
+      'Attendance Management',
+      'Desktop Attendance Marking Only',
+      'Employee Database Management',
+      'Employee Movement / Transfer',
+      'Employee Self Service',
+      'Geo Fencing',
+      'Geo Tracking'
+    ];
+    moduleItems.push('HR Module');
+    hrSubModules.forEach(m => moduleItems.push(`  ${m}`));
+
+    // Finance Modules
+    const financeSubModules = [
+      'Payroll',
+      'Separation',
+      'Travel and Expense'
+    ];
+    moduleItems.push('Finance Module');
+    financeSubModules.forEach(m => moduleItems.push(`  ${m}`));
+
+    // General Modules
+    const generalSubModules = [
+      'Asset Tracking',
+      'Broadcast | Survey',
+      'Declaration | Reprimands',
+      'Ex-Employee Portal',
+      'Organogram',
+      'Query Management',
+      'Rewards Recognition'
+    ];
+    moduleItems.push('General Module');
+    generalSubModules.forEach(m => moduleItems.push(`  ${m}`));
 
     moduleItems.forEach((v, i) => {
       const cell = listSheet.getCell(`D${i + 1}`);
