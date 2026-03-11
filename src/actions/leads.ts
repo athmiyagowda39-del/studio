@@ -239,6 +239,16 @@ export async function generateLeadSampleExcel() {
       'Travel and Expense'
     ];
 
+    const generalSubModules = [
+      'Asset Tracking',
+      'Broadcast | Survey',
+      'Declaration | Reprimands',
+      'Ex-Employee Portal',
+      'Organogram',
+      'Query Management',
+      'Rewards Recognition'
+    ];
+
     categories.forEach(cat => {
       moduleOptions.push(`${cat} Module`);
       
@@ -246,6 +256,8 @@ export async function generateLeadSampleExcel() {
         hrSubModules.forEach(sub => moduleOptions.push(`  ${sub}`));
       } else if (cat === 'Finance') {
         financeSubModules.forEach(sub => moduleOptions.push(`  ${sub}`));
+      } else if (cat === 'General') {
+        generalSubModules.forEach(sub => moduleOptions.push(`  ${sub}`));
       } else {
         const catModules = modulesRaw.filter((m: any) => m.category === cat).map((m: any) => m.name).sort();
         catModules.forEach((mName: string) => moduleOptions.push(`  ${mName}`));
@@ -256,13 +268,13 @@ export async function generateLeadSampleExcel() {
     const worksheet = workbook.addWorksheet('Leads');
 
     const headers = [
-      'company', 'contactPerson', 'address', 'state', 'district', 'contactNumber', 'email', 'pincode', 'reference', 'headcount', 'sector', 'selectedModule', 'manager', 'executive'
+      'company', 'contactPerson', 'address', 'state', 'district', 'contactNumber', 'email', 'pincode', 'reference', 'headcount', 'sector', 'modules list', 'manager', 'executive'
     ];
     worksheet.addRow(headers);
 
     // Lists sheet for validation
     const listSheet = workbook.addWorksheet('Lists');
-    listSheet.state = 'hidden';
+    listSheet.state = 'visible'; // Make visible so users can easily copy names
 
     // Populate lists
     sectors.forEach((v, i) => listSheet.getCell(`A${i + 1}`).value = v);
@@ -292,14 +304,14 @@ export async function generateLeadSampleExcel() {
       cell.note = {
         texts: [
           { font: { bold: true, size: 10 }, text: `How to fill ${fieldName}:\n` },
-          { font: { size: 9 }, text: `1. Select an option from the dropdown for a single value.\n2. To select MULTIPLE values, type them manually separated by commas (e.g., Value1, Value2).\n3. For Modules, you can use 'All Module' or 'HR Module' to select groups.` }
+          { font: { size: 9 }, text: `1. Select an option from the dropdown for a single value.\n2. To select MULTIPLE values, type them manually separated by commas (e.g., Value1, Value2).\n3. For Modules, you can use 'All Module' or 'HR Module' to select groups.\n4. You can also COPY names directly from the 'Lists' sheet.` }
         ]
       };
     };
 
     addNote('I1', 'References');
     addNote('K1', 'Sectors');
-    addNote('L1', 'Modules');
+    addNote('L1', 'Modules List');
 
     worksheet.getRow(1).font = { bold: true };
     worksheet.columns.forEach(col => col.width = 22);
