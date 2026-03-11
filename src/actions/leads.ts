@@ -244,11 +244,11 @@ export async function generateLeadSampleExcel() {
     executives.forEach((v, i) => listSheet.getCell(`E${i + 1}`).value = v);
 
     // Dynamic Module list based on categories
-    const moduleItems: string[] = ['Module Category', 'All Module'];
+    const moduleItems: string[] = ['Module Category', 'All Modules'];
     const categories = Array.from(new Set(dbModules.map((m: any) => m.category)));
     
     categories.forEach(cat => {
-      moduleItems.push(`${cat} Module`);
+      moduleItems.push(`${cat} Modules`);
       const catModules = dbModules.filter((m: any) => m.category === cat);
       catModules.forEach((m: any) => {
         moduleItems.push(`  ${m.name}`);
@@ -258,7 +258,7 @@ export async function generateLeadSampleExcel() {
     moduleItems.forEach((v, i) => {
       const cell = listSheet.getCell(`D${i + 1}`);
       cell.value = v;
-      if (v === 'Module Category' || v.endsWith(' Module')) {
+      if (v === 'Module Category' || v.endsWith(' Modules')) {
         cell.font = { bold: true };
       }
     });

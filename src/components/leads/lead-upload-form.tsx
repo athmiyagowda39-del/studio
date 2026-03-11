@@ -14,6 +14,7 @@ import {
   Download,
   UploadCloud,
   Info,
+  ChevronDown,
 } from 'lucide-react';
 import {
   Card,
@@ -21,7 +22,7 @@ import {
   CardTitle,
   CardContent,
 } from '@/components/ui/card';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import * as XLSX from 'xlsx';
 import {
   Table,
@@ -38,6 +39,13 @@ import { useApp } from '@/context/app-context';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { generateLeadSampleExcel } from '@/actions/leads';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { cn } from '@/lib/utils';
 
 type ParsedData = (string | number)[][];
 
@@ -102,7 +110,7 @@ const initialFormState: Omit<LeadFormData, 'leadId' | 'creationDate' | 'givenBy'
 };
 
 export default function LeadUploadForm() {
-  const { user, users, isReadOnly, isImpersonating, addLeads, getNextLeadId, leads: allLeads, sectors, leadReferences } = useApp();
+  const { user, users, isReadOnly, isImpersonating, addLeads, getNextLeadId, leads: allLeads, sectors, leadReferences, modules } = useApp();
   const [formData, setFormData] = useState<
     Omit<LeadFormData, 'leadId' | 'creationDate' | 'givenBy' | 'executiveViewDate'>
   >(initialFormState);
@@ -585,6 +593,46 @@ export default function LeadUploadForm() {
     }
   };
 
+  // Logic for hierarchical module selection
+  const categories = useMemo(() => Array.from(new Set(modules.map(m => m.category))), [modules]);
+  const currentSelectedModules = useMemo(() => formData.selectedModule.split(', ').filter(Boolean), [formData.selectedModule]);
+
+  const handleToggleModule = (moduleName: string) => {
+    const newSelection = new Set(currentSelectedModules);
+    newSelection.has(moduleName) ? newSelection.delete(moduleName) : newSelection.add(moduleName);
+    setFormData(prev => ({ ...prev, selectedModule: Array.from(newSelection).join(', ') }));
+  };
+
+  const handleToggleCategory = (category: string) => {
+    const categoryModules = modules.filter(m => m.category === category).map(m => m.name);
+    const isCurrentlySelected = categoryModules.every(m => currentSelectedModules.includes(m));
+    
+    const newSelection = new Set(currentSelectedModules);
+    if (isCurrentlySelected) {
+      categoryModules.forEach(m => newSelection.delete(m));
+    } else {
+      categoryModules.forEach(m => newSelection.add(m));
+    }
+    setFormData(prev => ({ ...prev, selectedModule: Array.from(newSelection).join(', ') }));
+  };
+
+  const handleToggleAll = () => {
+    const allModuleNames = modules.map(m => m.name);
+    const isAllSelected = allModuleNames.every(m => currentSelectedModules.includes(m));
+    
+    if (isAllSelected) {
+      setFormData(prev => ({ ...prev, selectedModule: '' }));
+    } else {
+      setFormData(prev => ({ ...prev, selectedModule: allModuleNames.join(', ') }));
+    }
+  };
+
+  const isAllSelected = modules.length > 0 && modules.every(m => currentSelectedModules.includes(m.name));
+  const isCategorySelected = (category: string) => {
+    const categoryModules = modules.filter(m => m.category === category).map(m => m.name);
+    return categoryModules.length > 0 && categoryModules.every(m => currentSelectedModules.includes(m));
+  };
+
   return (
     <div className="space-y-6">
       {isReadOnly && (
@@ -684,20 +732,65 @@ export default function LeadUploadForm() {
               )}
             </div>
           </div>
+          
           <div className="space-y-2">
-            <Label htmlFor="selectedModule">Module list</Label>
-            <Textarea
-              id="selectedModule"
-              value={formData.selectedModule}
-              onChange={handleInputChange}
-              placeholder="Enter module names..."
-              readOnly={isReadOnly}
-              className="min-h-[80px]"
-            />
+            <Label>Module list</Label>
+            <Card className="border shadow-none overflow-hidden">
+              <div className="p-2.5 bg-muted/30 border-b font-bold text-center text-sm">
+                Modules
+              </div>
+              <ScrollArea className="h-64">
+                <div className="p-2 space-y-1">
+                  {/* All Modules Option */}
+                  <div 
+                    className="flex items-center gap-2 py-2 px-3 rounded-md hover:bg-muted cursor-pointer transition-colors"
+                    onClick={handleToggleAll}
+                  >
+                    <Checkbox checked={isAllSelected} onCheckedChange={handleToggleAll} />
+                    <span className="text-sm font-semibold">All Modules</span>
+                  </div>
+
+                  <Accordion type="multiple" className="w-full">
+                    {categories.map(cat => {
+                      const catModules = modules.filter(m => m.category === cat);
+                      return (
+                        <AccordionItem value={cat} key={cat} className="border-none">
+                          <div className="flex items-center group pr-2">
+                            <div 
+                              className="flex items-center gap-2 py-2 px-3 flex-1 rounded-l-md hover:bg-muted cursor-pointer transition-colors"
+                              onClick={(e) => { e.stopPropagation(); handleToggleCategory(cat); }}
+                            >
+                              <Checkbox checked={isCategorySelected(cat)} onCheckedChange={() => handleToggleCategory(cat)} />
+                              <span className="text-sm font-semibold">{cat} Modules</span>
+                            </div>
+                            <AccordionTrigger className="p-2 hover:bg-muted rounded-r-md transition-colors w-auto" />
+                          </div>
+                          <AccordionContent className="pb-1">
+                            <div className="pl-8 flex flex-col">
+                              {catModules.map(mod => (
+                                <div 
+                                  key={mod.name} 
+                                  className="flex items-center gap-2 py-1.5 px-3 rounded-md hover:bg-muted cursor-pointer transition-colors"
+                                  onClick={() => handleToggleModule(mod.name)}
+                                >
+                                  <Checkbox checked={currentSelectedModules.includes(mod.name)} onCheckedChange={() => handleToggleModule(mod.name)} />
+                                  <span className="text-sm">{mod.name}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      );
+                    })}
+                  </Accordion>
+                </div>
+              </ScrollArea>
+            </Card>
             <p className="text-[10px] text-muted-foreground mt-1">
               Disclaimer: For multiple module to be added use comma and add it.
             </p>
           </div>
+
           <div className="space-y-2">
             <Label htmlFor="manager">Manager</Label>
             <Select value={formData.manager || ''} onValueChange={(v) => handleSelectChange('manager', v)} disabled={isReadOnly}>
