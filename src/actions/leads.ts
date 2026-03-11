@@ -210,71 +210,26 @@ export async function generateLeadSampleExcel() {
       pool.request().query('SELECT name FROM Sectors ORDER BY name'),
       pool.request().query('SELECT name FROM LeadReferences ORDER BY name'),
       pool.request().query('SELECT username, role FROM Users ORDER BY username'),
-      pool.request().query('SELECT name, category FROM Modules ORDER BY category, name')
+      pool.request().query('SELECT name FROM Modules ORDER BY name')
     ]);
 
     const sectors = sectorsRes.recordset.map(r => r.name);
     const references = referencesRes.recordset.map(r => r.name);
     const managers = usersRes.recordset.filter(u => u.role === 'Manager').map(u => u.username);
     const executives = usersRes.recordset.filter(u => u.role === 'Executive').map(u => u.username);
-    const modulesRaw = modulesRes.recordset;
-
-    // Build module options with categories and "All" selectors
-    const moduleOptions: string[] = ['All Module'];
-    const categories = ['HR', 'Finance', 'General'];
-    
-    const hrSubModules = [
-      'Attendance Management',
-      'Desktop Attendance Marking Only',
-      'Employee Database Management',
-      'Employee Movement / Transfer',
-      'Employee Self Service',
-      'Geo Fencing',
-      'Geo Tracking'
-    ];
-
-    const financeSubModules = [
-      'Payroll',
-      'Separation',
-      'Travel and Expense'
-    ];
-
-    const generalSubModules = [
-      'Asset Tracking',
-      'Broadcast | Survey',
-      'Declaration | Reprimands',
-      'Ex-Employee Portal',
-      'Organogram',
-      'Query Management',
-      'Rewards Recognition'
-    ];
-
-    categories.forEach(cat => {
-      moduleOptions.push(`${cat} Module`);
-      
-      if (cat === 'HR') {
-        hrSubModules.forEach(sub => moduleOptions.push(`  ${sub}`));
-      } else if (cat === 'Finance') {
-        financeSubModules.forEach(sub => moduleOptions.push(`  ${sub}`));
-      } else if (cat === 'General') {
-        generalSubModules.forEach(sub => moduleOptions.push(`  ${sub}`));
-      } else {
-        const catModules = modulesRaw.filter((m: any) => m.category === cat).map((m: any) => m.name).sort();
-        catModules.forEach((mName: string) => moduleOptions.push(`  ${mName}`));
-      }
-    });
+    const moduleOptions = modulesRes.recordset.map(r => r.name);
 
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Leads');
 
     const headers = [
-      'company', 'contactPerson', 'address', 'state', 'district', 'contactNumber', 'email', 'pincode', 'reference', 'headcount', 'sector', 'modules list', 'manager', 'executive'
+      'company', 'contactPerson', 'address', 'state', 'district', 'contactNumber', 'email', 'pincode', 'reference', 'headcount', 'sector', 'selectedModule', 'manager', 'executive'
     ];
     worksheet.addRow(headers);
 
     // Lists sheet for validation
     const listSheet = workbook.addWorksheet('Lists');
-    listSheet.state = 'visible'; // Make visible so users can easily copy names
+    listSheet.state = 'hidden';
 
     // Populate lists
     sectors.forEach((v, i) => listSheet.getCell(`A${i + 1}`).value = v);
@@ -298,20 +253,13 @@ export async function generateLeadSampleExcel() {
       worksheet.getCell(`N${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [executiveRange] };
     }
 
-    // Add helper notes for multi-select columns
-    const addNote = (cellRef: string, fieldName: string) => {
+    // Add helper notes for columns
+    const addNote = (cellRef: string, text: string) => {
       const cell = worksheet.getCell(cellRef);
-      cell.note = {
-        texts: [
-          { font: { bold: true, size: 10 }, text: `How to fill ${fieldName}:\n` },
-          { font: { size: 9 }, text: `1. Select an option from the dropdown for a single value.\n2. To select MULTIPLE values, type them manually separated by commas (e.g., Value1, Value2).\n3. For Modules, you can use 'All Module' or 'HR Module' to select groups.\n4. You can also COPY names directly from the 'Lists' sheet.` }
-        ]
-      };
+      cell.note = text;
     };
 
-    addNote('I1', 'References');
-    addNote('K1', 'Sectors');
-    addNote('L1', 'Modules List');
+    addNote('L1', 'To select multiple modules, type them manually separated by commas.');
 
     worksheet.getRow(1).font = { bold: true };
     worksheet.columns.forEach(col => col.width = 22);

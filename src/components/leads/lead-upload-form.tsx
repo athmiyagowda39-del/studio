@@ -433,7 +433,6 @@ export default function LeadUploadForm() {
           pincode: 'pincode', company: 'company', contactperson: 'contactPerson', address: 'address',
           state: 'state', district: 'district', contactnumber: 'contactNumber', email: 'email',
           reference: 'reference', headcount: 'headcount', sector: 'sector', selectedmodule: 'selectedModule',
-          moduleslist: 'selectedModule',
           manager: 'manager', executive: 'executive', monthlycontractvalue: 'monthlyContractValue', annualcontractvalue: 'annualContractValue',
         };
 
