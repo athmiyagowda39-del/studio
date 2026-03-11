@@ -417,7 +417,7 @@ export default function LeadUploadForm() {
         const keyMap: { [key: string]: keyof Partial<LeadFormData> } = {
           pincode: 'pincode', company: 'company', contactperson: 'contactPerson', address: 'address',
           state: 'state', district: 'district', contactnumber: 'contactNumber', email: 'email',
-          reference: 'reference', headcount: 'headcount', sector: 'sector', 'module': 'selectedModule',
+          reference: 'reference', headcount: 'headcount', sector: 'sector', 'modulelist': 'selectedModule',
           manager: 'manager', executive: 'executive', monthlycontractvalue: 'monthlyContractValue', annualcontractvalue: 'annualContractValue',
         };
 
@@ -685,7 +685,7 @@ export default function LeadUploadForm() {
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="selectedModule">Module</Label>
+            <Label htmlFor="selectedModule">Module list</Label>
             <Textarea
               id="selectedModule"
               value={formData.selectedModule}

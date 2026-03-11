@@ -77,6 +77,8 @@ export async function addLeads(leads: LeadFormData[]): Promise<LeadFormData[]> {
     table.columns.add('status', sql.NVarChar(100));
     table.columns.add('leadSubStatus', sql.NVarChar(100));
     table.columns.add('initialRemarks', sql.NVarChar(sql.MAX));
+    table.columns.add('monthlyContractValue', sql.NVarChar(50));
+    table.columns.add('annualContractValue', sql.NVarChar(50));
 
     for (const lead of leads) {
         table.rows.add(
@@ -103,7 +105,9 @@ export async function addLeads(leads: LeadFormData[]): Promise<LeadFormData[]> {
             lead.givenBy || null,
             lead.status || null,
             lead.leadSubStatus || null,
-            lead.initialRemarks || null
+            lead.initialRemarks || null,
+            lead.monthlyContractValue || null,
+            lead.annualContractValue || null
         );
     }
     
@@ -114,12 +118,13 @@ export async function addLeads(leads: LeadFormData[]): Promise<LeadFormData[]> {
 
         revalidatePath('/leads-upload');
         revalidatePath('/leads-update');
+        revalidatePath('/dashboard');
         return leads;
-    } catch (error) {
+    } catch (error: any) {
         const userDetails = leads.length > 0 ? `User: ${leads[0].givenBy}` : 'User unknown';
         await addErrorLog('addLeads', error, userDetails);
         console.error('Failed to bulk insert leads:', error);
-        throw new Error('Failed to add leads due to a database error.');
+        throw new Error('Failed to add leads due to a database error: ' + error.message);
     }
 }
 
@@ -169,6 +174,7 @@ export async function updateLead(id: string, updates: Partial<LeadFormData>): Pr
           .execute('usp_UpdateLead');
 
       revalidatePath('/leads-update');
+      revalidatePath('/dashboard');
 
       if (result.recordset.length > 0) {
           const [updatedLead] = parseLeads(result.recordset);
@@ -176,7 +182,7 @@ export async function updateLead(id: string, updates: Partial<LeadFormData>): Pr
       } else {
           throw new Error('Lead not found after update.');
       }
-  } catch (error) {
+  } catch (error: any) {
       await addErrorLog('updateLead', error, `LeadId: ${id}`);
       console.error(`Failed to update lead ${id}:`, error);
       throw new Error('Failed to update lead due to a database error.');
@@ -223,7 +229,7 @@ export async function generateLeadSampleExcel() {
     const worksheet = workbook.addWorksheet('Leads');
 
     const headers = [
-      'company', 'contactPerson', 'address', 'state', 'district', 'contactNumber', 'email', 'pincode', 'reference', 'headcount', 'sector', 'module', 'manager', 'executive'
+      'company', 'contactPerson', 'address', 'state', 'district', 'contactNumber', 'email', 'pincode', 'reference', 'headcount', 'sector', 'module list', 'manager', 'executive'
     ];
     worksheet.addRow(headers);
 
@@ -238,7 +244,7 @@ export async function generateLeadSampleExcel() {
     executives.forEach((v, i) => listSheet.getCell(`E${i + 1}`).value = v);
 
     // Dynamic Module list based on categories
-    const moduleItems: string[] = ['All Module'];
+    const moduleItems: string[] = ['Module Category', 'All Module'];
     const categories = Array.from(new Set(dbModules.map((m: any) => m.category)));
     
     categories.forEach(cat => {
@@ -252,7 +258,7 @@ export async function generateLeadSampleExcel() {
     moduleItems.forEach((v, i) => {
       const cell = listSheet.getCell(`D${i + 1}`);
       cell.value = v;
-      if (v.endsWith(' Module')) {
+      if (v === 'Module Category' || v.endsWith(' Module')) {
         cell.font = { bold: true };
       }
     });
