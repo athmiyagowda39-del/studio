@@ -1,3 +1,4 @@
+
 'use server';
 
 import { sql, getConnection } from '@/lib/db';
@@ -261,7 +262,16 @@ export async function generateLeadSampleExcel() {
     managers.forEach((v, i) => listSheet.getCell(`C${i + 1}`).value = v);
     moduleOptions.forEach((v, i) => listSheet.getCell(`D${i + 1}`).value = v);
     executives.forEach((v, i) => listSheet.getCell(`E${i + 1}`).value = v);
-    detailedModules.forEach((v, i) => listSheet.getCell(`F${i + 1}`).value = v);
+    
+    // Detailed Modules with Bold styling for categories
+    detailedModules.forEach((v, i) => {
+      const cell = listSheet.getCell(`F${i + 1}`);
+      cell.value = v;
+      // Style HR Module and Finance Module as bold thick black
+      if (v === 'HR Module' || v === 'Finance Module' || v === 'General Module') {
+        cell.font = { bold: true, color: { argb: 'FF000000' } };
+      }
+    });
 
     const sectorRange = `Lists!$A$1:$A$${Math.max(sectors.length, 1)}`;
     const referenceRange = `Lists!$B$1:$B$${Math.max(references.length, 1)}`;
@@ -287,7 +297,7 @@ export async function generateLeadSampleExcel() {
     };
 
     addNote('L1', 'To select multiple modules, type them manually separated by commas.');
-    addNote('M1', 'Reference column for modules and sub-modules.');
+    addNote('M1', 'Reference column for modules and sub-modules. Use these exact names in the "selectedModule" column.');
 
     worksheet.getRow(1).font = { bold: true };
     worksheet.columns.forEach(col => col.width = 22);
