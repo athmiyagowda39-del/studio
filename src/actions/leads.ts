@@ -220,35 +220,11 @@ export async function generateLeadSampleExcel() {
     const executives = usersRes.recordset.filter(u => u.role === 'Executive').map(u => u.username);
     const moduleOptions = modulesRes.recordset.map(r => r.name);
 
-    const detailedModules = [
-      'All Module',
-      'HR Module',
-      '  Attendance Management',
-      '  Desktop Attendance Marking Only',
-      '  Employee Database Management',
-      '  Employee Movement / Transfer',
-      '  Employee Self Service',
-      '  Geo Fencing',
-      '  Geo Tracking',
-      'Finance Module',
-      '  Payroll',
-      '  Separation',
-      '  Travel and Expense',
-      'General Module',
-      '  Asset Tracking',
-      '  Broadcast | Survey',
-      '  Declaration | Reprimands',
-      '  Ex-Employee Portal',
-      '  Organogram',
-      '  Query Management',
-      '  Rewards Recognition'
-    ];
-
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Leads');
 
     const headers = [
-      'company', 'contactPerson', 'address', 'state', 'district', 'contactNumber', 'email', 'pincode', 'reference', 'headcount', 'sector', 'selectedModule', 'Module list', 'manager', 'executive'
+      'company', 'contactPerson', 'address', 'state', 'district', 'contactNumber', 'email', 'pincode', 'reference', 'headcount', 'sector', 'selectedModule', 'manager', 'executive'
     ];
     worksheet.addRow(headers);
 
@@ -262,32 +238,20 @@ export async function generateLeadSampleExcel() {
     managers.forEach((v, i) => listSheet.getCell(`C${i + 1}`).value = v);
     moduleOptions.forEach((v, i) => listSheet.getCell(`D${i + 1}`).value = v);
     executives.forEach((v, i) => listSheet.getCell(`E${i + 1}`).value = v);
-    
-    // Detailed Modules with Bold styling for categories
-    detailedModules.forEach((v, i) => {
-      const cell = listSheet.getCell(`F${i + 1}`);
-      cell.value = v;
-      // Style HR Module, Finance Module and General Module as bold thick black
-      if (v === 'HR Module' || v === 'Finance Module' || v === 'General Module') {
-        cell.font = { bold: true, color: { argb: 'FF000000' } };
-      }
-    });
 
     const sectorRange = `Lists!$A$1:$A$${Math.max(sectors.length, 1)}`;
     const referenceRange = `Lists!$B$1:$B$${Math.max(references.length, 1)}`;
     const managerRange = `Lists!$C$1:$C$${Math.max(managers.length, 1)}`;
     const moduleRange = `Lists!$D$1:$D$${Math.max(moduleOptions.length, 1)}`;
     const executiveRange = `Lists!$E$1:$E$${Math.max(executives.length, 1)}`;
-    const detailedModuleRange = `Lists!$F$1:$F$${detailedModules.length}`;
 
     // Apply data validation to first 1000 rows
     for (let i = 2; i <= 1001; i++) {
       worksheet.getCell(`I${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [referenceRange] };
       worksheet.getCell(`K${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [sectorRange] };
       worksheet.getCell(`L${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [moduleRange] };
-      worksheet.getCell(`M${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [detailedModuleRange] };
-      worksheet.getCell(`N${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [managerRange] };
-      worksheet.getCell(`O${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [executiveRange] };
+      worksheet.getCell(`M${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [managerRange] };
+      worksheet.getCell(`N${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [executiveRange] };
     }
 
     // Add helper notes for columns
@@ -297,7 +261,6 @@ export async function generateLeadSampleExcel() {
     };
 
     addNote('L1', 'To select multiple modules, type them manually separated by commas.');
-    addNote('M1', 'Reference column for modules and sub-modules. Use these exact names in the "selectedModule" column.');
 
     worksheet.getRow(1).font = { bold: true };
     worksheet.columns.forEach(col => col.width = 22);
