@@ -243,42 +243,29 @@ export async function generateLeadSampleExcel() {
     managers.forEach((v, i) => listSheet.getCell(`C${i + 1}`).value = v);
     executives.forEach((v, i) => listSheet.getCell(`E${i + 1}`).value = v);
 
-    // Structured Module list for the dropdown
-    const moduleItems: string[] = ['Module Category', 'All Module'];
-    
-    // HR Modules
-    const hrSubModules = APP_MODULES.filter(m => m.category === 'HR').map(m => m.name);
-    moduleItems.push('HR Module');
-    hrSubModules.forEach(m => moduleItems.push(`  ${m}`));
-
-    // Finance Modules
-    const financeSubModules = APP_MODULES.filter(m => m.category === 'Finance').map(m => m.name);
-    moduleItems.push('Finance Module');
-    financeSubModules.forEach(m => moduleItems.push(`  ${m}`));
-
-    // General Modules
-    const generalSubModules = APP_MODULES.filter(m => m.category === 'General').map(m => m.name);
-    moduleItems.push('General Module');
-    generalSubModules.forEach(m => moduleItems.push(`  ${m}`));
-
-    moduleItems.forEach((v, i) => {
+    // Module category options for dropdown
+    const moduleCategories = [
+      'All Modules',
+      'HR Modules',
+      'Finance Modules',
+      'General Modules'
+    ];
+    moduleCategories.forEach((v, i) => {
       const cell = listSheet.getCell(`D${i + 1}`);
       cell.value = v;
-      // Apply thick bold formatting to categories
-      if (v === 'Module Category' || v === 'All Module' || v === 'HR Module' || v === 'Finance Module' || v === 'General Module') {
-        cell.font = { bold: true, size: 12 };
-      }
     });
 
     const sectorRange = `Lists!$A$1:$A$${Math.max(sectors.length, 1)}`;
     const referenceRange = `Lists!$B$1:$B$${Math.max(references.length, 1)}`;
     const managerRange = `Lists!$C$1:$C$${Math.max(managers.length, 1)}`;
     const executiveRange = `Lists!$E$1:$E$${Math.max(executives.length, 1)}`;
+    const moduleCategoryRange = `Lists!$D$1:$D$${moduleCategories.length}`;
 
-    // Apply data validation to first 1000 rows (L is module list - removed dropdown validation here)
+    // Apply data validation to first 1000 rows
     for (let i = 2; i <= 1001; i++) {
       worksheet.getCell(`I${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [referenceRange] };
       worksheet.getCell(`K${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [sectorRange] };
+      worksheet.getCell(`L${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [moduleCategoryRange] };
       worksheet.getCell(`M${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [managerRange] };
       worksheet.getCell(`N${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [executiveRange] };
     }
