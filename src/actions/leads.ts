@@ -273,14 +273,12 @@ export async function generateLeadSampleExcel() {
     const sectorRange = `Lists!$A$1:$A$${Math.max(sectors.length, 1)}`;
     const referenceRange = `Lists!$B$1:$B$${Math.max(references.length, 1)}`;
     const managerRange = `Lists!$C$1:$C$${Math.max(managers.length, 1)}`;
-    const moduleRange = `Lists!$D$1:$D$${moduleItems.length}`;
     const executiveRange = `Lists!$E$1:$E$${Math.max(executives.length, 1)}`;
 
-    // Apply data validation to first 1000 rows
+    // Apply data validation to first 1000 rows (L is module list - removed dropdown validation here)
     for (let i = 2; i <= 1001; i++) {
       worksheet.getCell(`I${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [referenceRange] };
       worksheet.getCell(`K${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [sectorRange] };
-      worksheet.getCell(`L${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [moduleRange] };
       worksheet.getCell(`M${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [managerRange] };
       worksheet.getCell(`N${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [executiveRange] };
     }
