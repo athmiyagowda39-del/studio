@@ -1,5 +1,7 @@
+
 import { getConnection } from '@/lib/db';
 import { addErrorLog } from './audit';
+import { APP_MODULES, type ModuleOption } from '../constants/modules';
 
 async function fetchOptions(tableName: string): Promise<string[]> {
     try {
@@ -30,19 +32,10 @@ export async function getSectors(): Promise<string[]> {
     return fetchOptions('Sectors');
 }
 
-export type ModuleOption = {
-  name: string;
-  category: string;
+export async function getModules(): Promise<ModuleOption[]> {
+  // Return the strictly hardcoded list instead of querying the database
+  // to ensure only the requested options are available.
+  return APP_MODULES;
 }
 
-export async function getModules(): Promise<ModuleOption[]> {
-  try {
-      const pool = await getConnection();
-      const result = await pool.request().query(`SELECT name, category FROM Modules ORDER BY category, name`);
-      return result.recordset;
-  } catch (error) {
-      await addErrorLog(`getModules`, error);
-      console.error(`Failed to fetch modules:`, error);
-      throw error;
-  }
-}
+export type { ModuleOption };

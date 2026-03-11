@@ -1,3 +1,4 @@
+
 'use server';
 
 import { sql, getConnection } from '@/lib/db';
@@ -5,6 +6,7 @@ import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import { revalidatePath } from 'next/cache';
 import { addErrorLog } from './audit';
 import ExcelJS from 'exceljs';
+import { APP_MODULES } from '@/lib/constants/modules';
 
 function parseLeads(recordset: any[]): LeadFormData[] {
     return recordset.map(lead => ({
@@ -226,7 +228,7 @@ export async function generateLeadSampleExcel() {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Leads');
 
-    // Renamed header to 'module list' as per user request
+    // Headers
     const headers = [
       'company', 'contactPerson', 'address', 'state', 'district', 'contactNumber', 'email', 'pincode', 'reference', 'headcount', 'sector', 'module list', 'manager', 'executive'
     ];
@@ -245,37 +247,17 @@ export async function generateLeadSampleExcel() {
     const moduleItems: string[] = ['Module Category', 'All Module'];
     
     // HR Modules
-    const hrSubModules = [
-      'Attendance Management',
-      'Desktop Attendance Marking Only',
-      'Employee Database Management',
-      'Employee Movement / Transfer',
-      'Employee Self Service',
-      'Geo Fencing',
-      'Geo Tracking'
-    ];
+    const hrSubModules = APP_MODULES.filter(m => m.category === 'HR').map(m => m.name);
     moduleItems.push('HR Module');
     hrSubModules.forEach(m => moduleItems.push(`  ${m}`));
 
     // Finance Modules
-    const financeSubModules = [
-      'Payroll',
-      'Separation',
-      'Travel and Expense'
-    ];
+    const financeSubModules = APP_MODULES.filter(m => m.category === 'Finance').map(m => m.name);
     moduleItems.push('Finance Module');
     financeSubModules.forEach(m => moduleItems.push(`  ${m}`));
 
     // General Modules
-    const generalSubModules = [
-      'Asset Tracking',
-      'Broadcast | Survey',
-      'Declaration | Reprimands',
-      'Ex-Employee Portal',
-      'Organogram',
-      'Query Management',
-      'Rewards Recognition'
-    ];
+    const generalSubModules = APP_MODULES.filter(m => m.category === 'General').map(m => m.name);
     moduleItems.push('General Module');
     generalSubModules.forEach(m => moduleItems.push(`  ${m}`));
 
