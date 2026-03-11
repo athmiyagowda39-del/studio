@@ -432,7 +432,7 @@ export default function LeadUploadForm() {
         const keyMap: { [key: string]: keyof Partial<LeadFormData> } = {
           pincode: 'pincode', company: 'company', contactperson: 'contactPerson', address: 'address',
           state: 'state', district: 'district', contactnumber: 'contactNumber', email: 'email',
-          reference: 'reference', headcount: 'headcount', sector: 'sector', selectedmodule: 'selectedModule',
+          reference: 'reference', headcount: 'headcount', sector: 'sector', 'modulelist': 'selectedModule',
           manager: 'manager', executive: 'executive', monthlycontractvalue: 'monthlyContractValue', annualcontractvalue: 'annualContractValue',
         };
 
@@ -443,7 +443,12 @@ export default function LeadUploadForm() {
               const formKey = keyMap[header];
               if (formKey) {
                 const value = row[index];
-                (leadObject as any)[formKey] = value !== null && value !== undefined ? String(value) : '';
+                // Clean up indented module names if they come from the dropdown
+                let cleanValue = value !== null && value !== undefined ? String(value) : '';
+                if (formKey === 'selectedModule') {
+                  cleanValue = cleanValue.trim();
+                }
+                (leadObject as any)[formKey] = cleanValue;
               }
             });
           }

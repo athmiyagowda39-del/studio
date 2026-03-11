@@ -1,4 +1,3 @@
-
 'use server';
 
 import { sql, getConnection } from '@/lib/db';
@@ -207,24 +206,22 @@ export async function generateLeadSampleExcel() {
     const pool = await getConnection();
     
     // Fetch data for dropdowns
-    const [sectorsRes, referencesRes, usersRes, modulesRes] = await Promise.all([
+    const [sectorsRes, referencesRes, usersRes] = await Promise.all([
       pool.request().query('SELECT name FROM Sectors ORDER BY name'),
       pool.request().query('SELECT name FROM LeadReferences ORDER BY name'),
-      pool.request().query('SELECT username, role FROM Users ORDER BY username'),
-      pool.request().query('SELECT name FROM Modules ORDER BY name')
+      pool.request().query('SELECT username, role FROM Users ORDER BY username')
     ]);
 
     const sectors = sectorsRes.recordset.map(r => r.name);
     const references = referencesRes.recordset.map(r => r.name);
     const managers = usersRes.recordset.filter(u => u.role === 'Manager').map(u => u.username);
     const executives = usersRes.recordset.filter(u => u.role === 'Executive').map(u => u.username);
-    const moduleOptions = modulesRes.recordset.map(r => r.name);
 
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Leads');
 
     const headers = [
-      'company', 'contactPerson', 'address', 'state', 'district', 'contactNumber', 'email', 'pincode', 'reference', 'headcount', 'sector', 'selectedModule', 'manager', 'executive'
+      'company', 'contactPerson', 'address', 'state', 'district', 'contactNumber', 'email', 'pincode', 'reference', 'headcount', 'sector', 'Module list', 'manager', 'executive'
     ];
     worksheet.addRow(headers);
 
@@ -236,13 +233,45 @@ export async function generateLeadSampleExcel() {
     sectors.forEach((v, i) => listSheet.getCell(`A${i + 1}`).value = v);
     references.forEach((v, i) => listSheet.getCell(`B${i + 1}`).value = v);
     managers.forEach((v, i) => listSheet.getCell(`C${i + 1}`).value = v);
-    moduleOptions.forEach((v, i) => listSheet.getCell(`D${i + 1}`).value = v);
     executives.forEach((v, i) => listSheet.getCell(`E${i + 1}`).value = v);
+
+    // Module list items
+    const moduleItems = [
+      'All Module',
+      'HR Module',
+      '  Attendance Management',
+      '  Desktop Attendance Marking Only',
+      '  Employee Database Management',
+      '  Employee Movement / Transfer',
+      '  Employee Self Service',
+      '  Geo Fencing',
+      '  Geo Tracking',
+      'Finance Module',
+      '  Payroll',
+      '  Separation',
+      '  Travel and Expense',
+      'General Module',
+      '  Asset Tracking',
+      '  Broadcast | Survey',
+      '  Declaration | Reprimands',
+      '  Ex-Employee Portal',
+      '  Organogram',
+      '  Query Management',
+      '  Rewards Recognition'
+    ];
+
+    moduleItems.forEach((v, i) => {
+      const cell = listSheet.getCell(`D${i + 1}`);
+      cell.value = v;
+      if (['HR Module', 'Finance Module', 'General Module'].includes(v)) {
+        cell.font = { bold: true };
+      }
+    });
 
     const sectorRange = `Lists!$A$1:$A$${Math.max(sectors.length, 1)}`;
     const referenceRange = `Lists!$B$1:$B$${Math.max(references.length, 1)}`;
     const managerRange = `Lists!$C$1:$C$${Math.max(managers.length, 1)}`;
-    const moduleRange = `Lists!$D$1:$D$${Math.max(moduleOptions.length, 1)}`;
+    const moduleRange = `Lists!$D$1:$D$${moduleItems.length}`;
     const executiveRange = `Lists!$E$1:$E$${Math.max(executives.length, 1)}`;
 
     // Apply data validation to first 1000 rows
