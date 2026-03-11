@@ -233,11 +233,19 @@ export async function generateLeadSampleExcel() {
       'Geo Tracking'
     ];
 
+    const financeSubModules = [
+      'Payroll',
+      'Separation',
+      'Travel and Expense'
+    ];
+
     categories.forEach(cat => {
       moduleOptions.push(`${cat} Module`);
       
       if (cat === 'HR') {
         hrSubModules.forEach(sub => moduleOptions.push(`  ${sub}`));
+      } else if (cat === 'Finance') {
+        financeSubModules.forEach(sub => moduleOptions.push(`  ${sub}`));
       } else {
         const catModules = modulesRaw.filter((m: any) => m.category === cat).map((m: any) => m.name).sort();
         catModules.forEach((mName: string) => moduleOptions.push(`  ${mName}`));
