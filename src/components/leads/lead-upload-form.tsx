@@ -568,101 +568,203 @@ export default function LeadUploadForm() {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const handleDownloadSample = async () => {
-    try {
-      const ExcelJSModule = await import('exceljs');
-      const ExcelJS = (ExcelJSModule as any).default || ExcelJSModule;
-      if (!ExcelJS || !ExcelJS.Workbook) {
-        throw new Error('ExcelJS Workbook class not found in the imported module.');
-      }
-      
-      const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet('Leads');
+const handleDownloadSample = async () => {
+  try {
+    const ExcelJSModule = await import("exceljs");
+    const ExcelJS = (ExcelJSModule as any).default || ExcelJSModule;
 
-      const headers = [
-        'company', 'contactPerson', 'address', 'state', 'district', 'contactNumber', 'email', 'pincode', 'reference', 'headcount', 'sector', 'selectedModule', 'manager', 'executive'
-      ];
-      worksheet.addRow(headers);
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Leads");
 
-      // Fetch options
-      const sectorOptions = sectors.length > 0 ? [...sectors] : ['IT', 'Real Estate', 'Retail', 'Other'];
-      if (!sectorOptions.includes('Other')) sectorOptions.push('Other');
+    /* ---------------------------
+       MODULE GROUPS (DYNAMIC)
+    --------------------------- */
 
-      const referenceOptions = leadReferences.length > 0 ? [...leadReferences] : ['LinkedIn', 'Cold Call', 'Website', 'Other'];
-      if (!referenceOptions.includes('Other')) referenceOptions.push('Other');
+    const hrModules = modules
+  .filter((m: any) => m.category === "HR")
+  .map((m: any) => m.name);
 
-      const managerOptions = users.filter(u => u.role === 'Manager').map(u => u.username);
-      const executiveOptions = users.filter(u => u.role === 'Executive').map(u => u.username);
+const financeModules = modules
+  .filter((m: any) => m.category === "Finance")
+  .map((m: any) => m.name);
 
-      // Build module options with categories and "All" selectors
-      const moduleOptions: string[] = ['All Modules'];
-      const categories = Array.from(new Set(modules.map(m => m.category))).sort();
-      
-      categories.forEach(cat => {
-        moduleOptions.push(`--- ${cat.toUpperCase()} MODULES ---`);
-        moduleOptions.push(`${cat} Module`);
-        const catModules = modules.filter(m => m.category === cat).map(m => m.name).sort();
-        catModules.forEach(mName => moduleOptions.push(`  ${mName}`));
-      });
+const generalModules = modules
+  .filter((m: any) => m.category === "General")
+  .map((m: any) => m.name);
 
-      const listSheet = workbook.addWorksheet('Lists');
-      listSheet.state = 'hidden';
+  const moduleOptions = [
+    "All Modules",
+    "",
+    "HR Modules",
+    ...hrModules,
+    "",
+    "Finance Modules",
+    ...financeModules,
+    "",
+    "General Modules",
+    ...generalModules,
+  ];
 
-      sectorOptions.forEach((v, i) => listSheet.getCell(`A${i + 1}`).value = v);
-      referenceOptions.forEach((v, i) => listSheet.getCell(`B${i + 1}`).value = v);
-      managerOptions.forEach((v, i) => listSheet.getCell(`C${i + 1}`).value = v);
-      moduleOptions.forEach((v, i) => listSheet.getCell(`D${i + 1}`).value = v);
-      executiveOptions.forEach((v, i) => listSheet.getCell(`E${i + 1}`).value = v);
+    /* ---------------------------
+       HEADERS
+    --------------------------- */
 
-      const sectorRange = `Lists!$A$1:$A$${Math.max(sectorOptions.length, 1)}`;
-      const referenceRange = `Lists!$B$1:$B$${Math.max(referenceOptions.length, 1)}`;
-      const managerRange = `Lists!$C$1:$C$${Math.max(managerOptions.length, 1)}`;
-      const moduleRange = `Lists!$D$1:$D$${Math.max(moduleOptions.length, 1)}`;
-      const executiveRange = `Lists!$E$1:$E$${Math.max(executiveOptions.length, 1)}`;
+    const headers = [
+      "company",
+      "contactPerson",
+      "address",
+      "state",
+      "district",
+      "contactNumber",
+      "email",
+      "pincode",
+      "reference",
+      "headcount",
+      "sector",
+      "selectedModule",
+      "manager",
+      "executive",
+      "Available Modules (Copy Paste)" // helper column
+    ];
 
-      // Apply data validation to first 1000 rows
-      for (let i = 2; i <= 1001; i++) {
-        worksheet.getCell(`I${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [referenceRange] };
-        worksheet.getCell(`K${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [sectorRange] };
-        worksheet.getCell(`L${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [moduleRange] };
-        worksheet.getCell(`M${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [managerRange] };
-        worksheet.getCell(`N${i}`).dataValidation = { type: 'list', allowBlank: true, formulae: [executiveRange] };
-      }
+    worksheet.addRow(headers);
+    worksheet.getRow(1).font = { bold: true };
 
-      // Add helper notes for multi-select columns
-      const addNote = (cellRef: string, fieldName: string) => {
-        const cell = worksheet.getCell(cellRef);
-        cell.note = {
-          texts: [
-            { font: { bold: true, size: 10 }, text: `How to fill ${fieldName}:\n` },
-            { font: { size: 9 }, text: `1. Select an option from the dropdown for a single value.\n2. To select MULTIPLE values, type them manually separated by commas (e.g., Value1, Value2).\n3. Use 'All Modules' or 'HR Module' to select groups.` }
-          ]
-        };
+    headers.forEach((_, i) => {
+      worksheet.getColumn(i + 1).width = 24;
+    });
+
+    /* ---------------------------
+       OPTIONS
+    --------------------------- */
+
+    const sectorOptions = sectors.length > 0 ? [...sectors] : ["IT", "Retail"];
+    const referenceOptions =
+      leadReferences.length > 0
+        ? [...leadReferences]
+        : ["LinkedIn", "Website"];
+
+    const managerOptions = users
+      .filter((u: any) => u.role === "Manager")
+      .map((u: any) => u.username);
+
+    const executiveOptions = users
+      .filter((u: any) => u.role === "Executive")
+      .map((u: any) => u.username);
+
+    /* ---------------------------
+       HIDDEN LIST SHEET
+    --------------------------- */
+
+    const listSheet = workbook.addWorksheet("Lists");
+    listSheet.state = "hidden";
+
+    moduleOptions.forEach((v, i) => (listSheet.getCell(`A${i + 1}`).value = v));
+    sectorOptions.forEach((v, i) => (listSheet.getCell(`B${i + 1}`).value = v));
+    referenceOptions.forEach((v, i) => (listSheet.getCell(`C${i + 1}`).value = v));
+    managerOptions.forEach((v, i) => (listSheet.getCell(`D${i + 1}`).value = v));
+    executiveOptions.forEach((v, i) => (listSheet.getCell(`E${i + 1}`).value = v));
+
+    const moduleRange = `Lists!$A$1:$A$${moduleOptions.length}`;
+    const sectorRange = `Lists!$B$1:$B$${sectorOptions.length}`;
+    const referenceRange = `Lists!$C$1:$C$${referenceOptions.length}`;
+    const managerRange = `Lists!$D$1:$D$${managerOptions.length}`;
+    const executiveRange = `Lists!$E$1:$E$${executiveOptions.length}`;
+
+    /* ---------------------------
+       DATA VALIDATION
+    --------------------------- */
+
+    for (let i = 2; i <= 1001; i++) {
+
+      worksheet.getCell(`I${i}`).dataValidation = {
+        type: "list",
+        allowBlank: true,
+        formulae: [referenceRange],
       };
 
-      addNote('I1', 'References');
-      addNote('K1', 'Sectors');
-      addNote('L1', 'Modules');
+      worksheet.getCell(`K${i}`).dataValidation = {
+        type: "list",
+        allowBlank: true,
+        formulae: [sectorRange],
+      };
 
-      worksheet.getRow(1).font = { bold: true };
-      worksheet.columns.forEach((col: { width: number; }) => col.width = 22);
+      worksheet.getCell(`L${i}`).dataValidation = {
+        type: "list",
+        allowBlank: true,
+        formulae: [moduleRange],
+      };
 
-      const buffer = await workbook.xlsx.writeBuffer();
-      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      const url = URL.createObjectURL(blob);
-      const a = document.body.appendChild(document.createElement('a'));
-      a.href = url;
-      a.download = 'LeadUploadSample.xlsx';
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      worksheet.getCell(`M${i}`).dataValidation = {
+        type: "list",
+        allowBlank: true,
+        formulae: [managerRange],
+      };
 
-      toast({ title: 'Sample Downloaded' });
-    } catch (error) {
-      console.error('Download Failed:', error);
-      toast({ variant: 'destructive', title: 'Download Failed', description: 'Could not generate the Excel sample. Check browser console for details.' });
+      worksheet.getCell(`N${i}`).dataValidation = {
+        type: "list",
+        allowBlank: true,
+        formulae: [executiveRange],
+      };
     }
-  };
+
+    /* ---------------------------
+       SHOW MODULE LIST IN COLUMN
+    --------------------------- */
+
+    moduleOptions.forEach((mod, index) => {
+      worksheet.getCell(`O${index + 2}`).value = mod;
+    });
+
+    worksheet.getCell("O1").font = { bold: true };
+
+    /* ---------------------------
+       HELPER NOTE
+    --------------------------- */
+
+    worksheet.getCell("L1").note = {
+      texts: [
+        { text: "Modules\n", font: { bold: true } },
+        {
+          text:
+            "Select from dropdown OR copy from column O.\n" +
+            "Multiple modules should be comma separated.\n\n" +
+            "Example:\nAttendance Management, Payroll",
+        },
+      ],
+    };
+
+    worksheet.views = [{ state: "frozen", ySplit: 1 }];
+
+    /* ---------------------------
+       DOWNLOAD
+    --------------------------- */
+
+    const buffer = await workbook.xlsx.writeBuffer();
+
+    const blob = new Blob([buffer], {
+      type:
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "LeadUploadTemplate.xlsx";
+
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+    toast({ title: "Sample Downloaded" });
+
+  } catch (error) {
+    console.error("Download Failed:", error);
+  }
+};
 
   const selectedModulesArray = formData.selectedModule ? formData.selectedModule.split(', ').filter(Boolean) : [];
 
