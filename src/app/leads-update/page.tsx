@@ -143,7 +143,11 @@ export default function LeadsUpdatePage() {
     otherFollowUpEnteredByInput: ''
   });
 
-  const filteredLeadStatuses = useMemo(() => leadStatuses.filter(s => s !== 'Quote Sent'), [leadStatuses]);
+  const filteredLeadStatuses = useMemo(() => {
+    const base = leadStatuses.filter(s => s !== 'Quote Sent');
+    const extra = ['Drop', 'Lost'].filter(s => !base.includes(s));
+    return [...base, ...extra];
+  }, [leadStatuses]);
 
   const allUsernames = useMemo(() => users.map(u => u.username), [users]);
   
@@ -274,7 +278,7 @@ export default function LeadsUpdatePage() {
 
             // Consider Status
             if (match && filters.considerStatus) {
-                const excludedStatuses = ['Order closed', 'Fake', 'Existing Users', 'Not interested'];
+                const excludedStatuses = ['Order closed', 'Fake', 'Existing Users', 'Not interested', 'Drop', 'Lost'];
                 if (lead.status && excludedStatuses.includes(lead.status)) {
                     match = false;
                 }
@@ -324,7 +328,7 @@ export default function LeadsUpdatePage() {
           case 'follow-ups-due':
             const today = startOfDay(new Date());
             tempLeads = tempLeads.filter(lead => {
-              if (lead.status === 'Order closed') return false; // Exclude Order closed
+              if (lead.status === 'Order closed' || lead.status === 'Drop' || lead.status === 'Lost') return false; 
               if (!lead.nextFollowUpDate) return false;
               try {
                 const dueDate = startOfDay(new Date(lead.nextFollowUpDate));
@@ -455,7 +459,7 @@ export default function LeadsUpdatePage() {
     const dataToExport = filteredLeads.map((lead, index) => {
       const lastFollowUp = lead.followUps && lead.followUps.length > 0 ? lead.followUps[lead.followUps.length - 1] : null;
       const nextFollowupDate =
-        lead.status === 'Order closed'
+        (lead.status === 'Order closed' || lead.status === 'Drop' || lead.status === 'Lost')
           ? 'N/A'
           : lead.nextFollowUpDate && !isNaN(new Date(lead.nextFollowUpDate).getTime())
           ? format(new Date(lead.nextFollowUpDate), 'PPP')
@@ -1033,7 +1037,7 @@ export default function LeadsUpdatePage() {
                         checked={considerStatus}
                         onCheckedChange={(checked) => setConsiderStatus(checked as boolean)}
                       />
-                      <Label htmlFor="considerStatus" className="font-semibold">Do not consider Order Closed/Fake/Existing Users/Not Interested</Label>
+                      <Label htmlFor="considerStatus" className="font-semibold">Do not consider Order Closed/Fake/Existing Users/Not Interested/Drop/Lost</Label>
                     </div>
 
                     <div className="space-y-4 pl-6 border-l-2 border-muted ml-2 pt-2">
@@ -1194,7 +1198,7 @@ export default function LeadsUpdatePage() {
                       {paginatedLeads.map((lead, index) => {
                         const lastFollowUp = lead.followUps && lead.followUps.length > 0 ? lead.followUps[lead.followUps.length - 1] : null;
                         const nextFollowupDate =
-                          lead.status === 'Order closed'
+                          (lead.status === 'Order closed' || lead.status === 'Drop' || lead.status === 'Lost')
                             ? 'N/A'
                             : lead.nextFollowUpDate && !isNaN(new Date(lead.nextFollowUpDate).getTime())
                             ? format(new Date(lead.nextFollowUpDate), 'PPP')

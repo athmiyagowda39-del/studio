@@ -1,4 +1,3 @@
-
 "use client"
 
 import { Input } from "@/components/ui/input"
@@ -158,7 +157,12 @@ export default function LeadUpdateForm({ leadId, onClearSelection }: { leadId: s
 
   const { toast } = useToast()
   const { users, user, isReadOnly, leads: allLeads, updateLead, deleteLead, leadStatuses, leadSubStatuses, modules } = useApp()
-  const filteredLeadStatuses = useMemo(() => leadStatuses.filter(status => status !== 'Quote Sent'), [leadStatuses]);
+  
+  const filteredLeadStatuses = useMemo(() => {
+    const base = leadStatuses.filter(status => status !== 'Quote Sent');
+    const extra = ['Drop', 'Lost'].filter(s => !base.includes(s));
+    return [...base, ...extra];
+  }, [leadStatuses]);
   
   const isSuperAdmin = user?.role === 'Super Admin';
 
