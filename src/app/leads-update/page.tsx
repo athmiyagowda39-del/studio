@@ -30,7 +30,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ChevronsUpDown, ChevronDown } from 'lucide-react';
+import { ChevronsUpDown, ChevronDown, Search } from 'lucide-react';
 import { getDisplayModule } from '@/lib/modules';
 import * as XLSX from 'xlsx';
 import { useToast } from '@/hooks/use-toast';
@@ -89,7 +89,6 @@ export default function LeadsUpdatePage() {
 
   const [showFilters, setShowFilters] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [searchCategory, setSearchCategory] = useState('leadId');
   const [activeTab, setActiveTab] = useState<TabValue>('all');
 
   const [fromDate, setFromDate] = useState('');
@@ -120,7 +119,6 @@ export default function LeadsUpdatePage() {
   
   const [stagedFilters, setStagedFilters] = useState({
     searchTerm: '',
-    searchCategory: 'leadId',
     fromDate: '',
     toDate: '',
     selectedModules: '',
@@ -193,10 +191,18 @@ export default function LeadsUpdatePage() {
         leadsToShow = visibleLeads.filter(lead => {
             let match = true;
 
-            // Search Term
-            if (filters.searchTerm && filters.searchCategory) {
-                const leadValue = lead[filters.searchCategory as keyof LeadFormData] as string | undefined;
-                if (!leadValue || !String(leadValue).toLowerCase().includes(filters.searchTerm.toLowerCase())) {
+            // Global Search Term (Checks all key fields)
+            if (filters.searchTerm) {
+                const term = filters.searchTerm.toLowerCase();
+                const leadIdMatch = lead.leadId?.toLowerCase().includes(term);
+                const companyMatch = lead.company?.toLowerCase().includes(term);
+                const contactMatch = lead.contactPerson?.toLowerCase().includes(term);
+                const phoneMatch = lead.contactNumber?.toLowerCase().includes(term);
+                const districtMatch = lead.district?.toLowerCase().includes(term);
+                const stateMatch = lead.state?.toLowerCase().includes(term);
+                const emailMatch = lead.email?.toLowerCase().includes(term);
+
+                if (!(leadIdMatch || companyMatch || contactMatch || phoneMatch || districtMatch || stateMatch || emailMatch)) {
                     match = false;
                 }
             }
@@ -359,7 +365,6 @@ export default function LeadsUpdatePage() {
   const handleShowButtonClick = () => {
       const currentFilters = {
         searchTerm,
-        searchCategory,
         fromDate,
         toDate,
         selectedModules,
@@ -391,7 +396,7 @@ export default function LeadsUpdatePage() {
   
   const handleResetFilters = () => {
     const initialFilters = {
-      searchTerm: '', searchCategory: 'leadId', fromDate: '', toDate: '',
+      searchTerm: '', fromDate: '', toDate: '',
       selectedModules: '', selectedExecutive: 'all', selectedManager: 'all', givenBy: 'all', selectedStatus: 'all',
       selectedSubStatus: 'all', selectedLeadSource: 'all', considerStatus: false,
       applyFollowUpFilter: false,
@@ -400,7 +405,6 @@ export default function LeadsUpdatePage() {
     };
     
     setSearchTerm(initialFilters.searchTerm);
-    setSearchCategory(initialFilters.searchCategory);
     setFromDate(initialFilters.fromDate);
     setToDate(initialFilters.toDate);
     setSelectedModules(initialFilters.selectedModules);
@@ -695,7 +699,7 @@ export default function LeadsUpdatePage() {
                         <Label htmlFor="search" className="font-medium shrink-0">Search</Label>
                         <Input 
                           id="search" 
-                          placeholder="Leave empty for all" 
+                          placeholder="Search Lead ID, Company, Name, Phone..." 
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}
                         />
@@ -714,30 +718,6 @@ export default function LeadsUpdatePage() {
                           </div>
                         </RadioGroup>
                     </div>
-                  </div>
-
-                  <div className="flex items-center gap-4">
-                    <Label className="font-medium shrink-0">Search for:</Label>
-                    <RadioGroup 
-                        value={searchCategory}
-                        onValueChange={setSearchCategory}
-                        className="flex flex-wrap gap-4"
-                    >
-                      {[
-                        {label: 'Lead ID', value: 'leadId'}, 
-                        {label: 'Company', value: 'company'}, 
-                        {label: 'Contact Person', value: 'contactPerson'}, 
-                        {label: 'Phone', value: 'contactNumber'}, 
-                        {label: 'District', value: 'district'}, 
-                        {label: 'State', value: 'state'}, 
-                        {label: 'Email', value: 'email'}
-                      ].map(item => (
-                        <div key={item.value} className="flex items-center gap-2">
-                          <RadioGroupItem value={item.value} id={item.value} /> 
-                          <Label htmlFor={item.value}>{item.label}</Label>
-                        </div>
-                      ))}
-                    </RadioGroup>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
@@ -1139,15 +1119,36 @@ export default function LeadsUpdatePage() {
 
             <Card>
               <CardContent className="p-4 space-y-4">
-                <Tabs value={activeTab} onValueChange={(value) => handleTabChange(value as TabValue)}>
-                  <TabsList>
-                    <TabsTrigger value="all">All Leads</TabsTrigger>
-                    <TabsTrigger value="not-viewed">Leads not Viewed</TabsTrigger>
-                    <TabsTrigger value="follow-ups-due">Follow Ups Due</TabsTrigger>
-                    <TabsTrigger value="zero-follow-ups">Zero Follow Ups!</TabsTrigger>
-                    <TabsTrigger value="search-result">Search Result</TabsTrigger>
-                  </TabsList>
-                </Tabs>
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                  <Tabs value={activeTab} onValueChange={(value) => handleTabChange(value as TabValue)} className="w-full md:w-auto">
+                    <TabsList>
+                      <TabsTrigger value="all">All Leads</TabsTrigger>
+                      <TabsTrigger value="not-viewed">Leads not Viewed</TabsTrigger>
+                      <TabsTrigger value="follow-ups-due">Follow Ups Due</TabsTrigger>
+                      <TabsTrigger value="zero-follow-ups">Zero Follow Ups!</TabsTrigger>
+                      <TabsTrigger value="search-result">Search Result</TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+
+                  {activeTab === 'search-result' && (
+                    <div className="relative w-full md:w-72 animate-in fade-in slide-in-from-right-4 duration-300">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Quick filter search result..."
+                        value={searchTerm}
+                        onChange={(e) => {
+                          setSearchTerm(e.target.value);
+                          // Re-apply filter immediately for a "live search" feel in the results tab
+                          const currentFilters = { ...stagedFilters, searchTerm: e.target.value };
+                          setStagedFilters(currentFilters);
+                          applyAndSetFilters('search-result', currentFilters);
+                        }}
+                        className="pl-9"
+                      />
+                    </div>
+                  )}
+                </div>
+
                 <CardHeader className="p-0 pt-4">
                   <CardTitle className="text-base">
                     List of Leads &gt;&gt; [{activeTab.replace('-', ' ').toUpperCase()} ({filteredLeads.length} Records)]
