@@ -14,6 +14,7 @@ import {
   Download,
   UploadCloud,
   Info,
+  ChevronsUpDown,
   ChevronDown,
 } from 'lucide-react';
 import {
@@ -37,15 +38,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useApp } from '@/context/app-context';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { generateLeadSampleExcel } from '@/actions/leads';
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { cn } from '@/lib/utils';
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import { getDisplayModule } from '@/lib/modules';
 
 type ParsedData = (string | number)[][];
 
@@ -117,6 +117,7 @@ export default function LeadUploadForm() {
   const [parsedLeads, setParsedLeads] = useState<Partial<LeadFormData>[]>([]);
   const [showPreview, setShowPreview] = useState(false);
   const [toExecutiveSelection, setToExecutiveSelection] = useState('');
+  const [productPopoverOpen, setProductPopoverOpen] = useState(false);
   const [executives, setExecutives] = useState<string[]>([]);
   const [companyError, setCompanyError] = useState('');
   
@@ -132,6 +133,11 @@ export default function LeadUploadForm() {
   const [isDragging, setIsDragging] = useState(false);
   const { toast } = useToast();
   const managers = users.filter(u => u.role === 'Manager');
+
+  const hrModules = useMemo(() => modules.filter(m => m.category === 'HR').map(m => m.name), [modules]);
+  const financeModules = useMemo(() => modules.filter(m => m.category === 'Finance').map(m => m.name), [modules]);
+  const generalModules = useMemo(() => modules.filter(m => m.category === 'General').map(m => m.name), [modules]);
+  const allModulesNames = useMemo(() => modules.map(m => m.name), [modules]);
 
   useEffect(() => {
     const executiveUsers = users
@@ -425,7 +431,7 @@ export default function LeadUploadForm() {
         const keyMap: { [key: string]: keyof Partial<LeadFormData> } = {
           pincode: 'pincode', company: 'company', contactperson: 'contactPerson', address: 'address',
           state: 'state', district: 'district', contactnumber: 'contactNumber', email: 'email',
-          reference: 'reference', headcount: 'headcount', sector: 'sector', 'modulelist': 'selectedModule',
+          reference: 'reference', headcount: 'headcount', sector: 'sector', selectedmodule: 'selectedModule',
           manager: 'manager', executive: 'executive', monthlycontractvalue: 'monthlyContractValue', annualcontractvalue: 'annualContractValue',
         };
 
@@ -436,11 +442,7 @@ export default function LeadUploadForm() {
               const formKey = keyMap[header];
               if (formKey) {
                 const value = row[index];
-                let cleanValue = value !== null && value !== undefined ? String(value) : '';
-                if (formKey === 'selectedModule') {
-                  cleanValue = cleanValue.trim();
-                }
-                (leadObject as any)[formKey] = cleanValue;
+                (leadObject as any)[formKey] = value !== null && value !== undefined ? String(value) : '';
               }
             });
           }
@@ -566,72 +568,241 @@ export default function LeadUploadForm() {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const handleDownloadSample = async () => {
-    try {
-      const base64 = await generateLeadSampleExcel();
-      
-      const binaryString = window.atob(base64);
-      const len = binaryString.length;
-      const bytes = new Uint8Array(len);
-      for (let i = 0; i < len; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
-      
-      const blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      const url = URL.createObjectURL(blob);
-      const a = document.body.appendChild(document.createElement('a'));
-      a.href = url;
-      a.download = 'LeadUploadSample.xlsx';
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
+const handleDownloadSample = async () => {
+  try {
+    const ExcelJSModule = await import("exceljs");
+    const ExcelJS = (ExcelJSModule as any).default || ExcelJSModule;
 
-      toast({ title: 'Sample Downloaded' });
-    } catch (error: any) {
-      console.error('Download Failed:', error);
-      toast({ variant: 'destructive', title: 'Download Failed', description: error.message || 'Could not generate the Excel sample.' });
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Leads");
+
+    /* ---------------------------
+       MODULE GROUPS (DYNAMIC)
+    --------------------------- */
+
+    const hrModules = modules
+  .filter((m: any) => m.category === "HR")
+  .map((m: any) => m.name);
+
+const financeModules = modules
+  .filter((m: any) => m.category === "Finance")
+  .map((m: any) => m.name);
+
+const generalModules = modules
+  .filter((m: any) => m.category === "General")
+  .map((m: any) => m.name);
+
+  const moduleOptions = [
+    "All Modules",
+    "",
+    "HR Modules",
+    ...hrModules,
+    "",
+    "Finance Modules",
+    ...financeModules,
+    "",
+    "General Modules",
+    ...generalModules,
+  ];
+
+    /* ---------------------------
+       HEADERS
+    --------------------------- */
+
+    const headers = [
+      "company",
+      "contactPerson",
+      "address",
+      "state",
+      "district",
+      "contactNumber",
+      "email",
+      "pincode",
+      "reference",
+      "headcount",
+      "sector",
+      "selectedModule",
+      "manager",
+      "executive",
+      "Available Modules (Copy Paste)" // helper column
+    ];
+
+    worksheet.addRow(headers);
+    worksheet.getRow(1).font = { bold: true };
+
+    headers.forEach((_, i) => {
+      worksheet.getColumn(i + 1).width = 24;
+    });
+
+    /* ---------------------------
+       OPTIONS
+    --------------------------- */
+
+    const sectorOptions = sectors.length > 0 ? [...sectors] : ["IT", "Retail"];
+    const referenceOptions =
+      leadReferences.length > 0
+        ? [...leadReferences]
+        : ["LinkedIn", "Website"];
+
+    const managerOptions = users
+      .filter((u: any) => u.role === "Manager")
+      .map((u: any) => u.username);
+
+    const executiveOptions = users
+      .filter((u: any) => u.role === "Executive")
+      .map((u: any) => u.username);
+
+    /* ---------------------------
+       HIDDEN LIST SHEET
+    --------------------------- */
+
+    const listSheet = workbook.addWorksheet("Lists");
+    listSheet.state = "hidden";
+
+    moduleOptions.forEach((v, i) => (listSheet.getCell(`A${i + 1}`).value = v));
+    sectorOptions.forEach((v, i) => (listSheet.getCell(`B${i + 1}`).value = v));
+    referenceOptions.forEach((v, i) => (listSheet.getCell(`C${i + 1}`).value = v));
+    managerOptions.forEach((v, i) => (listSheet.getCell(`D${i + 1}`).value = v));
+    executiveOptions.forEach((v, i) => (listSheet.getCell(`E${i + 1}`).value = v));
+
+    const moduleRange = `Lists!$A$1:$A$${moduleOptions.length}`;
+    const sectorRange = `Lists!$B$1:$B$${sectorOptions.length}`;
+    const referenceRange = `Lists!$C$1:$C$${referenceOptions.length}`;
+    const managerRange = `Lists!$D$1:$D$${managerOptions.length}`;
+    const executiveRange = `Lists!$E$1:$E$${executiveOptions.length}`;
+
+    /* ---------------------------
+       DATA VALIDATION
+    --------------------------- */
+
+    for (let i = 2; i <= 1001; i++) {
+
+      worksheet.getCell(`I${i}`).dataValidation = {
+        type: "list",
+        allowBlank: true,
+        formulae: [referenceRange],
+      };
+
+      worksheet.getCell(`K${i}`).dataValidation = {
+        type: "list",
+        allowBlank: true,
+        formulae: [sectorRange],
+      };
+
+      worksheet.getCell(`L${i}`).dataValidation = {
+        type: "list",
+        allowBlank: true,
+        formulae: [moduleRange],
+      };
+
+      worksheet.getCell(`M${i}`).dataValidation = {
+        type: "list",
+        allowBlank: true,
+        formulae: [managerRange],
+      };
+
+      worksheet.getCell(`N${i}`).dataValidation = {
+        type: "list",
+        allowBlank: true,
+        formulae: [executiveRange],
+      };
     }
-  };
 
-  // Logic for hierarchical module selection
-  const categories = useMemo(() => Array.from(new Set(modules.map(m => m.category))), [modules]);
-  const currentSelectedModules = useMemo(() => formData.selectedModule.split(', ').filter(Boolean), [formData.selectedModule]);
+    /* ---------------------------
+       SHOW MODULE LIST IN COLUMN
+    --------------------------- */
 
-  const handleToggleModule = (moduleName: string) => {
-    const newSelection = new Set(currentSelectedModules);
+    moduleOptions.forEach((mod, index) => {
+      worksheet.getCell(`O${index + 2}`).value = mod;
+    });
+
+    worksheet.getCell("O1").font = { bold: true };
+
+    /* ---------------------------
+       HELPER NOTE
+    --------------------------- */
+
+    worksheet.getCell("L1").note = {
+      texts: [
+        { text: "Modules\n", font: { bold: true } },
+        {
+          text:
+            "Select from dropdown OR copy from column O.\n" +
+            "Multiple modules should be comma separated.\n\n" +
+            "Example:\nAttendance Management, Payroll",
+        },
+      ],
+    };
+
+    worksheet.views = [{ state: "frozen", ySplit: 1 }];
+
+    /* ---------------------------
+       DOWNLOAD
+    --------------------------- */
+
+    const buffer = await workbook.xlsx.writeBuffer();
+
+    const blob = new Blob([buffer], {
+      type:
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "LeadUploadTemplate.xlsx";
+
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+    toast({ title: "Sample Downloaded" });
+
+  } catch (error) {
+    console.error("Download Failed:", error);
+  }
+};
+
+  const selectedModulesArray = formData.selectedModule ? formData.selectedModule.split(', ').filter(Boolean) : [];
+
+  const handleModuleToggle = (moduleName: string) => {
+    const newSelection = new Set(selectedModulesArray);
     newSelection.has(moduleName) ? newSelection.delete(moduleName) : newSelection.add(moduleName);
-    setFormData(prev => ({ ...prev, selectedModule: Array.from(newSelection).join(', ') }));
+    handleSelectChange('selectedModule', Array.from(newSelection).join(', '));
   };
 
-  const handleToggleCategory = (category: string) => {
-    const categoryModules = modules.filter(m => m.category === category).map(m => m.name);
-    const isCurrentlySelected = categoryModules.every(m => currentSelectedModules.includes(m));
-    
-    const newSelection = new Set(currentSelectedModules);
-    if (isCurrentlySelected) {
-      categoryModules.forEach(m => newSelection.delete(m));
-    } else {
-      categoryModules.forEach(m => newSelection.add(m));
-    }
-    setFormData(prev => ({ ...prev, selectedModule: Array.from(newSelection).join(', ') }));
+  const handleCategoryToggle = (categoryModules: string[], isAdding: boolean) => {
+    const newSelection = new Set(selectedModulesArray);
+    categoryModules.forEach(m => isAdding ? newSelection.add(m) : newSelection.delete(m));
+    handleSelectChange('selectedModule', Array.from(newSelection).join(', '));
   };
 
-  const handleToggleAll = () => {
-    const allModuleNames = modules.map(m => m.name);
-    const isAllSelected = allModuleNames.every(m => currentSelectedModules.includes(m));
-    
-    if (isAllSelected) {
-      setFormData(prev => ({ ...prev, selectedModule: '' }));
-    } else {
-      setFormData(prev => ({ ...prev, selectedModule: allModuleNames.join(', ') }));
-    }
+  const getCategoryCheckedState = (categoryModules: string[]): boolean | 'indeterminate' => {
+    const selectionCount = categoryModules.filter(m => selectedModulesArray.includes(m)).length;
+    if (selectionCount === 0) return false;
+    if (selectionCount === categoryModules.length) return true;
+    return 'indeterminate';
   };
 
-  const isAllSelected = modules.length > 0 && modules.every(m => currentSelectedModules.includes(m.name));
-  const isCategorySelected = (category: string) => {
-    const categoryModules = modules.filter(m => m.category === category).map(m => m.name);
-    return categoryModules.length > 0 && categoryModules.every(m => currentSelectedModules.includes(m));
+  const handleAllToggle = (isAdding: boolean) => {
+    handleSelectChange('selectedModule', isAdding ? allModulesNames.join(', ') : '');
   };
+
+  const getModuleButtonText = () => {
+    if (!formData.selectedModule) return 'Select Module(s)...';
+    const buttonText = getDisplayModule(formData.selectedModule, modules);
+    return buttonText === 'N/A' ? 'Select Module(s)...' : buttonText;
+  };
+
+  const ModuleSelectItem = ({ moduleName }: { moduleName: string }) => (
+    <div key={moduleName} className="flex items-center space-x-3 rounded-md p-2 pr-4 hover:bg-accent cursor-pointer" onClick={() => handleModuleToggle(moduleName)}>
+        <Checkbox id={`mod-${moduleName}`} checked={selectedModulesArray.includes(moduleName)} readOnly tabIndex={-1} className="ml-1" />
+        <label htmlFor={`mod-${moduleName}`} className="text-sm font-medium leading-none cursor-pointer w-full">{moduleName}</label>
+    </div>
+  );
 
   return (
     <div className="space-y-6">
@@ -732,65 +903,61 @@ export default function LeadUploadForm() {
               )}
             </div>
           </div>
-          
           <div className="space-y-2">
-            <Label>Module list</Label>
-            <Card className="border shadow-none overflow-hidden">
-              <div className="p-2.5 bg-muted/30 border-b font-bold text-center text-sm">
-                Modules
-              </div>
-              <ScrollArea className="h-64">
-                <div className="p-2 space-y-1">
-                  {/* All Modules Option */}
-                  <div 
-                    className="flex items-center gap-2 py-2 px-3 rounded-md hover:bg-muted cursor-pointer transition-colors"
-                    onClick={handleToggleAll}
-                  >
-                    <Checkbox checked={isAllSelected} onCheckedChange={handleToggleAll} />
-                    <span className="text-sm font-semibold">All Modules</span>
-                  </div>
-
-                  <Accordion type="multiple" className="w-full">
-                    {categories.map(cat => {
-                      const catModules = modules.filter(m => m.category === cat);
-                      return (
-                        <AccordionItem value={cat} key={cat} className="border-none">
-                          <div className="flex items-center group pr-2">
-                            <div 
-                              className="flex items-center gap-2 py-2 px-3 flex-1 rounded-l-md hover:bg-muted cursor-pointer transition-colors"
-                              onClick={(e) => { e.stopPropagation(); handleToggleCategory(cat); }}
-                            >
-                              <Checkbox checked={isCategorySelected(cat)} onCheckedChange={() => handleToggleCategory(cat)} />
-                              <span className="text-sm font-semibold">{cat} Module</span>
-                            </div>
-                            <AccordionTrigger className="p-2 hover:bg-muted rounded-r-md transition-colors w-auto" />
+            <Label htmlFor="selectedModule">Module</Label>
+            <Popover open={productPopoverOpen} onOpenChange={setProductPopoverOpen} modal={false}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full justify-between font-normal" disabled={isReadOnly}>
+                  <span className="truncate">{getModuleButtonText()}</span>
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                <div className="p-2 font-bold text-center border-b">Modules</div>
+                <ScrollArea className="h-72">
+                  <div className="space-y-1 p-1">
+                    <div className="flex items-center space-x-3 rounded-md p-2 pr-4 font-semibold">
+                      <Checkbox id="all-modules" onCheckedChange={(checked) => handleAllToggle(!!checked)} className="ml-1" />
+                      <label htmlFor="all-modules" className="w-full cursor-pointer">All Modules</label>
+                    </div>
+                    {hrModules.length > 0 && (
+                      <Collapsible>
+                        <CollapsibleTrigger asChild>
+                          <div className="flex items-center space-x-3 rounded-md p-2 pr-4 font-semibold cursor-pointer">
+                              <Checkbox id="hr-cat" checked={getCategoryCheckedState(hrModules)} onCheckedChange={(checked) => handleCategoryToggle(hrModules, !!checked)} className="ml-1" />
+                              <span className="flex w-full items-center justify-between">HR Modules <ChevronDown className="h-4 w-4" /></span>
                           </div>
-                          <AccordionContent className="pb-1">
-                            <div className="pl-8 flex flex-col">
-                              {catModules.map(mod => (
-                                <div 
-                                  key={mod.name} 
-                                  className="flex items-center gap-2 py-1.5 px-3 rounded-md hover:bg-muted cursor-pointer transition-colors"
-                                  onClick={() => handleToggleModule(mod.name)}
-                                >
-                                  <Checkbox checked={currentSelectedModules.includes(mod.name)} onCheckedChange={() => handleToggleModule(mod.name)} />
-                                  <span className="text-sm">{mod.name}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </AccordionContent>
-                        </AccordionItem>
-                      );
-                    })}
-                  </Accordion>
-                </div>
-              </ScrollArea>
-            </Card>
-            <p className="text-[10px] text-muted-foreground mt-1">
-              Disclaimer: For multiple module to be added use comma and add it.
-            </p>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="pl-6">{hrModules.map(m => <ModuleSelectItem key={m} moduleName={m} />)}</CollapsibleContent>
+                      </Collapsible>
+                    )}
+                    {financeModules.length > 0 && (
+                      <Collapsible>
+                        <CollapsibleTrigger asChild>
+                          <div className="flex items-center space-x-3 rounded-md p-2 pr-4 font-semibold cursor-pointer">
+                              <Checkbox id="finance-cat" checked={getCategoryCheckedState(financeModules)} onCheckedChange={(checked) => handleCategoryToggle(financeModules, !!checked)} className="ml-1" />
+                              <span className="flex w-full items-center justify-between">Finance Modules <ChevronDown className="h-4 w-4" /></span>
+                          </div>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="pl-6">{financeModules.map(m => <ModuleSelectItem key={m} moduleName={m} />)}</CollapsibleContent>
+                      </Collapsible>
+                    )}
+                    {generalModules.length > 0 && (
+                      <Collapsible>
+                        <CollapsibleTrigger asChild>
+                          <div className="flex items-center space-x-3 rounded-md p-2 pr-4 font-semibold cursor-pointer">
+                              <Checkbox id="general-cat" checked={getCategoryCheckedState(generalModules)} onCheckedChange={(checked) => handleCategoryToggle(generalModules, !!checked)} className="ml-1" />
+                              <span className="flex w-full items-center justify-between">General Modules <ChevronDown className="h-4 w-4" /></span>
+                          </div>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="pl-6">{generalModules.map(m => <ModuleSelectItem key={m} moduleName={m} />)}</CollapsibleContent>
+                      </Collapsible>
+                    )}
+                  </div>
+                </ScrollArea>
+              </PopoverContent>
+            </Popover>
           </div>
-
           <div className="space-y-2">
             <Label htmlFor="manager">Manager</Label>
             <Select value={formData.manager || ''} onValueChange={(v) => handleSelectChange('manager', v)} disabled={isReadOnly}>
