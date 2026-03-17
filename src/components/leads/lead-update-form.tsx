@@ -56,6 +56,41 @@ type FollowUp = {
   enteredBy: string
 }
 
+function ExpandableCell({ content, title }: { content: string | null | undefined, title: string }) {
+  if (!content || content === 'N/A') return <span className="text-muted-foreground">N/A</span>;
+  
+  const isShort = content.length < 35;
+
+  if (isShort) {
+    return <span>{content}</span>;
+  }
+
+  return (
+    <Popover modal={false}>
+      <PopoverTrigger asChild>
+        <div 
+          className="flex items-center gap-2 cursor-pointer group transition-colors hover:text-primary max-w-[200px]"
+        >
+          <span className="flex-1 truncate">{content}</span>
+          <span className="shrink-0 text-[9px] font-bold bg-muted px-1.5 py-0.5 rounded-sm opacity-60 group-hover:opacity-100 group-hover:bg-primary group-hover:text-primary-foreground transition-all">
+            VIEW
+          </span>
+        </div>
+      </PopoverTrigger>
+      <PopoverContent 
+        className="w-80 p-4 shadow-2xl border-2 z-50 pointer-events-auto"
+      >
+        <div className="space-y-2">
+          <h4 className="font-bold text-xs uppercase text-primary border-b pb-1 tracking-wider">{title}</h4>
+          <div className="text-sm whitespace-normal break-words leading-relaxed max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+            {content}
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 function UserInfoPopover({ username, users }: { username: string | undefined, users: AppUser[] }) {
   const foundUser = users.find(u => u.username === username);
   
@@ -152,9 +187,6 @@ export default function LeadUpdateForm({ leadId, onClearSelection }: { leadId: s
       setRemarks("")
       setNextFollowUpDate("")
       setIsReadyToUpdate(false)
-      
-      // Automatic viewed date recording removed as per user request.
-      // It will now only record upon status update.
     } else {
       handleResetLeadDetails()
     }
@@ -226,7 +258,6 @@ export default function LeadUpdateForm({ leadId, onClearSelection }: { leadId: s
       initialRemarks: leadDetails.initialRemarks, 
     }
 
-    // Set executiveViewDate if it's the first time a status is being updated
     if (!leadDetails.executiveViewDate) {
         payload.executiveViewDate = new Date().toISOString();
     }
@@ -492,7 +523,9 @@ export default function LeadUpdateForm({ leadId, onClearSelection }: { leadId: s
                                     <TableRow key={fu.id}>
                                         <TableCell>{idx + 1}</TableCell>
                                         <TableCell>{format(new Date(fu.date), 'MM/dd/yyyy')}</TableCell>
-                                        <TableCell className="max-w-[200px] truncate" title={fu.remarks}>{fu.remarks}</TableCell>
+                                        <TableCell>
+                                            <ExpandableCell content={fu.remarks} title="Follow-up Remarks" />
+                                        </TableCell>
                                         <TableCell>{fu.nextFollowUp}</TableCell>
                                         <TableCell>{fu.enteredBy}</TableCell>
                                     </TableRow>
