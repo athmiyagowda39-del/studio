@@ -14,8 +14,8 @@ import { Button } from "@/components/ui/button"
 import { useState, useEffect, useMemo } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { Textarea } from "@/components/ui/textarea"
-import { format, subDays } from "date-fns"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { format } from "date-fns"
+import { Card, CardContent, CardHeader, CardTitle } from "@/Card"
 import type { LeadFormData } from "./lead-upload-form"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {
@@ -170,8 +170,6 @@ export default function LeadUpdateForm({ leadId, onClearSelection }: { leadId: s
     users.filter((u) => u.role === "Executive").map((u) => u.username), 
     [users]
   )
-
-  const minBackDate = useMemo(() => format(subDays(new Date(), 2), 'yyyy-MM-dd'), []);
 
   useEffect(() => {
     if (leadId) {
@@ -511,7 +509,6 @@ export default function LeadUpdateForm({ leadId, onClearSelection }: { leadId: s
                   value={followUpDate} 
                   onChange={e => setFollowUpDate(e.target.value)} 
                   disabled={isReadOnly} 
-                  min={minBackDate}
                 />
               </div>
               <div className="space-y-1">
