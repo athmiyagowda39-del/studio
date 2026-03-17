@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button"
 import { useState, useEffect, useMemo } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { Textarea } from "@/components/ui/textarea"
-import { format } from "date-fns"
+import { format, subDays } from "date-fns"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { LeadFormData } from "./lead-upload-form"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -144,6 +144,7 @@ function UserInfoPopover({ username, users }: { username: string | undefined, us
 export default function LeadUpdateForm({ leadId, onClearSelection }: { leadId: string | null, onClearSelection?: () => void }) {
   const [leadDetails, setLeadDetails] = useState<Partial<LeadFormData>>({})
   const [remarks, setRemarks] = useState("")
+  const [followUpDate, setFollowUpDate] = useState(format(new Date(), 'yyyy-MM-dd'))
   const [nextFollowUpDate, setNextFollowUpDate] = useState("")
   const [followUps, setFollowUps] = useState<FollowUp[]>([])
   const [currentStatus, setCurrentStatus] = useState("Initial")
@@ -166,6 +167,8 @@ export default function LeadUpdateForm({ leadId, onClearSelection }: { leadId: s
     [users]
   )
 
+  const minBackDate = useMemo(() => format(subDays(new Date(), 2), 'yyyy-MM-dd'), []);
+
   useEffect(() => {
     if (leadId) {
       findLeadAndSetDetails(leadId)
@@ -185,6 +188,7 @@ export default function LeadUpdateForm({ leadId, onClearSelection }: { leadId: s
       setMonthlyContractValue(foundLead.monthlyContractValue || "")
       setAnnualContractValue(foundLead.annualContractValue || "")
       setRemarks("")
+      setFollowUpDate(format(new Date(), 'yyyy-MM-dd'))
       setNextFollowUpDate("")
       setIsReadyToUpdate(false)
     } else {
@@ -207,7 +211,7 @@ export default function LeadUpdateForm({ leadId, onClearSelection }: { leadId: s
 
     const newFollowUp: FollowUp = {
       id: (followUps?.length || 0) + 1,
-      date: new Date().toISOString(),
+      date: new Date(followUpDate + "T00:00:00").toISOString(),
       remarks: remarks,
       nextFollowUp: nextFollowUpDate && !isOrderClosed ? format(new Date(nextFollowUpDate + "T00:00:00"), "PPP") : "N/A",
       enteredBy: user?.username || "System",
@@ -219,6 +223,7 @@ export default function LeadUpdateForm({ leadId, onClearSelection }: { leadId: s
         nextFollowUpDate: nextFollowUpDate && !isOrderClosed ? new Date(nextFollowUpDate + "T00:00:00").toISOString() : undefined,
       })
       setRemarks("")
+      setFollowUpDate(format(new Date(), 'yyyy-MM-dd'))
       setNextFollowUpDate("")
       toast({ title: "Follow-up added" })
     } catch (error) {
@@ -280,6 +285,7 @@ export default function LeadUpdateForm({ leadId, onClearSelection }: { leadId: s
     setAnnualContractValue("")
     setIsReadyToUpdate(false)
     setRemarks("")
+    setFollowUpDate(format(new Date(), 'yyyy-MM-dd'))
     setNextFollowUpDate("")
     setTransferredTo("")
   }
@@ -487,6 +493,16 @@ export default function LeadUpdateForm({ leadId, onClearSelection }: { leadId: s
             <div className="space-y-4">
               <Label className="font-bold uppercase text-xs text-muted-foreground">Follow Up</Label>
               <div className="space-y-1">
+                <Label className="text-xs font-semibold">Follow-up Date</Label>
+                <Input 
+                  type="date" 
+                  value={followUpDate} 
+                  onChange={e => setFollowUpDate(e.target.value)} 
+                  disabled={isReadOnly} 
+                  min={minBackDate}
+                />
+              </div>
+              <div className="space-y-1">
                 <Label className="text-xs font-semibold">Remarks</Label>
                 <Textarea value={remarks} onChange={e => setRemarks(e.target.value)} readOnly={isReadOnly} className="min-h-[100px]" />
               </div>
@@ -500,7 +516,7 @@ export default function LeadUpdateForm({ leadId, onClearSelection }: { leadId: s
                 />
               </div>
               <div className="flex justify-end gap-2">
-                <Button variant="outline" size="sm" onClick={() => { setRemarks(""); setNextFollowUpDate(""); }}>New</Button>
+                <Button variant="outline" size="sm" onClick={() => { setRemarks(""); setNextFollowUpDate(""); setFollowUpDate(format(new Date(), 'yyyy-MM-dd')); }}>New</Button>
                 <Button onClick={handleAddFollowUp} disabled={isReadOnly} size="sm" className="bg-primary hover:bg-primary/90">Add &gt;&gt;</Button>
               </div>
             </div>
