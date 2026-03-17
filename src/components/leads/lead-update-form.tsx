@@ -144,7 +144,7 @@ function UserInfoPopover({ username, users }: { username: string | undefined, us
 export default function LeadUpdateForm({ leadId, onClearSelection }: { leadId: string | null, onClearSelection?: () => void }) {
   const [leadDetails, setLeadDetails] = useState<Partial<LeadFormData>>({})
   const [remarks, setRemarks] = useState("")
-  const [followUpDate, setFollowUpDate] = useState(format(new Date(), 'yyyy-MM-dd'))
+  const [followUpDate, setFollowUpDate] = useState("") // Initialize as empty to force selection
   const [nextFollowUpDate, setNextFollowUpDate] = useState("")
   const [followUps, setFollowUps] = useState<FollowUp[]>([])
   const [currentStatus, setCurrentStatus] = useState("Initial")
@@ -188,7 +188,7 @@ export default function LeadUpdateForm({ leadId, onClearSelection }: { leadId: s
       setMonthlyContractValue(foundLead.monthlyContractValue || "")
       setAnnualContractValue(foundLead.annualContractValue || "")
       setRemarks("")
-      setFollowUpDate(format(new Date(), 'yyyy-MM-dd'))
+      setFollowUpDate("") // Reset to empty when switching leads
       setNextFollowUpDate("")
       setIsReadyToUpdate(false)
     } else {
@@ -204,6 +204,11 @@ export default function LeadUpdateForm({ leadId, onClearSelection }: { leadId: s
     if (!leadDetails.leadId) return
     const isOrderClosed = remarks.toLowerCase().includes("order closed")
     
+    if (!followUpDate) {
+      toast({ variant: "destructive", title: "Missing Date", description: "Please select a Follow-up Date." })
+      return
+    }
+
     if (!remarks || (!nextFollowUpDate && !isOrderClosed)) {
       toast({ variant: "destructive", title: "Missing Information", description: "Please provide remarks and next follow-up date." })
       return
@@ -223,7 +228,7 @@ export default function LeadUpdateForm({ leadId, onClearSelection }: { leadId: s
         nextFollowUpDate: nextFollowUpDate && !isOrderClosed ? new Date(nextFollowUpDate + "T00:00:00").toISOString() : undefined,
       })
       setRemarks("")
-      setFollowUpDate(format(new Date(), 'yyyy-MM-dd'))
+      setFollowUpDate("") // Reset to empty after success
       setNextFollowUpDate("")
       toast({ title: "Follow-up added" })
     } catch (error) {
@@ -285,7 +290,7 @@ export default function LeadUpdateForm({ leadId, onClearSelection }: { leadId: s
     setAnnualContractValue("")
     setIsReadyToUpdate(false)
     setRemarks("")
-    setFollowUpDate(format(new Date(), 'yyyy-MM-dd'))
+    setFollowUpDate("") // Reset to empty
     setNextFollowUpDate("")
     setTransferredTo("")
   }
@@ -516,7 +521,7 @@ export default function LeadUpdateForm({ leadId, onClearSelection }: { leadId: s
                 />
               </div>
               <div className="flex justify-end gap-2">
-                <Button variant="outline" size="sm" onClick={() => { setRemarks(""); setNextFollowUpDate(""); setFollowUpDate(format(new Date(), 'yyyy-MM-dd')); }}>New</Button>
+                <Button variant="outline" size="sm" onClick={() => { setRemarks(""); setNextFollowUpDate(""); setFollowUpDate(""); }}>New</Button>
                 <Button onClick={handleAddFollowUp} disabled={isReadOnly} size="sm" className="bg-primary hover:bg-primary/90">Add &gt;&gt;</Button>
               </div>
             </div>
