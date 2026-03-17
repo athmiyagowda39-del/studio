@@ -22,9 +22,9 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { ChevronRight, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const LeadStatusChart = dynamic(
-  () => import('@/components/reports/lead-status-chart'),
-  { ssr: false, loading: () => <div className="h-[300px] flex items-center justify-center"><p>Loading Analytics...</p></div> }
+const LeadSourceChart = dynamic(
+  () => import('@/components/reports/lead-source-chart'),
+  { ssr: false, loading: () => <div className="h-[300px] flex items-center justify-center"><p>Loading Source Analytics...</p></div> }
 );
 
 // Helper component for expandable "box" view
@@ -121,12 +121,12 @@ export default function AnalyticsPage() {
     }
   }, [selectedMetric, visibleLeads]);
 
-  const statusData = useMemo(() => {
+  const sourceData = useMemo(() => {
     if (!visibleLeads.length) return [];
     const counts: Record<string, number> = {};
     visibleLeads.forEach(lead => {
-      const status = lead.status || 'N/A';
-      counts[status] = (counts[status] || 0) + 1;
+      const source = lead.reference || 'Other';
+      counts[source] = (counts[source] || 0) + 1;
     });
     return Object.entries(counts).map(([name, value]) => ({ name, value }));
   }, [visibleLeads]);
@@ -224,16 +224,16 @@ export default function AnalyticsPage() {
                 </CardContent>
               </Card>
 
-              {/* PIE CHART SECTION */}
+              {/* DONUT CHART SECTION */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-sm font-bold uppercase tracking-wider">Leads by Status</CardTitle>
+                  <CardTitle className="text-sm font-bold uppercase tracking-wider">Leads by Source</CardTitle>
                 </CardHeader>
-                <CardContent className="flex justify-center items-center min-h-[300px]">
-                  {isClient && statusData.length > 0 ? (
-                    <LeadStatusChart data={statusData} />
+                <CardContent className="flex justify-center items-center min-h-[400px]">
+                  {isClient && sourceData.length > 0 ? (
+                    <LeadSourceChart data={sourceData} />
                   ) : (
-                    <div className="text-muted-foreground">No data available to display chart.</div>
+                    <div className="text-muted-foreground">No source data available to display chart.</div>
                   )}
                 </CardContent>
               </Card>
@@ -275,7 +275,6 @@ export default function AnalyticsPage() {
                           <TableHead>Last Followup Remarks</TableHead>
                           <TableHead>Lead Status</TableHead>
                           <TableHead>Status Remarks</TableHead>
-                          {selectedMetric === 'won' && <TableHead className="text-right">Contract Value</TableHead>}
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -311,17 +310,12 @@ export default function AnalyticsPage() {
                                 <TableCell>
                                   <ExpandableCell content={lead.initialRemarks || 'N/A'} title="Initial Remarks" />
                                 </TableCell>
-                                {selectedMetric === 'won' && (
-                                  <TableCell className="text-right font-bold text-emerald-600">
-                                    {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(parseFloat(lead.annualContractValue || "0"))}
-                                  </TableCell>
-                                )}
                               </TableRow>
                             );
                           })
                         ) : (
                           <TableRow>
-                            <TableCell colSpan={selectedMetric === 'won' ? 16 : 15} className="h-24 text-center">
+                            <TableCell colSpan={15} className="h-24 text-center">
                               No records found for this metric.
                             </TableCell>
                           </TableRow>
