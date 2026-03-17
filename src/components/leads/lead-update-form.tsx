@@ -144,7 +144,7 @@ function UserInfoPopover({ username, users }: { username: string | undefined, us
 export default function LeadUpdateForm({ leadId, onClearSelection }: { leadId: string | null, onClearSelection?: () => void }) {
   const [leadDetails, setLeadDetails] = useState<Partial<LeadFormData>>({})
   const [remarks, setRemarks] = useState("")
-  const [followUpDate, setFollowUpDate] = useState("") // Initialize as empty to force selection
+  const [followUpDate, setFollowUpDate] = useState("") 
   const [nextFollowUpDate, setNextFollowUpDate] = useState("")
   const [followUps, setFollowUps] = useState<FollowUp[]>([])
   const [currentStatus, setCurrentStatus] = useState("Initial")
@@ -188,7 +188,7 @@ export default function LeadUpdateForm({ leadId, onClearSelection }: { leadId: s
       setMonthlyContractValue(foundLead.monthlyContractValue || "")
       setAnnualContractValue(foundLead.annualContractValue || "")
       setRemarks("")
-      setFollowUpDate("") // Reset to empty when switching leads
+      setFollowUpDate("") 
       setNextFollowUpDate("")
       setIsReadyToUpdate(false)
     } else {
@@ -214,9 +214,11 @@ export default function LeadUpdateForm({ leadId, onClearSelection }: { leadId: s
       return
     }
 
+    const selectedIsoDate = new Date(followUpDate + "T00:00:00").toISOString();
+
     const newFollowUp: FollowUp = {
       id: (followUps?.length || 0) + 1,
-      date: new Date(followUpDate + "T00:00:00").toISOString(),
+      date: selectedIsoDate,
       remarks: remarks,
       nextFollowUp: nextFollowUpDate && !isOrderClosed ? format(new Date(nextFollowUpDate + "T00:00:00"), "PPP") : "N/A",
       enteredBy: user?.username || "System",
@@ -226,11 +228,12 @@ export default function LeadUpdateForm({ leadId, onClearSelection }: { leadId: s
       await updateLead(leadDetails.leadId, {
         followUps: [...(followUps || []), newFollowUp],
         nextFollowUpDate: nextFollowUpDate && !isOrderClosed ? new Date(nextFollowUpDate + "T00:00:00").toISOString() : undefined,
+        creationDate: selectedIsoDate, // Set Lead Date to match the selected Follow-up Date
       })
       setRemarks("")
-      setFollowUpDate("") // Reset to empty after success
+      setFollowUpDate("") 
       setNextFollowUpDate("")
-      toast({ title: "Follow-up added" })
+      toast({ title: "Follow-up added & Lead Date updated" })
     } catch (error) {
       toast({ variant: "destructive", title: "Update Failed", description: "Failed to add follow-up." })
     }
@@ -290,7 +293,7 @@ export default function LeadUpdateForm({ leadId, onClearSelection }: { leadId: s
     setAnnualContractValue("")
     setIsReadyToUpdate(false)
     setRemarks("")
-    setFollowUpDate("") // Reset to empty
+    setFollowUpDate("") 
     setNextFollowUpDate("")
     setTransferredTo("")
   }
