@@ -124,27 +124,26 @@ export default function AnalyticsPage() {
   const sourceData = useMemo(() => {
     if (!visibleLeads.length) return [];
     
-    // Group sources case-insensitively using a Map
+    // Group sources with strict case-insensitive normalization and Title Case formatting
     const counts = new Map<string, { name: string; value: number }>();
     
     visibleLeads.forEach(lead => {
       let rawName = (lead.reference || 'Other').trim();
       if (!rawName) rawName = 'Other';
 
-      // Standardize to Title Case for visual consistency and perfect deduplication
-      // This merges "Email", "email", "EMAIL" etc into "Email"
+      // Standardize to Title Case for perfect deduplication (merges "Email", "email", etc)
       const standardizedName = rawName
+        .toLowerCase()
         .split(/\s+/)
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
 
-      const key = standardizedName.toLowerCase();
-      const existing = counts.get(key);
+      const existing = counts.get(standardizedName);
 
       if (existing) {
         existing.value += 1;
       } else {
-        counts.set(key, { name: standardizedName, value: 1 });
+        counts.set(standardizedName, { name: standardizedName, value: 1 });
       }
     });
 
