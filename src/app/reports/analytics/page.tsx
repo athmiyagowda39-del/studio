@@ -123,23 +123,33 @@ export default function AnalyticsPage() {
 
   const sourceData = useMemo(() => {
     if (!visibleLeads.length) return [];
-    const counts: Record<string, number> = {};
+    
+    // Group sources case-insensitively using a Map
+    const counts = new Map<string, { name: string; value: number }>();
     
     visibleLeads.forEach(lead => {
-      // Normalize source: Trim whitespace and handle casing to avoid duplicates like "Referral" and "referral"
-      let source = (lead.reference || 'Other').trim();
-      if (!source) source = 'Other';
+      let rawName = (lead.reference || 'Other').trim();
+      if (!rawName) rawName = 'Other';
 
-      // Find an existing key that matches case-insensitively
-      const existingKey = Object.keys(counts).find(k => k.toLowerCase() === source.toLowerCase());
-      const finalKey = existingKey || source;
+      // Standardize to Title Case for visual consistency and perfect deduplication
+      // This merges "Email", "email", "EMAIL" etc into "Email"
+      const standardizedName = rawName
+        .split(/\s+/)
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ');
 
-      counts[finalKey] = (counts[finalKey] || 0) + 1;
+      const key = standardizedName.toLowerCase();
+      const existing = counts.get(key);
+
+      if (existing) {
+        existing.value += 1;
+      } else {
+        counts.set(key, { name: standardizedName, value: 1 });
+      }
     });
 
-    return Object.entries(counts)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value); // Sort for better chart presentation
+    return Array.from(counts.values())
+      .sort((a, b) => b.value - a.value);
   }, [visibleLeads]);
 
   const handleMetricClick = (metric: MetricType) => {

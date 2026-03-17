@@ -1,7 +1,7 @@
 
 "use client"
 
-import { Pie, PieChart, Cell, ResponsiveContainer, Tooltip, Sector } from "recharts"
+import { Pie, PieChart, Cell, ResponsiveContainer, Tooltip } from "recharts"
 
 type LeadSourceChartProps = {
   data: { name: string; value: number }[]
@@ -24,7 +24,8 @@ const COLORS = [
 const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, name }: any) => {
   const RADIAN = Math.PI / 180;
   // Move labels significantly further out to prevent overlapping with the pie or other labels
-  const radius = outerRadius + 45;
+  // Using a larger radius for smaller percentages to avoid crowding
+  const radius = outerRadius + (percent < 0.05 ? 65 : 45);
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
   const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
@@ -33,7 +34,6 @@ const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, per
 
   return (
     <g>
-      {/* Label Text */}
       <text
         x={x}
         y={y}
@@ -46,20 +46,19 @@ const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, per
       >
         {`${displayName} (${(percent * 100).toFixed(2)}%)`}
       </text>
-      
-      {/* Connector Line (simplified for Recharts default line handling) */}
     </g>
   );
 };
 
 export default function LeadSourceChart({ data }: LeadSourceChartProps) {
   // Sort data so largest slices are at the top/sides for better label distribution
+  // This helps prevent labels for tiny slices from merging
   const sortedData = [...data].sort((a, b) => b.value - a.value);
 
   return (
     <div className="w-full h-[550px] flex items-center justify-center">
       <ResponsiveContainer width="100%" height="100%">
-        <PieChart margin={{ top: 20, right: 100, bottom: 20, left: 100 }}>
+        <PieChart margin={{ top: 40, right: 120, bottom: 40, left: 120 }}>
           <Tooltip 
             contentStyle={{ 
               borderRadius: '12px', 
@@ -79,7 +78,7 @@ export default function LeadSourceChart({ data }: LeadSourceChartProps) {
             innerRadius={90}
             paddingAngle={3}
             dataKey="value"
-            minAngle={10} // Ensures even tiny slices get visual space and a label line
+            minAngle={12} // Increased slightly to give small slices more presence
             animationBegin={0}
             animationDuration={1200}
           >
