@@ -1130,23 +1130,27 @@ export default function LeadsUpdatePage() {
                     </TabsList>
                   </Tabs>
 
-                  {activeTab === 'search-result' && (
-                    <div className="relative w-full md:w-72 animate-in fade-in slide-in-from-right-4 duration-300">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        placeholder="Quick filter search result..."
-                        value={searchTerm}
-                        onChange={(e) => {
-                          setSearchTerm(e.target.value);
-                          // Re-apply filter immediately for a "live search" feel in the results tab
-                          const currentFilters = { ...stagedFilters, searchTerm: e.target.value };
-                          setStagedFilters(currentFilters);
-                          applyAndSetFilters('search-result', currentFilters);
-                        }}
-                        className="pl-9"
-                      />
-                    </div>
-                  )}
+                  <div className="relative w-full md:w-72">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Quick filter search result..."
+                      value={searchTerm}
+                      onChange={(e) => {
+                        const newTerm = e.target.value;
+                        setSearchTerm(newTerm);
+                        
+                        // Automatically switch to Search Result tab when typing
+                        if (newTerm.trim() !== '' && activeTab !== 'search-result') {
+                          setActiveTab('search-result');
+                        }
+                        
+                        const currentFilters = { ...stagedFilters, searchTerm: newTerm };
+                        setStagedFilters(currentFilters);
+                        applyAndSetFilters('search-result', currentFilters);
+                      }}
+                      className="pl-9"
+                    />
+                  </div>
                 </div>
 
                 <CardHeader className="p-0 pt-4">
