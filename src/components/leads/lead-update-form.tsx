@@ -535,7 +535,7 @@ export default function LeadUpdateForm({ leadId, onClearSelection }: { leadId: s
                         <TableHeader className="bg-muted/50">
                             <TableRow>
                                 <TableHead className="w-16">Sl No</TableHead>
-                                <TableHead>Date</TableHead>
+                                <TableHead>Follow up date</TableHead>
                                 <TableHead>Remarks</TableHead>
                                 <TableHead>Next Follow-up</TableHead>
                                 <TableHead>Entered by</TableHead>
