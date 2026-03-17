@@ -124,11 +124,22 @@ export default function AnalyticsPage() {
   const sourceData = useMemo(() => {
     if (!visibleLeads.length) return [];
     const counts: Record<string, number> = {};
+    
     visibleLeads.forEach(lead => {
-      const source = lead.reference || 'Other';
-      counts[source] = (counts[source] || 0) + 1;
+      // Normalize source: Trim whitespace and handle casing to avoid duplicates like "Referral" and "referral"
+      let source = (lead.reference || 'Other').trim();
+      if (!source) source = 'Other';
+
+      // Find an existing key that matches case-insensitively
+      const existingKey = Object.keys(counts).find(k => k.toLowerCase() === source.toLowerCase());
+      const finalKey = existingKey || source;
+
+      counts[finalKey] = (counts[finalKey] || 0) + 1;
     });
-    return Object.entries(counts).map(([name, value]) => ({ name, value }));
+
+    return Object.entries(counts)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value); // Sort for better chart presentation
   }, [visibleLeads]);
 
   const handleMetricClick = (metric: MetricType) => {
@@ -227,9 +238,9 @@ export default function AnalyticsPage() {
               {/* DONUT CHART SECTION */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-sm font-bold uppercase tracking-wider">Leads by Source</CardTitle>
+                  <CardTitle className="text-sm font-bold uppercase tracking-wider text-center">Leads Distribution by Source (Reference)</CardTitle>
                 </CardHeader>
-                <CardContent className="flex justify-center items-center min-h-[400px]">
+                <CardContent className="flex justify-center items-center min-h-[550px] p-0">
                   {isClient && sourceData.length > 0 ? (
                     <LeadSourceChart data={sourceData} />
                   ) : (
