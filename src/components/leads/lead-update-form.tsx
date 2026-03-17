@@ -15,7 +15,7 @@ import { useState, useEffect, useMemo } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { Textarea } from "@/components/ui/textarea"
 import { format } from "date-fns"
-import { Card, CardContent, CardHeader, CardTitle } from "@/Card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { LeadFormData } from "./lead-upload-form"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {
@@ -40,7 +40,6 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
