@@ -90,30 +90,29 @@ export default function AnalyticsPage() {
   }, [allLeads, user]);
 
   const stats = useMemo(() => {
-    if (!visibleLeads.length) return { created: 0, deals: 0, won: 0, revenue: 0 };
+    if (!visibleLeads.length) return { created: 0, deals: 0, won: 0 };
 
-    const dealsCreatedStatuses = ["Demo Given", "Attended", "Proposal Sent", "Quote Sent", "Pursuing to Purchase"];
+    const dealsCreatedStatuses = ["Demo Given", "Proposal Sent", "Quote Sent", "Pursuing to Purchase"];
     
     const deals = visibleLeads.filter(l => dealsCreatedStatuses.includes(l.status || ""));
     const won = visibleLeads.filter(l => l.status === "Order closed");
-    const revenue = won.reduce((acc, l) => acc + parseFloat(l.annualContractValue || "0"), 0);
 
     return {
       created: visibleLeads.length,
       deals: deals.length,
-      won: won.length,
-      revenue: revenue
+      won: won.length
     };
   }, [visibleLeads]);
 
   const metricLeads = useMemo(() => {
     if (!selectedMetric || !visibleLeads.length) return [];
 
+    const dealsCreatedStatuses = ["Demo Given", "Proposal Sent", "Quote Sent", "Pursuing to Purchase"];
+
     switch (selectedMetric) {
       case 'leads':
         return visibleLeads;
       case 'deals':
-        const dealsCreatedStatuses = ["Demo Given", "Attended", "Proposal Sent", "Quote Sent", "Pursuing to Purchase"];
         return visibleLeads.filter(l => dealsCreatedStatuses.includes(l.status || ""));
       case 'won':
         return visibleLeads.filter(l => l.status === "Order closed");
@@ -207,7 +206,7 @@ export default function AnalyticsPage() {
                     {/* DEALS WON */}
                     <div 
                       className={cn(
-                        "group flex items-center justify-between p-6 border-b cursor-pointer transition-colors hover:bg-muted/30 relative",
+                        "group flex items-center justify-between p-6 cursor-pointer transition-colors hover:bg-muted/30 relative",
                         selectedMetric === 'won' && "bg-primary/5"
                       )}
                       onClick={() => handleMetricClick('won')}
@@ -220,17 +219,6 @@ export default function AnalyticsPage() {
                         <span className="text-2xl font-black text-foreground">{stats.won}</span>
                         <ChevronRight className={cn("h-4 w-4 text-muted-foreground transition-transform", selectedMetric === 'won' && "rotate-90 text-emerald-500")} />
                       </div>
-                    </div>
-
-                    {/* REVENUE WON */}
-                    <div className="flex items-center justify-between p-6 bg-emerald-50/30">
-                      <div className="flex items-center gap-4">
-                        <div className="w-1 h-8 bg-emerald-600 rounded-full" />
-                        <span className="font-bold text-sm text-emerald-800">REVENUE WON</span>
-                      </div>
-                      <span className="text-2xl font-black text-emerald-600">
-                        {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(stats.revenue)}
-                      </span>
                     </div>
                   </div>
                 </CardContent>
