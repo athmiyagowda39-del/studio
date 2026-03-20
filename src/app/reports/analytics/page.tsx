@@ -19,7 +19,7 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { format } from 'date-fns';
 import { getDisplayModule } from '@/lib/modules';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ChevronRight, Calendar, BarChart3 } from 'lucide-react';
+import { ChevronRight, Calendar, BarChart3, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const LeadSourceChart = dynamic(
@@ -65,7 +65,7 @@ function ExpandableCell({ content, title }: { content: string | null | undefined
   );
 }
 
-type MetricType = 'leads' | 'deals' | 'won' | null;
+type MetricType = 'leads' | 'deals' | 'won' | string | null;
 
 export default function AnalyticsPage() {
   const { user, isAuthenticated, isLoading, leads: allLeads, modules } = useApp();
@@ -104,21 +104,31 @@ export default function AnalyticsPage() {
     };
   }, [visibleLeads]);
 
+  const statusRanking = useMemo(() => {
+    if (!visibleLeads.length) return [];
+    
+    const counts = new Map<string, number>();
+    visibleLeads.forEach(lead => {
+      const status = lead.status || 'Not viewed';
+      counts.set(status, (counts.get(status) || 0) + 1);
+    });
+
+    return Array.from(counts.entries())
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+  }, [visibleLeads]);
+
   const metricLeads = useMemo(() => {
     if (!selectedMetric || !visibleLeads.length) return [];
 
     const dealsCreatedStatuses = ["Demo Given", "Proposal Sent", "Quote Sent", "Pursuing to Purchase"];
 
-    switch (selectedMetric) {
-      case 'leads':
-        return visibleLeads;
-      case 'deals':
-        return visibleLeads.filter(l => dealsCreatedStatuses.includes(l.status || ""));
-      case 'won':
-        return visibleLeads.filter(l => l.status === "Order closed");
-      default:
-        return [];
-    }
+    if (selectedMetric === 'leads') return visibleLeads;
+    if (selectedMetric === 'deals') return visibleLeads.filter(l => dealsCreatedStatuses.includes(l.status || ""));
+    if (selectedMetric === 'won') return visibleLeads.filter(l => l.status === "Order closed");
+    
+    // Default to filtering by specific status if it's not a preset metric
+    return visibleLeads.filter(l => l.status === selectedMetric);
   }, [selectedMetric, visibleLeads]);
 
   const sourceData = useMemo(() => {
@@ -130,7 +140,7 @@ export default function AnalyticsPage() {
       let rawName = (lead.reference || 'Other').trim();
       if (!rawName) rawName = 'Other';
 
-      // Advanced Normalization to fix misspellings like "Refferal" vs "Referral"
+      // Advanced Normalization
       let standardizedName = rawName
         .toLowerCase()
         .split(/\s+/)
@@ -178,69 +188,114 @@ export default function AnalyticsPage() {
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* PERFORMANCE OVERVIEW SECTION */}
-              <Card className="border-2 shadow-sm overflow-hidden h-fit">
-                <CardHeader className="flex flex-row items-center justify-between border-b bg-muted/10 py-4">
-                  <CardTitle className="text-sm font-bold uppercase tracking-wider">Performance Overview</CardTitle>
-                  <div className="flex items-center gap-2 bg-background border rounded-md px-3 py-1 text-xs font-medium text-muted-foreground">
-                    <Calendar className="h-3 w-3" />
-                    {format(new Date(), 'MMMM yyyy')}
-                  </div>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <div className="flex flex-col">
-                    <div 
-                      className={cn(
-                        "group flex items-center justify-between p-6 border-b cursor-pointer transition-colors hover:bg-muted/30 relative",
-                        selectedMetric === 'leads' && "bg-primary/5"
-                      )}
-                      onClick={() => handleMetricClick('leads')}
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="w-1 h-8 bg-primary rounded-full" />
-                        <span className="font-bold text-sm text-foreground/80 group-hover:text-primary transition-colors">LEADS CREATED</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl font-black text-foreground">{stats.created}</span>
-                        <ChevronRight className={cn("h-4 w-4 text-muted-foreground transition-transform", selectedMetric === 'leads' && "rotate-90 text-primary")} />
-                      </div>
+              <div className="space-y-6">
+                <Card className="border-2 shadow-sm overflow-hidden h-fit">
+                  <CardHeader className="flex flex-row items-center justify-between border-b bg-muted/10 py-4">
+                    <CardTitle className="text-sm font-bold uppercase tracking-wider">Performance Overview</CardTitle>
+                    <div className="flex items-center gap-2 bg-background border rounded-md px-3 py-1 text-xs font-medium text-muted-foreground">
+                      <Calendar className="h-3 w-3" />
+                      {format(new Date(), 'MMMM yyyy')}
                     </div>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <div className="flex flex-col">
+                      <div 
+                        className={cn(
+                          "group flex items-center justify-between p-6 border-b cursor-pointer transition-colors hover:bg-muted/30 relative",
+                          selectedMetric === 'leads' && "bg-primary/5"
+                        )}
+                        onClick={() => handleMetricClick('leads')}
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="w-1 h-8 bg-primary rounded-full" />
+                          <span className="font-bold text-sm text-foreground/80 group-hover:text-primary transition-colors">LEADS CREATED</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl font-black text-foreground">{stats.created}</span>
+                          <ChevronRight className={cn("h-4 w-4 text-muted-foreground transition-transform", selectedMetric === 'leads' && "rotate-90 text-primary")} />
+                        </div>
+                      </div>
 
-                    <div 
-                      className={cn(
-                        "group flex items-center justify-between p-6 border-b cursor-pointer transition-colors hover:bg-muted/30 relative",
-                        selectedMetric === 'deals' && "bg-primary/5"
-                      )}
-                      onClick={() => handleMetricClick('deals')}
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="w-1 h-8 bg-blue-500 rounded-full" />
-                        <span className="font-bold text-sm text-foreground/80 group-hover:text-blue-500 transition-colors">DEALS CREATED</span>
+                      <div 
+                        className={cn(
+                          "group flex items-center justify-between p-6 border-b cursor-pointer transition-colors hover:bg-muted/30 relative",
+                          selectedMetric === 'deals' && "bg-primary/5"
+                        )}
+                        onClick={() => handleMetricClick('deals')}
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="w-1 h-8 bg-blue-500 rounded-full" />
+                          <span className="font-bold text-sm text-foreground/80 group-hover:text-blue-500 transition-colors">DEALS CREATED</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl font-black text-foreground">{stats.deals}</span>
+                          <ChevronRight className={cn("h-4 w-4 text-muted-foreground transition-transform", selectedMetric === 'deals' && "rotate-90 text-blue-500")} />
+                        </div>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl font-black text-foreground">{stats.deals}</span>
-                        <ChevronRight className={cn("h-4 w-4 text-muted-foreground transition-transform", selectedMetric === 'deals' && "rotate-90 text-blue-500")} />
-                      </div>
-                    </div>
 
-                    <div 
-                      className={cn(
-                        "group flex items-center justify-between p-6 cursor-pointer transition-colors hover:bg-muted/30 relative",
-                        selectedMetric === 'won' && "bg-primary/5"
-                      )}
-                      onClick={() => handleMetricClick('won')}
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="w-1 h-8 bg-emerald-500 rounded-full" />
-                        <span className="font-bold text-sm text-foreground/80 group-hover:text-emerald-500 transition-colors">DEALS WON</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl font-black text-foreground">{stats.won}</span>
-                        <ChevronRight className={cn("h-4 w-4 text-muted-foreground transition-transform", selectedMetric === 'won' && "rotate-90 text-emerald-500")} />
+                      <div 
+                        className={cn(
+                          "group flex items-center justify-between p-6 cursor-pointer transition-colors hover:bg-muted/30 relative",
+                          selectedMetric === 'won' && "bg-primary/5"
+                        )}
+                        onClick={() => handleMetricClick('won')}
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="w-1 h-8 bg-emerald-500 rounded-full" />
+                          <span className="font-bold text-sm text-foreground/80 group-hover:text-emerald-500 transition-colors">DEALS WON</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl font-black text-foreground">{stats.won}</span>
+                          <ChevronRight className={cn("h-4 w-4 text-muted-foreground transition-transform", selectedMetric === 'won' && "rotate-90 text-emerald-500")} />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+
+                {/* LEAD STATUS RANKING SECTION */}
+                <Card className="border-2 shadow-sm overflow-hidden h-fit">
+                  <CardHeader className="flex flex-row items-center gap-2 border-b bg-muted/10 py-4">
+                    <TrendingUp className="h-4 w-4 text-primary" />
+                    <CardTitle className="text-sm font-bold uppercase tracking-wider">Lead Status Ranking</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <div className="divide-y max-h-[400px] overflow-y-auto">
+                      {statusRanking.map((status, index) => (
+                        <div 
+                          key={status.name}
+                          className={cn(
+                            "group flex items-center justify-between p-4 cursor-pointer hover:bg-muted/30 transition-all",
+                            selectedMetric === status.name && "bg-primary/5"
+                          )}
+                          onClick={() => handleMetricClick(status.name)}
+                        >
+                          <div className="flex items-center gap-3 flex-1">
+                            <span className="text-xs font-bold text-muted-foreground min-w-[20px]">{index + 1}.</span>
+                            <div className="flex flex-col flex-1">
+                              <span className="text-xs font-bold uppercase tracking-tight group-hover:text-primary transition-colors truncate">
+                                {status.name}
+                              </span>
+                              <div className="w-full bg-muted/20 h-1.5 rounded-full mt-1.5 overflow-hidden">
+                                <div 
+                                  className="h-full bg-primary/60 group-hover:bg-primary transition-all duration-1000" 
+                                  style={{ width: `${(status.value / stats.created) * 100}%` }}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3 ml-4">
+                            <span className="text-sm font-black text-foreground">{status.value}</span>
+                            <span className="text-[10px] font-bold text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                              {((status.value / stats.created) * 100).toFixed(1)}%
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
 
               {/* SOURCE DISTRIBUTION SECTION */}
               <Card className="border-2 shadow-sm">
@@ -266,7 +321,7 @@ export default function AnalyticsPage() {
                 <CardHeader className="bg-muted/30 flex flex-row items-center justify-between">
                   <CardTitle className="text-base uppercase">
                     Details: <span className="text-primary font-black">
-                      {selectedMetric === 'leads' ? 'Leads Created' : selectedMetric === 'deals' ? 'Deals Created' : 'Deals Won'}
+                      {selectedMetric === 'leads' ? 'Leads Created' : selectedMetric === 'deals' ? 'Deals Created' : selectedMetric === 'won' ? 'Deals Won' : `Status: ${selectedMetric}`}
                     </span> ({metricLeads.length} Records)
                   </CardTitle>
                   <button 
