@@ -7,7 +7,6 @@ import {
   Cell,
   Tooltip,
   ResponsiveContainer,
-  Legend,
 } from "recharts"
 
 type LeadSourceChartProps = {
@@ -15,27 +14,26 @@ type LeadSourceChartProps = {
 }
 
 const COLORS = [
-  "#FF6B35", // Vibrant Orange
-  "#181ecf", // Deep Blue
-  "#06B6D4", // Bright Cyan
-  "#22d79b", // Fresh Emerald
-  "#8B5CF6", // Royal Purple
-  "#EC4899", // Vivid Pink
-  "#F59E0B", // Golden Amber
-  "#EF4444", // Strong Red
-  "#3B82F6", // Sky Blue
-  "#10B981", // Dark Teal
-  "#64748B", // Professional Slate
+  "#38bdf8", // Blue (Cold Call style)
+  "#34d399", // Green (Advertisement style)
+  "#6ee7b7", // Teal (Web Download style)
+  "#fbbf24", // Yellow (Seminar style)
+  "#e11d48", // Red (Partner style)
+  "#f59e0b", // Orange (Store style)
+  "#a855f7", // Purple (Referral style)
+  "#64748b", // Slate
 ];
 
 export default function LeadSourceChart({ data }: LeadSourceChartProps) {
   const totalLeads = data.reduce((acc, curr) => acc + curr.value, 0);
 
-  // Custom label function to show Name and Percentage clearly
-  // We use outerRadius logic to push labels further away
-  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index, name }: any) => {
+  // Custom label function to match reference: NAME (PERCENT%) in UPPER CASE
+  const renderCustomizedLabel = (props: any) => {
+    const { cx, cy, midAngle, outerRadius, percent, name } = props;
     const RADIAN = Math.PI / 180;
-    const radius = outerRadius * 1.35; // Increased radius to prevent overlap
+    
+    // Position labels further outside to avoid overlapping
+    const radius = outerRadius + 30;
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
@@ -43,12 +41,12 @@ export default function LeadSourceChart({ data }: LeadSourceChartProps) {
       <text 
         x={x} 
         y={y} 
-        fill={COLORS[index % COLORS.length]} 
+        fill="#334155" 
         textAnchor={x > cx ? 'start' : 'end'} 
         dominantBaseline="central"
-        className="text-[10px] font-bold uppercase tracking-tight"
+        className="text-[11px] font-bold tracking-tighter"
       >
-        {`${name} (${(percent * 100).toFixed(1)}%)`}
+        {`${name.toUpperCase()} (${(percent * 100).toFixed(1)}%)`}
       </text>
     );
   };
@@ -62,55 +60,40 @@ export default function LeadSourceChart({ data }: LeadSourceChartProps) {
   }
 
   return (
-    <div className="w-full h-[650px] flex flex-col p-4 bg-background overflow-hidden">
+    <div className="w-full h-[600px] flex flex-col p-4 bg-background overflow-hidden">
       <div className="flex-1">
         <ResponsiveContainer width="100%" height="100%">
-          <PieChart margin={{ top: 20, right: 100, bottom: 20, left: 100 }}>
+          <PieChart>
             <Pie
               data={data}
               cx="50%"
-              cy="45%"
-              labelLine={{ stroke: '#94a3b8', strokeWidth: 1, strokeDasharray: '2 2' }}
+              cy="50%"
+              labelLine={{ stroke: '#94a3b8', strokeWidth: 1.5 }}
               label={renderCustomizedLabel}
-              outerRadius={120}
-              innerRadius={70} 
-              fill="#8884d8"
+              outerRadius={130}
+              innerRadius={80} // Donut shape
               dataKey="value"
-              paddingAngle={2}
-              minAngle={15} // Forces small segments to be large enough to anchor a label properly
               animationBegin={0}
               animationDuration={1500}
+              stroke="white"
+              strokeWidth={2}
+              paddingAngle={0}
+              minAngle={15} // Prevents tiny segments from disappearing
             >
               {data.map((entry, index) => (
                 <Cell 
                   key={`cell-${index}`} 
                   fill={COLORS[index % COLORS.length]} 
-                  stroke="rgba(255,255,255,0.2)"
-                  strokeWidth={2}
-                  className="hover:opacity-80 transition-opacity cursor-pointer outline-none"
+                  className="hover:opacity-90 transition-opacity cursor-pointer outline-none"
                 />
               ))}
             </Pie>
             <Tooltip 
               contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}
               formatter={(value: number) => [
-                `${value} Leads (${((value / totalLeads) * 100).toFixed(2)}%)`, 
+                `${value} Leads (${((value / totalLeads) * 100).toFixed(1)}%)`, 
                 'Count'
               ]}
-            />
-            <Legend 
-              layout="horizontal" 
-              verticalAlign="bottom" 
-              align="center"
-              iconType="circle"
-              wrapperStyle={{ 
-                paddingTop: '60px',
-                fontSize: '9px',
-                fontWeight: 'bold',
-                textTransform: 'uppercase',
-                maxWidth: '90%',
-                margin: '0 auto'
-              }}
             />
           </PieChart>
         </ResponsiveContainer>

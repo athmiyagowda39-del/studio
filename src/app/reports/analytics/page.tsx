@@ -24,7 +24,7 @@ import { cn } from '@/lib/utils';
 
 const LeadSourceChart = dynamic(
   () => import('@/components/reports/lead-source-chart'),
-  { ssr: false, loading: () => <div className="h-[300px] flex items-center justify-center"><p>Loading Source Analytics...</p></div> }
+  { ssr: false, loading: () => <div className="h-[400px] flex items-center justify-center"><p>Loading Source Analytics...</p></div> }
 );
 
 // Helper component for expandable "box" view
@@ -127,7 +127,6 @@ export default function AnalyticsPage() {
     if (selectedMetric === 'deals') return visibleLeads.filter(l => dealsCreatedStatuses.includes(l.status || ""));
     if (selectedMetric === 'won') return visibleLeads.filter(l => l.status === "Order closed");
     
-    // Default to filtering by specific status if it's not a preset metric
     return visibleLeads.filter(l => l.status === selectedMetric);
   }, [selectedMetric, visibleLeads]);
 
@@ -140,22 +139,21 @@ export default function AnalyticsPage() {
       let rawName = (lead.reference || 'Other').trim();
       if (!rawName) rawName = 'Other';
 
-      // Standard Normalization
-      let standardizedName = rawName
+      // Standardize to Title Case for initial grouping but chart will display UPPER CASE
+      let normalized = rawName
         .toLowerCase()
         .split(/\s+/)
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
       
-      // Fix specific misspellings from user feedback
-      if (standardizedName === 'Refferal') standardizedName = 'Referral';
+      // Fix specific misspellings
+      if (normalized === 'Refferal') normalized = 'Referral';
 
-      const existing = counts.get(standardizedName);
-
+      const existing = counts.get(normalized);
       if (existing) {
         existing.value += 1;
       } else {
-        counts.set(standardizedName, { name: standardizedName, value: 1 });
+        counts.set(normalized, { name: normalized, value: 1 });
       }
     });
 
@@ -188,7 +186,7 @@ export default function AnalyticsPage() {
           <CardContent className="p-6 space-y-8">
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* PERFORMANCE OVERVIEW SECTION */}
+              {/* Pipeline Overview */}
               <div className="space-y-6">
                 <Card className="border-2 shadow-sm overflow-hidden h-fit">
                   <CardHeader className="flex flex-row items-center justify-between border-b bg-muted/10 py-4">
@@ -254,7 +252,6 @@ export default function AnalyticsPage() {
                   </CardContent>
                 </Card>
 
-                {/* LEAD STATUS RANKING SECTION - REFINED TO MATCH USER IMAGE */}
                 <Card className="border-2 shadow-sm overflow-hidden h-fit">
                   <CardHeader className="flex flex-row items-center gap-2 border-b bg-muted/10 py-4">
                     <TrendingUp className="h-4 w-4 text-primary" />
@@ -300,13 +297,13 @@ export default function AnalyticsPage() {
                 </Card>
               </div>
 
-              {/* SOURCE DISTRIBUTION SECTION */}
+              {/* Source Distribution */}
               <Card className="border-2 shadow-sm h-full">
                 <CardHeader className="flex flex-row items-center gap-2 border-b bg-muted/10">
                   <BarChart3 className="h-4 w-4 text-primary" />
-                  <CardTitle className="text-sm font-bold uppercase tracking-wider">Leads Distribution by Source</CardTitle>
+                  <CardTitle className="text-sm font-bold uppercase tracking-wider">Leads by Source</CardTitle>
                 </CardHeader>
-                <CardContent className="p-0">
+                <CardContent className="p-0 flex items-center justify-center">
                   {isClient && sourceData.length > 0 ? (
                     <LeadSourceChart data={sourceData} />
                   ) : (
@@ -318,7 +315,7 @@ export default function AnalyticsPage() {
               </Card>
             </div>
 
-            {/* DRILL DOWN DETAILS TABLE */}
+            {/* Drill Down Table */}
             {selectedMetric && (
               <Card ref={detailsRef} className="border-2 border-primary/20 shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-300">
                 <CardHeader className="bg-muted/30 flex flex-row items-center justify-between">
