@@ -18,7 +18,7 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { format, getMonth, getYear, setMonth, setYear } from 'date-fns';
 import { getDisplayModule } from '@/lib/modules';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ChevronRight, Calendar, BarChart3 } from 'lucide-react';
+import { ChevronRight, Calendar, BarChart3, Flame, Thermometer, Snowflake } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
@@ -66,7 +66,7 @@ function ExpandableCell({ content, title }: { content: string | null | undefined
   );
 }
 
-type MetricType = 'leads' | 'deals' | 'won' | string | null;
+type MetricType = 'leads' | 'deals' | 'won' | 'hot' | 'warm' | 'cold' | string | null;
 
 const months = [
   "January", "February", "March", "April", "May", "June",
@@ -113,17 +113,25 @@ export default function AnalyticsPage() {
   }, [visibleLeads, filterDate]);
 
   const stats = useMemo(() => {
-    if (!filteredLeads.length) return { created: 0, deals: 0, won: 0 };
+    if (!filteredLeads.length) return { created: 0, deals: 0, won: 0, hot: 0, warm: 0, cold: 0 };
 
     const dealsCreatedStatuses = ["Demo Given", "Proposal Sent", "Quote Sent", "Pursuing to Purchase"];
     
     const deals = filteredLeads.filter(l => dealsCreatedStatuses.includes(l.status || ""));
     const won = filteredLeads.filter(l => l.status === "Order closed");
 
+    // Temperature Logic
+    const hot = filteredLeads.filter(l => ["Proposal Sent", "Quote Sent"].includes(l.status || ""));
+    const warm = filteredLeads.filter(l => ["Demo Given", "Pursuing to Purchase"].includes(l.status || ""));
+    const cold = filteredLeads.filter(l => ["Not viewed", "Attended"].includes(l.status || ""));
+
     return {
       created: filteredLeads.length,
       deals: deals.length,
-      won: won.length
+      won: won.length,
+      hot: hot.length,
+      warm: warm.length,
+      cold: cold.length
     };
   }, [filteredLeads]);
 
@@ -135,6 +143,11 @@ export default function AnalyticsPage() {
     if (selectedMetric === 'leads') return filteredLeads;
     if (selectedMetric === 'deals') return filteredLeads.filter(l => dealsCreatedStatuses.includes(l.status || ""));
     if (selectedMetric === 'won') return filteredLeads.filter(l => l.status === "Order closed");
+    
+    // Temperature Filters
+    if (selectedMetric === 'hot') return filteredLeads.filter(l => ["Proposal Sent", "Quote Sent"].includes(l.status || ""));
+    if (selectedMetric === 'warm') return filteredLeads.filter(l => ["Demo Given", "Pursuing to Purchase"].includes(l.status || ""));
+    if (selectedMetric === 'cold') return filteredLeads.filter(l => ["Not viewed", "Attended"].includes(l.status || ""));
     
     return filteredLeads.filter(l => l.status === selectedMetric);
   }, [selectedMetric, filteredLeads]);
@@ -204,7 +217,7 @@ export default function AnalyticsPage() {
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               
-              {/* LEFT COLUMN: PERFORMANCE OVERVIEW */}
+              {/* LEFT COLUMN: PERFORMANCE OVERVIEW & TEMPERATURE */}
               <div className="space-y-6">
                 <Card className="border-2 shadow-sm overflow-hidden h-fit">
                   <CardHeader className="flex flex-row items-center justify-between border-b bg-muted/10 py-4">
@@ -303,6 +316,62 @@ export default function AnalyticsPage() {
                     </div>
                   </CardContent>
                 </Card>
+
+                {/* LEAD TEMPERATURE CARD */}
+                <Card className="border-2 shadow-sm overflow-hidden h-fit">
+                  <CardHeader className="border-b bg-muted/10 py-4">
+                    <CardTitle className="text-sm font-bold uppercase tracking-wider">Lead Temperature</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4 grid grid-cols-3 gap-4">
+                    <button 
+                      onClick={() => handleMetricClick('hot')}
+                      className={cn(
+                        "flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200 group",
+                        selectedMetric === 'hot' 
+                          ? "border-red-500 bg-red-50 shadow-md scale-105" 
+                          : "border-red-100 bg-white hover:border-red-300 hover:shadow-sm"
+                      )}
+                    >
+                      <Flame className={cn("h-6 w-6 mb-2 transition-colors", selectedMetric === 'hot' ? "text-red-600" : "text-red-400 group-hover:text-red-500")} />
+                      <span className={cn("text-2xl font-black transition-colors", selectedMetric === 'hot' ? "text-red-700" : "text-red-600")}>
+                        {stats.hot}
+                      </span>
+                      <span className="text-[9px] font-black uppercase tracking-widest text-red-500/80 mt-1">Hot Lead</span>
+                    </button>
+
+                    <button 
+                      onClick={() => handleMetricClick('warm')}
+                      className={cn(
+                        "flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200 group",
+                        selectedMetric === 'warm' 
+                          ? "border-yellow-500 bg-yellow-50 shadow-md scale-105" 
+                          : "border-yellow-100 bg-white hover:border-yellow-300 hover:shadow-sm"
+                      )}
+                    >
+                      <Thermometer className={cn("h-6 w-6 mb-2 transition-colors", selectedMetric === 'warm' ? "text-yellow-600" : "text-yellow-400 group-hover:text-yellow-500")} />
+                      <span className={cn("text-2xl font-black transition-colors", selectedMetric === 'warm' ? "text-yellow-700" : "text-yellow-600")}>
+                        {stats.warm}
+                      </span>
+                      <span className="text-[9px] font-black uppercase tracking-widest text-yellow-600/80 mt-1">Warm Lead</span>
+                    </button>
+
+                    <button 
+                      onClick={() => handleMetricClick('cold')}
+                      className={cn(
+                        "flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200 group",
+                        selectedMetric === 'cold' 
+                          ? "border-blue-500 bg-blue-50 shadow-md scale-105" 
+                          : "border-blue-100 bg-white hover:border-blue-300 hover:shadow-sm"
+                      )}
+                    >
+                      <Snowflake className={cn("h-6 w-6 mb-2 transition-colors", selectedMetric === 'cold' ? "text-blue-600" : "text-blue-400 group-hover:text-blue-500")} />
+                      <span className={cn("text-2xl font-black transition-colors", selectedMetric === 'cold' ? "text-blue-700" : "text-blue-600")}>
+                        {stats.cold}
+                      </span>
+                      <span className="text-[9px] font-black uppercase tracking-widest text-blue-500/80 mt-1">Cold Lead</span>
+                    </button>
+                  </CardContent>
+                </Card>
               </div>
 
               {/* RIGHT COLUMN: PIE CHART */}
@@ -332,8 +401,20 @@ export default function AnalyticsPage() {
               <Card ref={detailsRef} className="border-2 border-primary/20 shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-300">
                 <CardHeader className="bg-muted/30 flex flex-row items-center justify-between">
                   <CardTitle className="text-base uppercase">
-                    Details: <span className="text-primary font-black">
-                      {selectedMetric === 'leads' ? 'Leads Created' : selectedMetric === 'deals' ? 'Deals Created' : selectedMetric === 'won' ? 'Deals Won' : `Status: ${selectedMetric}`}
+                    Details: <span className={cn(
+                      "font-black",
+                      selectedMetric === 'hot' && "text-red-600",
+                      selectedMetric === 'warm' && "text-yellow-600",
+                      selectedMetric === 'cold' && "text-blue-600",
+                      (selectedMetric === 'leads' || selectedMetric === 'deals' || selectedMetric === 'won') && "text-primary"
+                    )}>
+                      {selectedMetric === 'leads' ? 'Leads Created' : 
+                       selectedMetric === 'deals' ? 'Deals Created' : 
+                       selectedMetric === 'won' ? 'Deals Won' : 
+                       selectedMetric === 'hot' ? 'Hot Leads' : 
+                       selectedMetric === 'warm' ? 'Warm Leads' : 
+                       selectedMetric === 'cold' ? 'Cold Leads' : 
+                       `Status: ${selectedMetric}`}
                     </span> ({metricLeads.length} Records in {format(filterDate, 'MMM yyyy')})
                   </CardTitle>
                   <button 
