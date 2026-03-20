@@ -15,7 +15,7 @@ import {
   TableHeader, 
   TableRow 
 } from '@/components/ui/table';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { ScrollArea, ScrollArea as UIScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { format, getMonth, getYear, setMonth, setYear } from 'date-fns';
 import { getDisplayModule } from '@/lib/modules';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -79,8 +79,8 @@ const years = Array.from({ length: 11 }, (_, i) => 2020 + i);
 
 // Temperature Mapping Constants
 const HOT_STATUSES = ["Demo Given", "Order closed", "Proposal Sent", "Quote Sent", "Pursuing to Purchase"];
-const COLD_STATUSES = ["Interested", "Attended", "Existing Users"];
-const WARM_STATUSES = ["Not interested", "Do not contact", "Not viewed", "Fake", "Unattended", "Drop", "Lost"];
+const WARM_STATUSES = ["Interested", "Attended", "Existing Users"];
+const COLD_STATUSES = ["Not interested", "Do not contact", "Not viewed", "Fake", "Unattended", "Drop", "Lost"];
 
 export default function AnalyticsPage() {
   const { user, isAuthenticated, isLoading, leads: allLeads, modules } = useApp();
@@ -190,8 +190,8 @@ export default function AnalyticsPage() {
   const temperatureChartData = useMemo(() => {
     return [
       { name: 'Hot', value: stats.hot, fill: '#ef4444' },
-      { name: 'Warm', value: stats.warm, fill: '#f59e0b' },
-      { name: 'Cold', value: stats.cold, fill: '#3b82f6' },
+      { name: 'Warm', value: stats.warm, fill: '#3b82f6' },
+      { name: 'Cold', value: stats.cold, fill: '#f59e0b' },
     ].filter(d => d.value > 0);
   }, [stats]);
 
@@ -332,7 +332,7 @@ export default function AnalyticsPage() {
                   </CardContent>
                 </Card>
 
-                {/* LEAD TEMPERATURE CARD - UPDATED UI */}
+                {/* LEAD TEMPERATURE CARD */}
                 <Card className="border-2 shadow-md overflow-hidden h-fit">
                   <CardHeader className="border-b bg-muted/10 py-4">
                     <CardTitle className="text-sm font-bold uppercase tracking-wider">Lead Temperature</CardTitle>
@@ -362,13 +362,13 @@ export default function AnalyticsPage() {
                         className={cn(
                           "flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200 group relative",
                           selectedMetric === 'warm' 
-                            ? "border-amber-500 bg-amber-50 shadow-md scale-105 z-10" 
-                            : "border-amber-100 bg-amber-50/30 hover:border-amber-300"
+                            ? "border-blue-500 bg-blue-50 shadow-md scale-105 z-10" 
+                            : "border-blue-100 bg-blue-50/30 hover:border-blue-300"
                         )}
                       >
-                        <Sun className="h-6 w-6 mb-2 text-amber-500" />
+                        <Snowflake className="h-6 w-6 mb-2 text-blue-500" />
                         <span className="text-2xl font-black text-foreground mb-1">{stats.warm}</span>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-amber-600">WARM</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-blue-600">WARM</span>
                         <span className="text-[10px] font-medium text-muted-foreground mt-1">{getPct(stats.warm)}%</span>
                       </button>
 
@@ -378,13 +378,13 @@ export default function AnalyticsPage() {
                         className={cn(
                           "flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200 group relative",
                           selectedMetric === 'cold' 
-                            ? "border-blue-500 bg-blue-50 shadow-md scale-105 z-10" 
-                            : "border-blue-100 bg-blue-50/30 hover:border-blue-300"
+                            ? "border-amber-500 bg-amber-50 shadow-md scale-105 z-10" 
+                            : "border-amber-100 bg-amber-50/30 hover:border-amber-300"
                         )}
                       >
-                        <Snowflake className="h-6 w-6 mb-2 text-blue-500" />
+                        <Sun className="h-6 w-6 mb-2 text-amber-500" />
                         <span className="text-2xl font-black text-foreground mb-1">{stats.cold}</span>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-blue-600">COLD</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-amber-600">COLD</span>
                         <span className="text-[10px] font-medium text-muted-foreground mt-1">{getPct(stats.cold)}%</span>
                       </button>
                     </div>
@@ -425,11 +425,11 @@ export default function AnalyticsPage() {
                           <span className="text-[11px] font-bold text-muted-foreground uppercase">Hot ({stats.hot})</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-full bg-[#f59e0b]" />
+                          <div className="w-3 h-3 rounded-full bg-[#3b82f6]" />
                           <span className="text-[11px] font-bold text-muted-foreground uppercase">Warm ({stats.warm})</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-full bg-[#3b82f6]" />
+                          <div className="w-3 h-3 rounded-full bg-[#f59e0b]" />
                           <span className="text-[11px] font-bold text-muted-foreground uppercase">Cold ({stats.cold})</span>
                         </div>
                       </div>
@@ -468,8 +468,8 @@ export default function AnalyticsPage() {
                     Details: <span className={cn(
                       "font-black",
                       selectedMetric === 'hot' && "text-red-600",
-                      selectedMetric === 'warm' && "text-amber-600",
-                      selectedMetric === 'cold' && "text-blue-600",
+                      selectedMetric === 'warm' && "text-blue-600",
+                      selectedMetric === 'cold' && "text-amber-600",
                       (selectedMetric === 'leads' || selectedMetric === 'deals' || selectedMetric === 'won') && "text-primary"
                     )}>
                       {selectedMetric === 'leads' ? 'Leads Created' : 
