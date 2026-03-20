@@ -95,14 +95,14 @@ export default function LeadSourceChart({ data }: LeadSourceChartProps) {
           strokeLinecap="round"
           strokeLinejoin="round"
         />
-        {/* The label text */}
+        {/* The label text - INCREASED FONT SIZE HERE */}
         <text 
           x={tx} 
           y={ty} 
           fill="#1e293b" 
           textAnchor={tx > cx ? 'start' : 'end'} 
           dominantBaseline="central"
-          className="text-[11px] font-black tracking-tight"
+          className="text-[13px] font-black tracking-tight"
         >
           {`${name.toUpperCase()} (${(percent * 100).toFixed(1)}%)`}
         </text>
