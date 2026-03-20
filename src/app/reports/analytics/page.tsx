@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,10 +19,11 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { format, getMonth, getYear, setMonth, setYear } from 'date-fns';
 import { getDisplayModule } from '@/lib/modules';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ChevronRight, Calendar, BarChart3, Flame, Thermometer, Snowflake } from 'lucide-react';
+import { ChevronRight, Calendar, BarChart3, Flame, Sun, Snowflake } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
 
 const LeadSourceChart = dynamic(
   () => import('@/components/reports/lead-source-chart'),
@@ -125,7 +127,7 @@ export default function AnalyticsPage() {
     const deals = filteredLeads.filter(l => dealsCreatedStatuses.includes(l.status || ""));
     const won = filteredLeads.filter(l => l.status === "Order closed");
 
-    // Temperature Logic (Updated based on user request)
+    // Temperature Logic
     const hot = filteredLeads.filter(l => HOT_STATUSES.includes(l.status || ""));
     const warm = filteredLeads.filter(l => WARM_STATUSES.includes(l.status || ""));
     const cold = filteredLeads.filter(l => COLD_STATUSES.includes(l.status || ""));
@@ -149,7 +151,6 @@ export default function AnalyticsPage() {
     if (selectedMetric === 'deals') return filteredLeads.filter(l => dealsCreatedStatuses.includes(l.status || ""));
     if (selectedMetric === 'won') return filteredLeads.filter(l => l.status === "Order closed");
     
-    // Temperature Filters (Updated based on user request)
     if (selectedMetric === 'hot') return filteredLeads.filter(l => HOT_STATUSES.includes(l.status || ""));
     if (selectedMetric === 'warm') return filteredLeads.filter(l => WARM_STATUSES.includes(l.status || ""));
     if (selectedMetric === 'cold') return filteredLeads.filter(l => COLD_STATUSES.includes(l.status || ""));
@@ -166,7 +167,6 @@ export default function AnalyticsPage() {
       let rawName = (lead.reference || 'Other').trim();
       if (!rawName) rawName = 'Other';
 
-      // Clean misspellings and normalize to Title Case
       let normalized = rawName
         .toLowerCase()
         .split(/\s+/)
@@ -186,6 +186,14 @@ export default function AnalyticsPage() {
     return Array.from(counts.values())
       .sort((a, b) => b.value - a.value);
   }, [filteredLeads]);
+
+  const temperatureChartData = useMemo(() => {
+    return [
+      { name: 'Hot', value: stats.hot, fill: '#ef4444' },
+      { name: 'Warm', value: stats.warm, fill: '#f59e0b' },
+      { name: 'Cold', value: stats.cold, fill: '#3b82f6' },
+    ].filter(d => d.value > 0);
+  }, [stats]);
 
   const handleMetricClick = (metric: MetricType) => {
     if (selectedMetric === metric) {
@@ -211,6 +219,9 @@ export default function AnalyticsPage() {
     return null;
   }
 
+  const totalTemp = stats.hot + stats.warm + stats.cold;
+  const getPct = (val: number) => totalTemp > 0 ? ((val / totalTemp) * 100).toFixed(1) : "0.0";
+
   return (
     <AppContent>
       <div className="flex flex-col gap-6">
@@ -222,13 +233,12 @@ export default function AnalyticsPage() {
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               
-              {/* LEFT COLUMN: PERFORMANCE OVERVIEW & TEMPERATURE */}
+              {/* LEFT COLUMN: PERFORMANCE OVERVIEW & LEAD TEMPERATURE */}
               <div className="space-y-6">
                 <Card className="border-2 shadow-sm overflow-hidden h-fit">
                   <CardHeader className="flex flex-row items-center justify-between border-b bg-muted/10 py-4">
                     <CardTitle className="text-sm font-bold uppercase tracking-wider">Performance Overview</CardTitle>
                     
-                    {/* Month/Year Filter Dropdown */}
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button variant="outline" size="sm" className="h-8 gap-2 font-medium">
@@ -322,64 +332,113 @@ export default function AnalyticsPage() {
                   </CardContent>
                 </Card>
 
-                {/* LEAD TEMPERATURE CARD */}
-                <Card className="border-2 shadow-sm overflow-hidden h-fit">
+                {/* LEAD TEMPERATURE CARD - UPDATED UI */}
+                <Card className="border-2 shadow-md overflow-hidden h-fit">
                   <CardHeader className="border-b bg-muted/10 py-4">
                     <CardTitle className="text-sm font-bold uppercase tracking-wider">Lead Temperature</CardTitle>
                   </CardHeader>
-                  <CardContent className="p-4 grid grid-cols-3 gap-4">
-                    <button 
-                      onClick={() => handleMetricClick('hot')}
-                      className={cn(
-                        "flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200 group",
-                        selectedMetric === 'hot' 
-                          ? "border-red-500 bg-red-50 shadow-md scale-105" 
-                          : "border-red-100 bg-white hover:border-red-300 hover:shadow-sm"
-                      )}
-                    >
-                      <Flame className={cn("h-6 w-6 mb-2 transition-colors", selectedMetric === 'hot' ? "text-red-600" : "text-red-400 group-hover:text-red-500")} />
-                      <span className={cn("text-2xl font-black transition-colors", selectedMetric === 'hot' ? "text-red-700" : "text-red-600")}>
-                        {stats.hot}
-                      </span>
-                      <span className="text-[9px] font-black uppercase tracking-widest text-red-500/80 mt-1">Hot Lead</span>
-                    </button>
+                  <CardContent className="p-6 space-y-8">
+                    {/* Temperature Sub-Cards */}
+                    <div className="grid grid-cols-3 gap-4">
+                      {/* HOT LEAD */}
+                      <button 
+                        onClick={() => handleMetricClick('hot')}
+                        className={cn(
+                          "flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200 group relative",
+                          selectedMetric === 'hot' 
+                            ? "border-red-500 bg-red-50 shadow-md scale-105 z-10" 
+                            : "border-red-100 bg-red-50/30 hover:border-red-300"
+                        )}
+                      >
+                        <Flame className="h-6 w-6 mb-2 text-red-500" />
+                        <span className="text-2xl font-black text-foreground mb-1">{stats.hot}</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-red-600">HOT</span>
+                        <span className="text-[10px] font-medium text-muted-foreground mt-1">{getPct(stats.hot)}%</span>
+                      </button>
 
-                    <button 
-                      onClick={() => handleMetricClick('warm')}
-                      className={cn(
-                        "flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200 group",
-                        selectedMetric === 'warm' 
-                          ? "border-yellow-500 bg-yellow-50 shadow-md scale-105" 
-                          : "border-yellow-100 bg-white hover:border-yellow-300 hover:shadow-sm"
-                      )}
-                    >
-                      <Thermometer className={cn("h-6 w-6 mb-2 transition-colors", selectedMetric === 'warm' ? "text-yellow-600" : "text-yellow-400 group-hover:text-yellow-500")} />
-                      <span className={cn("text-2xl font-black transition-colors", selectedMetric === 'warm' ? "text-yellow-700" : "text-yellow-600")}>
-                        {stats.warm}
-                      </span>
-                      <span className="text-[9px] font-black uppercase tracking-widest text-yellow-600/80 mt-1">Warm Lead</span>
-                    </button>
+                      {/* WARM LEAD */}
+                      <button 
+                        onClick={() => handleMetricClick('warm')}
+                        className={cn(
+                          "flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200 group relative",
+                          selectedMetric === 'warm' 
+                            ? "border-amber-500 bg-amber-50 shadow-md scale-105 z-10" 
+                            : "border-amber-100 bg-amber-50/30 hover:border-amber-300"
+                        )}
+                      >
+                        <Sun className="h-6 w-6 mb-2 text-amber-500" />
+                        <span className="text-2xl font-black text-foreground mb-1">{stats.warm}</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-amber-600">WARM</span>
+                        <span className="text-[10px] font-medium text-muted-foreground mt-1">{getPct(stats.warm)}%</span>
+                      </button>
 
-                    <button 
-                      onClick={() => handleMetricClick('cold')}
-                      className={cn(
-                        "flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200 group",
-                        selectedMetric === 'cold' 
-                          ? "border-blue-500 bg-blue-50 shadow-md scale-105" 
-                          : "border-blue-100 bg-white hover:border-blue-300 hover:shadow-sm"
-                      )}
-                    >
-                      <Snowflake className={cn("h-6 w-6 mb-2 transition-colors", selectedMetric === 'cold' ? "text-blue-600" : "text-blue-400 group-hover:text-blue-500")} />
-                      <span className={cn("text-2xl font-black transition-colors", selectedMetric === 'cold' ? "text-blue-700" : "text-blue-600")}>
-                        {stats.cold}
-                      </span>
-                      <span className="text-[9px] font-black uppercase tracking-widest text-blue-500/80 mt-1">Cold Lead</span>
-                    </button>
+                      {/* COLD LEAD */}
+                      <button 
+                        onClick={() => handleMetricClick('cold')}
+                        className={cn(
+                          "flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200 group relative",
+                          selectedMetric === 'cold' 
+                            ? "border-blue-500 bg-blue-50 shadow-md scale-105 z-10" 
+                            : "border-blue-100 bg-blue-50/30 hover:border-blue-300"
+                        )}
+                      >
+                        <Snowflake className="h-6 w-6 mb-2 text-blue-500" />
+                        <span className="text-2xl font-black text-foreground mb-1">{stats.cold}</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-blue-600">COLD</span>
+                        <span className="text-[10px] font-medium text-muted-foreground mt-1">{getPct(stats.cold)}%</span>
+                      </button>
+                    </div>
+
+                    {/* Temperature Donut Chart */}
+                    <div className="flex flex-col items-center">
+                      <div className="h-[240px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={temperatureChartData}
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={60}
+                              outerRadius={90}
+                              paddingAngle={5}
+                              dataKey="value"
+                              animationBegin={0}
+                              animationDuration={1000}
+                              stroke="none"
+                            >
+                              {temperatureChartData.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={entry.fill} className="outline-none" />
+                              ))}
+                            </Pie>
+                            <RechartsTooltip 
+                              formatter={(value: number, name: string) => [`${value} leads (${getPct(value)}%)`, name]}
+                              contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                            />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+                      
+                      {/* Custom Legend */}
+                      <div className="flex items-center gap-6 mt-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full bg-[#ef4444]" />
+                          <span className="text-[11px] font-bold text-muted-foreground uppercase">Hot ({stats.hot})</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full bg-[#f59e0b]" />
+                          <span className="text-[11px] font-bold text-muted-foreground uppercase">Warm ({stats.warm})</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full bg-[#3b82f6]" />
+                          <span className="text-[11px] font-bold text-muted-foreground uppercase">Cold ({stats.cold})</span>
+                        </div>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               </div>
 
-              {/* RIGHT COLUMN: PIE CHART */}
+              {/* RIGHT COLUMN: SOURCE PIE CHART */}
               <div className="space-y-6">
                 <Card className="border-2 shadow-sm">
                   <CardHeader className="flex flex-row items-center gap-2 border-b bg-muted/10 py-4">
@@ -409,7 +468,7 @@ export default function AnalyticsPage() {
                     Details: <span className={cn(
                       "font-black",
                       selectedMetric === 'hot' && "text-red-600",
-                      selectedMetric === 'warm' && "text-yellow-600",
+                      selectedMetric === 'warm' && "text-amber-600",
                       selectedMetric === 'cold' && "text-blue-600",
                       (selectedMetric === 'leads' || selectedMetric === 'deals' || selectedMetric === 'won') && "text-primary"
                     )}>
