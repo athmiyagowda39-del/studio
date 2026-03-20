@@ -14,14 +14,21 @@ type LeadSourceChartProps = {
 }
 
 const COLORS = [
-  "#38bdf8", // Blue (Cold Call style)
-  "#34d399", // Green (Advertisement style)
-  "#6ee7b7", // Teal (Web Download style)
-  "#fbbf24", // Yellow (Seminar style)
-  "#e11d48", // Red (Partner style)
-  "#f59e0b", // Orange (Store style)
-  "#a855f7", // Purple (Referral style)
+  "#38bdf8", // Cyan
+  "#10b981", // Emerald
+  "#4ade80", // Light Green
+  "#fbbf24", // Amber
+  "#f59e0b", // Orange
+  "#e11d48", // Rose
+  "#8b5cf6", // Violet
   "#64748b", // Slate
+  "#ec4899", // Pink
+  "#06b6d4", // Sky
+  "#f97316", // Bright Orange
+  "#6366f1", // Indigo
+  "#14b8a6", // Teal
+  "#ef4444", // Red
+  "#a855f7", // Purple
 ];
 
 export default function LeadSourceChart({ data }: LeadSourceChartProps) {
@@ -33,7 +40,7 @@ export default function LeadSourceChart({ data }: LeadSourceChartProps) {
     const RADIAN = Math.PI / 180;
     
     // Position labels further outside to avoid overlapping
-    const radius = outerRadius + 30;
+    const radius = outerRadius + 45;
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
@@ -44,7 +51,7 @@ export default function LeadSourceChart({ data }: LeadSourceChartProps) {
         fill="#334155" 
         textAnchor={x > cx ? 'start' : 'end'} 
         dominantBaseline="central"
-        className="text-[11px] font-bold tracking-tighter"
+        className="text-[10px] font-bold tracking-tight"
       >
         {`${name.toUpperCase()} (${(percent * 100).toFixed(1)}%)`}
       </text>
@@ -60,7 +67,7 @@ export default function LeadSourceChart({ data }: LeadSourceChartProps) {
   }
 
   return (
-    <div className="w-full h-[600px] flex flex-col p-4 bg-background overflow-hidden">
+    <div className="w-full h-[700px] flex flex-col p-4 bg-background overflow-hidden">
       <div className="flex-1">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
@@ -68,17 +75,17 @@ export default function LeadSourceChart({ data }: LeadSourceChartProps) {
               data={data}
               cx="50%"
               cy="50%"
-              labelLine={{ stroke: '#94a3b8', strokeWidth: 1.5 }}
+              labelLine={{ stroke: '#cbd5e1', strokeWidth: 1 }}
               label={renderCustomizedLabel}
-              outerRadius={130}
+              outerRadius={120}
               innerRadius={80} // Donut shape
               dataKey="value"
               animationBegin={0}
-              animationDuration={1500}
+              animationDuration={1200}
               stroke="white"
               strokeWidth={2}
               paddingAngle={0}
-              minAngle={15} // Prevents tiny segments from disappearing
+              minAngle={12} // Ensures small slices have enough space for their labels
             >
               {data.map((entry, index) => (
                 <Cell 
@@ -89,10 +96,16 @@ export default function LeadSourceChart({ data }: LeadSourceChartProps) {
               ))}
             </Pie>
             <Tooltip 
-              contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}
+              contentStyle={{ 
+                borderRadius: '8px', 
+                border: '1px solid #e2e8f0', 
+                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                fontSize: '12px',
+                fontWeight: '600'
+              }}
               formatter={(value: number) => [
-                `${value} Leads (${((value / totalLeads) * 100).toFixed(1)}%)`, 
-                'Count'
+                `Count : ${value} Leads (${((value / totalLeads) * 100).toFixed(1)}%)`, 
+                ''
               ]}
             />
           </PieChart>
