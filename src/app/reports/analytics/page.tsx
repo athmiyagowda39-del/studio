@@ -170,26 +170,8 @@ export default function AnalyticsPage() {
           <CardContent className="p-6 space-y-8">
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* LEFT COLUMN: PIE CHART */}
-              <div className="space-y-6">
-                <Card className="border-2 shadow-sm">
-                  <CardHeader className="flex flex-row items-center gap-2 border-b bg-muted/10 py-4">
-                    <BarChart3 className="h-4 w-4 text-primary" />
-                    <CardTitle className="text-sm font-bold uppercase tracking-wider">Leads Distribution by Source</CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-0 flex items-center justify-center">
-                    {isClient && sourceData.length > 0 ? (
-                      <LeadSourceChart data={sourceData} />
-                    ) : (
-                      <div className="h-[400px] flex items-center justify-center text-muted-foreground">
-                        No source data available to display.
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* RIGHT COLUMN: PERFORMANCE OVERVIEW */}
+              
+              {/* LEFT COLUMN: PERFORMANCE OVERVIEW */}
               <div className="space-y-6">
                 <Card className="border-2 shadow-sm overflow-hidden h-fit">
                   <CardHeader className="flex flex-row items-center justify-between border-b bg-muted/10 py-4">
@@ -255,6 +237,26 @@ export default function AnalyticsPage() {
                   </CardContent>
                 </Card>
               </div>
+
+              {/* RIGHT COLUMN: PIE CHART */}
+              <div className="space-y-6">
+                <Card className="border-2 shadow-sm">
+                  <CardHeader className="flex flex-row items-center gap-2 border-b bg-muted/10 py-4">
+                    <BarChart3 className="h-4 w-4 text-primary" />
+                    <CardTitle className="text-sm font-bold uppercase tracking-wider">Leads Distribution by Source</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0 flex items-center justify-center">
+                    {isClient && sourceData.length > 0 ? (
+                      <LeadSourceChart data={sourceData} />
+                    ) : (
+                      <div className="h-[400px] flex items-center justify-center text-muted-foreground">
+                        No source data available to display.
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+
             </div>
 
             {/* Drill Down Table */}

@@ -1,4 +1,3 @@
-
 "use client"
 
 import {
@@ -13,16 +12,19 @@ type LeadSourceChartProps = {
   data: { name: string; value: number }[]
 }
 
+const SOURCE_COLORS: Record<string, string> = {
+  "GOOGLE": "#6366f1", // Indigo
+  "EMAIL CAMPAIGN": "#f97316", // Orange
+  "SOCIAL MEDIA": "#ec4899", // Pink
+};
+
 const COLORS = [
   "#38bdf8", // Cyan
   "#10b981", // Emerald
   "#fbbf24", // Amber
   "#f43f5e", // Rose
   "#8b5cf6", // Violet
-  "#6366f1", // Indigo
-  "#f97316", // Orange
   "#14b8a6", // Teal
-  "#ec4899", // Pink
   "#06b6d4", // Sky
   "#4ade80", // Light Green
   "#e11d48", // Dark Rose
@@ -44,19 +46,18 @@ export default function LeadSourceChart({ data }: LeadSourceChartProps) {
     const sx = cx + outerRadius * Math.cos(angle);
     const sy = cy + outerRadius * Math.sin(angle);
     
-    // End just before the text
-    const lineLength = 40;
+    // End just before the text - Increased length to prevent overlap
+    const lineLength = 60;
     const ex = cx + (outerRadius + lineLength) * Math.cos(angle);
     const ey = cy + (outerRadius + lineLength) * Math.sin(angle);
     
     // Text position
-    const textRadius = outerRadius + lineLength + 10;
+    const textRadius = outerRadius + lineLength + 12;
     const tx = cx + textRadius * Math.cos(angle);
     const ty = cy + textRadius * Math.sin(angle);
 
-    // Arrowhead calculations (a small triangle at the end of the line)
+    // Arrowhead calculations
     const arrowSize = 6;
-    // Points for a triangle pointing outwards
     const x1 = ex - arrowSize * Math.cos(angle - Math.PI / 6);
     const y1 = ey - arrowSize * Math.sin(angle - Math.PI / 6);
     const x2 = ex - arrowSize * Math.cos(angle + Math.PI / 6);
@@ -113,10 +114,10 @@ export default function LeadSourceChart({ data }: LeadSourceChartProps) {
             <Pie
               data={data}
               cx="50%"
-              cy="50%"
-              labelLine={false} // Disable default lines to use our custom arrows
+              cy="45%" // Pull the chart slightly up
+              labelLine={false} 
               label={renderCustomizedLabel}
-              outerRadius={130}
+              outerRadius={135}
               innerRadius={85}
               dataKey="value"
               animationBegin={0}
@@ -124,15 +125,20 @@ export default function LeadSourceChart({ data }: LeadSourceChartProps) {
               stroke="white"
               strokeWidth={3}
               paddingAngle={1}
-              minAngle={15} // Ensure small slices have space for their arrows
+              minAngle={25} // Forced minimum angle to prevent label overlapping for tiny slices
             >
-              {data.map((entry, index) => (
-                <Cell 
-                  key={`cell-${index}`} 
-                  fill={COLORS[index % COLORS.length]} 
-                  className="hover:opacity-90 transition-opacity cursor-pointer outline-none"
-                />
-              ))}
+              {data.map((entry, index) => {
+                const normalizedName = entry.name.toUpperCase();
+                const customColor = SOURCE_COLORS[normalizedName];
+                
+                return (
+                  <Cell 
+                    key={`cell-${index}`} 
+                    fill={customColor || COLORS[index % COLORS.length]} 
+                    className="hover:opacity-90 transition-opacity cursor-pointer outline-none"
+                  />
+                );
+              })}
             </Pie>
             <Tooltip 
               contentStyle={{ 
