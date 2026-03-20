@@ -32,9 +32,10 @@ export default function LeadSourceChart({ data }: LeadSourceChartProps) {
   const totalLeads = data.reduce((acc, curr) => acc + curr.value, 0);
 
   // Custom label function to show Name and Percentage clearly
+  // We use outerRadius logic to push labels further away
   const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index, name }: any) => {
     const RADIAN = Math.PI / 180;
-    const radius = outerRadius * 1.25; // Move labels further outside
+    const radius = outerRadius * 1.35; // Increased radius to prevent overlap
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
@@ -45,7 +46,7 @@ export default function LeadSourceChart({ data }: LeadSourceChartProps) {
         fill={COLORS[index % COLORS.length]} 
         textAnchor={x > cx ? 'start' : 'end'} 
         dominantBaseline="central"
-        className="text-[11px] font-bold uppercase tracking-tight"
+        className="text-[10px] font-bold uppercase tracking-tight"
       >
         {`${name} (${(percent * 100).toFixed(1)}%)`}
       </text>
@@ -61,21 +62,22 @@ export default function LeadSourceChart({ data }: LeadSourceChartProps) {
   }
 
   return (
-    <div className="w-full h-[550px] flex flex-col p-4 bg-background">
+    <div className="w-full h-[650px] flex flex-col p-4 bg-background overflow-hidden">
       <div className="flex-1">
         <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
+          <PieChart margin={{ top: 20, right: 100, bottom: 20, left: 100 }}>
             <Pie
               data={data}
               cx="50%"
               cy="45%"
-              labelLine={{ stroke: '#94a3b8', strokeWidth: 1.5, strokeDasharray: '2 2' }}
+              labelLine={{ stroke: '#94a3b8', strokeWidth: 1, strokeDasharray: '2 2' }}
               label={renderCustomizedLabel}
-              outerRadius={130}
-              innerRadius={75} // Donut style for modern look
+              outerRadius={120}
+              innerRadius={70} 
               fill="#8884d8"
               dataKey="value"
               paddingAngle={2}
+              minAngle={15} // Forces small segments to be large enough to anchor a label properly
               animationBegin={0}
               animationDuration={1500}
             >
@@ -102,10 +104,12 @@ export default function LeadSourceChart({ data }: LeadSourceChartProps) {
               align="center"
               iconType="circle"
               wrapperStyle={{ 
-                paddingTop: '40px',
-                fontSize: '10px',
+                paddingTop: '60px',
+                fontSize: '9px',
                 fontWeight: 'bold',
-                textTransform: 'uppercase'
+                textTransform: 'uppercase',
+                maxWidth: '90%',
+                margin: '0 auto'
               }}
             />
           </PieChart>

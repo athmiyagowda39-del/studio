@@ -130,11 +130,14 @@ export default function AnalyticsPage() {
       let rawName = (lead.reference || 'Other').trim();
       if (!rawName) rawName = 'Other';
 
-      const standardizedName = rawName
+      // Advanced Normalization to fix misspellings like "Refferal" vs "Referral"
+      let standardizedName = rawName
         .toLowerCase()
         .split(/\s+/)
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
+      
+      if (standardizedName === 'Refferal') standardizedName = 'Referral';
 
       const existing = counts.get(standardizedName);
 
