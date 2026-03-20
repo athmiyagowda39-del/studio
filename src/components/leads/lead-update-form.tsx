@@ -229,7 +229,7 @@ export default function LeadUpdateForm({ leadId, onClearSelection }: { leadId: s
       await updateLead(leadDetails.leadId, {
         followUps: [...(followUps || []), newFollowUp],
         nextFollowUpDate: nextFollowUpDate && !isOrderClosed ? new Date(nextFollowUpDate + "T00:00:00").toISOString() : undefined,
-        creationDate: selectedIsoDate, // Set Lead Date to match the selected Follow-up Date
+        creationDate: selectedIsoDate, 
       })
       setRemarks("")
       setFollowUpDate("") 
@@ -345,6 +345,12 @@ export default function LeadUpdateForm({ leadId, onClearSelection }: { leadId: s
 
   const inputBgClass = "bg-muted/50";
   const isOrderClosedInRemarks = remarks.toLowerCase().includes("order closed");
+
+  // Re-enable min date restriction (e.g. last 3 days)
+  const today = new Date();
+  const minBackDate = new Date();
+  minBackDate.setDate(today.getDate() - 3);
+  const minDateStr = minBackDate.toISOString().split('T')[0];
 
   return (
     <div className="space-y-6">
@@ -506,6 +512,7 @@ export default function LeadUpdateForm({ leadId, onClearSelection }: { leadId: s
                 <Input 
                   type="date" 
                   value={followUpDate} 
+                  min={minDateStr}
                   onChange={e => setFollowUpDate(e.target.value)} 
                   disabled={isReadOnly} 
                 />

@@ -23,7 +23,6 @@ export default function ReportsPage() {
     { name: 'LEAD UPDATE STATUS REPORT', href: '/reports/lead-update-status' },
     { name: 'LEAD UPLOAD STATUS REPORT', href: '/reports/lead-upload-status' },
     { name: 'CONTRACT VALUES REPORT', href: '/reports/contract-values' },
-    { name: 'ANALYTICS', href: '/reports/analytics' },
     { name: 'AUDIT LOG REPORT', href: '/reports/audit-log', roles: ['Super Admin', 'Admin', 'Manager'] },
   ];
   
