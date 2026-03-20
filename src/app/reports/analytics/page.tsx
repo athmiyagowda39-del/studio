@@ -15,11 +15,13 @@ import {
   TableRow 
 } from '@/components/ui/table';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { format } from 'date-fns';
+import { format, getMonth, getYear, setMonth, setYear } from 'date-fns';
 import { getDisplayModule } from '@/lib/modules';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ChevronRight, Calendar, BarChart3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
 
 const LeadSourceChart = dynamic(
   () => import('@/components/reports/lead-source-chart'),
@@ -66,12 +68,22 @@ function ExpandableCell({ content, title }: { content: string | null | undefined
 
 type MetricType = 'leads' | 'deals' | 'won' | string | null;
 
+const months = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+];
+
+const years = Array.from({ length: 11 }, (_, i) => 2020 + i);
+
 export default function AnalyticsPage() {
   const { user, isAuthenticated, isLoading, leads: allLeads, modules } = useApp();
   const router = useRouter();
   const [isClient, setIsClient] = useState(false);
   const [selectedMetric, setSelectedMetric] = useState<MetricType>(null);
   const detailsRef = useRef<HTMLDivElement>(null);
+
+  // Date Filter State
+  const [filterDate, setFilterDate] = useState(new Date());
 
   useEffect(() => {
     setIsClient(true);
@@ -88,39 +100,51 @@ export default function AnalyticsPage() {
     return allLeads;
   }, [allLeads, user]);
 
+  // Filter leads based on selected month and year
+  const filteredLeads = useMemo(() => {
+    const targetMonth = getMonth(filterDate);
+    const targetYear = getYear(filterDate);
+
+    return visibleLeads.filter(lead => {
+      if (!lead.creationDate) return false;
+      const d = new Date(lead.creationDate);
+      return d.getMonth() === targetMonth && d.getFullYear() === targetYear;
+    });
+  }, [visibleLeads, filterDate]);
+
   const stats = useMemo(() => {
-    if (!visibleLeads.length) return { created: 0, deals: 0, won: 0 };
+    if (!filteredLeads.length) return { created: 0, deals: 0, won: 0 };
 
     const dealsCreatedStatuses = ["Demo Given", "Proposal Sent", "Quote Sent", "Pursuing to Purchase"];
     
-    const deals = visibleLeads.filter(l => dealsCreatedStatuses.includes(l.status || ""));
-    const won = visibleLeads.filter(l => l.status === "Order closed");
+    const deals = filteredLeads.filter(l => dealsCreatedStatuses.includes(l.status || ""));
+    const won = filteredLeads.filter(l => l.status === "Order closed");
 
     return {
-      created: visibleLeads.length,
+      created: filteredLeads.length,
       deals: deals.length,
       won: won.length
     };
-  }, [visibleLeads]);
+  }, [filteredLeads]);
 
   const metricLeads = useMemo(() => {
-    if (!selectedMetric || !visibleLeads.length) return [];
+    if (!selectedMetric || !filteredLeads.length) return [];
 
     const dealsCreatedStatuses = ["Demo Given", "Proposal Sent", "Quote Sent", "Pursuing to Purchase"];
 
-    if (selectedMetric === 'leads') return visibleLeads;
-    if (selectedMetric === 'deals') return visibleLeads.filter(l => dealsCreatedStatuses.includes(l.status || ""));
-    if (selectedMetric === 'won') return visibleLeads.filter(l => l.status === "Order closed");
+    if (selectedMetric === 'leads') return filteredLeads;
+    if (selectedMetric === 'deals') return filteredLeads.filter(l => dealsCreatedStatuses.includes(l.status || ""));
+    if (selectedMetric === 'won') return filteredLeads.filter(l => l.status === "Order closed");
     
-    return visibleLeads.filter(l => l.status === selectedMetric);
-  }, [selectedMetric, visibleLeads]);
+    return filteredLeads.filter(l => l.status === selectedMetric);
+  }, [selectedMetric, filteredLeads]);
 
   const sourceData = useMemo(() => {
-    if (!visibleLeads.length) return [];
+    if (!filteredLeads.length) return [];
     
     const counts = new Map<string, { name: string; value: number }>();
     
-    visibleLeads.forEach(lead => {
+    filteredLeads.forEach(lead => {
       let rawName = (lead.reference || 'Other').trim();
       if (!rawName) rawName = 'Other';
 
@@ -143,7 +167,7 @@ export default function AnalyticsPage() {
 
     return Array.from(counts.values())
       .sort((a, b) => b.value - a.value);
-  }, [visibleLeads]);
+  }, [filteredLeads]);
 
   const handleMetricClick = (metric: MetricType) => {
     if (selectedMetric === metric) {
@@ -154,6 +178,15 @@ export default function AnalyticsPage() {
         detailsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 100);
     }
+  };
+
+  const handleMonthChange = (monthName: string) => {
+    const monthIndex = months.indexOf(monthName);
+    setFilterDate(prev => setMonth(prev, monthIndex));
+  };
+
+  const handleYearChange = (yearStr: string) => {
+    setFilterDate(prev => setYear(prev, parseInt(yearStr, 10)));
   };
 
   if (isLoading || !isAuthenticated) {
@@ -176,10 +209,44 @@ export default function AnalyticsPage() {
                 <Card className="border-2 shadow-sm overflow-hidden h-fit">
                   <CardHeader className="flex flex-row items-center justify-between border-b bg-muted/10 py-4">
                     <CardTitle className="text-sm font-bold uppercase tracking-wider">Performance Overview</CardTitle>
-                    <div className="flex items-center gap-2 bg-background border rounded-md px-3 py-1 text-xs font-medium text-muted-foreground">
-                      <Calendar className="h-3 w-3" />
-                      {format(new Date(), 'MMMM yyyy')}
-                    </div>
+                    
+                    {/* Month/Year Filter Dropdown */}
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" size="sm" className="h-8 gap-2 font-medium">
+                          <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                          {format(filterDate, 'MMMM yyyy')}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-64 p-4 space-y-4" align="end">
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-bold uppercase text-muted-foreground tracking-widest">Select Month</label>
+                          <Select value={months[getMonth(filterDate)]} onValueChange={handleMonthChange}>
+                            <SelectTrigger className="h-9">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {months.map(m => (
+                                <SelectItem key={m} value={m}>{m}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-bold uppercase text-muted-foreground tracking-widest">Select Year</label>
+                          <Select value={getYear(filterDate).toString()} onValueChange={handleYearChange}>
+                            <SelectTrigger className="h-9">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {years.map(y => (
+                                <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
                   </CardHeader>
                   <CardContent className="p-0">
                     <div className="flex flex-col">
@@ -245,12 +312,13 @@ export default function AnalyticsPage() {
                     <BarChart3 className="h-4 w-4 text-primary" />
                     <CardTitle className="text-sm font-bold uppercase tracking-wider">Leads Distribution by Source</CardTitle>
                   </CardHeader>
-                  <CardContent className="p-0 flex items-center justify-center">
+                  <CardContent className="p-0 flex items-center justify-center min-h-[400px]">
                     {isClient && sourceData.length > 0 ? (
                       <LeadSourceChart data={sourceData} />
                     ) : (
-                      <div className="h-[400px] flex items-center justify-center text-muted-foreground">
-                        No source data available to display.
+                      <div className="h-[400px] flex items-center justify-center text-muted-foreground flex-col gap-2">
+                        <BarChart3 className="h-12 w-12 opacity-20" />
+                        <p className="font-medium text-sm">No data available for {format(filterDate, 'MMMM yyyy')}</p>
                       </div>
                     )}
                   </CardContent>
@@ -266,7 +334,7 @@ export default function AnalyticsPage() {
                   <CardTitle className="text-base uppercase">
                     Details: <span className="text-primary font-black">
                       {selectedMetric === 'leads' ? 'Leads Created' : selectedMetric === 'deals' ? 'Deals Created' : selectedMetric === 'won' ? 'Deals Won' : `Status: ${selectedMetric}`}
-                    </span> ({metricLeads.length} Records)
+                    </span> ({metricLeads.length} Records in {format(filterDate, 'MMM yyyy')})
                   </CardTitle>
                   <button 
                     onClick={() => setSelectedMetric(null)} 
@@ -336,7 +404,7 @@ export default function AnalyticsPage() {
                         ) : (
                           <TableRow>
                             <TableCell colSpan={15} className="h-24 text-center">
-                              No records found for this metric.
+                              No records found for this metric in {format(filterDate, 'MMMM yyyy')}.
                             </TableCell>
                           </TableRow>
                         )}
