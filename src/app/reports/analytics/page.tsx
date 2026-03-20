@@ -75,6 +75,11 @@ const months = [
 
 const years = Array.from({ length: 11 }, (_, i) => 2020 + i);
 
+// Temperature Mapping Constants
+const HOT_STATUSES = ["Demo Given", "Order closed", "Proposal Sent", "Quote Sent", "Pursuing to Purchase"];
+const COLD_STATUSES = ["Interested", "Attended", "Existing Users"];
+const WARM_STATUSES = ["Not interested", "Do not contact", "Not viewed", "Fake", "Unattended", "Drop", "Lost"];
+
 export default function AnalyticsPage() {
   const { user, isAuthenticated, isLoading, leads: allLeads, modules } = useApp();
   const router = useRouter();
@@ -120,10 +125,10 @@ export default function AnalyticsPage() {
     const deals = filteredLeads.filter(l => dealsCreatedStatuses.includes(l.status || ""));
     const won = filteredLeads.filter(l => l.status === "Order closed");
 
-    // Temperature Logic
-    const hot = filteredLeads.filter(l => ["Proposal Sent", "Quote Sent"].includes(l.status || ""));
-    const warm = filteredLeads.filter(l => ["Demo Given", "Pursuing to Purchase"].includes(l.status || ""));
-    const cold = filteredLeads.filter(l => ["Not viewed", "Attended"].includes(l.status || ""));
+    // Temperature Logic (Updated based on user request)
+    const hot = filteredLeads.filter(l => HOT_STATUSES.includes(l.status || ""));
+    const warm = filteredLeads.filter(l => WARM_STATUSES.includes(l.status || ""));
+    const cold = filteredLeads.filter(l => COLD_STATUSES.includes(l.status || ""));
 
     return {
       created: filteredLeads.length,
@@ -144,10 +149,10 @@ export default function AnalyticsPage() {
     if (selectedMetric === 'deals') return filteredLeads.filter(l => dealsCreatedStatuses.includes(l.status || ""));
     if (selectedMetric === 'won') return filteredLeads.filter(l => l.status === "Order closed");
     
-    // Temperature Filters
-    if (selectedMetric === 'hot') return filteredLeads.filter(l => ["Proposal Sent", "Quote Sent"].includes(l.status || ""));
-    if (selectedMetric === 'warm') return filteredLeads.filter(l => ["Demo Given", "Pursuing to Purchase"].includes(l.status || ""));
-    if (selectedMetric === 'cold') return filteredLeads.filter(l => ["Not viewed", "Attended"].includes(l.status || ""));
+    // Temperature Filters (Updated based on user request)
+    if (selectedMetric === 'hot') return filteredLeads.filter(l => HOT_STATUSES.includes(l.status || ""));
+    if (selectedMetric === 'warm') return filteredLeads.filter(l => WARM_STATUSES.includes(l.status || ""));
+    if (selectedMetric === 'cold') return filteredLeads.filter(l => COLD_STATUSES.includes(l.status || ""));
     
     return filteredLeads.filter(l => l.status === selectedMetric);
   }, [selectedMetric, filteredLeads]);
