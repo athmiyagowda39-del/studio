@@ -16,45 +16,84 @@ type LeadSourceChartProps = {
 const COLORS = [
   "#38bdf8", // Cyan
   "#10b981", // Emerald
-  "#4ade80", // Light Green
   "#fbbf24", // Amber
-  "#f59e0b", // Orange
-  "#e11d48", // Rose
+  "#f43f5e", // Rose
   "#8b5cf6", // Violet
-  "#64748b", // Slate
+  "#6366f1", // Indigo
+  "#f97316", // Orange
+  "#14b8a6", // Teal
   "#ec4899", // Pink
   "#06b6d4", // Sky
-  "#f97316", // Bright Orange
-  "#6366f1", // Indigo
-  "#14b8a6", // Teal
-  "#ef4444", // Red
+  "#4ade80", // Light Green
+  "#e11d48", // Dark Rose
   "#a855f7", // Purple
+  "#64748b", // Slate
+  "#ef4444", // Red
 ];
 
 export default function LeadSourceChart({ data }: LeadSourceChartProps) {
   const totalLeads = data.reduce((acc, curr) => acc + curr.value, 0);
 
-  // Custom label function to match reference: NAME (PERCENT%) in UPPER CASE
   const renderCustomizedLabel = (props: any) => {
     const { cx, cy, midAngle, outerRadius, percent, name } = props;
     const RADIAN = Math.PI / 180;
+    const angle = -midAngle * RADIAN;
     
-    // Position labels further outside to avoid overlapping
-    const radius = outerRadius + 45;
-    const x = cx + radius * Math.cos(-midAngle * RADIAN);
-    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+    // Coordinates for the arrow line
+    // Start at the edge of the donut
+    const sx = cx + outerRadius * Math.cos(angle);
+    const sy = cy + outerRadius * Math.sin(angle);
+    
+    // End just before the text
+    const lineLength = 40;
+    const ex = cx + (outerRadius + lineLength) * Math.cos(angle);
+    const ey = cy + (outerRadius + lineLength) * Math.sin(angle);
+    
+    // Text position
+    const textRadius = outerRadius + lineLength + 10;
+    const tx = cx + textRadius * Math.cos(angle);
+    const ty = cy + textRadius * Math.sin(angle);
+
+    // Arrowhead calculations (a small triangle at the end of the line)
+    const arrowSize = 6;
+    // Points for a triangle pointing outwards
+    const x1 = ex - arrowSize * Math.cos(angle - Math.PI / 6);
+    const y1 = ey - arrowSize * Math.sin(angle - Math.PI / 6);
+    const x2 = ex - arrowSize * Math.cos(angle + Math.PI / 6);
+    const y2 = ey - arrowSize * Math.sin(angle + Math.PI / 6);
 
     return (
-      <text 
-        x={x} 
-        y={y} 
-        fill="#334155" 
-        textAnchor={x > cx ? 'start' : 'end'} 
-        dominantBaseline="central"
-        className="text-[10px] font-bold tracking-tight"
-      >
-        {`${name.toUpperCase()} (${(percent * 100).toFixed(1)}%)`}
-      </text>
+      <g>
+        {/* The arrow line */}
+        <line 
+          x1={sx} 
+          y1={sy} 
+          x2={ex} 
+          y2={ey} 
+          stroke="#94a3b8" 
+          strokeWidth={1.5} 
+        />
+        {/* The arrowhead (>) */}
+        <path
+          d={`M ${x1} ${y1} L ${ex} ${ey} L ${x2} ${y2}`}
+          fill="none"
+          stroke="#94a3b8"
+          strokeWidth={1.5}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        {/* The label text */}
+        <text 
+          x={tx} 
+          y={ty} 
+          fill="#1e293b" 
+          textAnchor={tx > cx ? 'start' : 'end'} 
+          dominantBaseline="central"
+          className="text-[11px] font-black tracking-tight"
+        >
+          {`${name.toUpperCase()} (${(percent * 100).toFixed(1)}%)`}
+        </text>
+      </g>
     );
   };
 
@@ -67,7 +106,7 @@ export default function LeadSourceChart({ data }: LeadSourceChartProps) {
   }
 
   return (
-    <div className="w-full h-[700px] flex flex-col p-4 bg-background overflow-hidden">
+    <div className="w-full h-[750px] flex flex-col p-4 bg-background overflow-hidden">
       <div className="flex-1">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
@@ -75,17 +114,17 @@ export default function LeadSourceChart({ data }: LeadSourceChartProps) {
               data={data}
               cx="50%"
               cy="50%"
-              labelLine={{ stroke: '#cbd5e1', strokeWidth: 1 }}
+              labelLine={false} // Disable default lines to use our custom arrows
               label={renderCustomizedLabel}
-              outerRadius={120}
-              innerRadius={80} // Donut shape
+              outerRadius={130}
+              innerRadius={85}
               dataKey="value"
               animationBegin={0}
-              animationDuration={1200}
+              animationDuration={1000}
               stroke="white"
-              strokeWidth={2}
-              paddingAngle={0}
-              minAngle={12} // Ensures small slices have enough space for their labels
+              strokeWidth={3}
+              paddingAngle={1}
+              minAngle={15} // Ensure small slices have space for their arrows
             >
               {data.map((entry, index) => (
                 <Cell 
@@ -97,11 +136,12 @@ export default function LeadSourceChart({ data }: LeadSourceChartProps) {
             </Pie>
             <Tooltip 
               contentStyle={{ 
-                borderRadius: '8px', 
-                border: '1px solid #e2e8f0', 
-                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-                fontSize: '12px',
-                fontWeight: '600'
+                borderRadius: '12px', 
+                border: 'none', 
+                boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                fontSize: '13px',
+                fontWeight: '700',
+                padding: '12px'
               }}
               formatter={(value: number) => [
                 `Count : ${value} Leads (${((value / totalLeads) * 100).toFixed(1)}%)`, 
