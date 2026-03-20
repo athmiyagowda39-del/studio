@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,7 +18,7 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { format } from 'date-fns';
 import { getDisplayModule } from '@/lib/modules';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ChevronRight, Calendar, BarChart3, TrendingUp } from 'lucide-react';
+import { ChevronRight, Calendar, BarChart3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const LeadSourceChart = dynamic(
@@ -104,20 +103,6 @@ export default function AnalyticsPage() {
     };
   }, [visibleLeads]);
 
-  const statusRanking = useMemo(() => {
-    if (!visibleLeads.length) return [];
-    
-    const counts = new Map<string, number>();
-    visibleLeads.forEach(lead => {
-      const status = lead.status || 'Not viewed';
-      counts.set(status, (counts.get(status) || 0) + 1);
-    });
-
-    return Array.from(counts.entries())
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value);
-  }, [visibleLeads]);
-
   const metricLeads = useMemo(() => {
     if (!selectedMetric || !visibleLeads.length) return [];
 
@@ -139,6 +124,7 @@ export default function AnalyticsPage() {
       let rawName = (lead.reference || 'Other').trim();
       if (!rawName) rawName = 'Other';
 
+      // Clean misspellings and normalize to Title Case
       let normalized = rawName
         .toLowerCase()
         .split(/\s+/)
@@ -184,7 +170,7 @@ export default function AnalyticsPage() {
           <CardContent className="p-6 space-y-8">
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* LEFT COLUMN: PIE CHART & STATUS RANKING */}
+              {/* LEFT COLUMN: PIE CHART */}
               <div className="space-y-6">
                 <Card className="border-2 shadow-sm">
                   <CardHeader className="flex flex-row items-center gap-2 border-b bg-muted/10 py-4">
@@ -199,50 +185,6 @@ export default function AnalyticsPage() {
                         No source data available to display.
                       </div>
                     )}
-                  </CardContent>
-                </Card>
-
-                <Card className="border-2 shadow-sm overflow-hidden h-fit">
-                  <CardHeader className="flex flex-row items-center gap-2 border-b bg-muted/10 py-4">
-                    <TrendingUp className="h-4 w-4 text-primary" />
-                    <CardTitle className="text-sm font-bold uppercase tracking-wider">Lead Status Ranking</CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    <ScrollArea className="h-[400px]">
-                      <div className="divide-y">
-                        {statusRanking.map((status, index) => (
-                          <div 
-                            key={status.name}
-                            className={cn(
-                              "group flex items-center justify-between p-6 cursor-pointer hover:bg-muted/30 transition-all",
-                              selectedMetric === status.name && "bg-primary/5"
-                            )}
-                            onClick={() => handleMetricClick(status.name)}
-                          >
-                            <div className="flex items-center gap-6 flex-1">
-                              <span className="text-sm font-bold text-muted-foreground min-w-[25px]">{index + 1}.</span>
-                              <div className="flex flex-col flex-1 gap-2">
-                                <span className="text-sm font-black uppercase tracking-widest group-hover:text-primary transition-colors">
-                                  {status.name}
-                                </span>
-                                <div className="w-full bg-muted/20 h-[3px] rounded-full overflow-hidden">
-                                  <div 
-                                    className="h-full bg-primary shadow-[0_0_8px_rgba(63,81,181,0.5)] transition-all duration-1000" 
-                                    style={{ width: `${(status.value / stats.created) * 100}%` }}
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-6 ml-6">
-                              <span className="text-xl font-black text-foreground">{status.value}</span>
-                              <span className="text-[11px] font-bold text-muted-foreground border-2 border-muted bg-background px-2.5 py-1 rounded-md min-w-[55px] text-center">
-                                {((status.value / stats.created) * 100).toFixed(1)}%
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </ScrollArea>
                   </CardContent>
                 </Card>
               </div>
