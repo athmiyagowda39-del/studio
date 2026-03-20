@@ -1,3 +1,4 @@
+
 "use client"
 
 import {
@@ -13,24 +14,35 @@ type LeadSourceChartProps = {
 }
 
 const SOURCE_COLORS: Record<string, string> = {
-  "GOOGLE": "#6366f1", // Indigo
-  "EMAIL CAMPAIGN": "#f97316", // Orange
-  "SOCIAL MEDIA": "#ec4899", // Pink
+  "WALK-IN": "#FF6B6B",
+  "REFERRAL": "#4ECDC4",
+  "COLD CALL": "#45B7D1",
+  "OTHER": "#FFA07A",
+  "WEBSITE": "#98D8C8",
+  "TELECALLING": "#F7DC6F",
+  "EMAIL CAMPAIGN": "#BB8FCE",
+  "SOCIAL MEDIA": "#85C1E9",
+  "INDIAMART": "#F8C471",
+  "GOOGLE": "#82E0AA",
+  "DEMO REQUEST": "#F1948A",
+  "GOOGLE ADS": "#85929E",
+  "FACEBOOK ADS": "#D7BDE2",
+  "LINKEDIN": "#A3E4D7",
 };
 
 const COLORS = [
-  "#38bdf8", // Cyan
-  "#10b981", // Emerald
-  "#fbbf24", // Amber
-  "#f43f5e", // Rose
-  "#8b5cf6", // Violet
-  "#14b8a6", // Teal
-  "#06b6d4", // Sky
-  "#4ade80", // Light Green
-  "#e11d48", // Dark Rose
-  "#a855f7", // Purple
-  "#64748b", // Slate
-  "#ef4444", // Red
+  "#38bdf8", // Cyan fallback
+  "#10b981", 
+  "#fbbf24", 
+  "#f43f5e", 
+  "#8b5cf6", 
+  "#14b8a6", 
+  "#06b6d4", 
+  "#4ade80", 
+  "#e11d48", 
+  "#a855f7", 
+  "#64748b", 
+  "#ef4444", 
 ];
 
 export default function LeadSourceChart({ data }: LeadSourceChartProps) {
@@ -128,7 +140,7 @@ export default function LeadSourceChart({ data }: LeadSourceChartProps) {
               minAngle={25} // Forced minimum angle to prevent label overlapping for tiny slices
             >
               {data.map((entry, index) => {
-                const normalizedName = entry.name.toUpperCase();
+                const normalizedName = entry.name.toUpperCase().trim();
                 const customColor = SOURCE_COLORS[normalizedName];
                 
                 return (
