@@ -19,7 +19,7 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { format } from 'date-fns';
 import { getDisplayModule } from '@/lib/modules';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ChevronRight, Calendar } from 'lucide-react';
+import { ChevronRight, Calendar, BarChart3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const LeadSourceChart = dynamic(
@@ -124,14 +124,12 @@ export default function AnalyticsPage() {
   const sourceData = useMemo(() => {
     if (!visibleLeads.length) return [];
     
-    // Group sources with strict case-insensitive normalization and Title Case formatting
     const counts = new Map<string, { name: string; value: number }>();
     
     visibleLeads.forEach(lead => {
       let rawName = (lead.reference || 'Other').trim();
       if (!rawName) rawName = 'Other';
 
-      // Standardize to Title Case for perfect deduplication (merges "Email", "email", etc)
       const standardizedName = rawName
         .toLowerCase()
         .split(/\s+/)
@@ -175,9 +173,9 @@ export default function AnalyticsPage() {
           </CardHeader>
           <CardContent className="p-6 space-y-8">
             
-            {/* PERFORMANCE OVERVIEW SECTION */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <Card className="border-2 shadow-sm overflow-hidden">
+              {/* PERFORMANCE OVERVIEW SECTION */}
+              <Card className="border-2 shadow-sm overflow-hidden h-fit">
                 <CardHeader className="flex flex-row items-center justify-between border-b bg-muted/10 py-4">
                   <CardTitle className="text-sm font-bold uppercase tracking-wider">Performance Overview</CardTitle>
                   <div className="flex items-center gap-2 bg-background border rounded-md px-3 py-1 text-xs font-medium text-muted-foreground">
@@ -187,7 +185,6 @@ export default function AnalyticsPage() {
                 </CardHeader>
                 <CardContent className="p-0">
                   <div className="flex flex-col">
-                    {/* LEADS CREATED */}
                     <div 
                       className={cn(
                         "group flex items-center justify-between p-6 border-b cursor-pointer transition-colors hover:bg-muted/30 relative",
@@ -205,7 +202,6 @@ export default function AnalyticsPage() {
                       </div>
                     </div>
 
-                    {/* DEALS CREATED */}
                     <div 
                       className={cn(
                         "group flex items-center justify-between p-6 border-b cursor-pointer transition-colors hover:bg-muted/30 relative",
@@ -223,7 +219,6 @@ export default function AnalyticsPage() {
                       </div>
                     </div>
 
-                    {/* DEALS WON */}
                     <div 
                       className={cn(
                         "group flex items-center justify-between p-6 cursor-pointer transition-colors hover:bg-muted/30 relative",
@@ -244,16 +239,19 @@ export default function AnalyticsPage() {
                 </CardContent>
               </Card>
 
-              {/* DONUT CHART SECTION */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm font-bold uppercase tracking-wider text-center">Leads Distribution by Source (Reference)</CardTitle>
+              {/* SOURCE DISTRIBUTION SECTION */}
+              <Card className="border-2 shadow-sm">
+                <CardHeader className="flex flex-row items-center gap-2 border-b bg-muted/10">
+                  <BarChart3 className="h-4 w-4 text-primary" />
+                  <CardTitle className="text-sm font-bold uppercase tracking-wider">Leads Distribution by Source</CardTitle>
                 </CardHeader>
-                <CardContent className="flex justify-center items-center min-h-[550px] p-0">
+                <CardContent className="p-0">
                   {isClient && sourceData.length > 0 ? (
                     <LeadSourceChart data={sourceData} />
                   ) : (
-                    <div className="text-muted-foreground">No source data available to display chart.</div>
+                    <div className="h-[400px] flex items-center justify-center text-muted-foreground">
+                      No source data available to display.
+                    </div>
                   )}
                 </CardContent>
               </Card>

@@ -1,7 +1,17 @@
 
 "use client"
 
-import { Pie, PieChart, Cell, ResponsiveContainer, Tooltip } from "recharts"
+import {
+  Bar,
+  BarChart,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+  LabelList
+} from "recharts"
 
 type LeadSourceChartProps = {
   data: { name: string; value: number }[]
@@ -21,83 +31,77 @@ const COLORS = [
   "#64748B", // Professional Slate
 ];
 
-const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, name }: any) => {
-  const RADIAN = Math.PI / 180;
-  // Significantly further radius to ensure lines and text have space to breathe
-  const radius = outerRadius + (percent < 0.05 ? 70 : 50);
-  const x = cx + radius * Math.cos(-midAngle * RADIAN);
-  const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
-  // Shorten name if it's too long to prevent text collision
-  const displayName = name.length > 22 ? name.substring(0, 19) + "..." : name;
-
-  return (
-    <g>
-      <text
-        x={x}
-        y={y}
-        fill="#1e293b"
-        textAnchor={x > cx ? 'start' : 'end'}
-        dominantBaseline="central"
-        fontSize="11"
-        fontWeight="700"
-        className="select-none font-sans"
-      >
-        {`${displayName} (${(percent * 100).toFixed(2)}%)`}
-      </text>
-    </g>
-  );
-};
-
 export default function LeadSourceChart({ data }: LeadSourceChartProps) {
-  // Sort data so largest slices are first, helping with label distribution
+  // Sort data so highest values are at the top
   const sortedData = [...data].sort((a, b) => b.value - a.value);
+  
+  const total = data.reduce((acc, curr) => acc + curr.value, 0);
+
+  const CustomTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      const { name, value } = payload[0].payload;
+      const percentage = ((value / total) * 100).toFixed(2);
+      return (
+        <div className="bg-white p-3 border rounded-lg shadow-xl">
+          <p className="text-xs font-bold text-muted-foreground uppercase mb-1">{name}</p>
+          <p className="text-sm font-black text-primary">{value} Leads</p>
+          <p className="text-[10px] font-bold text-emerald-600">{percentage}% of total</p>
+        </div>
+      );
+    }
+    return null;
+  };
 
   return (
-    <div className="w-full h-[550px] flex items-center justify-center">
-      <ResponsiveContainer width="100%" height="100%">
-        <PieChart margin={{ top: 40, right: 140, bottom: 40, left: 140 }}>
-          <Tooltip 
-            contentStyle={{ 
-              borderRadius: '12px', 
-              border: 'none', 
-              boxShadow: '0 10px 25px -5px rgba(0,0,0,0.15)',
-              fontSize: '12px',
-              fontWeight: '700',
-              padding: '10px 14px'
-            }}
-          />
-          <Pie
+    <div className="w-full h-full min-h-[500px] flex flex-col p-4">
+      <div className="flex-1">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart
             data={sortedData}
-            cx="50%"
-            cy="50%"
-            labelLine={{ 
-              stroke: '#94a3b8', 
-              strokeWidth: 1.5,
-              strokeDasharray: '2 2' 
-            }}
-            label={renderCustomizedLabel}
-            outerRadius={140}
-            innerRadius={95}
-            paddingAngle={4}
-            dataKey="value"
-            minAngle={18} // Increased minimum angle to give even tiny slices a visible line
-            animationBegin={0}
-            animationDuration={1000}
-            animationEasing="ease-out"
+            layout="vertical"
+            margin={{ top: 5, right: 60, left: 40, bottom: 5 }}
           >
-            {sortedData.map((entry, index) => (
-              <Cell 
-                key={`cell-${index}`} 
-                fill={COLORS[index % COLORS.length]} 
-                stroke="rgba(255,255,255,0.4)"
-                strokeWidth={3}
-                className="outline-none hover:opacity-85 transition-opacity cursor-pointer"
+            <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} opacity={0.3} />
+            <XAxis type="number" hide />
+            <YAxis
+              dataKey="name"
+              type="category"
+              axisLine={false}
+              tickLine={false}
+              width={120}
+              tick={{ fontSize: 11, fontWeight: 700, fill: '#64748b' }}
+            />
+            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'transparent' }} />
+            <Bar
+              dataKey="value"
+              radius={[0, 4, 4, 0]}
+              barSize={24}
+            >
+              {sortedData.map((entry, index) => (
+                <Cell 
+                  key={`cell-${index}`} 
+                  fill={COLORS[index % COLORS.length]} 
+                  className="hover:opacity-80 transition-opacity cursor-pointer"
+                />
+              ))}
+              <LabelList 
+                dataKey="value" 
+                position="right" 
+                style={{ fill: '#1e293b', fontSize: 12, fontWeight: 800 }} 
               />
-            ))}
-          </Pie>
-        </PieChart>
-      </ResponsiveContainer>
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+      
+      <div className="mt-6 pt-4 border-t grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2">
+        {sortedData.slice(0, 9).map((item, idx) => (
+          <div key={idx} className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: COLORS[idx % COLORS.length] }} />
+            <span className="text-[10px] font-bold text-muted-foreground truncate uppercase">{item.name}</span>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
