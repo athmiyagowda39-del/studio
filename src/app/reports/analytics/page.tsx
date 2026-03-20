@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -139,14 +138,14 @@ export default function AnalyticsPage() {
       let rawName = (lead.reference || 'Other').trim();
       if (!rawName) rawName = 'Other';
 
-      // Standardize to Title Case for initial grouping but chart will display UPPER CASE
+      // Standardize to Title Case for initial grouping
       let normalized = rawName
         .toLowerCase()
         .split(/\s+/)
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
       
-      // Fix specific misspellings
+      // Deduplicate misspellings
       if (normalized === 'Refferal') normalized = 'Referral';
 
       const existing = counts.get(normalized);
@@ -186,7 +185,24 @@ export default function AnalyticsPage() {
           <CardContent className="p-6 space-y-8">
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Pipeline Overview */}
+              {/* Source Distribution (PIE CHART ON LEFT) */}
+              <Card className="border-2 shadow-sm h-full">
+                <CardHeader className="flex flex-row items-center gap-2 border-b bg-muted/10 py-4">
+                  <BarChart3 className="h-4 w-4 text-primary" />
+                  <CardTitle className="text-sm font-bold uppercase tracking-wider">Leads by Source</CardTitle>
+                </CardHeader>
+                <CardContent className="p-0 flex items-center justify-center">
+                  {isClient && sourceData.length > 0 ? (
+                    <LeadSourceChart data={sourceData} />
+                  ) : (
+                    <div className="h-[400px] flex items-center justify-center text-muted-foreground">
+                      No source data available to display.
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Pipeline Overview & Ranking (ON RIGHT) */}
               <div className="space-y-6">
                 <Card className="border-2 shadow-sm overflow-hidden h-fit">
                   <CardHeader className="flex flex-row items-center justify-between border-b bg-muted/10 py-4">
@@ -296,23 +312,6 @@ export default function AnalyticsPage() {
                   </CardContent>
                 </Card>
               </div>
-
-              {/* Source Distribution */}
-              <Card className="border-2 shadow-sm h-full">
-                <CardHeader className="flex flex-row items-center gap-2 border-b bg-muted/10">
-                  <BarChart3 className="h-4 w-4 text-primary" />
-                  <CardTitle className="text-sm font-bold uppercase tracking-wider">Leads by Source</CardTitle>
-                </CardHeader>
-                <CardContent className="p-0 flex items-center justify-center">
-                  {isClient && sourceData.length > 0 ? (
-                    <LeadSourceChart data={sourceData} />
-                  ) : (
-                    <div className="h-[400px] flex items-center justify-center text-muted-foreground">
-                      No source data available to display.
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
             </div>
 
             {/* Drill Down Table */}
