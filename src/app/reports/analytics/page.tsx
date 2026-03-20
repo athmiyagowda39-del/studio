@@ -140,13 +140,14 @@ export default function AnalyticsPage() {
       let rawName = (lead.reference || 'Other').trim();
       if (!rawName) rawName = 'Other';
 
-      // Advanced Normalization
+      // Standard Normalization
       let standardizedName = rawName
         .toLowerCase()
         .split(/\s+/)
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
       
+      // Fix specific misspellings from user feedback
       if (standardizedName === 'Refferal') standardizedName = 'Referral';
 
       const existing = counts.get(standardizedName);
@@ -253,52 +254,54 @@ export default function AnalyticsPage() {
                   </CardContent>
                 </Card>
 
-                {/* LEAD STATUS RANKING SECTION */}
+                {/* LEAD STATUS RANKING SECTION - REFINED TO MATCH USER IMAGE */}
                 <Card className="border-2 shadow-sm overflow-hidden h-fit">
                   <CardHeader className="flex flex-row items-center gap-2 border-b bg-muted/10 py-4">
                     <TrendingUp className="h-4 w-4 text-primary" />
                     <CardTitle className="text-sm font-bold uppercase tracking-wider">Lead Status Ranking</CardTitle>
                   </CardHeader>
                   <CardContent className="p-0">
-                    <div className="divide-y max-h-[400px] overflow-y-auto">
-                      {statusRanking.map((status, index) => (
-                        <div 
-                          key={status.name}
-                          className={cn(
-                            "group flex items-center justify-between p-4 cursor-pointer hover:bg-muted/30 transition-all",
-                            selectedMetric === status.name && "bg-primary/5"
-                          )}
-                          onClick={() => handleMetricClick(status.name)}
-                        >
-                          <div className="flex items-center gap-3 flex-1">
-                            <span className="text-xs font-bold text-muted-foreground min-w-[20px]">{index + 1}.</span>
-                            <div className="flex flex-col flex-1">
-                              <span className="text-xs font-bold uppercase tracking-tight group-hover:text-primary transition-colors truncate">
-                                {status.name}
-                              </span>
-                              <div className="w-full bg-muted/20 h-1.5 rounded-full mt-1.5 overflow-hidden">
-                                <div 
-                                  className="h-full bg-primary/60 group-hover:bg-primary transition-all duration-1000" 
-                                  style={{ width: `${(status.value / stats.created) * 100}%` }}
-                                />
+                    <ScrollArea className="h-[400px]">
+                      <div className="divide-y">
+                        {statusRanking.map((status, index) => (
+                          <div 
+                            key={status.name}
+                            className={cn(
+                              "group flex items-center justify-between p-4 cursor-pointer hover:bg-muted/30 transition-all",
+                              selectedMetric === status.name && "bg-primary/5"
+                            )}
+                            onClick={() => handleMetricClick(status.name)}
+                          >
+                            <div className="flex items-center gap-4 flex-1">
+                              <span className="text-xs font-bold text-muted-foreground min-w-[20px]">{index + 1}.</span>
+                              <div className="flex flex-col flex-1 gap-1">
+                                <span className="text-xs font-bold uppercase tracking-wide group-hover:text-primary transition-colors truncate">
+                                  {status.name}
+                                </span>
+                                <div className="w-full bg-muted/20 h-1 rounded-full overflow-hidden">
+                                  <div 
+                                    className="h-full bg-primary/80 group-hover:bg-primary transition-all duration-1000" 
+                                    style={{ width: `${(status.value / stats.created) * 100}%` }}
+                                  />
+                                </div>
                               </div>
                             </div>
+                            <div className="flex items-center gap-4 ml-4">
+                              <span className="text-base font-black text-foreground">{status.value}</span>
+                              <span className="text-[10px] font-bold text-muted-foreground bg-muted/50 border px-2 py-0.5 rounded-sm min-w-[45px] text-center">
+                                {((status.value / stats.created) * 100).toFixed(1)}%
+                              </span>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-3 ml-4">
-                            <span className="text-sm font-black text-foreground">{status.value}</span>
-                            <span className="text-[10px] font-bold text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-                              {((status.value / stats.created) * 100).toFixed(1)}%
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    </ScrollArea>
                   </CardContent>
                 </Card>
               </div>
 
               {/* SOURCE DISTRIBUTION SECTION */}
-              <Card className="border-2 shadow-sm">
+              <Card className="border-2 shadow-sm h-full">
                 <CardHeader className="flex flex-row items-center gap-2 border-b bg-muted/10">
                   <BarChart3 className="h-4 w-4 text-primary" />
                   <CardTitle className="text-sm font-bold uppercase tracking-wider">Leads Distribution by Source</CardTitle>
