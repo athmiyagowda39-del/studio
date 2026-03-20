@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -138,14 +139,12 @@ export default function AnalyticsPage() {
       let rawName = (lead.reference || 'Other').trim();
       if (!rawName) rawName = 'Other';
 
-      // Standardize to Title Case for initial grouping
       let normalized = rawName
         .toLowerCase()
         .split(/\s+/)
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
       
-      // Deduplicate misspellings
       if (normalized === 'Refferal') normalized = 'Referral';
 
       const existing = counts.get(normalized);
@@ -185,86 +184,21 @@ export default function AnalyticsPage() {
           <CardContent className="p-6 space-y-8">
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Source Distribution (PIE CHART ON LEFT) */}
-              <Card className="border-2 shadow-sm h-full">
-                <CardHeader className="flex flex-row items-center gap-2 border-b bg-muted/10 py-4">
-                  <BarChart3 className="h-4 w-4 text-primary" />
-                  <CardTitle className="text-sm font-bold uppercase tracking-wider">Leads by Source</CardTitle>
-                </CardHeader>
-                <CardContent className="p-0 flex items-center justify-center">
-                  {isClient && sourceData.length > 0 ? (
-                    <LeadSourceChart data={sourceData} />
-                  ) : (
-                    <div className="h-[400px] flex items-center justify-center text-muted-foreground">
-                      No source data available to display.
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Pipeline Overview & Ranking (ON RIGHT) */}
+              {/* LEFT COLUMN: PIE CHART & STATUS RANKING */}
               <div className="space-y-6">
-                <Card className="border-2 shadow-sm overflow-hidden h-fit">
-                  <CardHeader className="flex flex-row items-center justify-between border-b bg-muted/10 py-4">
-                    <CardTitle className="text-sm font-bold uppercase tracking-wider">Performance Overview</CardTitle>
-                    <div className="flex items-center gap-2 bg-background border rounded-md px-3 py-1 text-xs font-medium text-muted-foreground">
-                      <Calendar className="h-3 w-3" />
-                      {format(new Date(), 'MMMM yyyy')}
-                    </div>
+                <Card className="border-2 shadow-sm">
+                  <CardHeader className="flex flex-row items-center gap-2 border-b bg-muted/10 py-4">
+                    <BarChart3 className="h-4 w-4 text-primary" />
+                    <CardTitle className="text-sm font-bold uppercase tracking-wider">Leads Distribution by Source</CardTitle>
                   </CardHeader>
-                  <CardContent className="p-0">
-                    <div className="flex flex-col">
-                      <div 
-                        className={cn(
-                          "group flex items-center justify-between p-6 border-b cursor-pointer transition-colors hover:bg-muted/30 relative",
-                          selectedMetric === 'leads' && "bg-primary/5"
-                        )}
-                        onClick={() => handleMetricClick('leads')}
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className="w-1 h-8 bg-primary rounded-full" />
-                          <span className="font-bold text-sm text-foreground/80 group-hover:text-primary transition-colors">LEADS CREATED</span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <span className="text-2xl font-black text-foreground">{stats.created}</span>
-                          <ChevronRight className={cn("h-4 w-4 text-muted-foreground transition-transform", selectedMetric === 'leads' && "rotate-90 text-primary")} />
-                        </div>
+                  <CardContent className="p-0 flex items-center justify-center">
+                    {isClient && sourceData.length > 0 ? (
+                      <LeadSourceChart data={sourceData} />
+                    ) : (
+                      <div className="h-[400px] flex items-center justify-center text-muted-foreground">
+                        No source data available to display.
                       </div>
-
-                      <div 
-                        className={cn(
-                          "group flex items-center justify-between p-6 border-b cursor-pointer transition-colors hover:bg-muted/30 relative",
-                          selectedMetric === 'deals' && "bg-primary/5"
-                        )}
-                        onClick={() => handleMetricClick('deals')}
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className="w-1 h-8 bg-blue-500 rounded-full" />
-                          <span className="font-bold text-sm text-foreground/80 group-hover:text-blue-500 transition-colors">DEALS CREATED</span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <span className="text-2xl font-black text-foreground">{stats.deals}</span>
-                          <ChevronRight className={cn("h-4 w-4 text-muted-foreground transition-transform", selectedMetric === 'deals' && "rotate-90 text-blue-500")} />
-                        </div>
-                      </div>
-
-                      <div 
-                        className={cn(
-                          "group flex items-center justify-between p-6 cursor-pointer transition-colors hover:bg-muted/30 relative",
-                          selectedMetric === 'won' && "bg-primary/5"
-                        )}
-                        onClick={() => handleMetricClick('won')}
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className="w-1 h-8 bg-emerald-500 rounded-full" />
-                          <span className="font-bold text-sm text-foreground/80 group-hover:text-emerald-500 transition-colors">DEALS WON</span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <span className="text-2xl font-black text-foreground">{stats.won}</span>
-                          <ChevronRight className={cn("h-4 w-4 text-muted-foreground transition-transform", selectedMetric === 'won' && "rotate-90 text-emerald-500")} />
-                        </div>
-                      </div>
-                    </div>
+                    )}
                   </CardContent>
                 </Card>
 
@@ -280,28 +214,28 @@ export default function AnalyticsPage() {
                           <div 
                             key={status.name}
                             className={cn(
-                              "group flex items-center justify-between p-4 cursor-pointer hover:bg-muted/30 transition-all",
+                              "group flex items-center justify-between p-6 cursor-pointer hover:bg-muted/30 transition-all",
                               selectedMetric === status.name && "bg-primary/5"
                             )}
                             onClick={() => handleMetricClick(status.name)}
                           >
-                            <div className="flex items-center gap-4 flex-1">
-                              <span className="text-xs font-bold text-muted-foreground min-w-[20px]">{index + 1}.</span>
-                              <div className="flex flex-col flex-1 gap-1">
-                                <span className="text-xs font-bold uppercase tracking-wide group-hover:text-primary transition-colors truncate">
+                            <div className="flex items-center gap-6 flex-1">
+                              <span className="text-sm font-bold text-muted-foreground min-w-[25px]">{index + 1}.</span>
+                              <div className="flex flex-col flex-1 gap-2">
+                                <span className="text-sm font-black uppercase tracking-widest group-hover:text-primary transition-colors">
                                   {status.name}
                                 </span>
-                                <div className="w-full bg-muted/20 h-1 rounded-full overflow-hidden">
+                                <div className="w-full bg-muted/20 h-[3px] rounded-full overflow-hidden">
                                   <div 
-                                    className="h-full bg-primary/80 group-hover:bg-primary transition-all duration-1000" 
+                                    className="h-full bg-primary shadow-[0_0_8px_rgba(63,81,181,0.5)] transition-all duration-1000" 
                                     style={{ width: `${(status.value / stats.created) * 100}%` }}
                                   />
                                 </div>
                               </div>
                             </div>
-                            <div className="flex items-center gap-4 ml-4">
-                              <span className="text-base font-black text-foreground">{status.value}</span>
-                              <span className="text-[10px] font-bold text-muted-foreground bg-muted/50 border px-2 py-0.5 rounded-sm min-w-[45px] text-center">
+                            <div className="flex items-center gap-6 ml-6">
+                              <span className="text-xl font-black text-foreground">{status.value}</span>
+                              <span className="text-[11px] font-bold text-muted-foreground border-2 border-muted bg-background px-2.5 py-1 rounded-md min-w-[55px] text-center">
                                 {((status.value / stats.created) * 100).toFixed(1)}%
                               </span>
                             </div>
@@ -309,6 +243,73 @@ export default function AnalyticsPage() {
                         ))}
                       </div>
                     </ScrollArea>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* RIGHT COLUMN: PERFORMANCE OVERVIEW */}
+              <div className="space-y-6">
+                <Card className="border-2 shadow-sm overflow-hidden h-fit">
+                  <CardHeader className="flex flex-row items-center justify-between border-b bg-muted/10 py-4">
+                    <CardTitle className="text-sm font-bold uppercase tracking-wider">Performance Overview</CardTitle>
+                    <div className="flex items-center gap-2 bg-background border rounded-md px-3 py-1 text-xs font-medium text-muted-foreground">
+                      <Calendar className="h-3 w-3" />
+                      {format(new Date(), 'MMMM yyyy')}
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <div className="flex flex-col">
+                      <div 
+                        className={cn(
+                          "group flex items-center justify-between p-8 border-b cursor-pointer transition-colors hover:bg-muted/30 relative",
+                          selectedMetric === 'leads' && "bg-primary/5"
+                        )}
+                        onClick={() => handleMetricClick('leads')}
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="w-1.5 h-10 bg-primary rounded-full" />
+                          <span className="font-black text-xs uppercase tracking-widest text-foreground/70 group-hover:text-primary transition-colors">LEADS CREATED</span>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <span className="text-3xl font-black text-foreground">{stats.created}</span>
+                          <ChevronRight className={cn("h-5 w-5 text-muted-foreground transition-transform", selectedMetric === 'leads' && "rotate-90 text-primary")} />
+                        </div>
+                      </div>
+
+                      <div 
+                        className={cn(
+                          "group flex items-center justify-between p-8 border-b cursor-pointer transition-colors hover:bg-muted/30 relative",
+                          selectedMetric === 'deals' && "bg-primary/5"
+                        )}
+                        onClick={() => handleMetricClick('deals')}
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="w-1.5 h-10 bg-blue-500 rounded-full" />
+                          <span className="font-black text-xs uppercase tracking-widest text-foreground/70 group-hover:text-blue-500 transition-colors">DEALS CREATED</span>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <span className="text-3xl font-black text-foreground">{stats.deals}</span>
+                          <ChevronRight className={cn("h-5 w-5 text-muted-foreground transition-transform", selectedMetric === 'deals' && "rotate-90 text-blue-500")} />
+                        </div>
+                      </div>
+
+                      <div 
+                        className={cn(
+                          "group flex items-center justify-between p-8 cursor-pointer transition-colors hover:bg-muted/30 relative",
+                          selectedMetric === 'won' && "bg-primary/5"
+                        )}
+                        onClick={() => handleMetricClick('won')}
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="w-1.5 h-10 bg-emerald-500 rounded-full" />
+                          <span className="font-black text-xs uppercase tracking-widest text-foreground/70 group-hover:text-emerald-500 transition-colors">DEALS WON</span>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <span className="text-3xl font-black text-foreground">{stats.won}</span>
+                          <ChevronRight className={cn("h-5 w-5 text-muted-foreground transition-transform", selectedMetric === 'won' && "rotate-90 text-emerald-500")} />
+                        </div>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               </div>
