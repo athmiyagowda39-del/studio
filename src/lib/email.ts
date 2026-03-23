@@ -13,11 +13,6 @@ const transporter = nodemailer.createTransport({
     auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
-    },
-    tls: {
-        // This setting allows the app to connect even if the server's certificate is expired
-        // This is likely how your other applications are configured to work.
-        rejectUnauthorized: false
     }
 });
 
