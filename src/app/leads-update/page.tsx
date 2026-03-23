@@ -1168,6 +1168,7 @@ export default function LeadsUpdatePage() {
                       <TableRow>
                         <TableHead>Sl No</TableHead>
                         <TableHead>Lead Id</TableHead>
+                        <TableHead>Lead Status</TableHead>
                         <TableHead>Lead Date</TableHead>
                         <TableHead>Module</TableHead>
                         <TableHead>Company</TableHead>
@@ -1186,8 +1187,6 @@ export default function LeadsUpdatePage() {
                         <TableHead>Enter by</TableHead>
                         <TableHead>Next followup Date</TableHead>
                         <TableHead>Last Followup Remarks</TableHead>
-                        <TableHead>Lead Status</TableHead>
-                        <TableHead>Lead Sub Status</TableHead>
                         <TableHead>Lead Status Remarks</TableHead>
                         <TableHead>Monthly Contract Value</TableHead>
                         <TableHead>Annual Contract Value</TableHead>
@@ -1214,6 +1213,9 @@ export default function LeadsUpdatePage() {
                         >
                           <TableCell>{(currentPage - 1) * LEADS_PER_PAGE + index + 1}</TableCell>
                           <TableCell>{lead.leadId}</TableCell>
+                          <TableCell>
+                            <span className="font-semibold text-primary">{lead.status || 'N/A'}</span>
+                          </TableCell>
                           <TableCell>{lead.creationDate && !isNaN(new Date(lead.creationDate).getTime()) ? format(new Date(lead.creationDate), 'PPP') : 'N/A'}</TableCell>
                           <TableCell>
                             <ExpandableCell 
@@ -1247,8 +1249,6 @@ export default function LeadsUpdatePage() {
                               title="Last Follow-up Remarks" 
                             />
                           </TableCell>
-                          <TableCell>{lead.status || 'N/A'}</TableCell>
-                          <TableCell>{lead.leadSubStatus || 'N/A'}</TableCell>
                           <TableCell>
                             <ExpandableCell 
                               content={lead.initialRemarks || 'N/A'} 
