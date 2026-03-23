@@ -31,7 +31,7 @@ const SOURCE_COLORS: Record<string, string> = {
 };
 
 const COLORS = [
-  "#38bdf8", // Cyan fallback
+  "#38bdf8", 
   "#10b981", 
   "#fbbf24", 
   "#f43f5e", 
@@ -53,13 +53,12 @@ export default function LeadSourceChart({ data }: LeadSourceChartProps) {
     const RADIAN = Math.PI / 180;
     const angle = -midAngle * RADIAN;
     
-    // Coordinates for the arrow line
-    // Start at the edge of the donut
+    // Coordinates for the arrow line start (edge of donut)
     const sx = cx + outerRadius * Math.cos(angle);
     const sy = cy + outerRadius * Math.sin(angle);
     
-    // End just before the text - Optimized length to prevent overflow
-    const lineLength = 45;
+    // Connector line length - reduced to pull labels in
+    const lineLength = 40;
     const ex = cx + (outerRadius + lineLength) * Math.cos(angle);
     const ey = cy + (outerRadius + lineLength) * Math.sin(angle);
     
@@ -122,22 +121,22 @@ export default function LeadSourceChart({ data }: LeadSourceChartProps) {
     <div className="w-full h-[750px] flex flex-col p-4 bg-background">
       <div className="flex-1">
         <ResponsiveContainer width="100%" height="100%">
-          <PieChart margin={{ left: 80, right: 80, top: 20, bottom: 20 }}>
+          <PieChart margin={{ left: 140, right: 140, top: 20, bottom: 20 }}>
             <Pie
               data={data}
               cx="50%"
-              cy="45%" // Pull the chart slightly up
+              cy="45%" 
               labelLine={false} 
               label={renderCustomizedLabel}
-              outerRadius={105}
-              innerRadius={65}
+              outerRadius={90}
+              innerRadius={55}
               dataKey="value"
               animationBegin={0}
               animationDuration={1000}
               stroke="white"
               strokeWidth={3}
               paddingAngle={1}
-              minAngle={25} // Forced minimum angle to prevent label overlapping
+              minAngle={25} 
             >
               {data.map((entry, index) => {
                 const normalizedName = entry.name.toUpperCase().trim();
