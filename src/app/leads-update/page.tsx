@@ -39,6 +39,21 @@ import { cn } from '@/lib/utils';
 const LEADS_PER_PAGE = 10;
 type TabValue = 'all' | 'not-viewed' | 'follow-ups-due' | 'zero-follow-ups' | 'search-result';
 
+// Status Temperature Mapping
+const HOT_STATUSES = ["Demo Given", "Order closed", "Proposal Sent", "Quote Sent", "Pursuing to Purchase"];
+const WARM_STATUSES = ["Interested", "Attended", "Existing Users"];
+const COLD_STATUSES = ["Not interested", "Do not contact", "Not viewed", "Fake", "Unattended", "Drop", "Lost"];
+
+function getTemperature(status: string | undefined) {
+  if (!status) return { label: 'N/A', color: 'text-muted-foreground' };
+  
+  if (HOT_STATUSES.includes(status)) return { label: 'HOT', color: 'text-red-600' };
+  if (WARM_STATUSES.includes(status)) return { label: 'WARM', color: 'text-blue-600' };
+  if (COLD_STATUSES.includes(status)) return { label: 'COLD', color: 'text-amber-600' };
+  
+  return { label: status.toUpperCase(), color: 'text-primary' };
+}
+
 // Helper component for expandable "box" view
 function ExpandableCell({ content, title }: { content: string | null | undefined, title: string }) {
   if (!content || content === 'N/A') return <span className="text-muted-foreground">N/A</span>;
@@ -488,7 +503,8 @@ export default function LeadsUpdatePage() {
         'Enter by': lastFollowUp ? lastFollowUp.enteredBy : 'N/A',
         'Next followup Date': nextFollowupDate,
         'Last Followup Remarks': lastFollowUp ? lastFollowUp.remarks : 'N/A',
-        'Lead Status': lead.status,
+        'Lead Status': getTemperature(lead.status).label,
+        'Actual Status': lead.status,
         'Lead Sub Status': lead.leadSubStatus || 'N/A',
         'Lead Status Remarks': lead.initialRemarks,
         'Monthly Contract Value': lead.monthlyContractValue || 'N/A',
@@ -1205,6 +1221,8 @@ export default function LeadsUpdatePage() {
                             ? lastFollowUp.nextFollowUp
                             : 'N/A';
 
+                        const temp = getTemperature(lead.status);
+
                         return (
                         <TableRow 
                           key={lead.leadId} 
@@ -1214,7 +1232,7 @@ export default function LeadsUpdatePage() {
                           <TableCell>{(currentPage - 1) * LEADS_PER_PAGE + index + 1}</TableCell>
                           <TableCell>{lead.leadId}</TableCell>
                           <TableCell>
-                            <span className="font-semibold text-primary">{lead.status || 'N/A'}</span>
+                            <span className={cn("font-bold", temp.color)}>{temp.label}</span>
                           </TableCell>
                           <TableCell>{lead.creationDate && !isNaN(new Date(lead.creationDate).getTime()) ? format(new Date(lead.creationDate), 'PPP') : 'N/A'}</TableCell>
                           <TableCell>
