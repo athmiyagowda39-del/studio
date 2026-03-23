@@ -58,13 +58,13 @@ export default function LeadSourceChart({ data }: LeadSourceChartProps) {
     const sx = cx + outerRadius * Math.cos(angle);
     const sy = cy + outerRadius * Math.sin(angle);
     
-    // End just before the text - Increased length to prevent overlap
-    const lineLength = 60;
+    // End just before the text - Optimized length to prevent overflow
+    const lineLength = 45;
     const ex = cx + (outerRadius + lineLength) * Math.cos(angle);
     const ey = cy + (outerRadius + lineLength) * Math.sin(angle);
     
     // Text position
-    const textRadius = outerRadius + lineLength + 12;
+    const textRadius = outerRadius + lineLength + 10;
     const tx = cx + textRadius * Math.cos(angle);
     const ty = cy + textRadius * Math.sin(angle);
 
@@ -95,7 +95,7 @@ export default function LeadSourceChart({ data }: LeadSourceChartProps) {
           strokeLinecap="round"
           strokeLinejoin="round"
         />
-        {/* The label text - INCREASED FONT SIZE HERE */}
+        {/* The label text */}
         <text 
           x={tx} 
           y={ty} 
@@ -119,25 +119,25 @@ export default function LeadSourceChart({ data }: LeadSourceChartProps) {
   }
 
   return (
-    <div className="w-full h-[750px] flex flex-col p-4 bg-background overflow-hidden">
+    <div className="w-full h-[750px] flex flex-col p-4 bg-background">
       <div className="flex-1">
         <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
+          <PieChart margin={{ left: 80, right: 80, top: 20, bottom: 20 }}>
             <Pie
               data={data}
               cx="50%"
               cy="45%" // Pull the chart slightly up
               labelLine={false} 
               label={renderCustomizedLabel}
-              outerRadius={135}
-              innerRadius={85}
+              outerRadius={105}
+              innerRadius={65}
               dataKey="value"
               animationBegin={0}
               animationDuration={1000}
               stroke="white"
               strokeWidth={3}
               paddingAngle={1}
-              minAngle={25} // Forced minimum angle to prevent label overlapping for tiny slices
+              minAngle={25} // Forced minimum angle to prevent label overlapping
             >
               {data.map((entry, index) => {
                 const normalizedName = entry.name.toUpperCase().trim();
