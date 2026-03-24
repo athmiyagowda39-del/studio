@@ -1,3 +1,4 @@
+
 "use client"
 
 import { Button } from '@/components/ui/button';
@@ -213,22 +214,31 @@ export default function LeadsUpdatePage() {
             // Global Search Term (Checks all key fields)
             if (filters.searchTerm) {
                 const term = filters.searchTerm.toLowerCase().trim();
-                const leadIdMatch = lead.leadId?.toLowerCase().includes(term);
-                const companyMatch = lead.company?.toLowerCase().includes(term);
-                const contactMatch = lead.contactPerson?.toLowerCase().includes(term);
-                const phoneMatch = lead.contactNumber?.toLowerCase().includes(term);
-                const districtMatch = lead.district?.toLowerCase().includes(term);
-                const stateMatch = lead.state?.toLowerCase().includes(term);
-                const emailMatch = lead.email?.toLowerCase().includes(term);
+                const isTemperatureKeyword = ['hot', 'warm', 'cold'].includes(term);
 
-                // Temperature Match Keywords
-                let temperatureMatch = false;
-                if (term === 'hot') temperatureMatch = !!lead.status && HOT_STATUSES.includes(lead.status);
-                if (term === 'warm') temperatureMatch = !!lead.status && WARM_STATUSES.includes(lead.status);
-                if (term === 'cold') temperatureMatch = !!lead.status && COLD_STATUSES.includes(lead.status);
+                if (isTemperatureKeyword) {
+                    // Exclusive Temperature Match: Only show leads that fall into this category
+                    let tempMatch = false;
+                    if (term === 'hot') tempMatch = !!lead.status && HOT_STATUSES.includes(lead.status);
+                    if (term === 'warm') tempMatch = !!lead.status && WARM_STATUSES.includes(lead.status);
+                    if (term === 'cold') tempMatch = !!lead.status && COLD_STATUSES.includes(lead.status);
+                    
+                    if (!tempMatch) {
+                        match = false;
+                    }
+                } else {
+                    // General Broad Search Match
+                    const leadIdMatch = lead.leadId?.toLowerCase().includes(term);
+                    const companyMatch = lead.company?.toLowerCase().includes(term);
+                    const contactMatch = lead.contactPerson?.toLowerCase().includes(term);
+                    const phoneMatch = lead.contactNumber?.toLowerCase().includes(term);
+                    const districtMatch = lead.district?.toLowerCase().includes(term);
+                    const stateMatch = lead.state?.toLowerCase().includes(term);
+                    const emailMatch = lead.email?.toLowerCase().includes(term);
 
-                if (!(leadIdMatch || companyMatch || contactMatch || phoneMatch || districtMatch || stateMatch || emailMatch || temperatureMatch)) {
-                    match = false;
+                    if (!(leadIdMatch || companyMatch || contactMatch || phoneMatch || districtMatch || stateMatch || emailMatch)) {
+                        match = false;
+                    }
                 }
             }
 
