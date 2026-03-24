@@ -79,11 +79,8 @@ const months = [
 const years = Array.from({ length: 11 }, (_, i) => 2020 + i);
 
 // Temperature Mapping Constants
-// Hot Leads (Red): Demo Given, Order Closed, Proposal Sent / Quote Sent, Pursuing to Purchase
 const HOT_STATUSES = ["Demo Given", "Order closed", "Proposal Sent", "Quote Sent", "Pursuing to Purchase"];
-// Warm Leads (Blue): Interested, Attended, Existing Users
 const WARM_STATUSES = ["Interested", "Attended", "Existing Users"];
-// Cold Leads (Yellow): Not Interested, Do Not Contact, Not Viewed, Fake, Unattended, Drop, Lost
 const COLD_STATUSES = ["Not interested", "Do not contact", "Not viewed", "Fake", "Unattended", "Drop", "Lost"];
 
 export default function AnalyticsPage() {
@@ -159,7 +156,16 @@ export default function AnalyticsPage() {
     if (selectedMetric === 'warm') return filteredLeads.filter(l => WARM_STATUSES.includes(l.status || ""));
     if (selectedMetric === 'cold') return filteredLeads.filter(l => COLD_STATUSES.includes(l.status || ""));
     
-    return filteredLeads.filter(l => l.status === selectedMetric);
+    // Check if it's a specific status filter
+    const statusLeads = filteredLeads.filter(l => l.status === selectedMetric);
+    if (statusLeads.length > 0) return statusLeads;
+
+    // Finally, check if it's a specific state filter
+    return filteredLeads.filter(l => {
+      const normalizedState = (l.state || '').trim().toLowerCase();
+      const normalizedSelected = selectedMetric.trim().toLowerCase();
+      return normalizedState === normalizedSelected;
+    });
   }, [selectedMetric, filteredLeads]);
 
   const sourceData = useMemo(() => {
@@ -225,6 +231,9 @@ export default function AnalyticsPage() {
 
   const totalTemp = stats.hot + stats.warm + stats.cold;
   const getPct = (val: number) => totalTemp > 0 ? ((val / totalTemp) * 100).toFixed(1) : "0.0";
+
+  // Check if selectedMetric is a known performance metric or a state
+  const isPerformanceMetric = ['leads', 'deals', 'won', 'hot', 'warm', 'cold'].includes(selectedMetric as string);
 
   return (
     <AppContent>
@@ -469,7 +478,10 @@ export default function AnalyticsPage() {
 
               {/* RIGHT COLUMN: Geography Dashbaord */}
               <div>
-                <GeographyPerformanceChart leads={filteredLeads} />
+                <GeographyPerformanceChart 
+                  leads={filteredLeads} 
+                  onRegionClick={(stateName) => handleMetricClick(stateName)} 
+                />
               </div>
 
             </div>
@@ -484,7 +496,8 @@ export default function AnalyticsPage() {
                       selectedMetric === 'hot' && "text-red-600",
                       selectedMetric === 'warm' && "text-blue-600",
                       selectedMetric === 'cold' && "text-amber-600",
-                      (selectedMetric === 'leads' || selectedMetric === 'deals' || selectedMetric === 'won') && "text-primary"
+                      (selectedMetric === 'leads' || selectedMetric === 'deals' || selectedMetric === 'won') && "text-primary",
+                      !isPerformanceMetric && "text-primary"
                     )}>
                       {selectedMetric === 'leads' ? 'Leads Created' : 
                        selectedMetric === 'deals' ? 'Deals Created' : 
@@ -492,7 +505,7 @@ export default function AnalyticsPage() {
                        selectedMetric === 'hot' ? 'Hot Leads' : 
                        selectedMetric === 'warm' ? 'Warm Leads' : 
                        selectedMetric === 'cold' ? 'Cold Leads' : 
-                       `Status: ${selectedMetric}`}
+                       isPerformanceMetric ? `Status: ${selectedMetric}` : `Region: ${selectedMetric.toUpperCase()}`}
                     </span> ({metricLeads.length} Records in {format(filterDate, 'MMM yyyy')})
                   </CardTitle>
                   <button 

@@ -26,22 +26,24 @@ import type { LeadFormData } from '@/components/leads/lead-upload-form';
 
 type GeographyPerformanceChartProps = {
   leads: LeadFormData[];
+  onRegionClick?: (regionName: string) => void;
 };
 
 const COLORS = ['#2563eb', '#0ea5e9', '#10b981', '#f59e0b', '#a855f7', '#ef4444', '#f43f5e', '#8b5cf6', '#14b8a6'];
 
-export default function GeographyPerformanceChart({ leads }: GeographyPerformanceChartProps) {
+export default function GeographyPerformanceChart({ leads, onRegionClick }: GeographyPerformanceChartProps) {
   const performanceData = useMemo(() => {
     const stats: Record<string, { region: string; leads: number; converted: number }> = {};
 
     leads.forEach((lead) => {
-      // Normalize state name to prevent duplicates (e.g. "Karnataka" vs "karnataka")
+      // Robust normalization to prevent duplicates
       let rawRegion = (lead.state || 'Other').trim();
       if (!rawRegion) rawRegion = 'Other';
       
       const region = rawRegion
         .toLowerCase()
-        .split(' ')
+        .split(/\s+/) // Handle multiple spaces
+        .filter(Boolean)
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
 
@@ -54,7 +56,7 @@ export default function GeographyPerformanceChart({ leads }: GeographyPerformanc
       }
     });
 
-    // Sort by lead count descending and return everything
+    // Sort by lead count descending
     return Object.values(stats).sort((a, b) => b.leads - a.leads);
   }, [leads]);
 
@@ -69,14 +71,14 @@ export default function GeographyPerformanceChart({ leads }: GeographyPerformanc
   }
 
   // Dynamic height for the chart based on the number of states
-  const chartHeight = Math.max(300, performanceData.length * 40);
+  const chartHeight = Math.max(300, performanceData.length * 45);
 
   return (
     <Card className="border-2 shadow-sm overflow-hidden flex flex-col h-full">
       <CardHeader className="bg-muted/5 border-b py-4">
         <CardTitle className="text-sm font-bold uppercase tracking-wider">Geography-wise Performance</CardTitle>
         <p className="text-[11px] text-muted-foreground uppercase tracking-tighter">
-          All Active States ({performanceData.length})
+          All Active States ({performanceData.length}) • Click bars to view leads
         </p>
       </CardHeader>
       <CardContent className="p-0 flex-1 flex flex-col overflow-hidden">
@@ -88,6 +90,11 @@ export default function GeographyPerformanceChart({ leads }: GeographyPerformanc
                   layout="vertical"
                   data={performanceData}
                   margin={{ left: 40, right: 40, top: 10, bottom: 10 }}
+                  onClick={(data) => {
+                    if (data && data.activePayload && data.activePayload.length > 0) {
+                      onRegionClick?.(data.activePayload[0].payload.region);
+                    }
+                  }}
                 >
                   <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
                   <XAxis type="number" hide />
@@ -97,13 +104,18 @@ export default function GeographyPerformanceChart({ leads }: GeographyPerformanc
                     axisLine={false}
                     tickLine={false}
                     width={120}
-                    style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase' }}
+                    style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', cursor: 'pointer' }}
                   />
                   <Tooltip
                     cursor={{ fill: 'rgba(0,0,0,0.03)' }}
                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                   />
-                  <Bar dataKey="leads" barSize={20} radius={[0, 4, 4, 0]}>
+                  <Bar 
+                    dataKey="leads" 
+                    barSize={24} 
+                    radius={[0, 4, 4, 0]}
+                    className="cursor-pointer"
+                  >
                     {performanceData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
@@ -123,7 +135,11 @@ export default function GeographyPerformanceChart({ leads }: GeographyPerformanc
                 </TableHeader>
                 <TableBody>
                   {performanceData.map((item, index) => (
-                    <TableRow key={item.region} className="hover:bg-muted/10">
+                    <TableRow 
+                      key={item.region} 
+                      className="hover:bg-muted/10 cursor-pointer"
+                      onClick={() => onRegionClick?.(item.region)}
+                    >
                       <TableCell className="font-bold text-xs flex items-center gap-3 uppercase">
                         <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
                         <span className="truncate">{item.region}</span>
