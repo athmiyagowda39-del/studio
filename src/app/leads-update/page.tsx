@@ -212,7 +212,7 @@ export default function LeadsUpdatePage() {
 
             // Global Search Term (Checks all key fields)
             if (filters.searchTerm) {
-                const term = filters.searchTerm.toLowerCase();
+                const term = filters.searchTerm.toLowerCase().trim();
                 const leadIdMatch = lead.leadId?.toLowerCase().includes(term);
                 const companyMatch = lead.company?.toLowerCase().includes(term);
                 const contactMatch = lead.contactPerson?.toLowerCase().includes(term);
@@ -221,7 +221,13 @@ export default function LeadsUpdatePage() {
                 const stateMatch = lead.state?.toLowerCase().includes(term);
                 const emailMatch = lead.email?.toLowerCase().includes(term);
 
-                if (!(leadIdMatch || companyMatch || contactMatch || phoneMatch || districtMatch || stateMatch || emailMatch)) {
+                // Temperature Match Keywords
+                let temperatureMatch = false;
+                if (term === 'hot') temperatureMatch = !!lead.status && HOT_STATUSES.includes(lead.status);
+                if (term === 'warm') temperatureMatch = !!lead.status && WARM_STATUSES.includes(lead.status);
+                if (term === 'cold') temperatureMatch = !!lead.status && COLD_STATUSES.includes(lead.status);
+
+                if (!(leadIdMatch || companyMatch || contactMatch || phoneMatch || districtMatch || stateMatch || emailMatch || temperatureMatch)) {
                     match = false;
                 }
             }
