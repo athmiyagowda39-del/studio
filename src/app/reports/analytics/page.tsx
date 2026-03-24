@@ -15,7 +15,7 @@ import {
   TableHeader, 
   TableRow 
 } from '@/components/ui/table';
-import { ScrollArea, ScrollArea as UIScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { format, getMonth, getYear, setMonth, setYear } from 'date-fns';
 import { getDisplayModule } from '@/lib/modules';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -24,6 +24,7 @@ import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
+import GeographyPerformanceChart from '@/components/reports/geography-performance-chart';
 
 const LeadSourceChart = dynamic(
   () => import('@/components/reports/lead-source-chart'),
@@ -231,6 +232,50 @@ export default function AnalyticsPage() {
           </CardHeader>
           <CardContent className="p-6 space-y-8">
             
+            {/* TOP ROW: GLOBAL DATE FILTER & GEOGRAPHY DASHBOARD */}
+            <div className="flex justify-end mb-4">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-10 px-4 gap-2 font-bold border-2 border-primary/20 hover:border-primary/50 transition-all">
+                    <Calendar className="h-4 w-4 text-primary" />
+                    {format(filterDate, 'MMMM yyyy')}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64 p-4 space-y-4" align="end">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold uppercase text-muted-foreground tracking-widest">Select Month</label>
+                    <Select value={months[getMonth(filterDate)]} onValueChange={handleMonthChange}>
+                      <SelectTrigger className="h-9">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {months.map(m => (
+                          <SelectItem key={m} value={m}>{m}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold uppercase text-muted-foreground tracking-widest">Select Year</label>
+                    <Select value={getYear(filterDate).toString()} onValueChange={handleYearChange}>
+                      <SelectTrigger className="h-9">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {years.map(y => (
+                          <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            <div className="grid grid-cols-1 gap-8">
+              <GeographyPerformanceChart leads={filteredLeads} />
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               
               {/* LEFT COLUMN: PERFORMANCE OVERVIEW & LEAD TEMPERATURE */}
@@ -238,43 +283,6 @@ export default function AnalyticsPage() {
                 <Card className="border-2 shadow-sm overflow-hidden h-fit">
                   <CardHeader className="flex flex-row items-center justify-between border-b bg-muted/10 py-4">
                     <CardTitle className="text-sm font-bold uppercase tracking-wider">Performance Overview</CardTitle>
-                    
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" size="sm" className="h-8 gap-2 font-medium">
-                          <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-                          {format(filterDate, 'MMMM yyyy')}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-64 p-4 space-y-4" align="end">
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-bold uppercase text-muted-foreground tracking-widest">Select Month</label>
-                          <Select value={months[getMonth(filterDate)]} onValueChange={handleMonthChange}>
-                            <SelectTrigger className="h-9">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {months.map(m => (
-                                <SelectItem key={m} value={m}>{m}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-bold uppercase text-muted-foreground tracking-widest">Select Year</label>
-                          <Select value={getYear(filterDate).toString()} onValueChange={handleYearChange}>
-                            <SelectTrigger className="h-9">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {years.map(y => (
-                                <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </PopoverContent>
-                    </Popover>
                   </CardHeader>
                   <CardContent className="p-0">
                     <div className="flex flex-col">
