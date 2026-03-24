@@ -79,8 +79,11 @@ const months = [
 const years = Array.from({ length: 11 }, (_, i) => 2020 + i);
 
 // Temperature Mapping Constants
+// Hot Leads (Red): Demo Given, Order Closed, Proposal Sent / Quote Sent, Pursuing to Purchase
 const HOT_STATUSES = ["Demo Given", "Order closed", "Proposal Sent", "Quote Sent", "Pursuing to Purchase"];
+// Warm Leads (Blue): Interested, Attended, Existing Users
 const WARM_STATUSES = ["Interested", "Attended", "Existing Users"];
+// Cold Leads (Yellow): Not Interested, Do Not Contact, Not Viewed, Fake, Unattended, Drop, Lost
 const COLD_STATUSES = ["Not interested", "Do not contact", "Not viewed", "Fake", "Unattended", "Drop", "Lost"];
 
 export default function AnalyticsPage() {
@@ -272,187 +275,179 @@ export default function AnalyticsPage() {
               </Popover>
             </div>
 
-            {/* PERFORMANCE OVERVIEW & GEOGRAPHY SECTION */}
+            {/* MAIN DASHBOARD GRID */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               
-              {/* PERFORMANCE OVERVIEW CARD (MATCHING IMAGE) */}
-              <Card className="border shadow-sm overflow-hidden h-fit">
-                <CardHeader className="border-b bg-muted/5 py-4">
-                  <CardTitle className="text-[11px] font-bold uppercase tracking-widest text-foreground/80">Performance Overview</CardTitle>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <div className="flex flex-col">
-                    {/* LEADS CREATED */}
-                    <div 
-                      className={cn(
-                        "group flex items-center justify-between p-8 border-b cursor-pointer transition-colors hover:bg-muted/30 relative",
-                        selectedMetric === 'leads' && "bg-primary/5"
-                      )}
-                      onClick={() => handleMetricClick('leads')}
-                    >
-                      <div className="flex items-center gap-6">
-                        <div className="w-[5px] h-8 bg-blue-600 rounded-full" />
-                        <span className="font-bold text-[11px] uppercase tracking-[0.15em] text-muted-foreground group-hover:text-blue-600 transition-colors">Leads Created</span>
+              {/* LEFT COLUMN: Performance -> Temperature -> Source */}
+              <div className="flex flex-col gap-8">
+                
+                {/* PERFORMANCE OVERVIEW CARD */}
+                <Card className="border shadow-sm overflow-hidden h-fit">
+                  <CardHeader className="border-b bg-muted/5 py-4">
+                    <CardTitle className="text-[11px] font-bold uppercase tracking-widest text-foreground/80">Performance Overview</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <div className="flex flex-col">
+                      {/* LEADS CREATED */}
+                      <div 
+                        className={cn(
+                          "group flex items-center justify-between p-8 border-b cursor-pointer transition-colors hover:bg-muted/30 relative",
+                          selectedMetric === 'leads' && "bg-primary/5"
+                        )}
+                        onClick={() => handleMetricClick('leads')}
+                      >
+                        <div className="flex items-center gap-6">
+                          <div className="w-[5px] h-8 bg-blue-600 rounded-full" />
+                          <span className="font-bold text-[11px] uppercase tracking-[0.15em] text-muted-foreground group-hover:text-blue-600 transition-colors">Leads Created</span>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <span className="text-4xl font-bold tracking-tighter text-foreground">{stats.created}</span>
+                          <ChevronRight className={cn("h-5 w-5 text-muted-foreground/40 transition-transform", selectedMetric === 'leads' && "rotate-90 text-blue-600")} />
+                        </div>
                       </div>
-                      <div className="flex items-center gap-4">
-                        <span className="text-4xl font-bold tracking-tighter text-foreground">{stats.created}</span>
-                        <ChevronRight className={cn("h-5 w-5 text-muted-foreground/40 transition-transform", selectedMetric === 'leads' && "rotate-90 text-blue-600")} />
+
+                      {/* DEALS CREATED */}
+                      <div 
+                        className={cn(
+                          "group flex items-center justify-between p-8 border-b cursor-pointer transition-colors hover:bg-muted/30 relative",
+                          selectedMetric === 'deals' && "bg-primary/5"
+                        )}
+                        onClick={() => handleMetricClick('deals')}
+                      >
+                        <div className="flex items-center gap-6">
+                          <div className="w-[5px] h-8 bg-blue-500 rounded-full" />
+                          <span className="font-bold text-[11px] uppercase tracking-[0.15em] text-muted-foreground group-hover:text-blue-500 transition-colors">Deals Created</span>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <span className="text-4xl font-bold tracking-tighter text-foreground">{stats.deals}</span>
+                          <ChevronRight className={cn("h-5 w-5 text-muted-foreground/40 transition-transform", selectedMetric === 'deals' && "rotate-90 text-blue-500")} />
+                        </div>
+                      </div>
+
+                      {/* DEALS WON */}
+                      <div 
+                        className={cn(
+                          "group flex items-center justify-between p-8 cursor-pointer transition-colors hover:bg-muted/30 relative",
+                          selectedMetric === 'won' && "bg-primary/5"
+                        )}
+                        onClick={() => handleMetricClick('won')}
+                      >
+                        <div className="flex items-center gap-6">
+                          <div className="w-[5px] h-8 bg-emerald-500 rounded-full" />
+                          <span className="font-bold text-[11px] uppercase tracking-[0.15em] text-muted-foreground group-hover:text-emerald-500 transition-colors">Deals Won</span>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <span className="text-4xl font-bold tracking-tighter text-foreground">{stats.won}</span>
+                          <ChevronRight className={cn("h-5 w-5 text-muted-foreground/40 transition-transform", selectedMetric === 'won' && "rotate-90 text-emerald-500")} />
+                        </div>
                       </div>
                     </div>
+                  </CardContent>
+                </Card>
 
-                    {/* DEALS CREATED */}
-                    <div 
-                      className={cn(
-                        "group flex items-center justify-between p-8 border-b cursor-pointer transition-colors hover:bg-muted/30 relative",
-                        selectedMetric === 'deals' && "bg-primary/5"
-                      )}
-                      onClick={() => handleMetricClick('deals')}
-                    >
-                      <div className="flex items-center gap-6">
-                        <div className="w-[5px] h-8 bg-blue-500 rounded-full" />
-                        <span className="font-bold text-[11px] uppercase tracking-[0.15em] text-muted-foreground group-hover:text-blue-500 transition-colors">Deals Created</span>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <span className="text-4xl font-bold tracking-tighter text-foreground">{stats.deals}</span>
-                        <ChevronRight className={cn("h-5 w-5 text-muted-foreground/40 transition-transform", selectedMetric === 'deals' && "rotate-90 text-blue-500")} />
-                      </div>
+                {/* LEAD TEMPERATURE CARD */}
+                <Card className="border-2 shadow-md overflow-hidden h-fit">
+                  <CardHeader className="border-b bg-muted/10 py-4">
+                    <CardTitle className="text-sm font-bold uppercase tracking-wider">Lead Temperature</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6 space-y-8">
+                    <div className="grid grid-cols-3 gap-4">
+                      {/* HOT LEAD */}
+                      <button 
+                        onClick={() => handleMetricClick('hot')}
+                        className={cn(
+                          "flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200 group relative",
+                          selectedMetric === 'hot' 
+                            ? "border-red-500 bg-red-50 shadow-md scale-105 z-10" 
+                            : "border-red-100 bg-red-50/30 hover:border-red-300"
+                        )}
+                      >
+                        <Flame className="h-6 w-6 mb-2 text-red-500" />
+                        <span className="text-2xl font-black text-foreground mb-1">{stats.hot}</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-red-600">HOT</span>
+                        <span className="text-[10px] font-medium text-muted-foreground mt-1">{getPct(stats.hot)}%</span>
+                      </button>
+
+                      {/* WARM LEAD (BLUE as requested) */}
+                      <button 
+                        onClick={() => handleMetricClick('warm')}
+                        className={cn(
+                          "flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200 group relative",
+                          selectedMetric === 'warm' 
+                            ? "border-blue-500 bg-blue-50 shadow-md scale-105 z-10" 
+                            : "border-blue-100 bg-blue-50/30 hover:border-blue-300"
+                        )}
+                      >
+                        <Snowflake className="h-6 w-6 mb-2 text-blue-500" />
+                        <span className="text-2xl font-black text-foreground mb-1">{stats.warm}</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-blue-600">WARM</span>
+                        <span className="text-[10px] font-medium text-muted-foreground mt-1">{getPct(stats.warm)}%</span>
+                      </button>
+
+                      {/* COLD LEAD (YELLOW/AMBER as requested) */}
+                      <button 
+                        onClick={() => handleMetricClick('cold')}
+                        className={cn(
+                          "flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200 group relative",
+                          selectedMetric === 'cold' 
+                            ? "border-amber-500 bg-amber-50 shadow-md scale-105 z-10" 
+                            : "border-amber-100 bg-amber-50/30 hover:border-amber-300"
+                        )}
+                      >
+                        <Sun className="h-6 w-6 mb-2 text-amber-500" />
+                        <span className="text-2xl font-black text-foreground mb-1">{stats.cold}</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-amber-600">COLD</span>
+                        <span className="text-[10px] font-medium text-muted-foreground mt-1">{getPct(stats.cold)}%</span>
+                      </button>
                     </div>
 
-                    {/* DEALS WON */}
-                    <div 
-                      className={cn(
-                        "group flex items-center justify-between p-8 cursor-pointer transition-colors hover:bg-muted/30 relative",
-                        selectedMetric === 'won' && "bg-primary/5"
-                      )}
-                      onClick={() => handleMetricClick('won')}
-                    >
-                      <div className="flex items-center gap-6">
-                        <div className="w-[5px] h-8 bg-emerald-500 rounded-full" />
-                        <span className="font-bold text-[11px] uppercase tracking-[0.15em] text-muted-foreground group-hover:text-emerald-500 transition-colors">Deals Won</span>
+                    <div className="flex flex-col items-center">
+                      <div className="h-[240px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={temperatureChartData}
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={60}
+                              outerRadius={90}
+                              paddingAngle={5}
+                              dataKey="value"
+                              animationBegin={0}
+                              animationDuration={1000}
+                              stroke="none"
+                            >
+                              {temperatureChartData.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={entry.fill} className="outline-none" />
+                              ))}
+                            </Pie>
+                            <RechartsTooltip 
+                              formatter={(value: number, name: string) => [`${value} leads (${getPct(value)}%)`, name]}
+                              contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                            />
+                          </PieChart>
+                        </ResponsiveContainer>
                       </div>
-                      <div className="flex items-center gap-4">
-                        <span className="text-4xl font-bold tracking-tighter text-foreground">{stats.won}</span>
-                        <ChevronRight className={cn("h-5 w-5 text-muted-foreground/40 transition-transform", selectedMetric === 'won' && "rotate-90 text-emerald-500")} />
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* GEOGRAPHY DASHBOARD */}
-              <GeographyPerformanceChart leads={filteredLeads} />
-            </div>
-
-            {/* SECOND ROW: TEMPERATURE & SOURCE ANALYTICS */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              
-              {/* LEAD TEMPERATURE CARD */}
-              <Card className="border-2 shadow-md overflow-hidden h-fit">
-                <CardHeader className="border-b bg-muted/10 py-4">
-                  <CardTitle className="text-sm font-bold uppercase tracking-wider">Lead Temperature</CardTitle>
-                </CardHeader>
-                <CardContent className="p-6 space-y-8">
-                  {/* Temperature Sub-Cards */}
-                  <div className="grid grid-cols-3 gap-4">
-                    {/* HOT LEAD */}
-                    <button 
-                      onClick={() => handleMetricClick('hot')}
-                      className={cn(
-                        "flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200 group relative",
-                        selectedMetric === 'hot' 
-                          ? "border-red-500 bg-red-50 shadow-md scale-105 z-10" 
-                          : "border-red-100 bg-red-50/30 hover:border-red-300"
-                      )}
-                    >
-                      <Flame className="h-6 w-6 mb-2 text-red-500" />
-                      <span className="text-2xl font-black text-foreground mb-1">{stats.hot}</span>
-                      <span className="text-[10px] font-black uppercase tracking-widest text-red-600">HOT</span>
-                      <span className="text-[10px] font-medium text-muted-foreground mt-1">{getPct(stats.hot)}%</span>
-                    </button>
-
-                    {/* WARM LEAD */}
-                    <button 
-                      onClick={() => handleMetricClick('warm')}
-                      className={cn(
-                        "flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200 group relative",
-                        selectedMetric === 'warm' 
-                          ? "border-blue-500 bg-blue-50 shadow-md scale-105 z-10" 
-                          : "border-blue-100 bg-blue-50/30 hover:border-blue-300"
-                      )}
-                    >
-                      <Snowflake className="h-6 w-6 mb-2 text-blue-500" />
-                      <span className="text-2xl font-black text-foreground mb-1">{stats.warm}</span>
-                      <span className="text-[10px] font-black uppercase tracking-widest text-blue-600">WARM</span>
-                      <span className="text-[10px] font-medium text-muted-foreground mt-1">{getPct(stats.warm)}%</span>
-                    </button>
-
-                    {/* COLD LEAD */}
-                    <button 
-                      onClick={() => handleMetricClick('cold')}
-                      className={cn(
-                        "flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200 group relative",
-                        selectedMetric === 'cold' 
-                          ? "border-amber-500 bg-amber-50 shadow-md scale-105 z-10" 
-                          : "border-amber-100 bg-amber-50/30 hover:border-amber-300"
-                      )}
-                    >
-                      <Sun className="h-6 w-6 mb-2 text-amber-500" />
-                      <span className="text-2xl font-black text-foreground mb-1">{stats.cold}</span>
-                      <span className="text-[10px] font-black uppercase tracking-widest text-amber-600">COLD</span>
-                      <span className="text-[10px] font-medium text-muted-foreground mt-1">{getPct(stats.cold)}%</span>
-                    </button>
-                  </div>
-
-                  {/* Temperature Donut Chart */}
-                  <div className="flex flex-col items-center">
-                    <div className="h-[240px] w-full">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                            data={temperatureChartData}
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={60}
-                            outerRadius={90}
-                            paddingAngle={5}
-                            dataKey="value"
-                            animationBegin={0}
-                            animationDuration={1000}
-                            stroke="none"
-                          >
-                            {temperatureChartData.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={entry.fill} className="outline-none" />
-                            ))}
-                          </Pie>
-                          <RechartsTooltip 
-                            formatter={(value: number, name: string) => [`${value} leads (${getPct(value)}%)`, name]}
-                            contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                          />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    </div>
-                    
-                    {/* Custom Legend */}
-                    <div className="flex items-center gap-6 mt-2">
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-[#ef4444]" />
-                        <span className="text-[11px] font-bold text-muted-foreground uppercase">Hot ({stats.hot})</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-[#3b82f6]" />
-                        <span className="text-[11px] font-bold text-muted-foreground uppercase">Warm ({stats.warm})</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-[#f59e0b]" />
-                        <span className="text-[11px] font-bold text-muted-foreground uppercase">Cold ({stats.cold})</span>
+                      
+                      <div className="flex items-center gap-6 mt-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full bg-[#ef4444]" />
+                          <span className="text-[11px] font-bold text-muted-foreground uppercase">Hot ({stats.hot})</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full bg-[#3b82f6]" />
+                          <span className="text-[11px] font-bold text-muted-foreground uppercase">Warm ({stats.warm})</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full bg-[#f59e0b]" />
+                          <span className="text-[11px] font-bold text-muted-foreground uppercase">Cold ({stats.cold})</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
 
-              {/* SOURCE PIE CHART */}
-              <div className="space-y-6">
+                {/* SOURCE PIE CHART */}
                 <Card className="border-2 shadow-sm">
                   <CardHeader className="flex flex-row items-center gap-2 border-b bg-muted/10 py-4">
                     <BarChart3 className="h-4 w-4 text-primary" />
@@ -469,6 +464,12 @@ export default function AnalyticsPage() {
                     )}
                   </CardContent>
                 </Card>
+
+              </div>
+
+              {/* RIGHT COLUMN: Geography Dashbaord */}
+              <div>
+                <GeographyPerformanceChart leads={filteredLeads} />
               </div>
 
             </div>
