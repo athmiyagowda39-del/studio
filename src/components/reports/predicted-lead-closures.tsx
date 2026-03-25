@@ -77,7 +77,7 @@ export default function PredictedLeadClosures({ leads }: PredictedLeadClosuresPr
         <div>
           <CardTitle className="text-sm font-bold uppercase tracking-wider flex items-center gap-2">
             <Target className="h-4 w-4 text-primary" />
-            Predicted Lead Closures
+            Sales Forecast
           </CardTitle>
           <p className="text-[11px] text-muted-foreground uppercase tracking-tight">AI-based probability analysis for high-value deals</p>
         </div>
