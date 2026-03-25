@@ -172,7 +172,7 @@ export default function AnalyticsPage() {
     const counts = new Map<string, { name: string; value: number }>();
     
     filteredLeads.forEach(lead => {
-      let rawName = (lead.reference || 'Other').trim();
+      let rawName = String(lead.reference || 'Other').trim();
       if (!rawName) rawName = 'Other';
 
       let normalized = rawName
@@ -219,7 +219,7 @@ export default function AnalyticsPage() {
     const isSource = sourceData.some(s => s.name === selectedMetric);
     if (isSource) {
       return filteredLeads.filter(l => {
-        let rawName = (l.reference || 'Other').trim();
+        let rawName = String(l.reference || 'Other').trim();
         if (!rawName) rawName = 'Other';
         let normalized = rawName
           .toLowerCase()
@@ -232,11 +232,11 @@ export default function AnalyticsPage() {
     }
 
     // Check if it's a specific region (State) - Geography is treated as Lifetime
-    const isState = visibleLeads.some(l => (l.state || 'Other').trim().toLowerCase() === (selectedMetric as string).toLowerCase());
+    const isState = visibleLeads.some(l => String(l.state || 'Other').trim().toLowerCase() === String(selectedMetric || '').toLowerCase());
     if (isState) {
       return visibleLeads.filter(l => {
-        const normalizedState = (l.state || 'Other').trim().toLowerCase();
-        const normalizedSelected = (selectedMetric as string).trim().toLowerCase();
+        const normalizedState = String(l.state || 'Other').trim().toLowerCase();
+        const normalizedSelected = String(selectedMetric || '').trim().toLowerCase();
         return normalizedState === normalizedSelected;
       });
     }
@@ -281,7 +281,7 @@ export default function AnalyticsPage() {
 
   const isLifetimeMetric = ['totalLeads', 'totalDeals', 'totalWon', 'hot', 'warm', 'cold'].includes(selectedMetric as string);
   const isSourceMetric = sourceData.some(s => s.name === selectedMetric);
-  const isRegionMetric = !isLifetimeMetric && !isSourceMetric && selectedMetric !== null && visibleLeads.some(l => (l.state || 'Other').trim().toLowerCase() === (selectedMetric as string).toLowerCase());
+  const isRegionMetric = !isLifetimeMetric && !isSourceMetric && selectedMetric !== null && visibleLeads.some(l => String(l.state || 'Other').trim().toLowerCase() === String(selectedMetric || '').toLowerCase());
 
   return (
     <AppContent>
@@ -457,30 +457,32 @@ export default function AnalyticsPage() {
 
                     <div className="flex flex-col items-center">
                       <div className="h-[240px] w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <PieChart>
-                            <Pie
-                              data={temperatureChartData}
-                              cx="50%"
-                              cy="50%"
-                              innerRadius={60}
-                              outerRadius={90}
-                              paddingAngle={5}
-                              dataKey="value"
-                              animationBegin={0}
-                              animationDuration={1000}
-                              stroke="none"
-                            >
-                              {temperatureChartData.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={entry.fill} className="outline-none" />
-                              ))}
-                            </Pie>
-                            <RechartsTooltip 
-                              formatter={(value: number, name: string) => [`${value} leads (${getPct(value)}%)`, name]}
-                              contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                            />
-                          </PieChart>
-                        </ResponsiveContainer>
+                        {isClient && temperatureChartData.length > 0 && (
+                          <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                              <Pie
+                                data={temperatureChartData}
+                                cx="50%"
+                                cy="50%"
+                                innerRadius={60}
+                                outerRadius={90}
+                                paddingAngle={5}
+                                dataKey="value"
+                                animationBegin={0}
+                                animationDuration={1000}
+                                stroke="none"
+                              >
+                                {temperatureChartData.map((entry, index) => (
+                                  <Cell key={`cell-${index}`} fill={entry.fill} className="outline-none" />
+                                ))}
+                              </Pie>
+                              <RechartsTooltip 
+                                formatter={(value: number, name: string) => [`${value} leads (${getPct(value)}%)`, name]}
+                                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                              />
+                            </PieChart>
+                          </ResponsiveContainer>
+                        )}
                       </div>
                     </div>
                   </CardContent>
@@ -521,7 +523,7 @@ export default function AnalyticsPage() {
             </div>
 
             {/* Drill Down Table */}
-            {selectedMetric && (
+            {isClient && selectedMetric && (
               <Card ref={detailsRef} className="border-2 border-primary/20 shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-300">
                 <CardHeader className="bg-muted/30 flex flex-row items-center justify-between">
                   <CardTitle className="text-base uppercase">

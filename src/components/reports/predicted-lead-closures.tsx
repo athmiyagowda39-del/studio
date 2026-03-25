@@ -22,6 +22,8 @@ export default function PredictedLeadClosures({ leads }: PredictedLeadClosuresPr
   const predictedLeads = useMemo(() => {
     const targetStatuses = ["Demo Given", "Pursuing to Purchase", "Proposal Sent", "Quote Sent"];
     
+    if (!leads) return [];
+
     return leads
       .filter(lead => targetStatuses.includes(lead.status || ""))
       .map(lead => {
@@ -61,7 +63,8 @@ export default function PredictedLeadClosures({ leads }: PredictedLeadClosuresPr
         
         // Robust value parsing to handle potential non-numeric strings
         const rawValue = lead.annualContractValue || lead.monthlyContractValue || "0";
-        const numericValue = parseInt(rawValue.toString().replace(/[^0-9]/g, ''), 10);
+        const cleanValue = String(rawValue).replace(/[^0-9]/g, '');
+        const numericValue = parseInt(cleanValue || '0', 10);
         const displayValue = isNaN(numericValue) ? 0 : numericValue;
 
         return {
@@ -71,14 +74,14 @@ export default function PredictedLeadClosures({ leads }: PredictedLeadClosuresPr
           statusLabel,
           colorClass,
           displayValue,
-          lastActivity: lastFollowUp ? `${lastFollowUp.remarks.substring(0, 60)}${lastFollowUp.remarks.length > 60 ? '...' : ''}` : 'No recent activity',
+          lastActivity: lastFollowUp ? `${String(lastFollowUp.remarks).substring(0, 60)}${String(lastFollowUp.remarks).length > 60 ? '...' : ''}` : 'No recent activity',
           fullLastActivity: lastFollowUp ? lastFollowUp.remarks : null
         };
       })
       .sort((a, b) => b.probability - a.probability);
   }, [leads]);
 
-  if (predictedLeads.length === 0) return null;
+  if (!leads || predictedLeads.length === 0) return null;
 
   return (
     <Card className="border-2 shadow-md">
@@ -88,7 +91,7 @@ export default function PredictedLeadClosures({ leads }: PredictedLeadClosuresPr
             <Target className="h-4 w-4 text-primary" />
             Sales Forecast
           </CardTitle>
-          <p className="text-[11px] text-muted-foreground uppercase tracking-tight">AI-based probability analysis for high-value deals</p>
+          <p className="text-[11px] text-muted-foreground uppercase tracking-tight">Probability analysis for high-value deals</p>
         </div>
         <Badge variant="outline" className="font-bold">{predictedLeads.length} Candidates</Badge>
       </CardHeader>
@@ -105,7 +108,7 @@ export default function PredictedLeadClosures({ leads }: PredictedLeadClosuresPr
                     <div>
                       <h3 className="font-bold text-lg text-foreground leading-none">{lead.contactPerson}</h3>
                       <p className="text-sm text-muted-foreground mt-1">
-                        {lead.company} <span className="mx-1">•</span> {lead.selectedModule?.split(',')[0] || 'Solution Suite'}
+                        {lead.company} <span className="mx-1">•</span> {String(lead.selectedModule || '').split(',')[0] || 'Solution Suite'}
                       </p>
                     </div>
                   </div>

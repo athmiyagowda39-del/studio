@@ -193,7 +193,7 @@ export default function LeadsUpdatePage() {
   }, [isAuthenticated, isLoading, router]);
 
   const visibleLeads = useMemo(() => {
-    if (!user) return [];
+    if (!user || !allLeads) return [];
 
     if (user.role === 'Executive') {
       return allLeads.filter(lead => lead.executive === user.username);
@@ -504,7 +504,7 @@ export default function LeadsUpdatePage() {
         'Sl No': index + 1,
         'Lead Id': lead.leadId,
         'Lead Date': lead.creationDate && !isNaN(new Date(lead.creationDate).getTime()) ? format(new Date(lead.creationDate), 'PPP') : 'N/A',
-        'Module': getDisplayModule(lead.selectedModule, modules),
+        'Module': getDisplayModule(lead.selectedModule || '', modules),
         'Company': lead.company,
         'Contact': lead.contactPerson,
         'Phone': lead.contactNumber,
@@ -983,7 +983,7 @@ export default function LeadsUpdatePage() {
                               <Input
                                 placeholder="Specify who gave it"
                                 value={otherGivenByInput}
-                                onChange={(e) => otherGivenByInput(e.target.value)}
+                                onChange={(e) => setOtherGivenByInput(e.target.value)}
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter') handleSetOtherGivenBy();
                                 }}
@@ -1293,7 +1293,7 @@ export default function LeadsUpdatePage() {
                           <TableCell>{lead.creationDate && !isNaN(new Date(lead.creationDate).getTime()) ? format(new Date(lead.creationDate), 'PPP') : 'N/A'}</TableCell>
                           <TableCell>
                             <ExpandableCell 
-                              content={getDisplayModule(lead.selectedModule, modules)} 
+                              content={getDisplayModule(lead.selectedModule || '', modules)} 
                               title="Selected Modules" 
                             />
                           </TableCell>
