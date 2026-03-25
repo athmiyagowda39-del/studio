@@ -4,6 +4,7 @@ import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { format, differenceInDays } from 'date-fns';
 import { Flame, CheckCircle2, Calendar, Clock, ArrowRight, Target } from 'lucide-react';
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
@@ -83,72 +84,74 @@ export default function PredictedLeadClosures({ leads }: PredictedLeadClosuresPr
         </div>
         <Badge variant="outline" className="font-bold">{predictedLeads.length} Candidates</Badge>
       </CardHeader>
-      <CardContent className="p-6">
-        <div className="space-y-6">
-          {predictedLeads.slice(0, 5).map((lead, index) => (
-            <div key={lead.leadId} className="relative group p-5 rounded-2xl border bg-emerald-50/10 hover:bg-emerald-50/30 transition-all duration-300">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-                <div className="flex items-start gap-4">
-                  <div className="h-10 w-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-black text-sm shrink-0">
-                    #{index + 1}
+      <CardContent className="p-0">
+        <ScrollArea className="h-[800px] w-full px-6 py-6">
+          <div className="space-y-6">
+            {predictedLeads.map((lead, index) => (
+              <div key={lead.leadId} className="relative group p-5 rounded-2xl border bg-emerald-50/10 hover:bg-emerald-50/30 transition-all duration-300">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+                  <div className="flex items-start gap-4">
+                    <div className="h-10 w-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-black text-sm shrink-0">
+                      #{index + 1}
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-lg text-foreground leading-none">{lead.contactPerson}</h3>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {lead.company} <span className="mx-1">•</span> {lead.selectedModule?.split(',')[0] || 'Solution Suite'}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-bold text-lg text-foreground leading-none">{lead.contactPerson}</h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {lead.company} <span className="mx-1">•</span> {lead.selectedModule?.split(',')[0] || 'Solution Suite'}
-                    </p>
+                  <Badge className={cn("font-bold px-3 py-1 gap-1.5 rounded-full border shadow-none", lead.colorClass)}>
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                    {lead.statusLabel}
+                  </Badge>
+                </div>
+
+                <div className="space-y-2 mb-4">
+                  <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                    <span>Close Probability</span>
+                    <span className="text-emerald-600 text-sm">{Math.round(lead.probability)}%</span>
                   </div>
+                  <Progress value={lead.probability} className="h-2 bg-emerald-100" />
                 </div>
-                <Badge className={cn("font-bold px-3 py-1 gap-1.5 rounded-full border shadow-none", lead.colorClass)}>
-                  <CheckCircle2 className="h-3.5 w-3.5" />
-                  {lead.statusLabel}
-                </Badge>
-              </div>
 
-              <div className="space-y-2 mb-4">
-                <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                  <span>Close Probability</span>
-                  <span className="text-emerald-600 text-sm">{Math.round(lead.probability)}%</span>
-                </div>
-                <Progress value={lead.probability} className="h-2 bg-emerald-100" />
-              </div>
-
-              <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm font-medium text-muted-foreground">
-                <div className="flex items-center gap-2 text-emerald-600">
-                  <span className="font-bold">₹ {parseInt(lead.annualContractValue || lead.monthlyContractValue || "0").toLocaleString('en-IN')}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  {lead.nextFollowUpDate ? format(new Date(lead.nextFollowUpDate), 'dd MMM yyyy') : 'TBD'}
-                </div>
-                {lead.daysLeft !== null && (
+                <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm font-medium text-muted-foreground">
+                  <div className="flex items-center gap-2 text-emerald-600">
+                    <span className="font-bold">₹ {parseInt(lead.annualContractValue || lead.monthlyContractValue || "0").toLocaleString('en-IN')}</span>
+                  </div>
                   <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4" />
-                    {lead.daysLeft}d left
+                    <Calendar className="h-4 w-4" />
+                    {lead.nextFollowUpDate ? format(new Date(lead.nextFollowUpDate), 'dd MMM yyyy') : 'TBD'}
                   </div>
-                )}
-                <div className="flex items-center gap-2">
-                  <ArrowRight className="h-4 w-4" />
-                  {lead.reference || 'Organic'}
+                  {lead.daysLeft !== null && (
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4" />
+                      {lead.daysLeft}d left
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2">
+                    <ArrowRight className="h-4 w-4" />
+                    {lead.reference || 'Organic'}
+                  </div>
+                </div>
+
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {lead.milestones.map(m => (
+                    <span key={m} className="px-3 py-1 rounded-full bg-white border text-[10px] font-bold uppercase tracking-tight shadow-sm">
+                      {m}
+                    </span>
+                  ))}
+                </div>
+
+                <div className="mt-4 pt-4 border-t border-dashed">
+                  <p className="text-xs italic text-muted-foreground flex items-center gap-2">
+                    <span className="font-bold not-italic">Last activity:</span> {lead.lastActivity}
+                  </p>
                 </div>
               </div>
-
-              <div className="mt-4 flex flex-wrap gap-2">
-                {lead.milestones.map(m => (
-                  <span key={m} className="px-3 py-1 rounded-full bg-white border text-[10px] font-bold uppercase tracking-tight shadow-sm">
-                    {m}
-                  </span>
-                ))}
-              </div>
-
-              <div className="mt-4 pt-4 border-t border-dashed">
-                <p className="text-xs italic text-muted-foreground flex items-center gap-2">
-                  <span className="font-bold not-italic">Last activity:</span> {lead.lastActivity}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </ScrollArea>
       </CardContent>
     </Card>
   );
