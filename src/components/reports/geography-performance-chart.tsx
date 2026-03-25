@@ -31,6 +31,28 @@ type GeographyPerformanceChartProps = {
 
 const COLORS = ['#2563eb', '#0ea5e9', '#10b981', '#f59e0b', '#a855f7', '#ef4444', '#f43f5e', '#8b5cf6', '#14b8a6'];
 
+const CustomTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div className="bg-white p-3 border-2 border-primary/20 rounded-lg shadow-xl">
+        <p className="text-[10px] font-black uppercase text-primary mb-1 tracking-widest">{data.region}</p>
+        <div className="space-y-1">
+          <div className="flex justify-between gap-4">
+            <span className="text-[10px] font-bold text-muted-foreground uppercase">Total Leads:</span>
+            <span className="text-xs font-black">{data.leads}</span>
+          </div>
+          <div className="flex justify-between gap-4">
+            <span className="text-[10px] font-bold text-muted-foreground uppercase">Converted:</span>
+            <span className="text-xs font-black text-emerald-600">{data.converted}</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
 export default function GeographyPerformanceChart({ leads, onRegionClick }: GeographyPerformanceChartProps) {
   const performanceData = useMemo(() => {
     const stats: Record<string, { region: string; leads: number; converted: number }> = {};
@@ -42,7 +64,7 @@ export default function GeographyPerformanceChart({ leads, onRegionClick }: Geog
       
       const region = rawRegion
         .toLowerCase()
-        .split(/\s+/) // Handle multiple spaces
+        .split(/\s+/)
         .filter(Boolean)
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
@@ -64,7 +86,7 @@ export default function GeographyPerformanceChart({ leads, onRegionClick }: Geog
     return (
       <Card className="border-2 shadow-sm">
         <CardContent className="h-[300px] flex items-center justify-center text-muted-foreground">
-          No geography data available for the selected period.
+          No geography data available.
         </CardContent>
       </Card>
     );
@@ -76,9 +98,9 @@ export default function GeographyPerformanceChart({ leads, onRegionClick }: Geog
   return (
     <Card className="border-2 shadow-sm overflow-hidden flex flex-col h-full">
       <CardHeader className="bg-muted/5 border-b py-4">
-        <CardTitle className="text-sm font-bold uppercase tracking-wider">Geography-wise Performance</CardTitle>
+        <CardTitle className="text-sm font-bold uppercase tracking-wider">Geography-wise Performance (Lifetime)</CardTitle>
         <p className="text-[11px] text-muted-foreground uppercase tracking-tighter">
-          All Active States ({performanceData.length}) • Click bars to view leads
+          All Active States ({performanceData.length}) • Click bars to view total leads
         </p>
       </CardHeader>
       <CardContent className="p-0 flex-1 flex flex-col overflow-hidden">
@@ -108,7 +130,7 @@ export default function GeographyPerformanceChart({ leads, onRegionClick }: Geog
                   />
                   <Tooltip
                     cursor={{ fill: 'rgba(0,0,0,0.03)' }}
-                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                    content={<CustomTooltip />}
                   />
                   <Bar 
                     dataKey="leads" 
@@ -129,7 +151,7 @@ export default function GeographyPerformanceChart({ leads, onRegionClick }: Geog
                 <TableHeader className="bg-muted/30 sticky top-0 z-10">
                   <TableRow>
                     <TableHead className="text-[10px] font-bold uppercase tracking-widest">Region</TableHead>
-                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-center">Leads</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-widest text-center">Total Leads</TableHead>
                     <TableHead className="text-[10px] font-bold uppercase tracking-widest text-right">Converted</TableHead>
                   </TableRow>
                 </TableHeader>

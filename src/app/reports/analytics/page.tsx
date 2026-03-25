@@ -208,26 +208,33 @@ export default function AnalyticsPage() {
     if (selectedMetric === 'cold') return filteredLeads.filter(l => COLD_STATUSES.includes(l.status || ""));
     
     // Check if it matches a Lead Source (Reference)
-    const sourceLeads = filteredLeads.filter(l => {
-      let rawName = (l.reference || 'Other').trim();
-      if (!rawName) rawName = 'Other';
-      let normalized = rawName
-        .toLowerCase()
-        .split(/\s+/)
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ');
-      if (normalized === 'Refferal') normalized = 'Referral';
-      return normalized === selectedMetric;
-    });
-    if (sourceLeads.length > 0) return sourceLeads;
+    const isSource = sourceData.some(s => s.name === selectedMetric);
+    if (isSource) {
+      return filteredLeads.filter(l => {
+        let rawName = (l.reference || 'Other').trim();
+        if (!rawName) rawName = 'Other';
+        let normalized = rawName
+          .toLowerCase()
+          .split(/\s+/)
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(' ');
+        if (normalized === 'Refferal') normalized = 'Referral';
+        return normalized === selectedMetric;
+      });
+    }
 
-    // Finally, check if it's a specific state filter
-    return filteredLeads.filter(l => {
-      const normalizedState = (l.state || '').trim().toLowerCase();
-      const normalizedSelected = selectedMetric.trim().toLowerCase();
-      return normalizedState === normalizedSelected;
-    });
-  }, [selectedMetric, filteredLeads, visibleLeads]);
+    // Check if it's a specific region (State) - Geography is treated as Lifetime
+    const isState = visibleLeads.some(l => (l.state || 'Other').trim().toLowerCase() === (selectedMetric as string).toLowerCase());
+    if (isState) {
+      return visibleLeads.filter(l => {
+        const normalizedState = (l.state || 'Other').trim().toLowerCase();
+        const normalizedSelected = (selectedMetric as string).trim().toLowerCase();
+        return normalizedState === normalizedSelected;
+      });
+    }
+
+    return [];
+  }, [selectedMetric, filteredLeads, visibleLeads, sourceData]);
 
   const temperatureChartData = useMemo(() => {
     return [
@@ -266,6 +273,7 @@ export default function AnalyticsPage() {
 
   const isTotalMetric = ['totalLeads', 'totalDeals', 'totalWon'].includes(selectedMetric as string);
   const isSourceMetric = sourceData.some(s => s.name === selectedMetric);
+  const isRegionMetric = !isTotalMetric && !isSourceMetric && selectedMetric !== null && visibleLeads.some(l => (l.state || 'Other').trim().toLowerCase() === (selectedMetric as string).toLowerCase());
 
   return (
     <AppContent>
@@ -493,7 +501,7 @@ export default function AnalyticsPage() {
               {/* RIGHT COLUMN: Geography Dashboard & Sales Forecast */}
               <div className="flex flex-col gap-8">
                 <GeographyPerformanceChart 
-                  leads={filteredLeads} 
+                  leads={visibleLeads} 
                   onRegionClick={(stateName) => handleMetricClick(stateName)} 
                 />
                 
@@ -514,7 +522,8 @@ export default function AnalyticsPage() {
                       selectedMetric === 'cold' && "text-amber-600",
                       (selectedMetric === 'leads' || selectedMetric === 'deals' || selectedMetric === 'won' || selectedMetric === 'totalDeals' || selectedMetric === 'totalWon') && "text-primary",
                       isSourceMetric && "text-primary",
-                      (!isTotalMetric && !isSourceMetric) && "text-primary"
+                      isRegionMetric && "text-primary",
+                      (!isTotalMetric && !isSourceMetric && !isRegionMetric) && "text-primary"
                     )}>
                       {selectedMetric === 'totalLeads' ? 'Total Leads Created (Lifetime)' : 
                        selectedMetric === 'totalDeals' ? 'Total Deals Created (Lifetime)' : 
@@ -526,8 +535,9 @@ export default function AnalyticsPage() {
                        selectedMetric === 'warm' ? 'Warm Leads' : 
                        selectedMetric === 'cold' ? 'Cold Leads' : 
                        isSourceMetric ? `Source: ${selectedMetric.toUpperCase()}` :
-                       `Region: ${selectedMetric.toUpperCase()}`}
-                    </span> ({metricLeads.length} Records {isTotalMetric ? 'Total' : `in ${format(filterDate, 'MMM yyyy')}`})
+                       isRegionMetric ? `Region: ${selectedMetric.toUpperCase()} (Total Records)` :
+                       `${selectedMetric.toUpperCase()}`}
+                    </span> ({metricLeads.length} Records {isTotalMetric || isRegionMetric ? 'Total' : `in ${format(filterDate, 'MMM yyyy')}`})
                   </CardTitle>
                   <button 
                     onClick={() => setSelectedMetric(null)} 
