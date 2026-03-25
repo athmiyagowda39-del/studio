@@ -6,9 +6,14 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { format, differenceInDays } from 'date-fns';
-import { Flame, CheckCircle2, Calendar, Clock, ArrowRight, Target } from 'lucide-react';
+import { Target, CheckCircle2, Calendar, Clock, ArrowRight } from 'lucide-react';
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import { cn } from '@/lib/utils';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 
 type PredictedLeadClosuresProps = {
   leads: LeadFormData[];
@@ -64,7 +69,8 @@ export default function PredictedLeadClosures({ leads }: PredictedLeadClosuresPr
           statusLabel,
           colorClass,
           daysLeft,
-          lastActivity: lastFollowUp ? `${lastFollowUp.remarks.substring(0, 60)}...` : 'No recent activity'
+          lastActivity: lastFollowUp ? `${lastFollowUp.remarks.substring(0, 60)}${lastFollowUp.remarks.length > 60 ? '...' : ''}` : 'No recent activity',
+          fullLastActivity: lastFollowUp ? lastFollowUp.remarks : null
         };
       })
       .sort((a, b) => b.probability - a.probability);
@@ -144,9 +150,29 @@ export default function PredictedLeadClosures({ leads }: PredictedLeadClosuresPr
                 </div>
 
                 <div className="mt-4 pt-4 border-t border-dashed">
-                  <p className="text-xs italic text-muted-foreground flex items-center gap-2">
-                    <span className="font-bold not-italic">Last activity:</span> {lead.lastActivity}
-                  </p>
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs italic text-muted-foreground flex items-center gap-2 truncate flex-1">
+                      <span className="font-bold not-italic shrink-0">Last activity:</span> 
+                      <span className="truncate">{lead.lastActivity}</span>
+                    </p>
+                    {lead.fullLastActivity && (
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <button className="text-[9px] font-bold bg-muted px-1.5 py-0.5 rounded-sm hover:bg-primary hover:text-primary-foreground transition-all shrink-0">
+                            VIEW
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-80 p-4 shadow-2xl border-2 z-50">
+                          <div className="space-y-2">
+                            <h4 className="font-bold text-xs uppercase text-primary border-b pb-1 tracking-wider">Activity Details</h4>
+                            <div className="text-sm leading-relaxed whitespace-pre-wrap max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                              {lead.fullLastActivity}
+                            </div>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
