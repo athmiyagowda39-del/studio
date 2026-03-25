@@ -82,7 +82,7 @@ const years = Array.from({ length: 11 }, (_, i) => 2020 + i);
 // Temperature Mapping Constants
 const HOT_STATUSES = ["Demo Given", "Order closed", "Proposal Sent", "Quote Sent", "Pursuing to Purchase"];
 const WARM_STATUSES = ["Interested", "Attended", "Existing Users"];
-const COLD_STATUSES = ["Not interested", "Do not contact", "Not viewed", "Fake", "Unattended", "Drop", "Lost"];
+const COLD_STATUSES = ["Not interested", "Do not contact", "Not viewed", "Fake", "Unattended", "Drop", "Lost", "Initial"];
 
 export default function AnalyticsPage() {
   const { user, isAuthenticated, isLoading, leads: allLeads, modules } = useApp();
@@ -137,27 +137,27 @@ export default function AnalyticsPage() {
   }, [visibleLeads, filterDate]);
 
   const stats = useMemo(() => {
-    if (!filteredLeads.length) return { created: 0, deals: 0, won: 0, hot: 0, warm: 0, cold: 0 };
+    if (!visibleLeads.length) return { created: 0, deals: 0, won: 0, hot: 0, warm: 0, cold: 0 };
 
     const dealsCreatedStatuses = ["Demo Given", "Proposal Sent", "Quote Sent", "Pursuing to Purchase"];
     
-    const deals = filteredLeads.filter(l => dealsCreatedStatuses.includes(l.status || ""));
-    const won = filteredLeads.filter(l => l.status === "Order closed");
+    const deals = visibleLeads.filter(l => dealsCreatedStatuses.includes(l.status || ""));
+    const won = visibleLeads.filter(l => l.status === "Order closed");
 
-    // Temperature Logic
-    const hot = filteredLeads.filter(l => HOT_STATUSES.includes(l.status || ""));
-    const warm = filteredLeads.filter(l => WARM_STATUSES.includes(l.status || ""));
-    const cold = filteredLeads.filter(l => COLD_STATUSES.includes(l.status || ""));
+    // Temperature Logic (Lifetime)
+    const hot = visibleLeads.filter(l => HOT_STATUSES.includes(l.status || ""));
+    const warm = visibleLeads.filter(l => WARM_STATUSES.includes(l.status || ""));
+    const cold = visibleLeads.filter(l => COLD_STATUSES.includes(l.status || ""));
 
     return {
-      created: filteredLeads.length,
+      created: visibleLeads.length,
       deals: deals.length,
       won: won.length,
       hot: hot.length,
       warm: warm.length,
       cold: cold.length
     };
-  }, [filteredLeads]);
+  }, [visibleLeads]);
 
   const sourceData = useMemo(() => {
     if (!filteredLeads.length) return [];
@@ -203,9 +203,10 @@ export default function AnalyticsPage() {
     if (selectedMetric === 'deals') return filteredLeads.filter(l => dealsCreatedStatuses.includes(l.status || ""));
     if (selectedMetric === 'won') return filteredLeads.filter(l => l.status === "Order closed");
     
-    if (selectedMetric === 'hot') return filteredLeads.filter(l => HOT_STATUSES.includes(l.status || ""));
-    if (selectedMetric === 'warm') return filteredLeads.filter(l => WARM_STATUSES.includes(l.status || ""));
-    if (selectedMetric === 'cold') return filteredLeads.filter(l => COLD_STATUSES.includes(l.status || ""));
+    // Temperature Drill-down (Lifetime)
+    if (selectedMetric === 'hot') return visibleLeads.filter(l => HOT_STATUSES.includes(l.status || ""));
+    if (selectedMetric === 'warm') return visibleLeads.filter(l => WARM_STATUSES.includes(l.status || ""));
+    if (selectedMetric === 'cold') return visibleLeads.filter(l => COLD_STATUSES.includes(l.status || ""));
     
     // Check if it matches a Lead Source (Reference)
     const isSource = sourceData.some(s => s.name === selectedMetric);
@@ -271,9 +272,9 @@ export default function AnalyticsPage() {
   const totalTemp = stats.hot + stats.warm + stats.cold;
   const getPct = (val: number) => totalTemp > 0 ? ((val / totalTemp) * 100).toFixed(1) : "0.0";
 
-  const isTotalMetric = ['totalLeads', 'totalDeals', 'totalWon'].includes(selectedMetric as string);
+  const isLifetimeMetric = ['totalLeads', 'totalDeals', 'totalWon', 'hot', 'warm', 'cold'].includes(selectedMetric as string);
   const isSourceMetric = sourceData.some(s => s.name === selectedMetric);
-  const isRegionMetric = !isTotalMetric && !isSourceMetric && selectedMetric !== null && visibleLeads.some(l => (l.state || 'Other').trim().toLowerCase() === (selectedMetric as string).toLowerCase());
+  const isRegionMetric = !isLifetimeMetric && !isSourceMetric && selectedMetric !== null && visibleLeads.some(l => (l.state || 'Other').trim().toLowerCase() === (selectedMetric as string).toLowerCase());
 
   return (
     <AppContent>
@@ -397,7 +398,7 @@ export default function AnalyticsPage() {
                 {/* LEAD TEMPERATURE CARD */}
                 <Card className="border-2 shadow-md overflow-hidden h-fit">
                   <CardHeader className="border-b bg-muted/10 py-4">
-                    <CardTitle className="text-sm font-bold uppercase tracking-wider">Lead Temperature (Monthly)</CardTitle>
+                    <CardTitle className="text-sm font-bold uppercase tracking-wider">Lead Temperature (Lifetime)</CardTitle>
                   </CardHeader>
                   <CardContent className="p-6 space-y-8">
                     <div className="grid grid-cols-3 gap-4">
@@ -523,7 +524,7 @@ export default function AnalyticsPage() {
                       (selectedMetric === 'leads' || selectedMetric === 'deals' || selectedMetric === 'won' || selectedMetric === 'totalDeals' || selectedMetric === 'totalWon') && "text-primary",
                       isSourceMetric && "text-primary",
                       isRegionMetric && "text-primary",
-                      (!isTotalMetric && !isSourceMetric && !isRegionMetric) && "text-primary"
+                      (!isLifetimeMetric && !isSourceMetric && !isRegionMetric) && "text-primary"
                     )}>
                       {selectedMetric === 'totalLeads' ? 'Total Leads Created (Lifetime)' : 
                        selectedMetric === 'totalDeals' ? 'Total Deals Created (Lifetime)' : 
@@ -531,13 +532,13 @@ export default function AnalyticsPage() {
                        selectedMetric === 'leads' ? 'Leads Created' : 
                        selectedMetric === 'deals' ? 'Deals Created' : 
                        selectedMetric === 'won' ? 'Deals Won' : 
-                       selectedMetric === 'hot' ? 'Hot Leads' : 
-                       selectedMetric === 'warm' ? 'Warm Leads' : 
-                       selectedMetric === 'cold' ? 'Cold Leads' : 
+                       selectedMetric === 'hot' ? 'Hot Leads (Lifetime)' : 
+                       selectedMetric === 'warm' ? 'Warm Leads (Lifetime)' : 
+                       selectedMetric === 'cold' ? 'Cold Leads (Lifetime)' : 
                        isSourceMetric ? `Source: ${selectedMetric.toUpperCase()}` :
                        isRegionMetric ? `Region: ${selectedMetric.toUpperCase()} (Total Records)` :
                        `${selectedMetric.toUpperCase()}`}
-                    </span> ({metricLeads.length} Records {isTotalMetric || isRegionMetric ? 'Total' : `in ${format(filterDate, 'MMM yyyy')}`})
+                    </span> ({metricLeads.length} Records {isLifetimeMetric || isRegionMetric ? 'Total' : `in ${format(filterDate, 'MMM yyyy')}`})
                   </CardTitle>
                   <button 
                     onClick={() => setSelectedMetric(null)} 
