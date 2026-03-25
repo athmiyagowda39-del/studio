@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,12 +23,20 @@ import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
-import GeographyPerformanceChart from '@/components/reports/geography-performance-chart';
-import PredictedLeadClosures from '@/components/reports/predicted-lead-closures';
 
 const LeadSourceChart = dynamic(
   () => import('@/components/reports/lead-source-chart'),
   { ssr: false, loading: () => <div className="h-[400px] flex items-center justify-center"><p>Loading Source Analytics...</p></div> }
+);
+
+const GeographyPerformanceChart = dynamic(
+  () => import('@/components/reports/geography-performance-chart'),
+  { ssr: false, loading: () => <div className="h-[400px] flex items-center justify-center"><p>Loading Geography Data...</p></div> }
+);
+
+const PredictedLeadClosures = dynamic(
+  () => import('@/components/reports/predicted-lead-closures'),
+  { ssr: false, loading: () => <div className="h-[400px] flex items-center justify-center"><p>Loading Forecast...</p></div> }
 );
 
 // Helper component for expandable "box" view
@@ -501,12 +508,14 @@ export default function AnalyticsPage() {
 
               {/* RIGHT COLUMN: Geography Dashboard & Sales Forecast */}
               <div className="flex flex-col gap-8">
-                <GeographyPerformanceChart 
-                  leads={visibleLeads} 
-                  onRegionClick={(stateName) => handleMetricClick(stateName)} 
-                />
+                {isClient && (
+                  <GeographyPerformanceChart 
+                    leads={visibleLeads} 
+                    onRegionClick={(stateName) => handleMetricClick(stateName)} 
+                  />
+                )}
                 
-                <PredictedLeadClosures leads={visibleLeads} />
+                {isClient && <PredictedLeadClosures leads={visibleLeads} />}
               </div>
 
             </div>

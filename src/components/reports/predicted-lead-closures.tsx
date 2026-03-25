@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { differenceInDays } from 'date-fns';
 import { Target, CheckCircle2, ArrowRight } from 'lucide-react';
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import { cn } from '@/lib/utils';
@@ -58,9 +57,12 @@ export default function PredictedLeadClosures({ leads }: PredictedLeadClosuresPr
           colorClass = "bg-amber-50 text-amber-700 border-amber-200";
         }
 
-        const nextDate = lead.nextFollowUpDate ? new Date(lead.nextFollowUpDate) : null;
-        const daysLeft = nextDate ? differenceInDays(nextDate, new Date()) : null;
         const lastFollowUp = lead.followUps && lead.followUps.length > 0 ? lead.followUps[lead.followUps.length - 1] : null;
+        
+        // Robust value parsing to handle potential non-numeric strings
+        const rawValue = lead.annualContractValue || lead.monthlyContractValue || "0";
+        const numericValue = parseInt(rawValue.toString().replace(/[^0-9]/g, ''), 10);
+        const displayValue = isNaN(numericValue) ? 0 : numericValue;
 
         return {
           ...lead,
@@ -68,7 +70,7 @@ export default function PredictedLeadClosures({ leads }: PredictedLeadClosuresPr
           milestones,
           statusLabel,
           colorClass,
-          daysLeft,
+          displayValue,
           lastActivity: lastFollowUp ? `${lastFollowUp.remarks.substring(0, 60)}${lastFollowUp.remarks.length > 60 ? '...' : ''}` : 'No recent activity',
           fullLastActivity: lastFollowUp ? lastFollowUp.remarks : null
         };
@@ -94,7 +96,7 @@ export default function PredictedLeadClosures({ leads }: PredictedLeadClosuresPr
         <ScrollArea className="h-[800px] w-full px-6 py-6">
           <div className="space-y-6">
             {predictedLeads.map((lead, index) => (
-              <div key={lead.leadId} className="relative group p-5 rounded-2xl border bg-emerald-50/10 hover:bg-emerald-50/30 transition-all duration-300">
+              <div key={`${lead.leadId}-${index}`} className="relative group p-5 rounded-2xl border bg-emerald-50/10 hover:bg-emerald-50/30 transition-all duration-300">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
                   <div className="flex items-start gap-4">
                     <div className="h-10 w-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-black text-sm shrink-0">
@@ -123,7 +125,7 @@ export default function PredictedLeadClosures({ leads }: PredictedLeadClosuresPr
 
                 <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm font-medium text-muted-foreground">
                   <div className="flex items-center gap-2 text-emerald-600">
-                    <span className="font-bold">₹ {parseInt(lead.annualContractValue || lead.monthlyContractValue || "0").toLocaleString('en-IN')}</span>
+                    <span className="font-bold">₹ {lead.displayValue.toLocaleString('en-IN')}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <ArrowRight className="h-4 w-4" />
