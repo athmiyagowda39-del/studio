@@ -1,4 +1,3 @@
-
 "use client"
 
 import {
@@ -47,10 +46,20 @@ const COLORS = [
 ];
 
 export default function LeadSourceChart({ data, onSourceClick }: LeadSourceChartProps) {
-  const totalLeads = data.reduce((acc, curr) => acc + curr.value, 0);
+  if (!data || data.length === 0) {
+    return (
+      <div className="h-[450px] flex items-center justify-center text-muted-foreground">
+        No source data available.
+      </div>
+    );
+  }
+
+  const totalLeads = data.reduce((acc, curr) => acc + (curr.value || 0), 0);
 
   const renderCustomizedLabel = (props: any) => {
     const { cx, cy, midAngle, outerRadius, percent, name } = props;
+    if (cx === undefined || cy === undefined || midAngle === undefined || outerRadius === undefined) return null;
+
     const RADIAN = Math.PI / 180;
     const angle = -midAngle * RADIAN;
     
@@ -58,7 +67,7 @@ export default function LeadSourceChart({ data, onSourceClick }: LeadSourceChart
     const sx = cx + outerRadius * Math.cos(angle);
     const sy = cy + outerRadius * Math.sin(angle);
     
-    // Connector line length - reduced to pull labels in
+    // Connector line length
     const lineLength = 40;
     const ex = cx + (outerRadius + lineLength) * Math.cos(angle);
     const ey = cy + (outerRadius + lineLength) * Math.sin(angle);
@@ -75,9 +84,11 @@ export default function LeadSourceChart({ data, onSourceClick }: LeadSourceChart
     const x2 = ex - arrowSize * Math.cos(angle + Math.PI / 6);
     const y2 = ey - arrowSize * Math.sin(angle + Math.PI / 6);
 
+    const safeName = String(name || 'Unknown').toUpperCase();
+    const safePercent = typeof percent === 'number' ? (percent * 100).toFixed(1) : '0.0';
+
     return (
       <g>
-        {/* The arrow line */}
         <line 
           x1={sx} 
           y1={sy} 
@@ -86,7 +97,6 @@ export default function LeadSourceChart({ data, onSourceClick }: LeadSourceChart
           stroke="#94a3b8" 
           strokeWidth={1.5} 
         />
-        {/* The arrowhead (>) */}
         <path
           d={`M ${x1} ${y1} L ${ex} ${ey} L ${x2} ${y2}`}
           fill="none"
@@ -95,7 +105,6 @@ export default function LeadSourceChart({ data, onSourceClick }: LeadSourceChart
           strokeLinecap="round"
           strokeLinejoin="round"
         />
-        {/* The label text */}
         <text 
           x={tx} 
           y={ty} 
@@ -104,19 +113,11 @@ export default function LeadSourceChart({ data, onSourceClick }: LeadSourceChart
           dominantBaseline="central"
           className="text-[13px] font-black tracking-tight"
         >
-          {`${name.toUpperCase()} (${(percent * 100).toFixed(1)}%)`}
+          {`${safeName} (${safePercent}%)`}
         </text>
       </g>
     );
   };
-
-  if (!data || data.length === 0) {
-    return (
-      <div className="h-[450px] flex items-center justify-center text-muted-foreground">
-        No source data available.
-      </div>
-    );
-  }
 
   return (
     <div className="w-full h-[750px] flex flex-col p-4 bg-background">
@@ -145,7 +146,7 @@ export default function LeadSourceChart({ data, onSourceClick }: LeadSourceChart
               }}
             >
               {data.map((entry, index) => {
-                const normalizedName = entry.name.toUpperCase().trim();
+                const normalizedName = String(entry.name || 'OTHER').toUpperCase().trim();
                 const customColor = SOURCE_COLORS[normalizedName];
                 
                 return (
@@ -166,10 +167,14 @@ export default function LeadSourceChart({ data, onSourceClick }: LeadSourceChart
                 fontWeight: '700',
                 padding: '12px'
               }}
-              formatter={(value: number) => [
-                `Count : ${value} Leads (${((value / totalLeads) * 100).toFixed(1)}%)`, 
-                ''
-              ]}
+              formatter={(value: number) => {
+                const count = typeof value === 'number' ? value : 0;
+                const pct = totalLeads > 0 ? ((count / totalLeads) * 100).toFixed(1) : "0.0";
+                return [
+                  `Count : ${count} Leads (${pct}%)`, 
+                  ''
+                ];
+              }}
             />
           </PieChart>
         </ResponsiveContainer>

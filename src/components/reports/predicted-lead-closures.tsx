@@ -20,12 +20,12 @@ type PredictedLeadClosuresProps = {
 
 export default function PredictedLeadClosures({ leads }: PredictedLeadClosuresProps) {
   const predictedLeads = useMemo(() => {
+    if (!leads || !Array.isArray(leads)) return [];
+
     const targetStatuses = ["Demo Given", "Pursuing to Purchase", "Proposal Sent", "Quote Sent"];
     
-    if (!leads) return [];
-
     return leads
-      .filter(lead => targetStatuses.includes(lead.status || ""))
+      .filter(lead => lead && targetStatuses.includes(lead.status || ""))
       .map(lead => {
         let probability = 0;
         let milestones: string[] = [];
@@ -45,7 +45,7 @@ export default function PredictedLeadClosures({ leads }: PredictedLeadClosuresPr
         }
 
         // Add small boost for recurring follow-ups
-        const followUpCount = lead.followUps?.length || 0;
+        const followUpCount = (lead.followUps && Array.isArray(lead.followUps)) ? lead.followUps.length : 0;
         probability = Math.min(98, probability + (followUpCount * 0.5));
 
         if (probability >= 90) {
@@ -61,11 +61,15 @@ export default function PredictedLeadClosures({ leads }: PredictedLeadClosuresPr
 
         const lastFollowUp = lead.followUps && lead.followUps.length > 0 ? lead.followUps[lead.followUps.length - 1] : null;
         
-        // Robust value parsing to handle potential non-numeric strings
+        // Robust value parsing
         const rawValue = lead.annualContractValue || lead.monthlyContractValue || "0";
         const cleanValue = String(rawValue).replace(/[^0-9]/g, '');
         const numericValue = parseInt(cleanValue || '0', 10);
         const displayValue = isNaN(numericValue) ? 0 : numericValue;
+
+        const remarksSnippet = lastFollowUp?.remarks 
+          ? String(lastFollowUp.remarks).substring(0, 60) + (String(lastFollowUp.remarks).length > 60 ? '...' : '')
+          : 'No recent activity';
 
         return {
           ...lead,
@@ -74,8 +78,8 @@ export default function PredictedLeadClosures({ leads }: PredictedLeadClosuresPr
           statusLabel,
           colorClass,
           displayValue,
-          lastActivity: lastFollowUp ? `${String(lastFollowUp.remarks).substring(0, 60)}${String(lastFollowUp.remarks).length > 60 ? '...' : ''}` : 'No recent activity',
-          fullLastActivity: lastFollowUp ? lastFollowUp.remarks : null
+          lastActivity: remarksSnippet,
+          fullLastActivity: lastFollowUp?.remarks || null
         };
       })
       .sort((a, b) => b.probability - a.probability);
@@ -106,15 +110,15 @@ export default function PredictedLeadClosures({ leads }: PredictedLeadClosuresPr
                       #{index + 1}
                     </div>
                     <div>
-                      <h3 className="font-bold text-lg text-foreground leading-none">{lead.contactPerson}</h3>
+                      <h3 className="font-bold text-lg text-foreground leading-none">{lead.contactPerson || 'Contact Unknown'}</h3>
                       <p className="text-sm text-muted-foreground mt-1">
-                        {lead.company} <span className="mx-1">•</span> {String(lead.selectedModule || '').split(',')[0] || 'Solution Suite'}
+                        {lead.company || 'Company N/A'} <span className="mx-1">•</span> {String(lead.selectedModule || '').split(',')[0] || 'Solution Suite'}
                       </p>
                     </div>
                   </div>
                   <Badge className={cn("font-bold px-3 py-1 gap-1.5 rounded-full border shadow-none", lead.colorClass)}>
                     <CheckCircle2 className="h-3.5 w-3.5" />
-                    {statusLabel}
+                    {lead.statusLabel}
                   </Badge>
                 </div>
 
@@ -161,7 +165,7 @@ export default function PredictedLeadClosures({ leads }: PredictedLeadClosuresPr
                           <div className="space-y-2">
                             <h4 className="font-bold text-xs uppercase text-primary border-b pb-1 tracking-wider">Activity Details</h4>
                             <div className="text-sm leading-relaxed whitespace-pre-wrap max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-                              {lead.fullLastActivity}
+                              {String(lead.fullLastActivity)}
                             </div>
                           </div>
                         </PopoverContent>

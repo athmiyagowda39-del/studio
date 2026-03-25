@@ -15,7 +15,7 @@ import {
   TableRow 
 } from '@/components/ui/table';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { format, getMonth, getYear, setMonth, setYear } from 'date-fns';
+import { format, getMonth, getYear, setMonth, setYear, isValid } from 'date-fns';
 import { getDisplayModule } from '@/lib/modules';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ChevronRight, Calendar, BarChart3, Flame, Sun, Snowflake } from 'lucide-react';
@@ -41,12 +41,13 @@ const PredictedLeadClosures = dynamic(
 
 // Helper component for expandable "box" view
 function ExpandableCell({ content, title }: { content: string | null | undefined, title: string }) {
-  if (!content || content === 'N/A') return <span className="text-muted-foreground">N/A</span>;
+  const safeContent = content || 'N/A';
+  if (!safeContent || safeContent === 'N/A') return <span className="text-muted-foreground">N/A</span>;
   
-  const isShort = content.length < 35;
+  const isShort = safeContent.length < 35;
 
   if (isShort) {
-    return <span>{content}</span>;
+    return <span>{safeContent}</span>;
   }
 
   return (
@@ -56,7 +57,7 @@ function ExpandableCell({ content, title }: { content: string | null | undefined
           onClick={(e) => e.stopPropagation()} 
           className="flex items-center gap-2 cursor-pointer group transition-colors hover:text-primary max-w-[200px]"
         >
-          <span className="flex-1 truncate">{content}</span>
+          <span className="flex-1 truncate">{safeContent}</span>
           <span className="shrink-0 text-[9px] font-bold bg-muted px-1.5 py-0.5 rounded-sm opacity-60 group-hover:opacity-100 group-hover:bg-primary group-hover:text-primary-foreground transition-all">
             VIEW
           </span>
@@ -69,7 +70,7 @@ function ExpandableCell({ content, title }: { content: string | null | undefined
         <div className="space-y-2">
           <h4 className="font-bold text-xs uppercase text-primary border-b pb-1 tracking-wider">{title}</h4>
           <div className="text-sm whitespace-normal break-words leading-relaxed max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-            {content}
+            {safeContent}
           </div>
         </div>
       </PopoverContent>
@@ -109,14 +110,13 @@ export default function AnalyticsPage() {
   }, [isAuthenticated, isLoading, router]);
 
   const visibleLeads = useMemo(() => {
-    if (!user || !allLeads) return [];
+    if (!user || !allLeads || !Array.isArray(allLeads)) return [];
     if (user.role === 'Executive') {
       return allLeads.filter(lead => lead.executive === user.username);
     }
     return allLeads;
   }, [allLeads, user]);
 
-  // Total Lifetime Stats for the user
   const totalStats = useMemo(() => {
     if (!visibleLeads.length) return { created: 0, deals: 0, won: 0 };
 
@@ -131,15 +131,15 @@ export default function AnalyticsPage() {
     };
   }, [visibleLeads]);
 
-  // Filter leads based on selected month and year
   const filteredLeads = useMemo(() => {
+    if (!isValid(filterDate)) return [];
     const targetMonth = getMonth(filterDate);
     const targetYear = getYear(filterDate);
 
     return visibleLeads.filter(lead => {
       if (!lead.creationDate) return false;
       const d = new Date(lead.creationDate);
-      return d.getMonth() === targetMonth && d.getFullYear() === targetYear;
+      return isValid(d) && d.getMonth() === targetMonth && d.getFullYear() === targetYear;
     });
   }, [visibleLeads, filterDate]);
 
@@ -173,7 +173,7 @@ export default function AnalyticsPage() {
     
     filteredLeads.forEach(lead => {
       let rawName = String(lead.reference || 'Other').trim();
-      if (!rawName) rawName = 'Other';
+      if (!rawName || rawName === 'null' || rawName === 'undefined') rawName = 'Other';
 
       let normalized = rawName
         .toLowerCase()
@@ -196,7 +196,7 @@ export default function AnalyticsPage() {
   }, [filteredLeads]);
 
   const metricLeads = useMemo(() => {
-    if (!selectedMetric) return [];
+    if (!selectedMetric || !visibleLeads) return [];
 
     const dealsCreatedStatuses = ["Demo Given", "Proposal Sent", "Quote Sent", "Pursuing to Purchase"];
 
@@ -220,7 +220,7 @@ export default function AnalyticsPage() {
     if (isSource) {
       return filteredLeads.filter(l => {
         let rawName = String(l.reference || 'Other').trim();
-        if (!rawName) rawName = 'Other';
+        if (!rawName || rawName === 'null' || rawName === 'undefined') rawName = 'Other';
         let normalized = rawName
           .toLowerCase()
           .split(/\s+/)
@@ -232,12 +232,12 @@ export default function AnalyticsPage() {
     }
 
     // Check if it's a specific region (State) - Geography is treated as Lifetime
-    const isState = visibleLeads.some(l => String(l.state || 'Other').trim().toLowerCase() === String(selectedMetric || '').toLowerCase());
+    const normalizedMetric = String(selectedMetric || '').trim().toLowerCase();
+    const isState = visibleLeads.some(l => String(l.state || 'Other').trim().toLowerCase() === normalizedMetric);
     if (isState) {
       return visibleLeads.filter(l => {
         const normalizedState = String(l.state || 'Other').trim().toLowerCase();
-        const normalizedSelected = String(selectedMetric || '').trim().toLowerCase();
-        return normalizedState === normalizedSelected;
+        return normalizedState === normalizedMetric;
       });
     }
 
@@ -245,14 +245,16 @@ export default function AnalyticsPage() {
   }, [selectedMetric, filteredLeads, visibleLeads, sourceData]);
 
   const temperatureChartData = useMemo(() => {
+    if (!stats) return [];
     return [
-      { name: 'Hot', value: stats.hot, fill: '#ef4444' },
-      { name: 'Warm', value: stats.warm, fill: '#3b82f6' },
-      { name: 'Cold', value: stats.cold, fill: '#f59e0b' },
+      { name: 'Hot', value: stats.hot || 0, fill: '#ef4444' },
+      { name: 'Warm', value: stats.warm || 0, fill: '#3b82f6' },
+      { name: 'Cold', value: stats.cold || 0, fill: '#f59e0b' },
     ].filter(d => d.value > 0);
   }, [stats]);
 
   const handleMetricClick = (metric: MetricType) => {
+    if (!metric) return;
     if (selectedMetric === metric) {
       setSelectedMetric(null);
     } else {
@@ -265,23 +267,29 @@ export default function AnalyticsPage() {
 
   const handleMonthChange = (monthName: string) => {
     const monthIndex = months.indexOf(monthName);
-    setFilterDate(prev => setMonth(prev, monthIndex));
+    if (monthIndex !== -1) {
+      setFilterDate(prev => setMonth(prev, monthIndex));
+    }
   };
 
   const handleYearChange = (yearStr: string) => {
-    setFilterDate(prev => setYear(prev, parseInt(yearStr, 10)));
+    const yearNum = parseInt(yearStr, 10);
+    if (!isNaN(yearNum)) {
+      setFilterDate(prev => setYear(prev, yearNum));
+    }
   };
 
   if (isLoading || !isAuthenticated) {
     return null;
   }
 
-  const totalTemp = stats.hot + stats.warm + stats.cold;
+  const totalTemp = (stats.hot || 0) + (stats.warm || 0) + (stats.cold || 0);
   const getPct = (val: number) => totalTemp > 0 ? ((val / totalTemp) * 100).toFixed(1) : "0.0";
 
-  const isLifetimeMetric = ['totalLeads', 'totalDeals', 'totalWon', 'hot', 'warm', 'cold'].includes(selectedMetric as string);
+  const metricStr = String(selectedMetric || '');
+  const isLifetimeMetric = ['totalLeads', 'totalDeals', 'totalWon', 'hot', 'warm', 'cold'].includes(metricStr);
   const isSourceMetric = sourceData.some(s => s.name === selectedMetric);
-  const isRegionMetric = !isLifetimeMetric && !isSourceMetric && selectedMetric !== null && visibleLeads.some(l => String(l.state || 'Other').trim().toLowerCase() === String(selectedMetric || '').toLowerCase());
+  const isRegionMetric = !isLifetimeMetric && !isSourceMetric && selectedMetric !== null && visibleLeads.some(l => String(l.state || 'Other').trim().toLowerCase() === metricStr.toLowerCase());
 
   return (
     <AppContent>
@@ -298,7 +306,7 @@ export default function AnalyticsPage() {
                 <PopoverTrigger asChild>
                   <Button variant="outline" size="sm" className="h-10 px-4 gap-2 font-bold border-2 border-primary/20 hover:border-primary/50 transition-all">
                     <Calendar className="h-4 w-4 text-primary" />
-                    {format(filterDate, 'MMMM yyyy')}
+                    {isValid(filterDate) ? format(filterDate, 'MMMM yyyy') : 'Select Date'}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-64 p-4 space-y-4" align="end">
@@ -345,7 +353,6 @@ export default function AnalyticsPage() {
                   </CardHeader>
                   <CardContent className="p-0">
                     <div className="flex flex-col">
-                      {/* LEADS CREATED (TOTAL) */}
                       <div 
                         className={cn(
                           "group flex items-center justify-between p-8 border-b cursor-pointer transition-colors hover:bg-muted/30 relative",
@@ -363,7 +370,6 @@ export default function AnalyticsPage() {
                         </div>
                       </div>
 
-                      {/* DEALS CREATED (TOTAL) */}
                       <div 
                         className={cn(
                           "group flex items-center justify-between p-8 border-b cursor-pointer transition-colors hover:bg-muted/30 relative",
@@ -381,7 +387,6 @@ export default function AnalyticsPage() {
                         </div>
                       </div>
 
-                      {/* DEALS WON (TOTAL) */}
                       <div 
                         className={cn(
                           "group flex items-center justify-between p-8 cursor-pointer transition-colors hover:bg-muted/30 relative",
@@ -500,7 +505,7 @@ export default function AnalyticsPage() {
                     ) : (
                       <div className="h-[400px] flex items-center justify-center text-muted-foreground flex-col gap-2">
                         <BarChart3 className="h-12 w-12 opacity-20" />
-                        <p className="font-medium text-sm">No data available for {format(filterDate, 'MMMM yyyy')}</p>
+                        <p className="font-medium text-sm">No data available for {isValid(filterDate) ? format(filterDate, 'MMMM yyyy') : 'selected period'}</p>
                       </div>
                     )}
                   </CardContent>
@@ -546,10 +551,10 @@ export default function AnalyticsPage() {
                        selectedMetric === 'hot' ? 'Hot Leads (Lifetime)' : 
                        selectedMetric === 'warm' ? 'Warm Leads (Lifetime)' : 
                        selectedMetric === 'cold' ? 'Cold Leads (Lifetime)' : 
-                       isSourceMetric ? `Source: ${selectedMetric.toUpperCase()}` :
-                       isRegionMetric ? `Region: ${selectedMetric.toUpperCase()} (Total Records)` :
-                       `${selectedMetric.toUpperCase()}`}
-                    </span> ({metricLeads.length} Records {isLifetimeMetric || isRegionMetric ? 'Total' : `in ${format(filterDate, 'MMM yyyy')}`})
+                       isSourceMetric ? `Source: ${String(selectedMetric).toUpperCase()}` :
+                       isRegionMetric ? `Region: ${String(selectedMetric).toUpperCase()} (Total Records)` :
+                       `${String(selectedMetric).toUpperCase()}`}
+                    </span> ({metricLeads.length} Records {isLifetimeMetric || isRegionMetric ? 'Total' : `in ${isValid(filterDate) ? format(filterDate, 'MMM yyyy') : 'selected period'}`})
                   </CardTitle>
                   <button 
                     onClick={() => setSelectedMetric(null)} 
