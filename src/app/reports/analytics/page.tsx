@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -69,7 +70,7 @@ function ExpandableCell({ content, title }: { content: string | null | undefined
   );
 }
 
-type MetricType = 'leads' | 'deals' | 'won' | 'hot' | 'warm' | 'cold' | string | null;
+type MetricType = 'leads' | 'deals' | 'won' | 'totalLeads' | 'totalDeals' | 'totalWon' | 'hot' | 'warm' | 'cold' | string | null;
 
 const months = [
   "January", "February", "March", "April", "May", "June",
@@ -107,6 +108,21 @@ export default function AnalyticsPage() {
     }
     return allLeads;
   }, [allLeads, user]);
+
+  // Total Lifetime Stats for the user
+  const totalStats = useMemo(() => {
+    if (!visibleLeads.length) return { created: 0, deals: 0, won: 0 };
+
+    const dealsCreatedStatuses = ["Demo Given", "Proposal Sent", "Quote Sent", "Pursuing to Purchase"];
+    const deals = visibleLeads.filter(l => dealsCreatedStatuses.includes(l.status || ""));
+    const won = visibleLeads.filter(l => l.status === "Order closed");
+
+    return {
+      created: visibleLeads.length,
+      deals: deals.length,
+      won: won.length
+    };
+  }, [visibleLeads]);
 
   // Filter leads based on selected month and year
   const filteredLeads = useMemo(() => {
@@ -173,10 +189,16 @@ export default function AnalyticsPage() {
   }, [filteredLeads]);
 
   const metricLeads = useMemo(() => {
-    if (!selectedMetric || !filteredLeads.length) return [];
+    if (!selectedMetric) return [];
 
     const dealsCreatedStatuses = ["Demo Given", "Proposal Sent", "Quote Sent", "Pursuing to Purchase"];
 
+    // Handle Total (Lifetime) Metrics
+    if (selectedMetric === 'totalLeads') return visibleLeads;
+    if (selectedMetric === 'totalDeals') return visibleLeads.filter(l => dealsCreatedStatuses.includes(l.status || ""));
+    if (selectedMetric === 'totalWon') return visibleLeads.filter(l => l.status === "Order closed");
+
+    // Handle Monthly Filtered Metrics
     if (selectedMetric === 'leads') return filteredLeads;
     if (selectedMetric === 'deals') return filteredLeads.filter(l => dealsCreatedStatuses.includes(l.status || ""));
     if (selectedMetric === 'won') return filteredLeads.filter(l => l.status === "Order closed");
@@ -185,10 +207,6 @@ export default function AnalyticsPage() {
     if (selectedMetric === 'warm') return filteredLeads.filter(l => WARM_STATUSES.includes(l.status || ""));
     if (selectedMetric === 'cold') return filteredLeads.filter(l => COLD_STATUSES.includes(l.status || ""));
     
-    // Check if it's a specific status filter
-    const statusLeads = filteredLeads.filter(l => l.status === selectedMetric);
-    if (statusLeads.length > 0) return statusLeads;
-
     // Check if it matches a Lead Source (Reference)
     const sourceLeads = filteredLeads.filter(l => {
       let rawName = (l.reference || 'Other').trim();
@@ -209,7 +227,7 @@ export default function AnalyticsPage() {
       const normalizedSelected = selectedMetric.trim().toLowerCase();
       return normalizedState === normalizedSelected;
     });
-  }, [selectedMetric, filteredLeads]);
+  }, [selectedMetric, filteredLeads, visibleLeads]);
 
   const temperatureChartData = useMemo(() => {
     return [
@@ -246,8 +264,7 @@ export default function AnalyticsPage() {
   const totalTemp = stats.hot + stats.warm + stats.cold;
   const getPct = (val: number) => totalTemp > 0 ? ((val / totalTemp) * 100).toFixed(1) : "0.0";
 
-  // Check if selectedMetric is a known performance metric or a state or a source
-  const isPerformanceMetric = ['leads', 'deals', 'won', 'hot', 'warm', 'cold'].includes(selectedMetric as string);
+  const isTotalMetric = ['totalLeads', 'totalDeals', 'totalWon'].includes(selectedMetric as string);
   const isSourceMetric = sourceData.some(s => s.name === selectedMetric);
 
   return (
@@ -302,67 +319,67 @@ export default function AnalyticsPage() {
             {/* MAIN DASHBOARD GRID */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               
-              {/* LEFT COLUMN: Performance -> Temperature -> Source */}
+              {/* LEFT COLUMN: Performance Overview */}
               <div className="flex flex-col gap-8">
                 
-                {/* PERFORMANCE OVERVIEW CARD */}
+                {/* PERFORMANCE OVERVIEW CARD - Lifetime Totals */}
                 <Card className="border shadow-sm overflow-hidden h-fit">
                   <CardHeader className="border-b bg-muted/5 py-4">
-                    <CardTitle className="text-[11px] font-bold uppercase tracking-widest text-foreground/80">Performance Overview</CardTitle>
+                    <CardTitle className="text-[11px] font-bold uppercase tracking-widest text-foreground/80">Performance Overview (Lifetime)</CardTitle>
                   </CardHeader>
                   <CardContent className="p-0">
                     <div className="flex flex-col">
-                      {/* LEADS CREATED */}
+                      {/* LEADS CREATED (TOTAL) */}
                       <div 
                         className={cn(
                           "group flex items-center justify-between p-8 border-b cursor-pointer transition-colors hover:bg-muted/30 relative",
-                          selectedMetric === 'leads' && "bg-primary/5"
+                          selectedMetric === 'totalLeads' && "bg-primary/5"
                         )}
-                        onClick={() => handleMetricClick('leads')}
+                        onClick={() => handleMetricClick('totalLeads')}
                       >
                         <div className="flex items-center gap-6">
                           <div className="w-[5px] h-8 bg-blue-600 rounded-full" />
                           <span className="font-bold text-[11px] uppercase tracking-[0.15em] text-muted-foreground group-hover:text-blue-600 transition-colors">Leads Created</span>
                         </div>
                         <div className="flex items-center gap-4">
-                          <span className="text-4xl font-bold tracking-tighter text-foreground">{stats.created}</span>
-                          <ChevronRight className={cn("h-5 w-5 text-muted-foreground/40 transition-transform", selectedMetric === 'leads' && "rotate-90 text-blue-600")} />
+                          <span className="text-4xl font-bold tracking-tighter text-foreground">{totalStats.created}</span>
+                          <ChevronRight className={cn("h-5 w-5 text-muted-foreground/40 transition-transform", selectedMetric === 'totalLeads' && "rotate-90 text-blue-600")} />
                         </div>
                       </div>
 
-                      {/* DEALS CREATED */}
+                      {/* DEALS CREATED (TOTAL) */}
                       <div 
                         className={cn(
                           "group flex items-center justify-between p-8 border-b cursor-pointer transition-colors hover:bg-muted/30 relative",
-                          selectedMetric === 'deals' && "bg-primary/5"
+                          selectedMetric === 'totalDeals' && "bg-primary/5"
                         )}
-                        onClick={() => handleMetricClick('deals')}
+                        onClick={() => handleMetricClick('totalDeals')}
                       >
                         <div className="flex items-center gap-6">
                           <div className="w-[5px] h-8 bg-blue-50 rounded-full" />
                           <span className="font-bold text-[11px] uppercase tracking-[0.15em] text-muted-foreground group-hover:text-blue-50 transition-colors">Deals Created</span>
                         </div>
                         <div className="flex items-center gap-4">
-                          <span className="text-4xl font-bold tracking-tighter text-foreground">{stats.deals}</span>
-                          <ChevronRight className={cn("h-5 w-5 text-muted-foreground/40 transition-transform", selectedMetric === 'deals' && "rotate-90 text-blue-500")} />
+                          <span className="text-4xl font-bold tracking-tighter text-foreground">{totalStats.deals}</span>
+                          <ChevronRight className={cn("h-5 w-5 text-muted-foreground/40 transition-transform", selectedMetric === 'totalDeals' && "rotate-90 text-blue-500")} />
                         </div>
                       </div>
 
-                      {/* DEALS WON */}
+                      {/* DEALS WON (TOTAL) */}
                       <div 
                         className={cn(
                           "group flex items-center justify-between p-8 cursor-pointer transition-colors hover:bg-muted/30 relative",
-                          selectedMetric === 'won' && "bg-primary/5"
+                          selectedMetric === 'totalWon' && "bg-primary/5"
                         )}
-                        onClick={() => handleMetricClick('won')}
+                        onClick={() => handleMetricClick('totalWon')}
                       >
                         <div className="flex items-center gap-6">
                           <div className="w-[5px] h-8 bg-emerald-500 rounded-full" />
                           <span className="font-bold text-[11px] uppercase tracking-[0.15em] text-muted-foreground group-hover:text-emerald-500 transition-colors">Deals Won</span>
                         </div>
                         <div className="flex items-center gap-4">
-                          <span className="text-4xl font-bold tracking-tighter text-foreground">{stats.won}</span>
-                          <ChevronRight className={cn("h-5 w-5 text-muted-foreground/40 transition-transform", selectedMetric === 'won' && "rotate-90 text-emerald-500")} />
+                          <span className="text-4xl font-bold tracking-tighter text-foreground">{totalStats.won}</span>
+                          <ChevronRight className={cn("h-5 w-5 text-muted-foreground/40 transition-transform", selectedMetric === 'totalWon' && "rotate-90 text-emerald-500")} />
                         </div>
                       </div>
                     </div>
@@ -372,11 +389,10 @@ export default function AnalyticsPage() {
                 {/* LEAD TEMPERATURE CARD */}
                 <Card className="border-2 shadow-md overflow-hidden h-fit">
                   <CardHeader className="border-b bg-muted/10 py-4">
-                    <CardTitle className="text-sm font-bold uppercase tracking-wider">Lead Temperature</CardTitle>
+                    <CardTitle className="text-sm font-bold uppercase tracking-wider">Lead Temperature (Monthly)</CardTitle>
                   </CardHeader>
                   <CardContent className="p-6 space-y-8">
                     <div className="grid grid-cols-3 gap-4">
-                      {/* HOT LEAD */}
                       <button 
                         onClick={() => handleMetricClick('hot')}
                         className={cn(
@@ -392,7 +408,6 @@ export default function AnalyticsPage() {
                         <span className="text-[10px] font-medium text-muted-foreground mt-1">{getPct(stats.hot)}%</span>
                       </button>
 
-                      {/* WARM LEAD (BLUE as requested) */}
                       <button 
                         onClick={() => handleMetricClick('warm')}
                         className={cn(
@@ -408,7 +423,6 @@ export default function AnalyticsPage() {
                         <span className="text-[10px] font-medium text-muted-foreground mt-1">{getPct(stats.warm)}%</span>
                       </button>
 
-                      {/* COLD LEAD (YELLOW/AMBER as requested) */}
                       <button 
                         onClick={() => handleMetricClick('cold')}
                         className={cn(
@@ -452,21 +466,6 @@ export default function AnalyticsPage() {
                           </PieChart>
                         </ResponsiveContainer>
                       </div>
-                      
-                      <div className="flex items-center gap-6 mt-2">
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-full bg-[#ef4444]" />
-                          <span className="text-[11px] font-bold text-muted-foreground uppercase">Hot ({stats.hot})</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-full bg-[#3b82f6]" />
-                          <span className="text-[11px] font-bold text-muted-foreground uppercase">Warm ({stats.warm})</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-full bg-[#f59e0b]" />
-                          <span className="text-[11px] font-bold text-muted-foreground uppercase">Cold ({stats.cold})</span>
-                        </div>
-                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -491,7 +490,7 @@ export default function AnalyticsPage() {
 
               </div>
 
-              {/* RIGHT COLUMN: Geography Dashbaord & Predicted Closures */}
+              {/* RIGHT COLUMN: Geography Dashboard & Sales Forecast */}
               <div className="flex flex-col gap-8">
                 <GeographyPerformanceChart 
                   leads={filteredLeads} 
@@ -510,22 +509,25 @@ export default function AnalyticsPage() {
                   <CardTitle className="text-base uppercase">
                     Details: <span className={cn(
                       "font-black",
-                      selectedMetric === 'hot' && "text-red-600",
+                      (selectedMetric === 'hot' || selectedMetric === 'totalLeads') && "text-red-600",
                       selectedMetric === 'warm' && "text-blue-600",
                       selectedMetric === 'cold' && "text-amber-600",
-                      (selectedMetric === 'leads' || selectedMetric === 'deals' || selectedMetric === 'won') && "text-primary",
+                      (selectedMetric === 'leads' || selectedMetric === 'deals' || selectedMetric === 'won' || selectedMetric === 'totalDeals' || selectedMetric === 'totalWon') && "text-primary",
                       isSourceMetric && "text-primary",
-                      (!isPerformanceMetric && !isSourceMetric) && "text-primary"
+                      (!isTotalMetric && !isSourceMetric) && "text-primary"
                     )}>
-                      {selectedMetric === 'leads' ? 'Leads Created' : 
+                      {selectedMetric === 'totalLeads' ? 'Total Leads Created (Lifetime)' : 
+                       selectedMetric === 'totalDeals' ? 'Total Deals Created (Lifetime)' : 
+                       selectedMetric === 'totalWon' ? 'Total Deals Won (Lifetime)' :
+                       selectedMetric === 'leads' ? 'Leads Created' : 
                        selectedMetric === 'deals' ? 'Deals Created' : 
                        selectedMetric === 'won' ? 'Deals Won' : 
                        selectedMetric === 'hot' ? 'Hot Leads' : 
                        selectedMetric === 'warm' ? 'Warm Leads' : 
                        selectedMetric === 'cold' ? 'Cold Leads' : 
                        isSourceMetric ? `Source: ${selectedMetric.toUpperCase()}` :
-                       isPerformanceMetric ? `Status: ${selectedMetric}` : `Region: ${selectedMetric.toUpperCase()}`}
-                    </span> ({metricLeads.length} Records in {format(filterDate, 'MMM yyyy')})
+                       `Region: ${selectedMetric.toUpperCase()}`}
+                    </span> ({metricLeads.length} Records {isTotalMetric ? 'Total' : `in ${format(filterDate, 'MMM yyyy')}`})
                   </CardTitle>
                   <button 
                     onClick={() => setSelectedMetric(null)} 
@@ -595,7 +597,7 @@ export default function AnalyticsPage() {
                         ) : (
                           <TableRow>
                             <TableCell colSpan={15} className="h-24 text-center">
-                              No records found for this metric in {format(filterDate, 'MMMM yyyy')}.
+                              No records found for this metric.
                             </TableCell>
                           </TableRow>
                         )}
