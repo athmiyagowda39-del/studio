@@ -5,8 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { format, differenceInDays } from 'date-fns';
-import { Target, CheckCircle2, Calendar, Clock, ArrowRight } from 'lucide-react';
+import { differenceInDays } from 'date-fns';
+import { Target, CheckCircle2, ArrowRight } from 'lucide-react';
 import type { LeadFormData } from '@/components/leads/lead-upload-form';
 import { cn } from '@/lib/utils';
 import {
@@ -109,7 +109,7 @@ export default function PredictedLeadClosures({ leads }: PredictedLeadClosuresPr
                   </div>
                   <Badge className={cn("font-bold px-3 py-1 gap-1.5 rounded-full border shadow-none", lead.colorClass)}>
                     <CheckCircle2 className="h-3.5 w-3.5" />
-                    {lead.statusLabel}
+                    {statusLabel}
                   </Badge>
                 </div>
 
@@ -125,16 +125,6 @@ export default function PredictedLeadClosures({ leads }: PredictedLeadClosuresPr
                   <div className="flex items-center gap-2 text-emerald-600">
                     <span className="font-bold">₹ {parseInt(lead.annualContractValue || lead.monthlyContractValue || "0").toLocaleString('en-IN')}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4" />
-                    {lead.nextFollowUpDate ? format(new Date(lead.nextFollowUpDate), 'dd MMM yyyy') : 'TBD'}
-                  </div>
-                  {lead.daysLeft !== null && (
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4" />
-                      {lead.daysLeft}d left
-                    </div>
-                  )}
                   <div className="flex items-center gap-2">
                     <ArrowRight className="h-4 w-4" />
                     {lead.reference || 'Organic'}
