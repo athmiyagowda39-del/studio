@@ -347,12 +347,6 @@ export default function LeadUpdateForm({ leadId, onClearSelection }: { leadId: s
   const inputBgClass = "bg-muted/50";
   const isOrderClosedInRemarks = remarks.toLowerCase().includes("order closed");
 
-  // Re-enable min date restriction (e.g. last 3 days)
-  const today = new Date();
-  const minBackDate = new Date();
-  minBackDate.setDate(today.getDate() - 3);
-  const minDateStr = minBackDate.toISOString().split('T')[0];
-
   return (
     <div className="space-y-6">
       {isReadOnly && <Alert variant="default"><Info className="h-4 w-4" /><AlertTitle>Read-Only Mode</AlertTitle></Alert>}
@@ -513,7 +507,6 @@ export default function LeadUpdateForm({ leadId, onClearSelection }: { leadId: s
                 <Input 
                   type="date" 
                   value={followUpDate} 
-                  min={minDateStr}
                   onChange={e => setFollowUpDate(e.target.value)} 
                   disabled={isReadOnly} 
                 />
