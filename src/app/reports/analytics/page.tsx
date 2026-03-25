@@ -143,31 +143,6 @@ export default function AnalyticsPage() {
     };
   }, [filteredLeads]);
 
-  const metricLeads = useMemo(() => {
-    if (!selectedMetric || !filteredLeads.length) return [];
-
-    const dealsCreatedStatuses = ["Demo Given", "Proposal Sent", "Quote Sent", "Pursuing to Purchase"];
-
-    if (selectedMetric === 'leads') return filteredLeads;
-    if (selectedMetric === 'deals') return filteredLeads.filter(l => dealsCreatedStatuses.includes(l.status || ""));
-    if (selectedMetric === 'won') return filteredLeads.filter(l => l.status === "Order closed");
-    
-    if (selectedMetric === 'hot') return filteredLeads.filter(l => HOT_STATUSES.includes(l.status || ""));
-    if (selectedMetric === 'warm') return filteredLeads.filter(l => WARM_STATUSES.includes(l.status || ""));
-    if (selectedMetric === 'cold') return filteredLeads.filter(l => COLD_STATUSES.includes(l.status || ""));
-    
-    // Check if it's a specific status filter
-    const statusLeads = filteredLeads.filter(l => l.status === selectedMetric);
-    if (statusLeads.length > 0) return statusLeads;
-
-    // Finally, check if it's a specific state filter
-    return filteredLeads.filter(l => {
-      const normalizedState = (l.state || '').trim().toLowerCase();
-      const normalizedSelected = selectedMetric.trim().toLowerCase();
-      return normalizedState === normalizedSelected;
-    });
-  }, [selectedMetric, filteredLeads]);
-
   const sourceData = useMemo(() => {
     if (!filteredLeads.length) return [];
     
@@ -196,6 +171,45 @@ export default function AnalyticsPage() {
     return Array.from(counts.values())
       .sort((a, b) => b.value - a.value);
   }, [filteredLeads]);
+
+  const metricLeads = useMemo(() => {
+    if (!selectedMetric || !filteredLeads.length) return [];
+
+    const dealsCreatedStatuses = ["Demo Given", "Proposal Sent", "Quote Sent", "Pursuing to Purchase"];
+
+    if (selectedMetric === 'leads') return filteredLeads;
+    if (selectedMetric === 'deals') return filteredLeads.filter(l => dealsCreatedStatuses.includes(l.status || ""));
+    if (selectedMetric === 'won') return filteredLeads.filter(l => l.status === "Order closed");
+    
+    if (selectedMetric === 'hot') return filteredLeads.filter(l => HOT_STATUSES.includes(l.status || ""));
+    if (selectedMetric === 'warm') return filteredLeads.filter(l => WARM_STATUSES.includes(l.status || ""));
+    if (selectedMetric === 'cold') return filteredLeads.filter(l => COLD_STATUSES.includes(l.status || ""));
+    
+    // Check if it's a specific status filter
+    const statusLeads = filteredLeads.filter(l => l.status === selectedMetric);
+    if (statusLeads.length > 0) return statusLeads;
+
+    // Check if it matches a Lead Source (Reference)
+    const sourceLeads = filteredLeads.filter(l => {
+      let rawName = (l.reference || 'Other').trim();
+      if (!rawName) rawName = 'Other';
+      let normalized = rawName
+        .toLowerCase()
+        .split(/\s+/)
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+      if (normalized === 'Refferal') normalized = 'Referral';
+      return normalized === selectedMetric;
+    });
+    if (sourceLeads.length > 0) return sourceLeads;
+
+    // Finally, check if it's a specific state filter
+    return filteredLeads.filter(l => {
+      const normalizedState = (l.state || '').trim().toLowerCase();
+      const normalizedSelected = selectedMetric.trim().toLowerCase();
+      return normalizedState === normalizedSelected;
+    });
+  }, [selectedMetric, filteredLeads]);
 
   const temperatureChartData = useMemo(() => {
     return [
@@ -232,8 +246,9 @@ export default function AnalyticsPage() {
   const totalTemp = stats.hot + stats.warm + stats.cold;
   const getPct = (val: number) => totalTemp > 0 ? ((val / totalTemp) * 100).toFixed(1) : "0.0";
 
-  // Check if selectedMetric is a known performance metric or a state
+  // Check if selectedMetric is a known performance metric or a state or a source
   const isPerformanceMetric = ['leads', 'deals', 'won', 'hot', 'warm', 'cold'].includes(selectedMetric as string);
+  const isSourceMetric = sourceData.some(s => s.name === selectedMetric);
 
   return (
     <AppContent>
@@ -464,7 +479,7 @@ export default function AnalyticsPage() {
                   </CardHeader>
                   <CardContent className="p-0 flex items-center justify-center min-h-[400px]">
                     {isClient && sourceData.length > 0 ? (
-                      <LeadSourceChart data={sourceData} />
+                      <LeadSourceChart data={sourceData} onSourceClick={(sourceName) => handleMetricClick(sourceName)} />
                     ) : (
                       <div className="h-[400px] flex items-center justify-center text-muted-foreground flex-col gap-2">
                         <BarChart3 className="h-12 w-12 opacity-20" />
@@ -497,7 +512,8 @@ export default function AnalyticsPage() {
                       selectedMetric === 'warm' && "text-blue-600",
                       selectedMetric === 'cold' && "text-amber-600",
                       (selectedMetric === 'leads' || selectedMetric === 'deals' || selectedMetric === 'won') && "text-primary",
-                      !isPerformanceMetric && "text-primary"
+                      isSourceMetric && "text-primary",
+                      (!isPerformanceMetric && !isSourceMetric) && "text-primary"
                     )}>
                       {selectedMetric === 'leads' ? 'Leads Created' : 
                        selectedMetric === 'deals' ? 'Deals Created' : 
@@ -505,6 +521,7 @@ export default function AnalyticsPage() {
                        selectedMetric === 'hot' ? 'Hot Leads' : 
                        selectedMetric === 'warm' ? 'Warm Leads' : 
                        selectedMetric === 'cold' ? 'Cold Leads' : 
+                       isSourceMetric ? `Source: ${selectedMetric.toUpperCase()}` :
                        isPerformanceMetric ? `Status: ${selectedMetric}` : `Region: ${selectedMetric.toUpperCase()}`}
                     </span> ({metricLeads.length} Records in {format(filterDate, 'MMM yyyy')})
                   </CardTitle>

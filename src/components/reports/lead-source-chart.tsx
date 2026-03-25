@@ -10,7 +10,8 @@ import {
 } from "recharts"
 
 type LeadSourceChartProps = {
-  data: { name: string; value: number }[]
+  data: { name: string; value: number }[];
+  onSourceClick?: (sourceName: string) => void;
 }
 
 const SOURCE_COLORS: Record<string, string> = {
@@ -45,7 +46,7 @@ const COLORS = [
   "#ef4444", 
 ];
 
-export default function LeadSourceChart({ data }: LeadSourceChartProps) {
+export default function LeadSourceChart({ data, onSourceClick }: LeadSourceChartProps) {
   const totalLeads = data.reduce((acc, curr) => acc + curr.value, 0);
 
   const renderCustomizedLabel = (props: any) => {
@@ -137,6 +138,11 @@ export default function LeadSourceChart({ data }: LeadSourceChartProps) {
               strokeWidth={3}
               paddingAngle={1}
               minAngle={25} 
+              onClick={(pieData) => {
+                if (pieData && pieData.name) {
+                  onSourceClick?.(pieData.name);
+                }
+              }}
             >
               {data.map((entry, index) => {
                 const normalizedName = entry.name.toUpperCase().trim();
