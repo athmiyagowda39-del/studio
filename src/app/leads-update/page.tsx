@@ -105,7 +105,7 @@ export default function LeadsUpdatePage() {
   const [showFilters, setShowFilters] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState<TabValue>('all');
-  const [searchField, setSearchField] = useState('leadId');
+  const [searchField, setSearchField] = useState('all');
 
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
@@ -135,7 +135,7 @@ export default function LeadsUpdatePage() {
   
   const [stagedFilters, setStagedFilters] = useState({
     searchTerm: '',
-    searchField: 'leadId',
+    searchField: 'all',
     fromDate: '',
     toDate: '',
     selectedModules: '',
@@ -223,6 +223,15 @@ export default function LeadsUpdatePage() {
                     if (term === 'cold') tempMatch = !!lead.status && COLD_STATUSES.includes(lead.status);
                     
                     if (!tempMatch) {
+                        match = false;
+                    }
+                } else if (filters.searchField === 'all') {
+                    // Global search across multiple relevant fields
+                    const searchableFields = ['leadId', 'company', 'contactPerson', 'contactNumber', 'district', 'state', 'email', 'reference', 'address', 'executive', 'manager', 'givenBy'];
+                    const isMatch = searchableFields.some(field => 
+                        String((lead as any)[field] || '').toLowerCase().includes(term)
+                    );
+                    if (!isMatch) {
                         match = false;
                     }
                 } else {
@@ -423,7 +432,7 @@ export default function LeadsUpdatePage() {
   
   const handleResetFilters = () => {
     const initialFilters = {
-      searchTerm: '', searchField: 'leadId', fromDate: '', toDate: '',
+      searchTerm: '', searchField: 'all', fromDate: '', toDate: '',
       selectedModules: '', selectedExecutive: 'all', selectedManager: 'all', givenBy: 'all', selectedStatus: 'all',
       selectedSubStatus: 'all', selectedLeadSource: 'all', considerStatus: false,
       applyFollowUpFilter: false,
@@ -752,6 +761,10 @@ export default function LeadsUpdatePage() {
                   <div className="flex flex-wrap items-center gap-4 py-2 border-b">
                     <Label className="font-medium shrink-0">Search for:</Label>
                     <RadioGroup value={searchField} onValueChange={setSearchField} className="flex flex-wrap gap-4">
+                      <div className="flex items-center gap-2">
+                        <RadioGroupItem value="all" id="sf-all" />
+                        <Label htmlFor="sf-all">All Fields</Label>
+                      </div>
                       <div className="flex items-center gap-2">
                         <RadioGroupItem value="leadId" id="sf-leadId" />
                         <Label htmlFor="sf-leadId">Lead ID</Label>
