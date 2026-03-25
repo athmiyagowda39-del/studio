@@ -105,6 +105,7 @@ export default function LeadsUpdatePage() {
 
   const [showFilters, setShowFilters] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchField, setSearchField] = useState('leadId');
   const [activeTab, setActiveTab] = useState<TabValue>('all');
 
   const [fromDate, setFromDate] = useState('');
@@ -135,6 +136,7 @@ export default function LeadsUpdatePage() {
   
   const [stagedFilters, setStagedFilters] = useState({
     searchTerm: '',
+    searchField: 'leadId',
     fromDate: '',
     toDate: '',
     selectedModules: '',
@@ -211,7 +213,7 @@ export default function LeadsUpdatePage() {
         leadsToShow = visibleLeads.filter(lead => {
             let match = true;
 
-            // Global Search Term (Checks all key fields)
+            // Global Search Term (Checks all key fields or specific field)
             if (filters.searchTerm) {
                 const term = filters.searchTerm.toLowerCase().trim();
                 const isTemperatureKeyword = ['hot', 'warm', 'cold'].includes(term);
@@ -227,16 +229,10 @@ export default function LeadsUpdatePage() {
                         match = false;
                     }
                 } else {
-                    // General Broad Search Match
-                    const leadIdMatch = lead.leadId?.toLowerCase().includes(term);
-                    const companyMatch = lead.company?.toLowerCase().includes(term);
-                    const contactMatch = lead.contactPerson?.toLowerCase().includes(term);
-                    const phoneMatch = lead.contactNumber?.toLowerCase().includes(term);
-                    const districtMatch = lead.district?.toLowerCase().includes(term);
-                    const stateMatch = lead.state?.toLowerCase().includes(term);
-                    const emailMatch = lead.email?.toLowerCase().includes(term);
-
-                    if (!(leadIdMatch || companyMatch || contactMatch || phoneMatch || districtMatch || stateMatch || emailMatch)) {
+                    // Targeted Search Match based on selected field
+                    const fieldKey = filters.searchField as keyof LeadFormData;
+                    const valToSearch = String(lead[fieldKey] || "").toLowerCase();
+                    if (!valToSearch.includes(term)) {
                         match = false;
                     }
                 }
@@ -400,6 +396,7 @@ export default function LeadsUpdatePage() {
   const handleShowButtonClick = () => {
       const currentFilters = {
         searchTerm,
+        searchField,
         fromDate,
         toDate,
         selectedModules,
@@ -431,7 +428,7 @@ export default function LeadsUpdatePage() {
   
   const handleResetFilters = () => {
     const initialFilters = {
-      searchTerm: '', fromDate: '', toDate: '',
+      searchTerm: '', searchField: 'leadId', fromDate: '', toDate: '',
       selectedModules: '', selectedExecutive: 'all', selectedManager: 'all', givenBy: 'all', selectedStatus: 'all',
       selectedSubStatus: 'all', selectedLeadSource: 'all', considerStatus: false,
       applyFollowUpFilter: false,
@@ -440,6 +437,7 @@ export default function LeadsUpdatePage() {
     };
     
     setSearchTerm(initialFilters.searchTerm);
+    setSearchField(initialFilters.searchField);
     setFromDate(initialFilters.fromDate);
     setToDate(initialFilters.toDate);
     setSelectedModules(initialFilters.selectedModules);
@@ -727,6 +725,52 @@ export default function LeadsUpdatePage() {
               </span>
             </div>
 
+            <div className="flex flex-wrap items-center gap-4 px-4 py-3 bg-background border rounded-md shadow-sm">
+                <span className="text-sm font-bold text-muted-foreground whitespace-nowrap">Search for:</span>
+                <RadioGroup 
+                    value={searchField} 
+                    onValueChange={(val) => {
+                        setSearchField(val);
+                        // Apply changes immediately if searching
+                        const newFilters = { ...stagedFilters, searchField: val };
+                        setStagedFilters(newFilters);
+                        if (activeTab === 'search-result') {
+                            applyAndSetFilters('search-result', newFilters);
+                        }
+                    }} 
+                    className="flex flex-wrap gap-x-6 gap-y-2"
+                >
+                    <div className="flex items-center gap-2">
+                        <RadioGroupItem value="leadId" id="sf-leadId" />
+                        <Label htmlFor="sf-leadId" className="text-sm font-medium cursor-pointer hover:text-primary transition-colors">Lead ID</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <RadioGroupItem value="company" id="sf-company" />
+                        <Label htmlFor="sf-company" className="text-sm font-medium cursor-pointer hover:text-primary transition-colors">Company</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <RadioGroupItem value="contactPerson" id="sf-contactPerson" />
+                        <Label htmlFor="sf-contactPerson" className="text-sm font-medium cursor-pointer hover:text-primary transition-colors">Contact Person</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <RadioGroupItem value="contactNumber" id="sf-phone" />
+                        <Label htmlFor="sf-phone" className="text-sm font-medium cursor-pointer hover:text-primary transition-colors">Phone</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <RadioGroupItem value="district" id="sf-district" />
+                        <Label htmlFor="sf-district" className="text-sm font-medium cursor-pointer hover:text-primary transition-colors">District</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <RadioGroupItem value="state" id="sf-state" />
+                        <Label htmlFor="sf-state" className="text-sm font-medium cursor-pointer hover:text-primary transition-colors">State</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <RadioGroupItem value="email" id="sf-email" />
+                        <Label htmlFor="sf-email" className="text-sm font-medium cursor-pointer hover:text-primary transition-colors">Email</Label>
+                    </div>
+                </RadioGroup>
+            </div>
+
             {showFilters && (
               <Card>
                 <CardContent className="p-4 space-y-4">
@@ -735,7 +779,7 @@ export default function LeadsUpdatePage() {
                         <Label htmlFor="search" className="font-medium shrink-0">Search</Label>
                         <Input 
                           id="search" 
-                          placeholder="Search Lead ID, Company, Name, Phone..." 
+                          placeholder={`Search by ${searchField === 'contactNumber' ? 'Phone' : searchField}...`}
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}
                         />
@@ -1169,7 +1213,7 @@ export default function LeadsUpdatePage() {
                   <div className="relative w-full md:w-72">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                      placeholder="Quick filter search result..."
+                      placeholder={`Search ${searchField === 'contactNumber' ? 'Phone' : searchField}...`}
                       value={searchTerm}
                       onChange={(e) => {
                         const newTerm = e.target.value;
