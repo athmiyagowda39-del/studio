@@ -105,6 +105,7 @@ export default function LeadsUpdatePage() {
   const [showFilters, setShowFilters] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState<TabValue>('all');
+  const [searchField, setSearchField] = useState('leadId');
 
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
@@ -134,6 +135,7 @@ export default function LeadsUpdatePage() {
   
   const [stagedFilters, setStagedFilters] = useState({
     searchTerm: '',
+    searchField: 'leadId',
     fromDate: '',
     toDate: '',
     selectedModules: '',
@@ -224,24 +226,9 @@ export default function LeadsUpdatePage() {
                         match = false;
                     }
                 } else {
-                    const fieldsToSearch = [
-                        lead.leadId,
-                        lead.company,
-                        lead.contactPerson,
-                        lead.contactNumber,
-                        lead.email,
-                        lead.address,
-                        lead.district,
-                        lead.state,
-                        lead.reference,
-                        lead.executive,
-                        lead.manager,
-                        lead.givenBy,
-                        lead.initialRemarks
-                    ];
-                    
-                    const searchableString = fieldsToSearch.join(' ').toLowerCase();
-                    if (!searchableString.includes(term)) {
+                    // Specific field search
+                    const fieldValue = String((lead as any)[filters.searchField] || '').toLowerCase();
+                    if (!fieldValue.includes(term)) {
                         match = false;
                     }
                 }
@@ -404,6 +391,7 @@ export default function LeadsUpdatePage() {
   const handleShowButtonClick = () => {
       const currentFilters = {
         searchTerm,
+        searchField,
         fromDate,
         toDate,
         selectedModules,
@@ -435,7 +423,7 @@ export default function LeadsUpdatePage() {
   
   const handleResetFilters = () => {
     const initialFilters = {
-      searchTerm: '', fromDate: '', toDate: '',
+      searchTerm: '', searchField: 'leadId', fromDate: '', toDate: '',
       selectedModules: '', selectedExecutive: 'all', selectedManager: 'all', givenBy: 'all', selectedStatus: 'all',
       selectedSubStatus: 'all', selectedLeadSource: 'all', considerStatus: false,
       applyFollowUpFilter: false,
@@ -444,6 +432,7 @@ export default function LeadsUpdatePage() {
     };
     
     setSearchTerm(initialFilters.searchTerm);
+    setSearchField(initialFilters.searchField);
     setFromDate(initialFilters.fromDate);
     setToDate(initialFilters.toDate);
     setSelectedModules(initialFilters.selectedModules);
@@ -739,7 +728,7 @@ export default function LeadsUpdatePage() {
                         <Label htmlFor="search" className="font-medium shrink-0">Search</Label>
                         <Input 
                           id="search" 
-                          placeholder="Search leads..."
+                          placeholder="Leave empty for all"
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}
                         />
@@ -758,6 +747,40 @@ export default function LeadsUpdatePage() {
                           </div>
                         </RadioGroup>
                     </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-4 py-2 border-b">
+                    <Label className="font-medium shrink-0">Search for:</Label>
+                    <RadioGroup value={searchField} onValueChange={setSearchField} className="flex flex-wrap gap-4">
+                      <div className="flex items-center gap-2">
+                        <RadioGroupItem value="leadId" id="sf-leadId" />
+                        <Label htmlFor="sf-leadId">Lead ID</Label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <RadioGroupItem value="company" id="sf-company" />
+                        <Label htmlFor="sf-company">Company</Label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <RadioGroupItem value="contactPerson" id="sf-contact" />
+                        <Label htmlFor="sf-contact">Contact Person</Label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <RadioGroupItem value="contactNumber" id="sf-phone" />
+                        <Label htmlFor="sf-phone">Phone</Label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <RadioGroupItem value="district" id="sf-district" />
+                        <Label htmlFor="sf-district">District</Label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <RadioGroupItem value="state" id="sf-state" />
+                        <Label htmlFor="sf-state">State</Label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <RadioGroupItem value="email" id="sf-email" />
+                        <Label htmlFor="sf-email">Email</Label>
+                      </div>
+                    </RadioGroup>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
@@ -1184,7 +1207,7 @@ export default function LeadsUpdatePage() {
                           setActiveTab('search-result');
                         }
                         
-                        const currentFilters = { ...stagedFilters, searchTerm: newTerm };
+                        const currentFilters = { ...stagedFilters, searchTerm: newTerm, searchField };
                         setStagedFilters(currentFilters);
                         applyAndSetFilters('search-result', currentFilters);
                       }}
