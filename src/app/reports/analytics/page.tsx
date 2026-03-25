@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,6 +24,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
 import GeographyPerformanceChart from '@/components/reports/geography-performance-chart';
+import PredictedLeadClosures from '@/components/reports/predicted-lead-closures';
 
 const LeadSourceChart = dynamic(
   () => import('@/components/reports/lead-source-chart'),
@@ -339,8 +339,8 @@ export default function AnalyticsPage() {
                         onClick={() => handleMetricClick('deals')}
                       >
                         <div className="flex items-center gap-6">
-                          <div className="w-[5px] h-8 bg-blue-500 rounded-full" />
-                          <span className="font-bold text-[11px] uppercase tracking-[0.15em] text-muted-foreground group-hover:text-blue-500 transition-colors">Deals Created</span>
+                          <div className="w-[5px] h-8 bg-blue-50 rounded-full" />
+                          <span className="font-bold text-[11px] uppercase tracking-[0.15em] text-muted-foreground group-hover:text-blue-50 transition-colors">Deals Created</span>
                         </div>
                         <div className="flex items-center gap-4">
                           <span className="text-4xl font-bold tracking-tighter text-foreground">{stats.deals}</span>
@@ -491,12 +491,14 @@ export default function AnalyticsPage() {
 
               </div>
 
-              {/* RIGHT COLUMN: Geography Dashbaord */}
-              <div>
+              {/* RIGHT COLUMN: Geography Dashbaord & Predicted Closures */}
+              <div className="flex flex-col gap-8">
                 <GeographyPerformanceChart 
                   leads={filteredLeads} 
                   onRegionClick={(stateName) => handleMetricClick(stateName)} 
                 />
+                
+                <PredictedLeadClosures leads={visibleLeads} />
               </div>
 
             </div>
